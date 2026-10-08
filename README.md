@@ -17,6 +17,11 @@ rojo serve             # poi "Connect" dal plugin Rojo in Studio
 rojo build -o build/IlVivaioDelleNuvole.rbxlx
 ```
 
+**Opzione C – pubblicazione via Open Cloud** (l'esperienza di test è "Cloud Garden", universe `10769836705`, place `103319589301496`)
+```bash
+python3 tools/publish.py --universe 10769836705 --place 103319589301496   # build + publish
+```
+
 **Test e simulazione economica** (richiede il CLI `luau`):
 ```bash
 python3 scripts/run_tests.py            # 85 test sui moduli condivisi + simulazione del bilanciamento
