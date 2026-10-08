@@ -13,6 +13,7 @@ local Shared = ReplicatedStorage.Shared
 local Config = require(Shared.Config)
 local Strings = require(Shared.Strings)
 local PartUtil = require(Shared.Models.PartUtil)
+local MeshUtil = require(Shared.Models.MeshUtil)
 local PlotBuilder = require(Shared.Models.PlotBuilder)
 local Simulated = require(Shared.Catalog.SimulatedVivai)
 
@@ -68,7 +69,8 @@ end
 local function station(parent, cf, name, promptText, stationId, color)
 	local m = PartUtil.Model(name, parent)
 	m:SetAttribute("Station", stationId)
-	local base = PartUtil.Cylinder(4.5, 0.6, color, cf * CFrame.new(0, 0.3, 0), m, { Material = Enum.Material.Marble, Name = "Base" })
+	local base = MeshUtil.Make("platform_pad", Vector3.new(9, 0.7, 9), { Color = color, Material = Enum.Material.Marble, CFrame = cf * CFrame.new(0, 0.35, 0), Parent = m, Name = "Base", CanCollide = true })
+		or PartUtil.Cylinder(4.5, 0.6, color, cf * CFrame.new(0, 0.3, 0), m, { Material = Enum.Material.Marble, Name = "Base" })
 	local prompt = PartUtil.Prompt(base, promptText, "", 0, 14)
 	prompt.Name = "StationPrompt"
 	prompt:SetAttribute("Station", stationId)
@@ -78,8 +80,11 @@ end
 
 local function buildTree(parent, cf)
 	local m = PartUtil.Model("AlberoDelleNuvole", parent)
-	PartUtil.Cylinder(2.6, 18, Color3.fromRGB(130, 100, 80), cf * CFrame.new(0, 9, 0), m, { Material = Enum.Material.Wood, Name = "Trunk" })
-	PartUtil.Cylinder(4.2, 1.2, Color3.fromRGB(120, 90, 70), cf * CFrame.new(0, 0.6, 0), m, { Material = Enum.Material.Wood, Name = "Roots" })
+	local trunk = MeshUtil.Make("trunk", { Height = 18.5 }, { Color = Color3.fromRGB(130, 100, 80), Material = Enum.Material.Wood, CFrame = cf * CFrame.new(0, 9.25, 0), Parent = m, Name = "Trunk", CanCollide = true })
+	if not trunk then
+		PartUtil.Cylinder(2.6, 18, Color3.fromRGB(130, 100, 80), cf * CFrame.new(0, 9, 0), m, { Material = Enum.Material.Wood, Name = "Trunk" })
+		PartUtil.Cylinder(4.2, 1.2, Color3.fromRGB(120, 90, 70), cf * CFrame.new(0, 0.6, 0), m, { Material = Enum.Material.Wood, Name = "Roots" })
+	end
 	local rng = Random.new(7)
 	for i = 1, 4 do
 		local a = i * 1.6
@@ -99,14 +104,18 @@ end
 
 local function buildRaidPortal(parent, cf)
 	local m = station(parent, cf, "PortaleIncursioni", Strings.PromptRaidPortal, "raid", Color3.fromRGB(255, 170, 220))
-	local ring = PartUtil.Part({ Shape = Enum.PartType.Cylinder, Size = Vector3.new(1.2, 14, 14), Color = Color3.fromRGB(250, 250, 255), Material = Enum.Material.Marble, CFrame = cf * CFrame.new(0, 7.6, 0) * CFrame.Angles(0, 0, 0), Parent = m, Name = "Ring", CanCollide = false })
-	ring.CFrame = cf * CFrame.new(0, 7.6, 0) * CFrame.Angles(0, math.rad(90), 0)
+	local ring = MeshUtil.Make("portal_ring", { Width = 14.5 }, { Color = Color3.fromRGB(250, 250, 255), Material = Enum.Material.Marble, CFrame = cf * CFrame.new(0, 7.6, 0), Parent = m, Name = "Ring" })
+	if not ring then
+		ring = PartUtil.Part({ Shape = Enum.PartType.Cylinder, Size = Vector3.new(1.2, 14, 14), Color = Color3.fromRGB(250, 250, 255), Material = Enum.Material.Marble, CFrame = cf * CFrame.new(0, 7.6, 0), Parent = m, Name = "Ring", CanCollide = false })
+		ring.CFrame = cf * CFrame.new(0, 7.6, 0) * CFrame.Angles(0, math.rad(90), 0)
+	end
 	local inner = PartUtil.Part({ Shape = Enum.PartType.Cylinder, Size = Vector3.new(0.4, 12, 12), Color = Color3.fromRGB(255, 170, 220), Material = Enum.Material.ForceField, Transparency = 0.2, CFrame = cf * CFrame.new(0, 7.6, 0) * CFrame.Angles(0, math.rad(90), 0), Parent = m, Name = "Swirl", CanCollide = false, CanQuery = false })
 	inner:SetAttribute("Anim", "spinZ")
 	PartUtil.Light(inner, Color3.fromRGB(255, 170, 220), 2, 30)
 	PartUtil.Emitter(inner, { Color = Color3.fromRGB(255, 200, 240), Rate = 20, Speed = NumberRange.new(1, 3), Lifetime = NumberRange.new(1, 2), Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.4), NumberSequenceKeypoint.new(1, 0) }), Name = "Motes" })
 	for _, dx in ipairs({ -7.5, 7.5 }) do
-		PartUtil.Part({ Size = Vector3.new(1.6, 3, 1.6), Color = Color3.fromRGB(230, 232, 245), Material = Enum.Material.Marble, CFrame = cf * CFrame.new(dx, 1.5, 0), Parent = m, Name = "Pillar" })
+		local _ = MeshUtil.Make("pillar", { Height = 4 }, { Color = Color3.fromRGB(230, 232, 245), Material = Enum.Material.Marble, CFrame = cf * CFrame.new(dx, 2, 0), Parent = m, Name = "Pillar", CanCollide = true })
+			or PartUtil.Part({ Size = Vector3.new(1.6, 3, 1.6), Color = Color3.fromRGB(230, 232, 245), Material = Enum.Material.Marble, CFrame = cf * CFrame.new(dx, 1.5, 0), Parent = m, Name = "Pillar" })
 	end
 end
 
@@ -154,7 +163,8 @@ local function buildGallery(parent, cf)
 	for i = -1, 1 do
 		local x = i * 7
 		for _, dx in ipairs({ -2.6, 2.6 }) do
-			PartUtil.Part({ Size = Vector3.new(0.8, 7, 0.8), Color = Color3.fromRGB(240, 242, 252), Material = Enum.Material.Marble, CFrame = cf * CFrame.new(x + dx, 3.5, -3), Parent = m, Name = "Column" })
+			local _ = MeshUtil.Make("pillar", { Height = 7 }, { Color = Color3.fromRGB(240, 242, 252), Material = Enum.Material.Marble, CFrame = cf * CFrame.new(x + dx, 3.5, -3), Parent = m, Name = "Column", CanCollide = true })
+				or PartUtil.Part({ Size = Vector3.new(0.8, 7, 0.8), Color = Color3.fromRGB(240, 242, 252), Material = Enum.Material.Marble, CFrame = cf * CFrame.new(x + dx, 3.5, -3), Parent = m, Name = "Column" })
 		end
 		PartUtil.Part({ Size = Vector3.new(6, 0.8, 0.8), Color = Color3.fromRGB(240, 242, 252), Material = Enum.Material.Marble, CFrame = cf * CFrame.new(x, 7.2, -3), Parent = m, Name = "Lintel" })
 		local frame = PartUtil.Part({ Size = Vector3.new(4.4, 4.4, 0.3), Color = ({ Color3.fromRGB(255, 190, 70), Color3.fromRGB(96, 160, 240), Color3.fromRGB(196, 130, 255) })[i + 2], Material = Enum.Material.Neon, Transparency = 0.35, CFrame = cf * CFrame.new(x, 4, -3), Parent = m, Name = "Frame", CanCollide = false })
@@ -166,14 +176,17 @@ local function buildShop(parent, cf)
 	local m = station(parent, cf, "Bottega", Strings.PromptShop, "shop", Color3.fromRGB(226, 142, 255))
 	PartUtil.Part({ Size = Vector3.new(8, 2.4, 3), Color = Color3.fromRGB(200, 160, 120), Material = Enum.Material.WoodPlanks, CFrame = cf * CFrame.new(0, 1.2, -2), Parent = m, Name = "Counter" })
 	for _, dx in ipairs({ -3.6, 3.6 }) do
-		PartUtil.Part({ Size = Vector3.new(0.5, 7, 0.5), Color = Color3.fromRGB(130, 100, 80), Material = Enum.Material.Wood, CFrame = cf * CFrame.new(dx, 3.5, -3.5), Parent = m, Name = "Post" })
+		local _ = MeshUtil.Make("post", { Height = 7 }, { Color = Color3.fromRGB(130, 100, 80), Material = Enum.Material.Wood, CFrame = cf * CFrame.new(dx, 3.5, -3.5), Parent = m, Name = "Post", CanCollide = true })
+			or PartUtil.Part({ Size = Vector3.new(0.5, 7, 0.5), Color = Color3.fromRGB(130, 100, 80), Material = Enum.Material.Wood, CFrame = cf * CFrame.new(dx, 3.5, -3.5), Parent = m, Name = "Post" })
 	end
 	for i = 0, 3 do
 		local col = (i % 2 == 0) and Color3.fromRGB(226, 142, 255) or Color3.fromRGB(250, 250, 255)
 		PartUtil.Part({ Size = Vector3.new(2.2, 0.3, 4.5), Color = col, Material = Enum.Material.Fabric, CFrame = cf * CFrame.new(-3.3 + i * 2.2, 7, -2) * CFrame.Angles(math.rad(-12), 0, 0), Parent = m, Name = "Awning", CanCollide = false })
 	end
 	for i = 1, 3 do
-		local gem = PartUtil.Part({ Size = Vector3.new(0.9, 1.3, 0.9), Color = ({ Color3.fromRGB(255, 200, 90), Color3.fromRGB(150, 210, 255), Color3.fromRGB(255, 160, 220) })[i], Material = Enum.Material.Glass, Transparency = 0.15, Reflectance = 0.3, CFrame = cf * CFrame.new(-2.5 + i * 1.6, 3.1, -2) * CFrame.Angles(0, math.rad(45), 0), Parent = m, Name = "Gem", CanCollide = false })
+		local gemColor = ({ Color3.fromRGB(255, 200, 90), Color3.fromRGB(150, 210, 255), Color3.fromRGB(255, 160, 220) })[i]
+		local gem = MeshUtil.Make("crystal", { Height = 1.4 }, { Color = gemColor, Material = Enum.Material.Glass, Transparency = 0.15, Reflectance = 0.3, CFrame = cf * CFrame.new(-2.5 + i * 1.6, 3.1, -2) * CFrame.Angles(0, math.rad(45 * i), 0), Parent = m, Name = "Gem" })
+			or PartUtil.Part({ Size = Vector3.new(0.9, 1.3, 0.9), Color = gemColor, Material = Enum.Material.Glass, Transparency = 0.15, Reflectance = 0.3, CFrame = cf * CFrame.new(-2.5 + i * 1.6, 3.1, -2) * CFrame.Angles(0, math.rad(45), 0), Parent = m, Name = "Gem", CanCollide = false })
 		gem:SetAttribute("Anim", "bob")
 	end
 end
@@ -191,10 +204,14 @@ local function buildHubIsland(parent)
 		local rad = math.rad(a)
 		PartUtil.Part({ Size = Vector3.new(6, 0.3, 40), Color = Color3.fromRGB(226, 222, 212), Material = Enum.Material.Marble, CFrame = origin * CFrame.Angles(0, rad, 0) * CFrame.new(0, 0.15, -42), Parent = m, Name = "Path" })
 	end
-	-- roccia e nuvole sotto
-	PartUtil.Part({ Size = Vector3.new(HUB_RADIUS * 1.5, 14, HUB_RADIUS * 1.5), Material = Enum.Material.Slate, Color = Color3.fromRGB(150, 160, 190), CFrame = origin * CFrame.new(0, -9, 0) * CFrame.Angles(0, math.rad(15), 0), Parent = m, Name = "Rock", CanCollide = false })
-	PartUtil.Part({ Size = Vector3.new(HUB_RADIUS * 0.9, 16, HUB_RADIUS * 0.9), Material = Enum.Material.Slate, Color = Color3.fromRGB(130, 140, 175), CFrame = origin * CFrame.new(0, -22, 0) * CFrame.Angles(0, math.rad(40), 0), Parent = m, Name = "Rock2", CanCollide = false })
-	PartUtil.Part({ Size = Vector3.new(HUB_RADIUS * 0.4, 18, HUB_RADIUS * 0.4), Material = Enum.Material.Slate, Color = Color3.fromRGB(115, 125, 160), CFrame = origin * CFrame.new(0, -38, 0) * CFrame.Angles(0, math.rad(70), 0), Parent = m, Name = "Rock3", CanCollide = false })
+	-- isola rocciosa sotto il prato (mesh decorativa; la collisione resta al cilindro) e nuvole
+	local hubIslandH = 70
+	local hubIsland = MeshUtil.Make("island_hub", Vector3.new(HUB_RADIUS * 2.08, hubIslandH, HUB_RADIUS * 2.08), { Material = Enum.Material.Slate, Color = Color3.fromRGB(150, 160, 190), CFrame = origin * CFrame.new(0, -0.6 - hubIslandH * 0.405, 0), Parent = m, Name = "Island" })
+	if not hubIsland then
+		PartUtil.Part({ Size = Vector3.new(HUB_RADIUS * 1.5, 14, HUB_RADIUS * 1.5), Material = Enum.Material.Slate, Color = Color3.fromRGB(150, 160, 190), CFrame = origin * CFrame.new(0, -9, 0) * CFrame.Angles(0, math.rad(15), 0), Parent = m, Name = "Rock", CanCollide = false })
+		PartUtil.Part({ Size = Vector3.new(HUB_RADIUS * 0.9, 16, HUB_RADIUS * 0.9), Material = Enum.Material.Slate, Color = Color3.fromRGB(130, 140, 175), CFrame = origin * CFrame.new(0, -22, 0) * CFrame.Angles(0, math.rad(40), 0), Parent = m, Name = "Rock2", CanCollide = false })
+		PartUtil.Part({ Size = Vector3.new(HUB_RADIUS * 0.4, 18, HUB_RADIUS * 0.4), Material = Enum.Material.Slate, Color = Color3.fromRGB(115, 125, 160), CFrame = origin * CFrame.new(0, -38, 0) * CFrame.Angles(0, math.rad(70), 0), Parent = m, Name = "Rock3", CanCollide = false })
+	end
 	local rng = Random.new(42)
 	for i = 1, 18 do
 		local a = (i / 18) * math.pi * 2 + rng:NextNumber(-0.2, 0.2)
@@ -229,12 +246,21 @@ local function buildHubIsland(parent)
 		local a = (i / 12) * math.pi * 2 + math.rad(15)
 		local cf = origin * CFrame.new(math.cos(a) * 30, 0, math.sin(a) * 30)
 		if i % 2 == 0 then
-			local post = PartUtil.Part({ Size = Vector3.new(0.4, 5, 0.4), Color = Color3.fromRGB(120, 90, 60), Material = Enum.Material.Wood, CFrame = cf * CFrame.new(0, 2.5, 0), Parent = m, Name = "LampPost" })
-			local lamp = PartUtil.Ball(1.2, Color3.fromRGB(255, 225, 150), cf * CFrame.new(0, 5.4, 0), m, { Material = Enum.Material.Neon, Name = "Lamp" })
+			local _ = MeshUtil.Make("post", { Height = 5 }, { Color = Color3.fromRGB(120, 90, 60), Material = Enum.Material.Wood, CFrame = cf * CFrame.new(0, 2.5, 0), Parent = m, Name = "LampPost", CanCollide = true })
+				or PartUtil.Part({ Size = Vector3.new(0.4, 5, 0.4), Color = Color3.fromRGB(120, 90, 60), Material = Enum.Material.Wood, CFrame = cf * CFrame.new(0, 2.5, 0), Parent = m, Name = "LampPost" })
+			local lamp = MeshUtil.Make("lamp_head", 1.3, { Color = Color3.fromRGB(255, 225, 150), Material = Enum.Material.Neon, CFrame = cf * CFrame.new(0, 5.5, 0), Parent = m, Name = "Lamp" })
+				or PartUtil.Ball(1.2, Color3.fromRGB(255, 225, 150), cf * CFrame.new(0, 5.4, 0), m, { Material = Enum.Material.Neon, Name = "Lamp" })
 			PartUtil.Light(lamp, Color3.fromRGB(255, 225, 150), 1, 14)
+		elseif i % 4 == 1 then
+			local _ = MeshUtil.MakeOnGround("flower_bed", 4.2, cf, { Color = Color3.fromRGB(120, 200, 140), Material = Enum.Material.Grass, Parent = m, Name = "Flowers" })
+				or PartUtil.Ball(2.4, Color3.fromRGB(110, 190, 150), cf * CFrame.new(0, 1, 0), m, { Material = Enum.Material.Grass, Name = "Bush" })
+			local _2 = MeshUtil.MakeOnGround("mushroom_stone", 1.8, cf * CFrame.new(2.4, 0, 1.2), { Color = Color3.fromRGB(200, 190, 230), Material = Enum.Material.Marble, Parent = m, Name = "Stone" })
 		else
-			PartUtil.Ball(2.4, Color3.fromRGB(110, 190, 150), cf * CFrame.new(0, 1, 0), m, { Material = Enum.Material.Grass, Name = "Bush" })
-			PartUtil.Ball(1.6, Color3.fromRGB(130, 205, 160), cf * CFrame.new(0.9, 1.4, 0.5), m, { Material = Enum.Material.Grass, Name = "Bush" })
+			local bushMesh = MeshUtil.MakeOnGround("bush", 3.6, cf * CFrame.Angles(0, i * 0.7, 0), { Color = Color3.fromRGB(110, 190, 150), Material = Enum.Material.Grass, Parent = m, Name = "Bush" })
+			if not bushMesh then
+				PartUtil.Ball(2.4, Color3.fromRGB(110, 190, 150), cf * CFrame.new(0, 1, 0), m, { Material = Enum.Material.Grass, Name = "Bush" })
+				PartUtil.Ball(1.6, Color3.fromRGB(130, 205, 160), cf * CFrame.new(0.9, 1.4, 0.5), m, { Material = Enum.Material.Grass, Name = "Bush" })
+			end
 		end
 	end
 	return m
@@ -290,8 +316,10 @@ local function buildScenery(parent)
 		local p = Vector3.new(math.cos(a) * r, y, math.sin(a) * r)
 		if (p - Vector3.new(0, 0, 0)).Magnitude > 120 then
 			PartUtil.Cloud(CFrame.new(p), rng:NextNumber(5, 12), m, Color3.fromRGB(250, 252, 255), rng:NextNumber(0.05, 0.3))
-			if rng:NextNumber() < 0.3 then
-				PartUtil.Part({ Size = Vector3.new(rng:NextNumber(6, 14), rng:NextNumber(4, 10), rng:NextNumber(6, 14)), Material = Enum.Material.Slate, Color = Color3.fromRGB(140, 150, 185), CFrame = CFrame.new(p + Vector3.new(0, -6, 0)) * CFrame.Angles(rng:NextNumber(-0.3, 0.3), rng:NextNumber(0, 3), rng:NextNumber(-0.3, 0.3)), Parent = m, Name = "FloatingRock", CanCollide = false })
+			if rng:NextNumber() < 0.35 then
+				local variant = ({ "rock_a", "rock_b", "rock_c" })[rng:NextInteger(1, 3)]
+				local _ = MeshUtil.Make(variant, rng:NextNumber(8, 18), { Material = Enum.Material.Slate, Color = Color3.fromRGB(140, 150, 185), CFrame = CFrame.new(p + Vector3.new(0, -6, 0)) * CFrame.Angles(rng:NextNumber(-0.3, 0.3), rng:NextNumber(0, 3), rng:NextNumber(-0.3, 0.3)), Parent = m, Name = "FloatingRock" })
+					or PartUtil.Part({ Size = Vector3.new(rng:NextNumber(6, 14), rng:NextNumber(4, 10), rng:NextNumber(6, 14)), Material = Enum.Material.Slate, Color = Color3.fromRGB(140, 150, 185), CFrame = CFrame.new(p + Vector3.new(0, -6, 0)) * CFrame.Angles(rng:NextNumber(-0.3, 0.3), rng:NextNumber(0, 3), rng:NextNumber(-0.3, 0.3)), Parent = m, Name = "FloatingRock", CanCollide = false })
 			end
 		end
 	end

@@ -4,10 +4,11 @@
 - **Server autorevole**: ogni modifica a scintille, frammenti, creature, layout ed esiti dei raid avviene solo nei servizi server. Il client invia intenzioni (remoti) e riceve lo stato.
 - **Un solo posto per i numeri**: `src/Shared/Config.luau`. Testi in `Strings.luau`, palette in `Theme.luau`.
 - **Logica condivisa dove serve coerenza**: `LayoutValidator` è usato dal client per l'anteprima e dal server per la pubblicazione, così ciò che il giocatore vede valido lo è davvero.
-- **Grafica procedurale**: `Shared/Models/*` costruisce creature, moduli, decorazioni e l'intero vivaio da parti primitive. Gli stessi costruttori alimentano i ViewportFrame della UI.
+- **Grafica procedurale su mesh di qualità**: `Shared/Models/*` costruisce creature, moduli, decorazioni e l'intero vivaio componendo MeshPart ad alta risoluzione (template in `ReplicatedStorage.MeshTemplates`, caricati da `Server/World/MeshLibrary`) con parti primitive per i dettagli (occhi, luci, zone). Ogni uso di mesh ha un fallback a primitive, così il place resta giocabile anche senza accesso agli asset. Gli stessi costruttori alimentano i ViewportFrame della UI.
+- **Pipeline asset riproducibile**: `tools/meshgen/generate.py` genera le mesh (icosfere suddivise, superfici di rivoluzione, tori, rumore frattale, gaussiane direzionali per i cumuli) e le anteprime; `upload.py` le carica via Open Cloud e aggiorna il catalogo `MeshAssets.luau`.
 
 ## Server (`src/Server`)
-`Main.server.luau` costruisce il mondo (`World/WorldBuilder`) e avvia i servizi nell'ordine: `Init` di tutti (collegano i remoti), poi `Start` (loop e listener). I servizi comunicano tramite `Registry` (niente require circolari) ed `EventBus` (eventi di dominio: `SparksCollected`, `RaidCompleted`, `CreatureUnlocked`, …).
+`Main.server.luau` precarica le mesh (`World/MeshLibrary`, timeout 25 s), costruisce il mondo (`World/WorldBuilder`) e avvia i servizi nell'ordine: `Init` di tutti (collegano i remoti), poi `Start` (loop e listener). I servizi comunicano tramite `Registry` (niente require circolari) ed `EventBus` (eventi di dominio: `SparksCollected`, `RaidCompleted`, `CreatureUnlocked`, …).
 
 | Servizio | Responsabilità |
 |---|---|

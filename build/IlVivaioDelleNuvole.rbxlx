@@ -815,6 +815,52 @@ return D
         </Item>
         <Item class="ModuleScript" referent="13">
           <Properties>
+            <string name="Name">MeshAssets</string>
+            <string name="Source"><![CDATA[--!nonstrict
+-- GENERATO da tools/meshgen/upload.py — ID degli asset Model (glTF) caricati via Open Cloud.
+-- Il server li carica con InsertService:LoadAsset e li espone in ReplicatedStorage.MeshTemplates.
+return {
+	arch = { AssetId = 108875469516890, Tris = 1372 },
+	aurora_arc = { AssetId = 113894338244421, Tris = 1568 },
+	basin = { AssetId = 92947560942964, Tris = 5264 },
+	bell = { AssetId = 99204078749415, Tris = 6048 },
+	body_aurora = { AssetId = 84363914893592, Tris = 6016 },
+	body_pioggia = { AssetId = 115302625747427, Tris = 7040 },
+	body_sole = { AssetId = 104878532045682, Tris = 5120 },
+	body_vento = { AssetId = 111950590811588, Tris = 7040 },
+	bounce_pad = { AssetId = 108700584201264, Tris = 1200 },
+	bush = { AssetId = 91279447503636, Tris = 1280 },
+	cloud_a = { AssetId = 132997693484642, Tris = 5120 },
+	cloud_b = { AssetId = 98365237880288, Tris = 5120 },
+	cloud_c = { AssetId = 136522472032774, Tris = 5120 },
+	cloud_hat = { AssetId = 78550007037830, Tris = 5120 },
+	crystal = { AssetId = 94020561418655, Tris = 20 },
+	drop_tail = { AssetId = 84631954142064, Tris = 2480 },
+	flower_bed = { AssetId = 137079341999375, Tris = 2000 },
+	island_hub = { AssetId = 71783811229446, Tris = 5120 },
+	island_plot = { AssetId = 96202285950910, Tris = 5120 },
+	lamp_head = { AssetId = 75921473693714, Tris = 1280 },
+	lantern = { AssetId = 85392043528718, Tris = 72 },
+	mushroom_stone = { AssetId = 115799982578639, Tris = 1344 },
+	pedestal = { AssetId = 133558849311790, Tris = 2592 },
+	pillar = { AssetId = 94660258786251, Tris = 3120 },
+	platform_pad = { AssetId = 103460487830702, Tris = 1440 },
+	portal_ring = { AssetId = 137232077353988, Tris = 2880 },
+	post = { AssetId = 95755764142269, Tris = 608 },
+	rock_a = { AssetId = 126700285268435, Tris = 1280 },
+	rock_b = { AssetId = 85912415197790, Tris = 1280 },
+	rock_c = { AssetId = 116269724230658, Tris = 1280 },
+	sun_petals = { AssetId = 114633134395153, Tris = 2560 },
+	swirl_ribbon = { AssetId = 99902786955346, Tris = 236 },
+	trunk = { AssetId = 71296182655000, Tris = 2448 },
+	vault = { AssetId = 73567416969388, Tris = 2784 },
+	vent = { AssetId = 75126513232500, Tris = 896 },
+}
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="14">
+          <Properties>
             <string name="Name">SimulatedVivai</string>
             <string name="Source"><![CDATA[--!nonstrict
 --[[
@@ -875,7 +921,7 @@ return Simulated
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="14">
+        <Item class="ModuleScript" referent="15">
           <Properties>
             <string name="Name">Themes</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -925,7 +971,7 @@ return Themes
           </Properties>
         </Item>
       </Item>
-      <Item class="ModuleScript" referent="15">
+      <Item class="ModuleScript" referent="16">
         <Properties>
           <string name="Name">Config</string>
           <string name="Source"><![CDATA[--!nonstrict
@@ -1115,7 +1161,7 @@ return Config
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="16">
+      <Item class="ModuleScript" referent="17">
         <Properties>
           <string name="Name">DefaultData</string>
           <string name="Source"><![CDATA[--!nonstrict
@@ -1230,7 +1276,7 @@ end
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="17">
+      <Item class="ModuleScript" referent="18">
         <Properties>
           <string name="Name">LayoutValidator</string>
           <string name="Source"><![CDATA[--!nonstrict
@@ -1472,11 +1518,11 @@ return Validator
 ]]></string>
         </Properties>
       </Item>
-      <Item class="Folder" referent="18">
+      <Item class="Folder" referent="19">
         <Properties>
           <string name="Name">Models</string>
         </Properties>
-        <Item class="ModuleScript" referent="19">
+        <Item class="ModuleScript" referent="20">
           <Properties>
             <string name="Name">CreatureModel</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -1486,25 +1532,28 @@ return Validator
 ]]
 local Creatures = require(script.Parent.Parent.Catalog.Creatures)
 local PartUtil = require(script.Parent.PartUtil)
+local MeshUtil = require(script.Parent.MeshUtil)
 
 local CreatureModel = {}
 
 local function face(body, size, accent)
+	-- il volto segue le proporzioni reali del corpo (sfera o mesh a goccia/ovale)
+	local rx, rz = body.Size.X / 2, body.Size.Z / 2
 	local eyeR = size * 0.12
 	for _, side in ipairs({ -1, 1 }) do
-		local eye = PartUtil.Ball(eyeR * 2, Color3.fromRGB(30, 30, 40), body.CFrame * CFrame.new(side * size * 0.2, size * 0.1, -size * 0.42), body.Parent, { Name = "Eye" })
+		local eye = PartUtil.Ball(eyeR * 2, Color3.fromRGB(30, 30, 40), body.CFrame * CFrame.new(side * rx * 0.42, size * 0.1, -rz * 0.86), body.Parent, { Name = "Eye" })
 		PartUtil.Ball(eyeR * 0.8, Color3.new(1, 1, 1), eye.CFrame * CFrame.new(-side * eyeR * 0.3, eyeR * 0.4, -eyeR * 0.7), body.Parent, { Name = "EyeShine", Material = Enum.Material.Neon })
 		-- guancia
 		PartUtil.Part({
 			Shape = Enum.PartType.Cylinder, Size = Vector3.new(0.1, size * 0.18, size * 0.18), Color = Color3.fromRGB(255, 160, 170), Transparency = 0.25,
-			CFrame = body.CFrame * CFrame.new(side * size * 0.33, -size * 0.08, -size * 0.36) * CFrame.Angles(0, math.rad(90 + side * 25), 0),
+			CFrame = body.CFrame * CFrame.new(side * rx * 0.68, -size * 0.08, -rz * 0.74) * CFrame.Angles(0, math.rad(90 + side * 25), 0),
 			Parent = body.Parent, CanCollide = false, Name = "Cheek",
 		})
 	end
 	-- bocca sorridente (piccolo cilindro scuro)
 	PartUtil.Part({
 		Shape = Enum.PartType.Cylinder, Size = Vector3.new(0.08, size * 0.08, size * 0.22), Color = Color3.fromRGB(70, 40, 60),
-		CFrame = body.CFrame * CFrame.new(0, -size * 0.18, -size * 0.48) * CFrame.Angles(0, math.rad(90), 0),
+		CFrame = body.CFrame * CFrame.new(0, -size * 0.18, -rz * 0.97) * CFrame.Angles(0, math.rad(90), 0),
 		Parent = body.Parent, CanCollide = false, Name = "Mouth",
 	})
 end
@@ -1513,6 +1562,10 @@ local function familyFeature(def, body, size, color, accent)
 	local parent = body.Parent
 	local fam = def.Family
 	if fam == "sole" then
+		local petals = MeshUtil.Make("sun_petals", size * 1.9, { Color = accent, Material = Enum.Material.Neon, CFrame = body.CFrame * CFrame.new(0, 0, size * 0.18), Parent = parent, CastShadow = false, Name = "Rays" })
+		if petals then
+			return
+		end
 		for i = 1, 8 do
 			local a = (i / 8) * math.pi * 2
 			local cf = body.CFrame * CFrame.Angles(0, 0, a) * CFrame.new(0, size * 0.75, 0)
@@ -1520,11 +1573,23 @@ local function familyFeature(def, body, size, color, accent)
 		end
 	elseif fam == "pioggia" then
 		-- cappellino di nuvola
-		PartUtil.Cloud(body.CFrame * CFrame.new(0, size * 0.62, 0), size * 0.22, parent, Color3.fromRGB(245, 248, 255), 0)
-		-- codina a goccia
-		PartUtil.Ball(size * 0.35, color, body.CFrame * CFrame.new(0, -size * 0.55, size * 0.1), parent, { Name = "Drop", Material = Enum.Material.Glass, Transparency = 0.2 })
+		local hat = MeshUtil.Make("cloud_hat", size * 1.05, { Color = Color3.fromRGB(245, 248, 255), CFrame = body.CFrame * CFrame.new(0, size * 0.62, 0) * CFrame.Angles(0, math.rad(20), math.rad(-8)), Parent = parent, Name = "Hat" })
+		if not hat then
+			PartUtil.Cloud(body.CFrame * CFrame.new(0, size * 0.62, 0), size * 0.22, parent, Color3.fromRGB(245, 248, 255), 0)
+		end
+		-- codina a goccia (mesh capovolta: punta in basso)
+		local tail = MeshUtil.Make("drop_tail", { Height = size * 0.6 }, { Color = color, Material = Enum.Material.Glass, Transparency = 0.2, CFrame = body.CFrame * CFrame.new(0, -size * 0.62, size * 0.1) * CFrame.Angles(math.rad(180), 0, 0), Parent = parent, Name = "Drop" })
+		if not tail then
+			PartUtil.Ball(size * 0.35, color, body.CFrame * CFrame.new(0, -size * 0.55, size * 0.1), parent, { Name = "Drop", Material = Enum.Material.Glass, Transparency = 0.2 })
+		end
 		PartUtil.Emitter(body, { Color = accent, Rate = 3, Speed = NumberRange.new(1, 2), Acceleration = Vector3.new(0, -6, 0), Size = NumberSequence.new(0.18), Lifetime = NumberRange.new(0.5, 0.9), Spread = Vector2.new(30, 30), Name = "Drizzle" })
 	elseif fam == "vento" then
+		local r1 = MeshUtil.Make("swirl_ribbon", { Height = size * 1.1 }, { Color = accent, Material = Enum.Material.Neon, Transparency = 0.25, CFrame = body.CFrame * CFrame.new(size * 0.35, 0, size * 0.5) * CFrame.Angles(0, math.rad(-30), math.rad(15)), Parent = parent, CastShadow = false, Name = "Swirl" })
+		if r1 then
+			MeshUtil.Make("swirl_ribbon", { Height = size * 0.8 }, { Color = accent, Material = Enum.Material.Neon, Transparency = 0.35, CFrame = body.CFrame * CFrame.new(-size * 0.4, size * 0.1, size * 0.45) * CFrame.Angles(0, math.rad(150), math.rad(-10)), Parent = parent, CastShadow = false, Name = "Swirl" })
+			PartUtil.Emitter(body, { Color = accent, Rate = 4, Speed = NumberRange.new(1.5, 2.5), Acceleration = Vector3.new(0, 0.3, 0), Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.1), NumberSequenceKeypoint.new(0.5, 0.35), NumberSequenceKeypoint.new(1, 0) }), Lifetime = NumberRange.new(0.6, 1.1), Name = "Gust" })
+			return
+		end
 		for i = 1, 3 do
 			local a = i * 0.9
 			local cf = body.CFrame * CFrame.new(math.cos(a) * size * 0.55, (i - 2) * size * 0.18, size * 0.45 + i * 0.12) * CFrame.Angles(0, a, math.rad(20))
@@ -1532,6 +1597,11 @@ local function familyFeature(def, body, size, color, accent)
 		end
 		PartUtil.Emitter(body, { Color = accent, Rate = 4, Speed = NumberRange.new(1.5, 2.5), Acceleration = Vector3.new(0, 0.3, 0), Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.1), NumberSequenceKeypoint.new(0.5, 0.35), NumberSequenceKeypoint.new(1, 0) }), Lifetime = NumberRange.new(0.6, 1.1), Name = "Gust" })
 	elseif fam == "aurora" then
+		local arc = MeshUtil.Make("aurora_arc", { Width = size * 1.6 }, { Color = accent, Material = Enum.Material.Neon, Transparency = 0.15, CFrame = body.CFrame * CFrame.new(0, size * 0.3, 0) * CFrame.Angles(math.rad(90), 0, 0), Parent = parent, CastShadow = false, Name = "Arc" })
+		if arc then
+			MeshUtil.Make("aurora_arc", { Width = size * 1.25 }, { Color = color, Material = Enum.Material.Neon, Transparency = 0.3, CFrame = body.CFrame * CFrame.new(0, size * 0.42, size * 0.1) * CFrame.Angles(math.rad(90), 0, math.rad(12)), Parent = parent, CastShadow = false, Name = "Arc2" })
+			return
+		end
 		local segs = 7
 		for i = 1, segs do
 			local t = (i - 1) / (segs - 1)
@@ -1558,7 +1628,10 @@ function CreatureModel.Build(creatureId, variantId, parent)
 	model:SetAttribute("Variant", variant.Id)
 	model:SetAttribute("Behavior", def.Behavior)
 
-	local body = PartUtil.Ball(size, color, CFrame.new(0, 0, 0), model, { Name = "Body", Material = Enum.Material.SmoothPlastic, CanQuery = true })
+	local body = MeshUtil.Make("body_" .. def.Family, size, { Name = "Body", Color = color, Material = Enum.Material.SmoothPlastic, CFrame = CFrame.new(0, 0, 0), Parent = model, CanQuery = true })
+	if not body then
+		body = PartUtil.Ball(size, color, CFrame.new(0, 0, 0), model, { Name = "Body", Material = Enum.Material.SmoothPlastic, CanQuery = true })
+	end
 	model.PrimaryPart = body
 	-- cuore luminoso interno (dà profondità)
 	PartUtil.Ball(size * 0.55, accent, body.CFrame, model, { Name = "Core", Material = Enum.Material.Neon, Transparency = 0.55, CastShadow = false })
@@ -1595,28 +1668,34 @@ return CreatureModel
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="20">
+        <Item class="ModuleScript" referent="21">
           <Properties>
             <string name="Name">DecorationModel</string>
             <string name="Source"><![CDATA[--!nonstrict
 local Decorations = require(script.Parent.Parent.Catalog.Decorations)
 local PartUtil = require(script.Parent.PartUtil)
+local MeshUtil = require(script.Parent.MeshUtil)
 
 local DecorationModel = {}
 
 local kinds = {}
 
 kinds.lantern = function(m, v)
-	PartUtil.Part({ Size = Vector3.new(0.35, 4.5, 0.35), Color = v.Accent, Material = Enum.Material.Wood, CFrame = CFrame.new(0, 2.25, 0), Parent = m, Name = "Post" })
+	local _ = MeshUtil.Make("post", { Height = 4.5 }, { Color = v.Accent, Material = Enum.Material.Wood, CFrame = CFrame.new(0, 2.25, 0), Parent = m, Name = "Post", CanCollide = true })
+		or PartUtil.Part({ Size = Vector3.new(0.35, 4.5, 0.35), Color = v.Accent, Material = Enum.Material.Wood, CFrame = CFrame.new(0, 2.25, 0), Parent = m, Name = "Post" })
 	PartUtil.Part({ Size = Vector3.new(1.6, 0.25, 0.35), Color = v.Accent, Material = Enum.Material.Wood, CFrame = CFrame.new(0.6, 4.4, 0), Parent = m, Name = "Arm" })
-	local lamp = PartUtil.Part({ Size = Vector3.new(0.9, 1.1, 0.9), Color = v.Color, Material = Enum.Material.Neon, Transparency = 0.1, CFrame = CFrame.new(1.2, 3.7, 0), Parent = m, Name = "Lamp", CanCollide = false })
+	local lamp = MeshUtil.Make("lantern", { Height = 1.3 }, { Color = v.Color, Material = Enum.Material.Neon, Transparency = 0.1, CFrame = CFrame.new(1.2, 3.65, 0), Parent = m, Name = "Lamp" })
+		or PartUtil.Part({ Size = Vector3.new(0.9, 1.1, 0.9), Color = v.Color, Material = Enum.Material.Neon, Transparency = 0.1, CFrame = CFrame.new(1.2, 3.7, 0), Parent = m, Name = "Lamp", CanCollide = false })
 	lamp:SetAttribute("Anim", "sway")
 	PartUtil.Light(lamp, v.Color, 1.2, 12)
 end
 
 kinds.bush = function(m, v)
-	for i, o in ipairs({ { 0, 0.9, 0, 2.2 }, { 0.8, 0.7, 0.4, 1.6 }, { -0.7, 0.75, -0.3, 1.7 }, { 0.1, 1.5, -0.5, 1.3 } }) do
-		PartUtil.Ball(o[4], v.Color, CFrame.new(o[1], o[2], o[3]), m, { Material = Enum.Material.Grass, Name = "Leaf", CanCollide = false })
+	local mesh = MeshUtil.MakeOnGround("bush", 3.0, CFrame.new(0, 0, 0), { Color = v.Color, Material = Enum.Material.Grass, Parent = m, Name = "Leaf" })
+	if not mesh then
+		for i, o in ipairs({ { 0, 0.9, 0, 2.2 }, { 0.8, 0.7, 0.4, 1.6 }, { -0.7, 0.75, -0.3, 1.7 }, { 0.1, 1.5, -0.5, 1.3 } }) do
+			PartUtil.Ball(o[4], v.Color, CFrame.new(o[1], o[2], o[3]), m, { Material = Enum.Material.Grass, Name = "Leaf", CanCollide = false })
+		end
 	end
 	for i = 1, 6 do
 		local a = i * 1.05
@@ -1631,15 +1710,18 @@ kinds.sundial = function(m, v)
 end
 
 kinds.fountain = function(m, v)
-	PartUtil.Cylinder(1.8, 0.9, v.Color, CFrame.new(0, 0.45, 0), m, { Material = Enum.Material.Marble, Name = "Basin" })
-	local water = PartUtil.Cylinder(1.5, 0.3, v.Accent, CFrame.new(0, 0.95, 0), m, { Material = Enum.Material.Neon, Transparency = 0.3, Name = "Water", CanCollide = false })
-	PartUtil.Cylinder(0.35, 1.6, v.Color, CFrame.new(0, 1.6, 0), m, { Material = Enum.Material.Marble, Name = "Spout", CanCollide = false })
+	local _ = MeshUtil.Make("basin", Vector3.new(3.8, 1.1, 3.8), { Color = v.Color, Material = Enum.Material.Marble, CFrame = CFrame.new(0, 0.55, 0), Parent = m, Name = "Basin", CanCollide = true })
+		or PartUtil.Cylinder(1.8, 0.9, v.Color, CFrame.new(0, 0.45, 0), m, { Material = Enum.Material.Marble, Name = "Basin" })
+	local water = PartUtil.Cylinder(1.3, 0.3, v.Accent, CFrame.new(0, 0.95, 0), m, { Material = Enum.Material.Neon, Transparency = 0.3, Name = "Water", CanCollide = false })
+	local _2 = MeshUtil.Make("post", { Height = 1.8 }, { Color = v.Color, Material = Enum.Material.Marble, CFrame = CFrame.new(0, 1.7, 0), Parent = m, Name = "Spout" })
+		or PartUtil.Cylinder(0.35, 1.6, v.Color, CFrame.new(0, 1.6, 0), m, { Material = Enum.Material.Marble, Name = "Spout", CanCollide = false })
 	PartUtil.Emitter(water, { Color = v.Accent, Rate = 14, Speed = NumberRange.new(6, 9), Lifetime = NumberRange.new(0.8, 1.2), Acceleration = Vector3.new(0, -14, 0), Spread = Vector2.new(12, 12), Size = NumberSequence.new(0.2), Name = "Jet" })
 	PartUtil.Light(water, v.Accent, 0.8, 9)
 end
 
 kinds.pinwheel = function(m, v)
-	PartUtil.Part({ Size = Vector3.new(0.25, 3.5, 0.25), Color = Color3.fromRGB(230, 230, 240), CFrame = CFrame.new(0, 1.75, 0), Parent = m, Name = "Post" })
+	local _ = MeshUtil.Make("post", { Height = 3.5 }, { Color = Color3.fromRGB(230, 230, 240), CFrame = CFrame.new(0, 1.75, 0), Parent = m, Name = "Post", CanCollide = true })
+		or PartUtil.Part({ Size = Vector3.new(0.25, 3.5, 0.25), Color = Color3.fromRGB(230, 230, 240), CFrame = CFrame.new(0, 1.75, 0), Parent = m, Name = "Post" })
 	local hub = PartUtil.Ball(0.5, v.Accent or Color3.new(1, 1, 1), CFrame.new(0, 3.6, -0.3), m, { Material = Enum.Material.Neon, Name = "Hub" })
 	hub:SetAttribute("Anim", "spin")
 	for i = 1, 4 do
@@ -1650,6 +1732,12 @@ kinds.pinwheel = function(m, v)
 end
 
 kinds.arch = function(m, v)
+	local arch = MeshUtil.Make("arch", { Width = 4.8 }, { Color = v.Color, Material = Enum.Material.Neon, Transparency = 0.1, CFrame = CFrame.new(0, 2.2, 0) * CFrame.Angles(math.rad(90), 0, 0), Parent = m, Name = "Arch", CastShadow = false })
+	if arch then
+		local inner = MeshUtil.Make("arch", { Width = 4.0 }, { Color = v.Accent or v.Color, Material = Enum.Material.Neon, Transparency = 0.25, CFrame = CFrame.new(0, 2.0, 0) * CFrame.Angles(math.rad(90), 0, 0), Parent = m, Name = "ArchInner", CastShadow = false })
+		PartUtil.Light(arch, v.Color, 1, 12)
+		return
+	end
 	local segs = 9
 	for i = 1, segs do
 		local t = (i - 1) / (segs - 1)
@@ -1708,7 +1796,114 @@ return DecorationModel
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="21">
+        <Item class="ModuleScript" referent="22">
+          <Properties>
+            <string name="Name">MeshUtil</string>
+            <string name="Source"><![CDATA[--!nonstrict
+--[[
+	MeshUtil: accesso ai template MeshPart caricati dal server (ReplicatedStorage.MeshTemplates).
+	Make(key, dims, props) clona il template e lo dimensiona:
+	  dims = numero          → dimensione massima = numero (proporzioni native)
+	  dims = { Height = h }  → altezza = h (proporzioni native)
+	  dims = { Width = w }   → larghezza X = w (proporzioni native)
+	  dims = Vector3         → dimensione esplicita (anche non uniforme)
+	Ritorna nil se il template non è disponibile: il chiamante usa le primitive di fallback.
+]]
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local MeshUtil = {}
+local folder
+
+local function templates()
+	if folder and folder.Parent then
+		return folder
+	end
+	folder = ReplicatedStorage:FindFirstChild("MeshTemplates")
+	return folder
+end
+
+function MeshUtil.Available(key)
+	local f = templates()
+	return f ~= nil and f:FindFirstChild(key) ~= nil
+end
+
+function MeshUtil.Count()
+	local f = templates()
+	return f and #f:GetChildren() or 0
+end
+
+local function computeSize(native: Vector3, dims)
+	if typeof(dims) == "Vector3" then
+		return dims
+	end
+	if type(dims) == "number" then
+		local m = math.max(native.X, native.Y, native.Z)
+		return native * (dims / math.max(m, 1e-6))
+	end
+	if type(dims) == "table" then
+		if dims.Height then
+			return native * (dims.Height / math.max(native.Y, 1e-6))
+		elseif dims.Width then
+			return native * (dims.Width / math.max(native.X, 1e-6))
+		elseif dims.Depth then
+			return native * (dims.Depth / math.max(native.Z, 1e-6))
+		end
+	end
+	return native
+end
+
+function MeshUtil.Make(key, dims, props)
+	local f = templates()
+	local template = f and f:FindFirstChild(key)
+	if not template then
+		return nil
+	end
+	props = props or {}
+	local part = template:Clone()
+	part.Name = props.Name or key
+	part.Anchored = true
+	part.CanCollide = props.CanCollide == true
+	part.CanTouch = props.CanTouch == true
+	part.CanQuery = props.CanQuery ~= false
+	part.CastShadow = props.CastShadow ~= false
+	part.Material = props.Material or Enum.Material.SmoothPlastic
+	part.Color = props.Color or Color3.new(1, 1, 1)
+	part.Transparency = props.Transparency or 0
+	part.Reflectance = props.Reflectance or 0
+	local native = template:GetAttribute("NativeSize") or template.Size
+	part.Size = computeSize(native, dims)
+	if props.CFrame then
+		part.CFrame = props.CFrame
+	elseif props.Position then
+		part.Position = props.Position
+	end
+	if props.Attributes then
+		for k, v in pairs(props.Attributes) do
+			part:SetAttribute(k, v)
+		end
+	end
+	if props.Parent then
+		part.Parent = props.Parent
+	end
+	return part
+end
+
+-- Posiziona la parte in modo che la sua base (Y minima) sia su `baseCF` (utile per oggetti appoggiati)
+function MeshUtil.MakeOnGround(key, dims, baseCF: CFrame, props)
+	props = props or {}
+	local part = MeshUtil.Make(key, dims, props)
+	if not part then
+		return nil
+	end
+	part.CFrame = baseCF * CFrame.new(0, part.Size.Y / 2, 0)
+	return part
+end
+
+return MeshUtil
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="23">
           <Properties>
             <string name="Name">ModuleModel</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -1721,6 +1916,7 @@ return DecorationModel
 local Defenses = require(script.Parent.Parent.Catalog.Defenses)
 local Config = require(script.Parent.Parent.Config)
 local PartUtil = require(script.Parent.PartUtil)
+local MeshUtil = require(script.Parent.MeshUtil)
 
 local CELL = Config.Grid.CellSize
 local ModuleModel = {}
@@ -1743,7 +1939,8 @@ builders.corrente = function(model, def, params, mode)
 	local r = root(model, def.Id, params)
 	-- bocchette alle 3 celle (asse X locale)
 	for dx = -1, 1 do
-		local base = PartUtil.Cylinder(1.3, 0.5, Color3.fromRGB(120, 190, 170), CFrame.new(dx * CELL, 0.25, 0), model, { Material = Enum.Material.Metal, Name = "Vent" })
+		local base = MeshUtil.Make("vent", 2.8, { Color = Color3.fromRGB(120, 190, 170), Material = Enum.Material.Metal, CFrame = CFrame.new(dx * CELL, 0.36, 0), Parent = model, Name = "Vent", CanCollide = true })
+			or PartUtil.Cylinder(1.3, 0.5, Color3.fromRGB(120, 190, 170), CFrame.new(dx * CELL, 0.25, 0), model, { Material = Enum.Material.Metal, Name = "Vent" })
 		PartUtil.Cylinder(0.8, 0.3, def.Color, CFrame.new(dx * CELL, 0.55, 0), model, { Material = Enum.Material.Neon, Name = "VentGlow", CanCollide = false })
 		PartUtil.Light(base, def.Color, 0.6, 7)
 	end
@@ -1775,7 +1972,8 @@ builders.piattaforma = function(model, def, params, mode)
 	-- fondo del vuoto: cielo scuro (visual) — in raid non è calpestabile
 	PartUtil.Part({ Size = Vector3.new(CELL, 0.2, CELL * 3), Color = Color3.fromRGB(80, 110, 170), Material = Enum.Material.Glass, Transparency = 0.35, CFrame = CFrame.new(0, -1.2, 0), Parent = model, Name = "Void", CanCollide = false, CanQuery = false })
 	local width = (params.Width or 1) * 3.4
-	local plat = PartUtil.Part({ Size = Vector3.new(width, 0.7, width), Color = def.Color, Material = Enum.Material.SmoothPlastic, CFrame = CFrame.new(0, 0.1, -CELL), Parent = model, Name = "Platform" })
+	local plat = MeshUtil.Make("platform_pad", Vector3.new(width, 0.7, width), { Color = def.Color, Material = Enum.Material.SmoothPlastic, CFrame = CFrame.new(0, 0.1, -CELL), Parent = model, Name = "Platform", CanCollide = true })
+		or PartUtil.Part({ Size = Vector3.new(width, 0.7, width), Color = def.Color, Material = Enum.Material.SmoothPlastic, CFrame = CFrame.new(0, 0.1, -CELL), Parent = model, Name = "Platform" })
 	plat:SetAttribute("Period", params.Period or 3.2)
 	plat:SetAttribute("Travel", CELL * 2) -- da -CELL a +CELL lungo Z locale
 	plat:SetAttribute("Phase", 0)
@@ -1791,9 +1989,13 @@ end
 
 builders.sentinella = function(model, def, params, mode)
 	local r = root(model, def.Id, params)
-	local pillar = PartUtil.Cylinder(1.1, 7, Color3.fromRGB(205, 210, 230), CFrame.new(0, 3.5, 0), model, { Material = Enum.Material.Slate, Name = "Pillar" })
-	PartUtil.Cylinder(1.5, 0.6, Color3.fromRGB(180, 190, 215), CFrame.new(0, 0.3, 0), model, { Material = Enum.Material.Slate, Name = "Base" })
-	local lamp = PartUtil.Ball(2.2, Color3.fromRGB(255, 250, 200), CFrame.new(0, 7.6, 0), model, { Material = Enum.Material.Neon, Name = "Lamp", CanCollide = false })
+	local pillar = MeshUtil.Make("pillar", { Height = 7 }, { Color = Color3.fromRGB(205, 210, 230), Material = Enum.Material.Slate, CFrame = CFrame.new(0, 3.5, 0), Parent = model, Name = "Pillar", CanCollide = true })
+	if not pillar then
+		pillar = PartUtil.Cylinder(1.1, 7, Color3.fromRGB(205, 210, 230), CFrame.new(0, 3.5, 0), model, { Material = Enum.Material.Slate, Name = "Pillar" })
+		PartUtil.Cylinder(1.5, 0.6, Color3.fromRGB(180, 190, 215), CFrame.new(0, 0.3, 0), model, { Material = Enum.Material.Slate, Name = "Base" })
+	end
+	local lamp = MeshUtil.Make("lamp_head", 2.4, { Color = Color3.fromRGB(255, 250, 200), Material = Enum.Material.Neon, CFrame = CFrame.new(0, 7.8, 0), Parent = model, Name = "Lamp" })
+		or PartUtil.Ball(2.2, Color3.fromRGB(255, 250, 200), CFrame.new(0, 7.6, 0), model, { Material = Enum.Material.Neon, Name = "Lamp", CanCollide = false })
 	PartUtil.Light(lamp, Color3.fromRGB(255, 240, 180), 1.5, 16)
 	-- cono di luce: ventaglio di fasci Neon a terra (apice al pilastro). Orientato da ModuleModel.OrientSentinel
 	local radius = params.Radius or 9
@@ -1830,8 +2032,9 @@ end
 
 builders.faro = function(model, def, params, mode)
 	local r = root(model, def.Id, params)
-	PartUtil.Cylinder(1.7, 0.8, Color3.fromRGB(230, 225, 210), CFrame.new(0, 0.4, 0), model, { Material = Enum.Material.Marble, Name = "Basin" })
-	local glow = PartUtil.Cylinder(1.4, 0.3, Color3.fromRGB(255, 205, 90), CFrame.new(0, 0.85, 0), model, { Material = Enum.Material.Neon, Name = "FakePool", CanCollide = false })
+	local _ = MeshUtil.Make("basin", Vector3.new(3.6, 1.0, 3.6), { Color = Color3.fromRGB(230, 225, 210), Material = Enum.Material.Marble, CFrame = CFrame.new(0, 0.5, 0), Parent = model, Name = "Basin", CanCollide = true })
+		or PartUtil.Cylinder(1.7, 0.8, Color3.fromRGB(230, 225, 210), CFrame.new(0, 0.4, 0), model, { Material = Enum.Material.Marble, Name = "Basin" })
+	local glow = PartUtil.Cylinder(1.25, 0.3, Color3.fromRGB(255, 205, 90), CFrame.new(0, 0.85, 0), model, { Material = Enum.Material.Neon, Name = "FakePool", CanCollide = false })
 	PartUtil.Light(glow, Color3.fromRGB(255, 200, 90), 1.4, 12)
 	PartUtil.Emitter(glow, { Color = Color3.fromRGB(255, 220, 120), Rate = 10, Speed = NumberRange.new(1, 3), Lifetime = NumberRange.new(0.6, 1.2), Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.3), NumberSequenceKeypoint.new(1, 0) }), Name = "Lure" })
 	r:SetAttribute("Dazzle", params.Dazzle or 3.5)
@@ -1842,9 +2045,9 @@ end
 builders.nebbia = function(model, def, params, mode)
 	local r = root(model, def.Id, params)
 	local zone = PartUtil.Part({ Size = Vector3.new(CELL * 2, 7, CELL * 2), Transparency = 1, CanCollide = false, CanQuery = false, CFrame = CFrame.new(CELL / 2, 3.5, CELL / 2), Parent = model, Name = "FogZone" })
-	for i = 1, 5 do
-		local a = i * 1.3
-		PartUtil.Ball(3 + (i % 2), Color3.fromRGB(225, 232, 245), CFrame.new(CELL / 2 + math.cos(a) * 2.2, 1.5 + (i % 3) * 0.8, CELL / 2 + math.sin(a) * 2.2), model, { Transparency = 0.55, Material = Enum.Material.SmoothPlastic, Name = "Puff", CastShadow = false })
+	for i = 1, 3 do
+		local a = i * 2.1
+		PartUtil.Cloud(CFrame.new(CELL / 2 + math.cos(a) * 1.8, 1.4 + (i % 2) * 0.9, CELL / 2 + math.sin(a) * 1.8), 1.3, model, Color3.fromRGB(225, 232, 245), 0.5)
 	end
 	PartUtil.Emitter(zone, { Color = Color3.fromRGB(230, 236, 248), Rate = 10, Speed = NumberRange.new(0.3, 0.8), Lifetime = NumberRange.new(2, 3.5), Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 2), NumberSequenceKeypoint.new(0.5, 4), NumberSequenceKeypoint.new(1, 2) }), Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.7), NumberSequenceKeypoint.new(0.5, 0.45), NumberSequenceKeypoint.new(1, 1) }), LightEmission = 0.1, Name = "Fog" })
 	return r
@@ -1863,7 +2066,8 @@ end
 builders.cupola = function(model, def, params, mode)
 	local r = root(model, def.Id, params)
 	-- cristallo di controllo decorativo sulla cella del modulo
-	local crystal = PartUtil.Part({ Size = Vector3.new(1.4, 3.2, 1.4), Color = def.Color, Material = Enum.Material.Glass, Transparency = 0.2, Reflectance = 0.3, CFrame = CFrame.new(0, 1.8, 0) * CFrame.Angles(0, math.rad(45), 0), Parent = model, Name = "Crystal", CanCollide = false })
+	local crystal = MeshUtil.Make("crystal", { Height = 3.4 }, { Color = def.Color, Material = Enum.Material.Glass, Transparency = 0.2, Reflectance = 0.3, CFrame = CFrame.new(0, 2.0, 0), Parent = model, Name = "Crystal" })
+		or PartUtil.Part({ Size = Vector3.new(1.4, 3.2, 1.4), Color = def.Color, Material = Enum.Material.Glass, Transparency = 0.2, Reflectance = 0.3, CFrame = CFrame.new(0, 1.8, 0) * CFrame.Angles(0, math.rad(45), 0), Parent = model, Name = "Crystal", CanCollide = false })
 	PartUtil.Light(crystal, def.Color, 1.2, 12)
 	PartUtil.Cylinder(1.2, 0.5, Color3.fromRGB(200, 190, 230), CFrame.new(0, 0.25, 0), model, { Material = Enum.Material.Marble, Name = "Base" })
 	r:SetAttribute("Height", params.Height or 7)
@@ -1873,11 +2077,15 @@ end
 builders.campana = function(model, def, params, mode)
 	local r = root(model, def.Id, params)
 	for _, dx in ipairs({ -1.4, 1.4 }) do
-		PartUtil.Part({ Size = Vector3.new(0.4, 6, 0.4), Color = Color3.fromRGB(120, 90, 60), Material = Enum.Material.Wood, CFrame = CFrame.new(dx, 3, 0), Parent = model, Name = "Post" })
+		local _ = MeshUtil.Make("post", { Height = 6 }, { Color = Color3.fromRGB(120, 90, 60), Material = Enum.Material.Wood, CFrame = CFrame.new(dx, 3, 0), Parent = model, Name = "Post", CanCollide = true })
+			or PartUtil.Part({ Size = Vector3.new(0.4, 6, 0.4), Color = Color3.fromRGB(120, 90, 60), Material = Enum.Material.Wood, CFrame = CFrame.new(dx, 3, 0), Parent = model, Name = "Post" })
 	end
 	PartUtil.Part({ Size = Vector3.new(3.4, 0.4, 0.5), Color = Color3.fromRGB(120, 90, 60), Material = Enum.Material.Wood, CFrame = CFrame.new(0, 6.1, 0), Parent = model, Name = "Beam" })
-	local bell = PartUtil.Cylinder(1.1, 1.8, Color3.fromRGB(240, 200, 110), CFrame.new(0, 4.6, 0), model, { Material = Enum.Material.Metal, Reflectance = 0.35, Name = "Bell", CanCollide = false })
-	PartUtil.Ball(0.9, Color3.fromRGB(240, 200, 110), CFrame.new(0, 5.6, 0), model, { Material = Enum.Material.Metal, Reflectance = 0.35, Name = "BellTop" })
+	local bell = MeshUtil.Make("bell", { Height = 2.2 }, { Color = Color3.fromRGB(240, 200, 110), Material = Enum.Material.Metal, Reflectance = 0.35, CFrame = CFrame.new(0, 4.9, 0), Parent = model, Name = "Bell" })
+	if not bell then
+		bell = PartUtil.Cylinder(1.1, 1.8, Color3.fromRGB(240, 200, 110), CFrame.new(0, 4.6, 0), model, { Material = Enum.Material.Metal, Reflectance = 0.35, Name = "Bell", CanCollide = false })
+		PartUtil.Ball(0.9, Color3.fromRGB(240, 200, 110), CFrame.new(0, 5.6, 0), model, { Material = Enum.Material.Metal, Reflectance = 0.35, Name = "BellTop" })
+	end
 	PartUtil.Light(bell, Color3.fromRGB(255, 220, 140), 0.8, 10)
 	r:SetAttribute("TriggerFraction", params.TriggerFraction or 0.5)
 	return r
@@ -1956,12 +2164,14 @@ return ModuleModel
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="22">
+        <Item class="ModuleScript" referent="24">
           <Properties>
             <string name="Name">PartUtil</string>
             <string name="Source"><![CDATA[--!nonstrict
 -- Helper per costruire geometria procedurale in modo conciso.
 local PartUtil = {}
+local MeshUtil = require(script.Parent.MeshUtil)
+local CLOUD_VARIANTS = { "cloud_a", "cloud_b", "cloud_c" }
 
 function PartUtil.Part(props)
 	local p = Instance.new(props.Class or "Part")
@@ -2100,6 +2310,12 @@ end
 function PartUtil.Cloud(cf, scale, parent, color, transparency)
 	local m = PartUtil.Model("Cloud", parent)
 	color = color or Color3.fromRGB(250, 252, 255)
+	-- mesh di cumulo (variante scelta in modo deterministico dalla posizione)
+	local variant = CLOUD_VARIANTS[(math.floor(math.abs(cf.X * 7 + cf.Z * 13 + cf.Y * 3)) % 3) + 1]
+	local mesh = MeshUtil.Make(variant, scale * 3.6, { Color = color, Transparency = transparency or 0, CFrame = cf * CFrame.Angles(0, (cf.X + cf.Z) * 0.37, 0), Parent = m, CastShadow = false, Name = "CloudMesh" })
+	if mesh then
+		return m
+	end
 	local offsets = {
 		{ 0, 0, 0, 1 }, { 0.9, -0.1, 0.2, 0.75 }, { -0.9, -0.05, -0.1, 0.8 }, { 0.3, 0.35, -0.4, 0.6 }, { -0.4, 0.3, 0.5, 0.55 }, { 0.1, -0.3, 0.8, 0.6 },
 	}
@@ -2113,7 +2329,7 @@ return PartUtil
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="23">
+        <Item class="ModuleScript" referent="25">
           <Properties>
             <string name="Name">PlotBuilder</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -2137,6 +2353,7 @@ local GridUtil = require(script.Parent.Parent.Util.GridUtil)
 local Format = require(script.Parent.Parent.Util.Format)
 local Strings = require(script.Parent.Parent.Strings)
 local PartUtil = require(script.Parent.PartUtil)
+local MeshUtil = require(script.Parent.MeshUtil)
 local CreatureModel = require(script.Parent.CreatureModel)
 local ModuleModel = require(script.Parent.ModuleModel)
 local DecorationModel = require(script.Parent.DecorationModel)
@@ -2239,10 +2456,14 @@ function PlotBuilder:_buildBase()
 	}) do
 		PartUtil.Part({ Size = side[2], Material = Enum.Material.Neon, Color = trim, Transparency = 0.35, CFrame = origin * side[1], Parent = structure, Name = "Rim", CanCollide = false, CastShadow = false })
 	end
-	-- roccia sotto l'isola e nuvole
-	PartUtil.Part({ Size = Vector3.new(size * 0.8, 6, size * 0.8), Material = Enum.Material.Slate, Color = Color3.fromRGB(150, 160, 190), CFrame = origin * CFrame.new(0, -4.2, 0), Parent = structure, Name = "Rock", CanCollide = false })
-	PartUtil.Part({ Size = Vector3.new(size * 0.5, 7, size * 0.5), Material = Enum.Material.Slate, Color = Color3.fromRGB(130, 140, 175), CFrame = origin * CFrame.new(0, -10, 0) * CFrame.Angles(0, math.rad(20), 0), Parent = structure, Name = "Rock2", CanCollide = false })
-	PartUtil.Part({ Size = Vector3.new(size * 0.22, 8, size * 0.22), Material = Enum.Material.Slate, Color = Color3.fromRGB(115, 125, 160), CFrame = origin * CFrame.new(0, -16, 0) * CFrame.Angles(0, math.rad(40), 0), Parent = structure, Name = "Rock3", CanCollide = false })
+	-- isola rocciosa sotto la piattaforma (mesh; la collisione resta alle piastrelle) e nuvole
+	local islandH = 24
+	local islandMesh = MeshUtil.Make("island_plot", Vector3.new(size * 1.06, islandH, size * 1.06), { Material = Enum.Material.Slate, Color = Color3.fromRGB(150, 160, 190), CFrame = origin * CFrame.new(0, -1.0 - islandH * 0.405, 0), Parent = structure, Name = "Island" })
+	if not islandMesh then
+		PartUtil.Part({ Size = Vector3.new(size * 0.8, 6, size * 0.8), Material = Enum.Material.Slate, Color = Color3.fromRGB(150, 160, 190), CFrame = origin * CFrame.new(0, -4.2, 0), Parent = structure, Name = "Rock", CanCollide = false })
+		PartUtil.Part({ Size = Vector3.new(size * 0.5, 7, size * 0.5), Material = Enum.Material.Slate, Color = Color3.fromRGB(130, 140, 175), CFrame = origin * CFrame.new(0, -10, 0) * CFrame.Angles(0, math.rad(20), 0), Parent = structure, Name = "Rock2", CanCollide = false })
+		PartUtil.Part({ Size = Vector3.new(size * 0.22, 8, size * 0.22), Material = Enum.Material.Slate, Color = Color3.fromRGB(115, 125, 160), CFrame = origin * CFrame.new(0, -16, 0) * CFrame.Angles(0, math.rad(40), 0), Parent = structure, Name = "Rock3", CanCollide = false })
+	end
 	local rng = Random.new(math.floor(origin.X * 13 + origin.Z * 7))
 	for i = 1, 7 do
 		local a = (i / 7) * math.pi * 2 + rng:NextNumber(-0.3, 0.3)
@@ -2267,17 +2488,20 @@ function PlotBuilder:_buildStructures()
 	if hasCupola then
 		local h = Defenses.EffectiveParams("cupola").Height or 7
 		pozzaY = h
-		PartUtil.Cylinder(4.2, h, Color3.fromRGB(220, 200, 255), origin * CFrame.new(0, h / 2, 0), structure, { Material = Enum.Material.Glass, Transparency = 0.25, Reflectance = 0.2, Name = "Pedestal" })
+		local _ = MeshUtil.Make("pedestal", Vector3.new(8.6, h, 8.6), { Color = Color3.fromRGB(220, 200, 255), Material = Enum.Material.Glass, Transparency = 0.25, Reflectance = 0.2, CFrame = origin * CFrame.new(0, h / 2, 0), Parent = structure, Name = "Pedestal", CanCollide = true })
+			or PartUtil.Cylinder(4.2, h, Color3.fromRGB(220, 200, 255), origin * CFrame.new(0, h / 2, 0), structure, { Material = Enum.Material.Glass, Transparency = 0.25, Reflectance = 0.2, Name = "Pedestal" })
 		-- trampolini di luce intorno
 		for i = 1, 3 do
 			local a = (i / 3) * math.pi * 2 + math.rad(90)
-			local pad = PartUtil.Cylinder(1.6, 0.4, Color3.fromRGB(255, 200, 255), origin * CFrame.new(math.cos(a) * 7.5, 0.2, math.sin(a) * 7.5), structure, { Material = Enum.Material.Neon, Name = "BouncePad" })
+			local pad = MeshUtil.Make("bounce_pad", Vector3.new(3.4, 0.5, 3.4), { Color = Color3.fromRGB(255, 200, 255), Material = Enum.Material.Neon, CFrame = origin * CFrame.new(math.cos(a) * 7.5, 0.25, math.sin(a) * 7.5), Parent = structure, Name = "BouncePad", CanCollide = true })
+				or PartUtil.Cylinder(1.6, 0.4, Color3.fromRGB(255, 200, 255), origin * CFrame.new(math.cos(a) * 7.5, 0.2, math.sin(a) * 7.5), structure, { Material = Enum.Material.Neon, Name = "BouncePad" })
 			pad:SetAttribute("Bounce", 95)
 			PartUtil.Light(pad, Color3.fromRGB(255, 200, 255), 1, 10)
 		end
 	end
-	local basin = PartUtil.Cylinder(3.6, 1.4, Color3.fromRGB(236, 232, 220), origin * CFrame.new(0, pozzaY + 0.7, 0), structure, { Material = Enum.Material.Marble, Name = "PozzaBasin" })
-	local water = PartUtil.Cylinder(3.1, 0.4, Color3.fromRGB(255, 205, 90), origin * CFrame.new(0, pozzaY + 1.3, 0), structure, { Material = Enum.Material.Neon, Transparency = 0.15, Name = "Pozza", CanCollide = false })
+	local basin = MeshUtil.Make("basin", Vector3.new(7.6, 1.6, 7.6), { Color = Color3.fromRGB(236, 232, 220), Material = Enum.Material.Marble, CFrame = origin * CFrame.new(0, pozzaY + 0.8, 0), Parent = structure, Name = "PozzaBasin", CanCollide = true })
+		or PartUtil.Cylinder(3.6, 1.4, Color3.fromRGB(236, 232, 220), origin * CFrame.new(0, pozzaY + 0.7, 0), structure, { Material = Enum.Material.Marble, Name = "PozzaBasin" })
+	local water = PartUtil.Cylinder(2.65, 0.4, Color3.fromRGB(255, 205, 90), origin * CFrame.new(0, pozzaY + 1.3, 0), structure, { Material = Enum.Material.Neon, Transparency = 0.15, Name = "Pozza", CanCollide = false })
 	water:SetAttribute("Interactive", true)
 	PartUtil.Light(water, Color3.fromRGB(255, 200, 90), 1.6, 18)
 	self.PozzaEmitter = PartUtil.Emitter(water, { Color = Color3.fromRGB(255, 225, 130), Rate = 8, Speed = NumberRange.new(1.5, 3.5), Lifetime = NumberRange.new(0.8, 1.6), Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.35), NumberSequenceKeypoint.new(1, 0) }), Name = "Sparks" })
@@ -2287,9 +2511,13 @@ function PlotBuilder:_buildStructures()
 	self.ExposedLabel = exposedLabel
 
 	-- Ingresso (fronte, -Z) e Uscita (retro, +Z)
-	local entrance = PartUtil.Cylinder(3, 0.4, Color3.fromRGB(150, 232, 200), origin * CFrame.new(0, 0.1, -(HALF + MARGIN / 2)), structure, { Material = Enum.Material.Neon, Transparency = 0.2, Name = "Entrance" })
+	local function pad(name, color, cf, transparency)
+		return MeshUtil.Make("platform_pad", Vector3.new(6, 0.5, 6), { Color = color, Material = Enum.Material.Neon, Transparency = transparency, CFrame = cf * CFrame.new(0, 0.15, 0), Parent = structure, Name = name, CanCollide = true })
+			or PartUtil.Cylinder(3, 0.4, color, cf * CFrame.new(0, 0.1, 0), structure, { Material = Enum.Material.Neon, Transparency = transparency, Name = name })
+	end
+	local entrance = pad("Entrance", Color3.fromRGB(150, 232, 200), origin * CFrame.new(0, 0, -(HALF + MARGIN / 2)), 0.2)
 	self.Entrance = entrance
-	local exitPad = PartUtil.Cylinder(3, 0.4, Color3.fromRGB(255, 170, 220), origin * CFrame.new(0, 0.1, HALF + MARGIN / 2), structure, { Material = Enum.Material.Neon, Transparency = 0.2, Name = "Exit" })
+	local exitPad = pad("Exit", Color3.fromRGB(255, 170, 220), origin * CFrame.new(0, 0, HALF + MARGIN / 2), 0.2)
 	self.Exit = exitPad
 	-- arco dell'uscita
 	for _, dx in ipairs({ -3.2, 3.2 }) do
@@ -2304,8 +2532,11 @@ function PlotBuilder:_buildStructures()
 	-- Cassaforte (lato sinistro) e pad di spawn (lato destro): solo per home/visit/demo
 	if mode ~= "raid" then
 		local vaultCF = origin * CFrame.new(-(HALF + MARGIN / 2), 0, 6)
-		local vaultBody = PartUtil.Cylinder(2.6, 4.6, Color3.fromRGB(120, 150, 210), vaultCF * CFrame.new(0, 2.3, 0), structure, { Material = Enum.Material.Metal, Reflectance = 0.15, Name = "VaultBody" })
-		PartUtil.Cylinder(2.8, 0.5, Color3.fromRGB(90, 115, 170), vaultCF * CFrame.new(0, 4.75, 0), structure, { Material = Enum.Material.Metal, Name = "VaultTop" })
+		local vaultBody = MeshUtil.Make("vault", Vector3.new(5.4, 4.9, 5.4), { Color = Color3.fromRGB(120, 150, 210), Material = Enum.Material.Metal, Reflectance = 0.15, CFrame = vaultCF * CFrame.new(0, 2.45, 0), Parent = structure, Name = "VaultBody", CanCollide = true })
+		if not vaultBody then
+			vaultBody = PartUtil.Cylinder(2.6, 4.6, Color3.fromRGB(120, 150, 210), vaultCF * CFrame.new(0, 2.3, 0), structure, { Material = Enum.Material.Metal, Reflectance = 0.15, Name = "VaultBody" })
+			PartUtil.Cylinder(2.8, 0.5, Color3.fromRGB(90, 115, 170), vaultCF * CFrame.new(0, 4.75, 0), structure, { Material = Enum.Material.Metal, Name = "VaultTop" })
+		end
 		local door = PartUtil.Part({ Size = Vector3.new(3.2, 3.2, 0.5), Color = Color3.fromRGB(150, 180, 235), Material = Enum.Material.Metal, CFrame = vaultCF * CFrame.new(0, 2.3, 2.5), Parent = structure, Name = "VaultDoor" })
 		local dial = PartUtil.Cylinder(0.7, 0.4, Color3.fromRGB(255, 215, 110), vaultCF * CFrame.new(0, 2.3, 2.85) * CFrame.Angles(math.rad(90), 0, 0), structure, { Material = Enum.Material.Neon, Name = "VaultDial", CanCollide = false })
 		PartUtil.Light(dial, Color3.fromRGB(255, 215, 110), 1, 10)
@@ -2318,7 +2549,7 @@ function PlotBuilder:_buildStructures()
 			self.DepositPrompt = prompt
 		end
 
-		local spawn = PartUtil.Cylinder(3, 0.4, Color3.fromRGB(190, 230, 255), origin * CFrame.new(HALF + MARGIN / 2, 0.1, 6), structure, { Material = Enum.Material.Neon, Transparency = 0.3, Name = "SpawnPad" })
+		local spawn = pad("SpawnPad", Color3.fromRGB(190, 230, 255), origin * CFrame.new(HALF + MARGIN / 2, 0, 6), 0.3)
 		self.SpawnPad = spawn
 		-- portale verso l'hub (lato destro, dietro lo spawn)
 		local hubPad = PartUtil.Cylinder(2.2, 0.4, Color3.fromRGB(160, 200, 255), origin * CFrame.new(HALF + MARGIN / 2, 0.1, -12), structure, { Material = Enum.Material.Neon, Transparency = 0.2, Name = "HubPad" })
@@ -2539,7 +2770,7 @@ return PlotBuilder
           </Properties>
         </Item>
       </Item>
-      <Item class="ModuleScript" referent="24">
+      <Item class="ModuleScript" referent="26">
         <Properties>
           <string name="Name">Remotes</string>
           <string name="Source"><![CDATA[--!nonstrict
@@ -2602,7 +2833,7 @@ return {
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="25">
+      <Item class="ModuleScript" referent="27">
         <Properties>
           <string name="Name">Strings</string>
           <string name="Source"><![CDATA[--!nonstrict
@@ -2807,7 +3038,7 @@ return Strings
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="26">
+      <Item class="ModuleScript" referent="28">
         <Properties>
           <string name="Name">Theme</string>
           <string name="Source"><![CDATA[--!nonstrict
@@ -2868,7 +3099,7 @@ return Theme
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="27">
+      <Item class="ModuleScript" referent="29">
         <Properties>
           <string name="Name">Types</string>
           <string name="Source"><![CDATA[--!nonstrict
@@ -2910,11 +3141,11 @@ return {}
 ]]></string>
         </Properties>
       </Item>
-      <Item class="Folder" referent="28">
+      <Item class="Folder" referent="30">
         <Properties>
           <string name="Name">Util</string>
         </Properties>
-        <Item class="ModuleScript" referent="29">
+        <Item class="ModuleScript" referent="31">
           <Properties>
             <string name="Name">Format</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -2964,7 +3195,7 @@ return Format
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="30">
+        <Item class="ModuleScript" referent="32">
           <Properties>
             <string name="Name">GridUtil</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -3041,7 +3272,7 @@ return GridUtil
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="31">
+        <Item class="ModuleScript" referent="33">
           <Properties>
             <string name="Name">Net</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -3114,7 +3345,7 @@ return Net
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="32">
+        <Item class="ModuleScript" referent="34">
           <Properties>
             <string name="Name">Signal</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -3192,7 +3423,7 @@ return Signal
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="33">
+        <Item class="ModuleScript" referent="35">
           <Properties>
             <string name="Name">TableUtil</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -3304,7 +3535,7 @@ return TableUtil
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="34">
+        <Item class="ModuleScript" referent="36">
           <Properties>
             <string name="Name">TimeUtil</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -3353,15 +3584,15 @@ return TimeUtil
       </Item>
     </Item>
   </Item>
-  <Item class="ServerScriptService" referent="35">
+  <Item class="ServerScriptService" referent="37">
     <Properties>
       <string name="Name">ServerScriptService</string>
     </Properties>
-    <Item class="Folder" referent="36">
+    <Item class="Folder" referent="38">
       <Properties>
         <string name="Name">Server</string>
       </Properties>
-      <Item class="ModuleScript" referent="37">
+      <Item class="ModuleScript" referent="39">
         <Properties>
           <string name="Name">EventBus</string>
           <string name="Source"><![CDATA[--!nonstrict
@@ -3407,7 +3638,7 @@ return EventBus
 ]]></string>
         </Properties>
       </Item>
-      <Item class="Script" referent="38">
+      <Item class="Script" referent="40">
         <Properties>
           <string name="Name">Main</string>
           <token name="RunContext">0</token>
@@ -3424,9 +3655,12 @@ local Config = require(Shared.Config)
 local Registry = require(script.Parent.Registry)
 local Logger = require(script.Parent.Util.Logger)
 local WorldBuilder = require(script.Parent.World.WorldBuilder)
+local MeshLibrary = require(script.Parent.World.MeshLibrary)
 
 Net.Event("StateSync") -- crea la cartella dei remoti
 
+-- mesh ad alta qualità (asset glTF caricati via Open Cloud); fallback alle primitive se mancanti
+MeshLibrary.Preload(25)
 WorldBuilder.Build()
 
 local servicesFolder = script.Parent.Services
@@ -3472,7 +3706,7 @@ Logger.Info("Main", Config.GameName .. " · server avviato")
 ]]></string>
         </Properties>
       </Item>
-      <Item class="ModuleScript" referent="39">
+      <Item class="ModuleScript" referent="41">
         <Properties>
           <string name="Name">Registry</string>
           <string name="Source"><![CDATA[--!nonstrict
@@ -3493,11 +3727,11 @@ return Registry
 ]]></string>
         </Properties>
       </Item>
-      <Item class="Folder" referent="40">
+      <Item class="Folder" referent="42">
         <Properties>
           <string name="Name">Services</string>
         </Properties>
-        <Item class="ModuleScript" referent="41">
+        <Item class="ModuleScript" referent="43">
           <Properties>
             <string name="Name">AlbumService</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -3710,7 +3944,7 @@ return AlbumService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="42">
+        <Item class="ModuleScript" referent="44">
           <Properties>
             <string name="Name">AnalyticsService</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -3778,7 +4012,7 @@ return Analytics
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="43">
+        <Item class="ModuleScript" referent="45">
           <Properties>
             <string name="Name">CocoonService</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -3932,7 +4166,7 @@ return CocoonService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="44">
+        <Item class="ModuleScript" referent="46">
           <Properties>
             <string name="Name">CommissionService</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -4146,7 +4380,7 @@ return CommissionService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="45">
+        <Item class="ModuleScript" referent="47">
           <Properties>
             <string name="Name">DataService</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -4361,7 +4595,7 @@ return DataService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="46">
+        <Item class="ModuleScript" referent="48">
           <Properties>
             <string name="Name">DefenseService</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -4559,7 +4793,7 @@ return Defense
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="47">
+        <Item class="ModuleScript" referent="49">
           <Properties>
             <string name="Name">EconomyService</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -5315,7 +5549,7 @@ return Economy
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="48">
+        <Item class="ModuleScript" referent="50">
           <Properties>
             <string name="Name">GalleryService</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -5764,7 +5998,7 @@ return Gallery
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="49">
+        <Item class="ModuleScript" referent="51">
           <Properties>
             <string name="Name">PlayerService</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -5977,7 +6211,7 @@ return PlayerService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="50">
+        <Item class="ModuleScript" referent="52">
           <Properties>
             <string name="Name">PlotService</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -6353,7 +6587,7 @@ return PlotService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="51">
+        <Item class="ModuleScript" referent="53">
           <Properties>
             <string name="Name">PoolStore</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -6525,7 +6759,7 @@ return PoolStore
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="52">
+        <Item class="ModuleScript" referent="54">
           <Properties>
             <string name="Name">RaidService</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -7374,7 +7608,7 @@ return RaidService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="53">
+        <Item class="ModuleScript" referent="55">
           <Properties>
             <string name="Name">ShopService</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -7648,7 +7882,7 @@ return ShopService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="54">
+        <Item class="ModuleScript" referent="56">
           <Properties>
             <string name="Name">StatsService</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -7783,7 +8017,7 @@ return Stats
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="55">
+        <Item class="ModuleScript" referent="57">
           <Properties>
             <string name="Name">ThemeService</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -7876,7 +8110,7 @@ return ThemeService
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="56">
+        <Item class="ModuleScript" referent="58">
           <Properties>
             <string name="Name">TutorialService</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -8018,11 +8252,11 @@ return TutorialService
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="57">
+      <Item class="Folder" referent="59">
         <Properties>
           <string name="Name">Util</string>
         </Properties>
-        <Item class="ModuleScript" referent="58">
+        <Item class="ModuleScript" referent="60">
           <Properties>
             <string name="Name">Guard</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -8070,7 +8304,7 @@ return Guard
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="59">
+        <Item class="ModuleScript" referent="61">
           <Properties>
             <string name="Name">Logger</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -8099,7 +8333,7 @@ return Logger
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="60">
+        <Item class="ModuleScript" referent="62">
           <Properties>
             <string name="Name">RateLimiter</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -8136,7 +8370,7 @@ return RateLimiter
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="61">
+        <Item class="ModuleScript" referent="63">
           <Properties>
             <string name="Name">Store</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -8262,11 +8496,11 @@ return Store
           </Properties>
         </Item>
       </Item>
-      <Item class="Folder" referent="62">
+      <Item class="Folder" referent="64">
         <Properties>
           <string name="Name">World</string>
         </Properties>
-        <Item class="ModuleScript" referent="63">
+        <Item class="ModuleScript" referent="65">
           <Properties>
             <string name="Name">ArenaPool</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -8311,7 +8545,93 @@ return ArenaPool
 ]]></string>
           </Properties>
         </Item>
-        <Item class="ModuleScript" referent="64">
+        <Item class="ModuleScript" referent="66">
+          <Properties>
+            <string name="Name">MeshLibrary</string>
+            <string name="Source"><![CDATA[--!nonstrict
+--[[
+	MeshLibrary: carica all'avvio gli asset Model (mesh glTF caricate via Open Cloud) con
+	InsertService e ne espone i MeshPart come template in ReplicatedStorage.MeshTemplates.
+	Se un asset non è disponibile (place di un altro proprietario, asset rimosso, Studio offline),
+	i costruttori usano automaticamente le primitive di fallback.
+]]
+local InsertService = game:GetService("InsertService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local MeshAssets = require(ReplicatedStorage.Shared.Catalog.MeshAssets)
+local Logger = require(script.Parent.Parent.Util.Logger)
+
+local MeshLibrary = { Loaded = 0, Failed = {} }
+
+local function findMeshPart(inst)
+	if inst:IsA("MeshPart") then
+		return inst
+	end
+	for _, d in ipairs(inst:GetDescendants()) do
+		if d:IsA("MeshPart") then
+			return d
+		end
+	end
+	return nil
+end
+
+function MeshLibrary.Preload(timeout)
+	local folder = ReplicatedStorage:FindFirstChild("MeshTemplates") or Instance.new("Folder")
+	folder.Name = "MeshTemplates"
+	folder.Parent = ReplicatedStorage
+	local pending = 0
+	for key, info in pairs(MeshAssets) do
+		pending += 1
+		task.spawn(function()
+			local ok, result = pcall(function()
+				return InsertService:LoadAsset(info.AssetId)
+			end)
+			if ok and result then
+				local mp = findMeshPart(result)
+				if mp then
+					local template = mp:Clone()
+					template.Name = key
+					template.Anchored = true
+					template.CanCollide = false
+					template.CanTouch = false
+					template:ClearAllChildren()
+					template:SetAttribute("NativeSize", template.Size)
+					template:SetAttribute("AssetId", info.AssetId)
+					template.Parent = folder
+					MeshLibrary.Loaded += 1
+				else
+					MeshLibrary.Failed[key] = "nessun MeshPart nel modello"
+				end
+				result:Destroy()
+			else
+				MeshLibrary.Failed[key] = tostring(result)
+			end
+			pending -= 1
+		end)
+	end
+	local t0 = os.clock()
+	while pending > 0 and os.clock() - t0 < (timeout or 25) do
+		task.wait(0.1)
+	end
+	local total = 0
+	for _ in pairs(MeshAssets) do
+		total += 1
+	end
+	if MeshLibrary.Loaded < total then
+		Logger.Warn("Mesh", string.format("Template mesh caricati %d/%d: per i mancanti si usano le primitive.", MeshLibrary.Loaded, total))
+		for k, why in pairs(MeshLibrary.Failed) do
+			Logger.Warn("Mesh", "  -", k, why)
+		end
+	else
+		Logger.Info("Mesh", string.format("Template mesh caricati %d/%d", MeshLibrary.Loaded, total))
+	end
+	return MeshLibrary.Loaded
+end
+
+return MeshLibrary
+]]></string>
+          </Properties>
+        </Item>
+        <Item class="ModuleScript" referent="67">
           <Properties>
             <string name="Name">WorldBuilder</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -8329,6 +8649,7 @@ local Shared = ReplicatedStorage.Shared
 local Config = require(Shared.Config)
 local Strings = require(Shared.Strings)
 local PartUtil = require(Shared.Models.PartUtil)
+local MeshUtil = require(Shared.Models.MeshUtil)
 local PlotBuilder = require(Shared.Models.PlotBuilder)
 local Simulated = require(Shared.Catalog.SimulatedVivai)
 
@@ -8384,7 +8705,8 @@ end
 local function station(parent, cf, name, promptText, stationId, color)
 	local m = PartUtil.Model(name, parent)
 	m:SetAttribute("Station", stationId)
-	local base = PartUtil.Cylinder(4.5, 0.6, color, cf * CFrame.new(0, 0.3, 0), m, { Material = Enum.Material.Marble, Name = "Base" })
+	local base = MeshUtil.Make("platform_pad", Vector3.new(9, 0.7, 9), { Color = color, Material = Enum.Material.Marble, CFrame = cf * CFrame.new(0, 0.35, 0), Parent = m, Name = "Base", CanCollide = true })
+		or PartUtil.Cylinder(4.5, 0.6, color, cf * CFrame.new(0, 0.3, 0), m, { Material = Enum.Material.Marble, Name = "Base" })
 	local prompt = PartUtil.Prompt(base, promptText, "", 0, 14)
 	prompt.Name = "StationPrompt"
 	prompt:SetAttribute("Station", stationId)
@@ -8394,8 +8716,11 @@ end
 
 local function buildTree(parent, cf)
 	local m = PartUtil.Model("AlberoDelleNuvole", parent)
-	PartUtil.Cylinder(2.6, 18, Color3.fromRGB(130, 100, 80), cf * CFrame.new(0, 9, 0), m, { Material = Enum.Material.Wood, Name = "Trunk" })
-	PartUtil.Cylinder(4.2, 1.2, Color3.fromRGB(120, 90, 70), cf * CFrame.new(0, 0.6, 0), m, { Material = Enum.Material.Wood, Name = "Roots" })
+	local trunk = MeshUtil.Make("trunk", { Height = 18.5 }, { Color = Color3.fromRGB(130, 100, 80), Material = Enum.Material.Wood, CFrame = cf * CFrame.new(0, 9.25, 0), Parent = m, Name = "Trunk", CanCollide = true })
+	if not trunk then
+		PartUtil.Cylinder(2.6, 18, Color3.fromRGB(130, 100, 80), cf * CFrame.new(0, 9, 0), m, { Material = Enum.Material.Wood, Name = "Trunk" })
+		PartUtil.Cylinder(4.2, 1.2, Color3.fromRGB(120, 90, 70), cf * CFrame.new(0, 0.6, 0), m, { Material = Enum.Material.Wood, Name = "Roots" })
+	end
 	local rng = Random.new(7)
 	for i = 1, 4 do
 		local a = i * 1.6
@@ -8415,14 +8740,18 @@ end
 
 local function buildRaidPortal(parent, cf)
 	local m = station(parent, cf, "PortaleIncursioni", Strings.PromptRaidPortal, "raid", Color3.fromRGB(255, 170, 220))
-	local ring = PartUtil.Part({ Shape = Enum.PartType.Cylinder, Size = Vector3.new(1.2, 14, 14), Color = Color3.fromRGB(250, 250, 255), Material = Enum.Material.Marble, CFrame = cf * CFrame.new(0, 7.6, 0) * CFrame.Angles(0, 0, 0), Parent = m, Name = "Ring", CanCollide = false })
-	ring.CFrame = cf * CFrame.new(0, 7.6, 0) * CFrame.Angles(0, math.rad(90), 0)
+	local ring = MeshUtil.Make("portal_ring", { Width = 14.5 }, { Color = Color3.fromRGB(250, 250, 255), Material = Enum.Material.Marble, CFrame = cf * CFrame.new(0, 7.6, 0), Parent = m, Name = "Ring" })
+	if not ring then
+		ring = PartUtil.Part({ Shape = Enum.PartType.Cylinder, Size = Vector3.new(1.2, 14, 14), Color = Color3.fromRGB(250, 250, 255), Material = Enum.Material.Marble, CFrame = cf * CFrame.new(0, 7.6, 0), Parent = m, Name = "Ring", CanCollide = false })
+		ring.CFrame = cf * CFrame.new(0, 7.6, 0) * CFrame.Angles(0, math.rad(90), 0)
+	end
 	local inner = PartUtil.Part({ Shape = Enum.PartType.Cylinder, Size = Vector3.new(0.4, 12, 12), Color = Color3.fromRGB(255, 170, 220), Material = Enum.Material.ForceField, Transparency = 0.2, CFrame = cf * CFrame.new(0, 7.6, 0) * CFrame.Angles(0, math.rad(90), 0), Parent = m, Name = "Swirl", CanCollide = false, CanQuery = false })
 	inner:SetAttribute("Anim", "spinZ")
 	PartUtil.Light(inner, Color3.fromRGB(255, 170, 220), 2, 30)
 	PartUtil.Emitter(inner, { Color = Color3.fromRGB(255, 200, 240), Rate = 20, Speed = NumberRange.new(1, 3), Lifetime = NumberRange.new(1, 2), Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.4), NumberSequenceKeypoint.new(1, 0) }), Name = "Motes" })
 	for _, dx in ipairs({ -7.5, 7.5 }) do
-		PartUtil.Part({ Size = Vector3.new(1.6, 3, 1.6), Color = Color3.fromRGB(230, 232, 245), Material = Enum.Material.Marble, CFrame = cf * CFrame.new(dx, 1.5, 0), Parent = m, Name = "Pillar" })
+		local _ = MeshUtil.Make("pillar", { Height = 4 }, { Color = Color3.fromRGB(230, 232, 245), Material = Enum.Material.Marble, CFrame = cf * CFrame.new(dx, 2, 0), Parent = m, Name = "Pillar", CanCollide = true })
+			or PartUtil.Part({ Size = Vector3.new(1.6, 3, 1.6), Color = Color3.fromRGB(230, 232, 245), Material = Enum.Material.Marble, CFrame = cf * CFrame.new(dx, 1.5, 0), Parent = m, Name = "Pillar" })
 	end
 end
 
@@ -8470,7 +8799,8 @@ local function buildGallery(parent, cf)
 	for i = -1, 1 do
 		local x = i * 7
 		for _, dx in ipairs({ -2.6, 2.6 }) do
-			PartUtil.Part({ Size = Vector3.new(0.8, 7, 0.8), Color = Color3.fromRGB(240, 242, 252), Material = Enum.Material.Marble, CFrame = cf * CFrame.new(x + dx, 3.5, -3), Parent = m, Name = "Column" })
+			local _ = MeshUtil.Make("pillar", { Height = 7 }, { Color = Color3.fromRGB(240, 242, 252), Material = Enum.Material.Marble, CFrame = cf * CFrame.new(x + dx, 3.5, -3), Parent = m, Name = "Column", CanCollide = true })
+				or PartUtil.Part({ Size = Vector3.new(0.8, 7, 0.8), Color = Color3.fromRGB(240, 242, 252), Material = Enum.Material.Marble, CFrame = cf * CFrame.new(x + dx, 3.5, -3), Parent = m, Name = "Column" })
 		end
 		PartUtil.Part({ Size = Vector3.new(6, 0.8, 0.8), Color = Color3.fromRGB(240, 242, 252), Material = Enum.Material.Marble, CFrame = cf * CFrame.new(x, 7.2, -3), Parent = m, Name = "Lintel" })
 		local frame = PartUtil.Part({ Size = Vector3.new(4.4, 4.4, 0.3), Color = ({ Color3.fromRGB(255, 190, 70), Color3.fromRGB(96, 160, 240), Color3.fromRGB(196, 130, 255) })[i + 2], Material = Enum.Material.Neon, Transparency = 0.35, CFrame = cf * CFrame.new(x, 4, -3), Parent = m, Name = "Frame", CanCollide = false })
@@ -8482,14 +8812,17 @@ local function buildShop(parent, cf)
 	local m = station(parent, cf, "Bottega", Strings.PromptShop, "shop", Color3.fromRGB(226, 142, 255))
 	PartUtil.Part({ Size = Vector3.new(8, 2.4, 3), Color = Color3.fromRGB(200, 160, 120), Material = Enum.Material.WoodPlanks, CFrame = cf * CFrame.new(0, 1.2, -2), Parent = m, Name = "Counter" })
 	for _, dx in ipairs({ -3.6, 3.6 }) do
-		PartUtil.Part({ Size = Vector3.new(0.5, 7, 0.5), Color = Color3.fromRGB(130, 100, 80), Material = Enum.Material.Wood, CFrame = cf * CFrame.new(dx, 3.5, -3.5), Parent = m, Name = "Post" })
+		local _ = MeshUtil.Make("post", { Height = 7 }, { Color = Color3.fromRGB(130, 100, 80), Material = Enum.Material.Wood, CFrame = cf * CFrame.new(dx, 3.5, -3.5), Parent = m, Name = "Post", CanCollide = true })
+			or PartUtil.Part({ Size = Vector3.new(0.5, 7, 0.5), Color = Color3.fromRGB(130, 100, 80), Material = Enum.Material.Wood, CFrame = cf * CFrame.new(dx, 3.5, -3.5), Parent = m, Name = "Post" })
 	end
 	for i = 0, 3 do
 		local col = (i % 2 == 0) and Color3.fromRGB(226, 142, 255) or Color3.fromRGB(250, 250, 255)
 		PartUtil.Part({ Size = Vector3.new(2.2, 0.3, 4.5), Color = col, Material = Enum.Material.Fabric, CFrame = cf * CFrame.new(-3.3 + i * 2.2, 7, -2) * CFrame.Angles(math.rad(-12), 0, 0), Parent = m, Name = "Awning", CanCollide = false })
 	end
 	for i = 1, 3 do
-		local gem = PartUtil.Part({ Size = Vector3.new(0.9, 1.3, 0.9), Color = ({ Color3.fromRGB(255, 200, 90), Color3.fromRGB(150, 210, 255), Color3.fromRGB(255, 160, 220) })[i], Material = Enum.Material.Glass, Transparency = 0.15, Reflectance = 0.3, CFrame = cf * CFrame.new(-2.5 + i * 1.6, 3.1, -2) * CFrame.Angles(0, math.rad(45), 0), Parent = m, Name = "Gem", CanCollide = false })
+		local gemColor = ({ Color3.fromRGB(255, 200, 90), Color3.fromRGB(150, 210, 255), Color3.fromRGB(255, 160, 220) })[i]
+		local gem = MeshUtil.Make("crystal", { Height = 1.4 }, { Color = gemColor, Material = Enum.Material.Glass, Transparency = 0.15, Reflectance = 0.3, CFrame = cf * CFrame.new(-2.5 + i * 1.6, 3.1, -2) * CFrame.Angles(0, math.rad(45 * i), 0), Parent = m, Name = "Gem" })
+			or PartUtil.Part({ Size = Vector3.new(0.9, 1.3, 0.9), Color = gemColor, Material = Enum.Material.Glass, Transparency = 0.15, Reflectance = 0.3, CFrame = cf * CFrame.new(-2.5 + i * 1.6, 3.1, -2) * CFrame.Angles(0, math.rad(45), 0), Parent = m, Name = "Gem", CanCollide = false })
 		gem:SetAttribute("Anim", "bob")
 	end
 end
@@ -8507,10 +8840,14 @@ local function buildHubIsland(parent)
 		local rad = math.rad(a)
 		PartUtil.Part({ Size = Vector3.new(6, 0.3, 40), Color = Color3.fromRGB(226, 222, 212), Material = Enum.Material.Marble, CFrame = origin * CFrame.Angles(0, rad, 0) * CFrame.new(0, 0.15, -42), Parent = m, Name = "Path" })
 	end
-	-- roccia e nuvole sotto
-	PartUtil.Part({ Size = Vector3.new(HUB_RADIUS * 1.5, 14, HUB_RADIUS * 1.5), Material = Enum.Material.Slate, Color = Color3.fromRGB(150, 160, 190), CFrame = origin * CFrame.new(0, -9, 0) * CFrame.Angles(0, math.rad(15), 0), Parent = m, Name = "Rock", CanCollide = false })
-	PartUtil.Part({ Size = Vector3.new(HUB_RADIUS * 0.9, 16, HUB_RADIUS * 0.9), Material = Enum.Material.Slate, Color = Color3.fromRGB(130, 140, 175), CFrame = origin * CFrame.new(0, -22, 0) * CFrame.Angles(0, math.rad(40), 0), Parent = m, Name = "Rock2", CanCollide = false })
-	PartUtil.Part({ Size = Vector3.new(HUB_RADIUS * 0.4, 18, HUB_RADIUS * 0.4), Material = Enum.Material.Slate, Color = Color3.fromRGB(115, 125, 160), CFrame = origin * CFrame.new(0, -38, 0) * CFrame.Angles(0, math.rad(70), 0), Parent = m, Name = "Rock3", CanCollide = false })
+	-- isola rocciosa sotto il prato (mesh decorativa; la collisione resta al cilindro) e nuvole
+	local hubIslandH = 70
+	local hubIsland = MeshUtil.Make("island_hub", Vector3.new(HUB_RADIUS * 2.08, hubIslandH, HUB_RADIUS * 2.08), { Material = Enum.Material.Slate, Color = Color3.fromRGB(150, 160, 190), CFrame = origin * CFrame.new(0, -0.6 - hubIslandH * 0.405, 0), Parent = m, Name = "Island" })
+	if not hubIsland then
+		PartUtil.Part({ Size = Vector3.new(HUB_RADIUS * 1.5, 14, HUB_RADIUS * 1.5), Material = Enum.Material.Slate, Color = Color3.fromRGB(150, 160, 190), CFrame = origin * CFrame.new(0, -9, 0) * CFrame.Angles(0, math.rad(15), 0), Parent = m, Name = "Rock", CanCollide = false })
+		PartUtil.Part({ Size = Vector3.new(HUB_RADIUS * 0.9, 16, HUB_RADIUS * 0.9), Material = Enum.Material.Slate, Color = Color3.fromRGB(130, 140, 175), CFrame = origin * CFrame.new(0, -22, 0) * CFrame.Angles(0, math.rad(40), 0), Parent = m, Name = "Rock2", CanCollide = false })
+		PartUtil.Part({ Size = Vector3.new(HUB_RADIUS * 0.4, 18, HUB_RADIUS * 0.4), Material = Enum.Material.Slate, Color = Color3.fromRGB(115, 125, 160), CFrame = origin * CFrame.new(0, -38, 0) * CFrame.Angles(0, math.rad(70), 0), Parent = m, Name = "Rock3", CanCollide = false })
+	end
 	local rng = Random.new(42)
 	for i = 1, 18 do
 		local a = (i / 18) * math.pi * 2 + rng:NextNumber(-0.2, 0.2)
@@ -8545,12 +8882,21 @@ local function buildHubIsland(parent)
 		local a = (i / 12) * math.pi * 2 + math.rad(15)
 		local cf = origin * CFrame.new(math.cos(a) * 30, 0, math.sin(a) * 30)
 		if i % 2 == 0 then
-			local post = PartUtil.Part({ Size = Vector3.new(0.4, 5, 0.4), Color = Color3.fromRGB(120, 90, 60), Material = Enum.Material.Wood, CFrame = cf * CFrame.new(0, 2.5, 0), Parent = m, Name = "LampPost" })
-			local lamp = PartUtil.Ball(1.2, Color3.fromRGB(255, 225, 150), cf * CFrame.new(0, 5.4, 0), m, { Material = Enum.Material.Neon, Name = "Lamp" })
+			local _ = MeshUtil.Make("post", { Height = 5 }, { Color = Color3.fromRGB(120, 90, 60), Material = Enum.Material.Wood, CFrame = cf * CFrame.new(0, 2.5, 0), Parent = m, Name = "LampPost", CanCollide = true })
+				or PartUtil.Part({ Size = Vector3.new(0.4, 5, 0.4), Color = Color3.fromRGB(120, 90, 60), Material = Enum.Material.Wood, CFrame = cf * CFrame.new(0, 2.5, 0), Parent = m, Name = "LampPost" })
+			local lamp = MeshUtil.Make("lamp_head", 1.3, { Color = Color3.fromRGB(255, 225, 150), Material = Enum.Material.Neon, CFrame = cf * CFrame.new(0, 5.5, 0), Parent = m, Name = "Lamp" })
+				or PartUtil.Ball(1.2, Color3.fromRGB(255, 225, 150), cf * CFrame.new(0, 5.4, 0), m, { Material = Enum.Material.Neon, Name = "Lamp" })
 			PartUtil.Light(lamp, Color3.fromRGB(255, 225, 150), 1, 14)
+		elseif i % 4 == 1 then
+			local _ = MeshUtil.MakeOnGround("flower_bed", 4.2, cf, { Color = Color3.fromRGB(120, 200, 140), Material = Enum.Material.Grass, Parent = m, Name = "Flowers" })
+				or PartUtil.Ball(2.4, Color3.fromRGB(110, 190, 150), cf * CFrame.new(0, 1, 0), m, { Material = Enum.Material.Grass, Name = "Bush" })
+			local _2 = MeshUtil.MakeOnGround("mushroom_stone", 1.8, cf * CFrame.new(2.4, 0, 1.2), { Color = Color3.fromRGB(200, 190, 230), Material = Enum.Material.Marble, Parent = m, Name = "Stone" })
 		else
-			PartUtil.Ball(2.4, Color3.fromRGB(110, 190, 150), cf * CFrame.new(0, 1, 0), m, { Material = Enum.Material.Grass, Name = "Bush" })
-			PartUtil.Ball(1.6, Color3.fromRGB(130, 205, 160), cf * CFrame.new(0.9, 1.4, 0.5), m, { Material = Enum.Material.Grass, Name = "Bush" })
+			local bushMesh = MeshUtil.MakeOnGround("bush", 3.6, cf * CFrame.Angles(0, i * 0.7, 0), { Color = Color3.fromRGB(110, 190, 150), Material = Enum.Material.Grass, Parent = m, Name = "Bush" })
+			if not bushMesh then
+				PartUtil.Ball(2.4, Color3.fromRGB(110, 190, 150), cf * CFrame.new(0, 1, 0), m, { Material = Enum.Material.Grass, Name = "Bush" })
+				PartUtil.Ball(1.6, Color3.fromRGB(130, 205, 160), cf * CFrame.new(0.9, 1.4, 0.5), m, { Material = Enum.Material.Grass, Name = "Bush" })
+			end
 		end
 	end
 	return m
@@ -8606,8 +8952,10 @@ local function buildScenery(parent)
 		local p = Vector3.new(math.cos(a) * r, y, math.sin(a) * r)
 		if (p - Vector3.new(0, 0, 0)).Magnitude > 120 then
 			PartUtil.Cloud(CFrame.new(p), rng:NextNumber(5, 12), m, Color3.fromRGB(250, 252, 255), rng:NextNumber(0.05, 0.3))
-			if rng:NextNumber() < 0.3 then
-				PartUtil.Part({ Size = Vector3.new(rng:NextNumber(6, 14), rng:NextNumber(4, 10), rng:NextNumber(6, 14)), Material = Enum.Material.Slate, Color = Color3.fromRGB(140, 150, 185), CFrame = CFrame.new(p + Vector3.new(0, -6, 0)) * CFrame.Angles(rng:NextNumber(-0.3, 0.3), rng:NextNumber(0, 3), rng:NextNumber(-0.3, 0.3)), Parent = m, Name = "FloatingRock", CanCollide = false })
+			if rng:NextNumber() < 0.35 then
+				local variant = ({ "rock_a", "rock_b", "rock_c" })[rng:NextInteger(1, 3)]
+				local _ = MeshUtil.Make(variant, rng:NextNumber(8, 18), { Material = Enum.Material.Slate, Color = Color3.fromRGB(140, 150, 185), CFrame = CFrame.new(p + Vector3.new(0, -6, 0)) * CFrame.Angles(rng:NextNumber(-0.3, 0.3), rng:NextNumber(0, 3), rng:NextNumber(-0.3, 0.3)), Parent = m, Name = "FloatingRock" })
+					or PartUtil.Part({ Size = Vector3.new(rng:NextNumber(6, 14), rng:NextNumber(4, 10), rng:NextNumber(6, 14)), Material = Enum.Material.Slate, Color = Color3.fromRGB(140, 150, 185), CFrame = CFrame.new(p + Vector3.new(0, -6, 0)) * CFrame.Angles(rng:NextNumber(-0.3, 0.3), rng:NextNumber(0, 3), rng:NextNumber(-0.3, 0.3)), Parent = m, Name = "FloatingRock", CanCollide = false })
 			end
 		end
 	end
@@ -8656,21 +9004,21 @@ return WorldBuilder
       </Item>
     </Item>
   </Item>
-  <Item class="SoundService" referent="65">
+  <Item class="SoundService" referent="68">
     <Properties>
       <string name="Name">SoundService</string>
       <token name="AmbientReverb">18</token>
       <bool name="RespectFilteringEnabled">true</bool>
     </Properties>
   </Item>
-  <Item class="StarterGui" referent="66">
+  <Item class="StarterGui" referent="69">
     <Properties>
       <string name="Name">StarterGui</string>
       <bool name="ResetPlayerGuiOnSpawn">false</bool>
       <token name="ScreenOrientation">2</token>
     </Properties>
   </Item>
-  <Item class="StarterPlayer" referent="67">
+  <Item class="StarterPlayer" referent="70">
     <Properties>
       <string name="Name">StarterPlayer</string>
       <float name="CameraMaxZoomDistance">60</float>
@@ -8679,19 +9027,19 @@ return WorldBuilder
       <float name="CharacterWalkSpeed">18</float>
       <bool name="EnableMouseLockOption">true</bool>
     </Properties>
-    <Item class="StarterPlayerScripts" referent="68">
+    <Item class="StarterPlayerScripts" referent="71">
       <Properties>
         <string name="Name">StarterPlayerScripts</string>
       </Properties>
-      <Item class="Folder" referent="69">
+      <Item class="Folder" referent="72">
         <Properties>
           <string name="Name">Client</string>
         </Properties>
-        <Item class="Folder" referent="70">
+        <Item class="Folder" referent="73">
           <Properties>
             <string name="Name">Controllers</string>
           </Properties>
-          <Item class="ModuleScript" referent="71">
+          <Item class="ModuleScript" referent="74">
             <Properties>
               <string name="Name">Audio</string>
               <string name="Source"><![CDATA[--!nonstrict
@@ -8759,7 +9107,7 @@ return Audio
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="72">
+          <Item class="ModuleScript" referent="75">
             <Properties>
               <string name="Name">BuildController</string>
               <string name="Source"><![CDATA[--!nonstrict
@@ -9299,7 +9647,7 @@ return Build
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="73">
+          <Item class="ModuleScript" referent="76">
             <Properties>
               <string name="Name">RaidController</string>
               <string name="Source"><![CDATA[--!nonstrict
@@ -9422,7 +9770,7 @@ return RaidController
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="74">
+          <Item class="ModuleScript" referent="77">
             <Properties>
               <string name="Name">State</string>
               <string name="Source"><![CDATA[--!nonstrict
@@ -9494,7 +9842,7 @@ return State
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="75">
+          <Item class="ModuleScript" referent="78">
             <Properties>
               <string name="Name">TutorialController</string>
               <string name="Source"><![CDATA[--!nonstrict
@@ -9655,7 +10003,7 @@ return Tutorial
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="76">
+          <Item class="ModuleScript" referent="79">
             <Properties>
               <string name="Name">Visuals</string>
               <string name="Source"><![CDATA[--!nonstrict
@@ -9853,7 +10201,7 @@ return Visuals
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="77">
+          <Item class="ModuleScript" referent="80">
             <Properties>
               <string name="Name">WorldAnimator</string>
               <string name="Source"><![CDATA[--!nonstrict
@@ -10052,7 +10400,7 @@ return Animator
             </Properties>
           </Item>
         </Item>
-        <Item class="LocalScript" referent="78">
+        <Item class="LocalScript" referent="81">
           <Properties>
             <string name="Name">Main</string>
             <string name="Source"><![CDATA[--!nonstrict
@@ -10223,11 +10571,11 @@ end)
 ]]></string>
           </Properties>
         </Item>
-        <Item class="Folder" referent="79">
+        <Item class="Folder" referent="82">
           <Properties>
             <string name="Name">UI</string>
           </Properties>
-          <Item class="ModuleScript" referent="80">
+          <Item class="ModuleScript" referent="83">
             <Properties>
               <string name="Name">AlbumPanel</string>
               <string name="Source"><![CDATA[--!nonstrict
@@ -10413,7 +10761,7 @@ return AlbumPanel
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="81">
+          <Item class="ModuleScript" referent="84">
             <Properties>
               <string name="Name">BuildPanel</string>
               <string name="Source"><![CDATA[--!nonstrict
@@ -10891,7 +11239,7 @@ return BuildPanel
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="82">
+          <Item class="ModuleScript" referent="85">
             <Properties>
               <string name="Name">CocoonPanel</string>
               <string name="Source"><![CDATA[--!nonstrict
@@ -10990,7 +11338,7 @@ return CocoonPanel
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="83">
+          <Item class="ModuleScript" referent="86">
             <Properties>
               <string name="Name">CommissionPanel</string>
               <string name="Source"><![CDATA[--!nonstrict
@@ -11127,7 +11475,7 @@ return CommissionPanel
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="84">
+          <Item class="ModuleScript" referent="87">
             <Properties>
               <string name="Name">DemoPanel</string>
               <string name="Source"><![CDATA[--!nonstrict
@@ -11179,7 +11527,7 @@ return DemoPanel
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="85">
+          <Item class="ModuleScript" referent="88">
             <Properties>
               <string name="Name">GalleryPanel</string>
               <string name="Source"><![CDATA[--!nonstrict
@@ -11272,7 +11620,7 @@ return GalleryPanel
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="86">
+          <Item class="ModuleScript" referent="89">
             <Properties>
               <string name="Name">HUD</string>
               <string name="Source"><![CDATA[--!nonstrict
@@ -11519,7 +11867,7 @@ return HUD
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="87">
+          <Item class="ModuleScript" referent="90">
             <Properties>
               <string name="Name">RaidPanel</string>
               <string name="Source"><![CDATA[--!nonstrict
@@ -11744,7 +12092,7 @@ return RaidPanel
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="88">
+          <Item class="ModuleScript" referent="91">
             <Properties>
               <string name="Name">SettingsPanel</string>
               <string name="Source"><![CDATA[--!nonstrict
@@ -11843,7 +12191,7 @@ return SettingsPanel
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="89">
+          <Item class="ModuleScript" referent="92">
             <Properties>
               <string name="Name">ShopPanel</string>
               <string name="Source"><![CDATA[--!nonstrict
@@ -12024,7 +12372,7 @@ return ShopPanel
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="90">
+          <Item class="ModuleScript" referent="93">
             <Properties>
               <string name="Name">Toast</string>
               <string name="Source"><![CDATA[--!nonstrict
@@ -12082,7 +12430,7 @@ return Toast
 ]]></string>
             </Properties>
           </Item>
-          <Item class="ModuleScript" referent="91">
+          <Item class="ModuleScript" referent="94">
             <Properties>
               <string name="Name">UI</string>
               <string name="Source"><![CDATA[--!nonstrict
@@ -12482,12 +12830,12 @@ return UI
             </Properties>
           </Item>
         </Item>
-        <Item class="Folder" referent="92">
+        <Item class="Folder" referent="95">
           <Properties>
             <string name="Name">Util</string>
           </Properties>
         </Item>
-        <Item class="Folder" referent="93">
+        <Item class="Folder" referent="96">
           <Properties>
             <string name="Name">Visuals</string>
           </Properties>
@@ -12495,7 +12843,7 @@ return UI
       </Item>
     </Item>
   </Item>
-  <Item class="Workspace" referent="94">
+  <Item class="Workspace" referent="97">
     <Properties>
       <string name="Name">Workspace</string>
       <bool name="FilteringEnabled">true</bool>

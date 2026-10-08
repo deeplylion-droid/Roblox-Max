@@ -8,6 +8,7 @@
 local Defenses = require(script.Parent.Parent.Catalog.Defenses)
 local Config = require(script.Parent.Parent.Config)
 local PartUtil = require(script.Parent.PartUtil)
+local MeshUtil = require(script.Parent.MeshUtil)
 
 local CELL = Config.Grid.CellSize
 local ModuleModel = {}
@@ -30,7 +31,8 @@ builders.corrente = function(model, def, params, mode)
 	local r = root(model, def.Id, params)
 	-- bocchette alle 3 celle (asse X locale)
 	for dx = -1, 1 do
-		local base = PartUtil.Cylinder(1.3, 0.5, Color3.fromRGB(120, 190, 170), CFrame.new(dx * CELL, 0.25, 0), model, { Material = Enum.Material.Metal, Name = "Vent" })
+		local base = MeshUtil.Make("vent", 2.8, { Color = Color3.fromRGB(120, 190, 170), Material = Enum.Material.Metal, CFrame = CFrame.new(dx * CELL, 0.36, 0), Parent = model, Name = "Vent", CanCollide = true })
+			or PartUtil.Cylinder(1.3, 0.5, Color3.fromRGB(120, 190, 170), CFrame.new(dx * CELL, 0.25, 0), model, { Material = Enum.Material.Metal, Name = "Vent" })
 		PartUtil.Cylinder(0.8, 0.3, def.Color, CFrame.new(dx * CELL, 0.55, 0), model, { Material = Enum.Material.Neon, Name = "VentGlow", CanCollide = false })
 		PartUtil.Light(base, def.Color, 0.6, 7)
 	end
@@ -62,7 +64,8 @@ builders.piattaforma = function(model, def, params, mode)
 	-- fondo del vuoto: cielo scuro (visual) — in raid non è calpestabile
 	PartUtil.Part({ Size = Vector3.new(CELL, 0.2, CELL * 3), Color = Color3.fromRGB(80, 110, 170), Material = Enum.Material.Glass, Transparency = 0.35, CFrame = CFrame.new(0, -1.2, 0), Parent = model, Name = "Void", CanCollide = false, CanQuery = false })
 	local width = (params.Width or 1) * 3.4
-	local plat = PartUtil.Part({ Size = Vector3.new(width, 0.7, width), Color = def.Color, Material = Enum.Material.SmoothPlastic, CFrame = CFrame.new(0, 0.1, -CELL), Parent = model, Name = "Platform" })
+	local plat = MeshUtil.Make("platform_pad", Vector3.new(width, 0.7, width), { Color = def.Color, Material = Enum.Material.SmoothPlastic, CFrame = CFrame.new(0, 0.1, -CELL), Parent = model, Name = "Platform", CanCollide = true })
+		or PartUtil.Part({ Size = Vector3.new(width, 0.7, width), Color = def.Color, Material = Enum.Material.SmoothPlastic, CFrame = CFrame.new(0, 0.1, -CELL), Parent = model, Name = "Platform" })
 	plat:SetAttribute("Period", params.Period or 3.2)
 	plat:SetAttribute("Travel", CELL * 2) -- da -CELL a +CELL lungo Z locale
 	plat:SetAttribute("Phase", 0)
@@ -78,9 +81,13 @@ end
 
 builders.sentinella = function(model, def, params, mode)
 	local r = root(model, def.Id, params)
-	local pillar = PartUtil.Cylinder(1.1, 7, Color3.fromRGB(205, 210, 230), CFrame.new(0, 3.5, 0), model, { Material = Enum.Material.Slate, Name = "Pillar" })
-	PartUtil.Cylinder(1.5, 0.6, Color3.fromRGB(180, 190, 215), CFrame.new(0, 0.3, 0), model, { Material = Enum.Material.Slate, Name = "Base" })
-	local lamp = PartUtil.Ball(2.2, Color3.fromRGB(255, 250, 200), CFrame.new(0, 7.6, 0), model, { Material = Enum.Material.Neon, Name = "Lamp", CanCollide = false })
+	local pillar = MeshUtil.Make("pillar", { Height = 7 }, { Color = Color3.fromRGB(205, 210, 230), Material = Enum.Material.Slate, CFrame = CFrame.new(0, 3.5, 0), Parent = model, Name = "Pillar", CanCollide = true })
+	if not pillar then
+		pillar = PartUtil.Cylinder(1.1, 7, Color3.fromRGB(205, 210, 230), CFrame.new(0, 3.5, 0), model, { Material = Enum.Material.Slate, Name = "Pillar" })
+		PartUtil.Cylinder(1.5, 0.6, Color3.fromRGB(180, 190, 215), CFrame.new(0, 0.3, 0), model, { Material = Enum.Material.Slate, Name = "Base" })
+	end
+	local lamp = MeshUtil.Make("lamp_head", 2.4, { Color = Color3.fromRGB(255, 250, 200), Material = Enum.Material.Neon, CFrame = CFrame.new(0, 7.8, 0), Parent = model, Name = "Lamp" })
+		or PartUtil.Ball(2.2, Color3.fromRGB(255, 250, 200), CFrame.new(0, 7.6, 0), model, { Material = Enum.Material.Neon, Name = "Lamp", CanCollide = false })
 	PartUtil.Light(lamp, Color3.fromRGB(255, 240, 180), 1.5, 16)
 	-- cono di luce: ventaglio di fasci Neon a terra (apice al pilastro). Orientato da ModuleModel.OrientSentinel
 	local radius = params.Radius or 9
@@ -117,8 +124,9 @@ end
 
 builders.faro = function(model, def, params, mode)
 	local r = root(model, def.Id, params)
-	PartUtil.Cylinder(1.7, 0.8, Color3.fromRGB(230, 225, 210), CFrame.new(0, 0.4, 0), model, { Material = Enum.Material.Marble, Name = "Basin" })
-	local glow = PartUtil.Cylinder(1.4, 0.3, Color3.fromRGB(255, 205, 90), CFrame.new(0, 0.85, 0), model, { Material = Enum.Material.Neon, Name = "FakePool", CanCollide = false })
+	local _ = MeshUtil.Make("basin", Vector3.new(3.6, 1.0, 3.6), { Color = Color3.fromRGB(230, 225, 210), Material = Enum.Material.Marble, CFrame = CFrame.new(0, 0.5, 0), Parent = model, Name = "Basin", CanCollide = true })
+		or PartUtil.Cylinder(1.7, 0.8, Color3.fromRGB(230, 225, 210), CFrame.new(0, 0.4, 0), model, { Material = Enum.Material.Marble, Name = "Basin" })
+	local glow = PartUtil.Cylinder(1.25, 0.3, Color3.fromRGB(255, 205, 90), CFrame.new(0, 0.85, 0), model, { Material = Enum.Material.Neon, Name = "FakePool", CanCollide = false })
 	PartUtil.Light(glow, Color3.fromRGB(255, 200, 90), 1.4, 12)
 	PartUtil.Emitter(glow, { Color = Color3.fromRGB(255, 220, 120), Rate = 10, Speed = NumberRange.new(1, 3), Lifetime = NumberRange.new(0.6, 1.2), Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.3), NumberSequenceKeypoint.new(1, 0) }), Name = "Lure" })
 	r:SetAttribute("Dazzle", params.Dazzle or 3.5)
@@ -129,9 +137,9 @@ end
 builders.nebbia = function(model, def, params, mode)
 	local r = root(model, def.Id, params)
 	local zone = PartUtil.Part({ Size = Vector3.new(CELL * 2, 7, CELL * 2), Transparency = 1, CanCollide = false, CanQuery = false, CFrame = CFrame.new(CELL / 2, 3.5, CELL / 2), Parent = model, Name = "FogZone" })
-	for i = 1, 5 do
-		local a = i * 1.3
-		PartUtil.Ball(3 + (i % 2), Color3.fromRGB(225, 232, 245), CFrame.new(CELL / 2 + math.cos(a) * 2.2, 1.5 + (i % 3) * 0.8, CELL / 2 + math.sin(a) * 2.2), model, { Transparency = 0.55, Material = Enum.Material.SmoothPlastic, Name = "Puff", CastShadow = false })
+	for i = 1, 3 do
+		local a = i * 2.1
+		PartUtil.Cloud(CFrame.new(CELL / 2 + math.cos(a) * 1.8, 1.4 + (i % 2) * 0.9, CELL / 2 + math.sin(a) * 1.8), 1.3, model, Color3.fromRGB(225, 232, 245), 0.5)
 	end
 	PartUtil.Emitter(zone, { Color = Color3.fromRGB(230, 236, 248), Rate = 10, Speed = NumberRange.new(0.3, 0.8), Lifetime = NumberRange.new(2, 3.5), Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 2), NumberSequenceKeypoint.new(0.5, 4), NumberSequenceKeypoint.new(1, 2) }), Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.7), NumberSequenceKeypoint.new(0.5, 0.45), NumberSequenceKeypoint.new(1, 1) }), LightEmission = 0.1, Name = "Fog" })
 	return r
@@ -150,7 +158,8 @@ end
 builders.cupola = function(model, def, params, mode)
 	local r = root(model, def.Id, params)
 	-- cristallo di controllo decorativo sulla cella del modulo
-	local crystal = PartUtil.Part({ Size = Vector3.new(1.4, 3.2, 1.4), Color = def.Color, Material = Enum.Material.Glass, Transparency = 0.2, Reflectance = 0.3, CFrame = CFrame.new(0, 1.8, 0) * CFrame.Angles(0, math.rad(45), 0), Parent = model, Name = "Crystal", CanCollide = false })
+	local crystal = MeshUtil.Make("crystal", { Height = 3.4 }, { Color = def.Color, Material = Enum.Material.Glass, Transparency = 0.2, Reflectance = 0.3, CFrame = CFrame.new(0, 2.0, 0), Parent = model, Name = "Crystal" })
+		or PartUtil.Part({ Size = Vector3.new(1.4, 3.2, 1.4), Color = def.Color, Material = Enum.Material.Glass, Transparency = 0.2, Reflectance = 0.3, CFrame = CFrame.new(0, 1.8, 0) * CFrame.Angles(0, math.rad(45), 0), Parent = model, Name = "Crystal", CanCollide = false })
 	PartUtil.Light(crystal, def.Color, 1.2, 12)
 	PartUtil.Cylinder(1.2, 0.5, Color3.fromRGB(200, 190, 230), CFrame.new(0, 0.25, 0), model, { Material = Enum.Material.Marble, Name = "Base" })
 	r:SetAttribute("Height", params.Height or 7)
@@ -160,11 +169,15 @@ end
 builders.campana = function(model, def, params, mode)
 	local r = root(model, def.Id, params)
 	for _, dx in ipairs({ -1.4, 1.4 }) do
-		PartUtil.Part({ Size = Vector3.new(0.4, 6, 0.4), Color = Color3.fromRGB(120, 90, 60), Material = Enum.Material.Wood, CFrame = CFrame.new(dx, 3, 0), Parent = model, Name = "Post" })
+		local _ = MeshUtil.Make("post", { Height = 6 }, { Color = Color3.fromRGB(120, 90, 60), Material = Enum.Material.Wood, CFrame = CFrame.new(dx, 3, 0), Parent = model, Name = "Post", CanCollide = true })
+			or PartUtil.Part({ Size = Vector3.new(0.4, 6, 0.4), Color = Color3.fromRGB(120, 90, 60), Material = Enum.Material.Wood, CFrame = CFrame.new(dx, 3, 0), Parent = model, Name = "Post" })
 	end
 	PartUtil.Part({ Size = Vector3.new(3.4, 0.4, 0.5), Color = Color3.fromRGB(120, 90, 60), Material = Enum.Material.Wood, CFrame = CFrame.new(0, 6.1, 0), Parent = model, Name = "Beam" })
-	local bell = PartUtil.Cylinder(1.1, 1.8, Color3.fromRGB(240, 200, 110), CFrame.new(0, 4.6, 0), model, { Material = Enum.Material.Metal, Reflectance = 0.35, Name = "Bell", CanCollide = false })
-	PartUtil.Ball(0.9, Color3.fromRGB(240, 200, 110), CFrame.new(0, 5.6, 0), model, { Material = Enum.Material.Metal, Reflectance = 0.35, Name = "BellTop" })
+	local bell = MeshUtil.Make("bell", { Height = 2.2 }, { Color = Color3.fromRGB(240, 200, 110), Material = Enum.Material.Metal, Reflectance = 0.35, CFrame = CFrame.new(0, 4.9, 0), Parent = model, Name = "Bell" })
+	if not bell then
+		bell = PartUtil.Cylinder(1.1, 1.8, Color3.fromRGB(240, 200, 110), CFrame.new(0, 4.6, 0), model, { Material = Enum.Material.Metal, Reflectance = 0.35, Name = "Bell", CanCollide = false })
+		PartUtil.Ball(0.9, Color3.fromRGB(240, 200, 110), CFrame.new(0, 5.6, 0), model, { Material = Enum.Material.Metal, Reflectance = 0.35, Name = "BellTop" })
+	end
 	PartUtil.Light(bell, Color3.fromRGB(255, 220, 140), 0.8, 10)
 	r:SetAttribute("TriggerFraction", params.TriggerFraction or 0.5)
 	return r

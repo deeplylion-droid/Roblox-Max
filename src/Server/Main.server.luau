@@ -11,9 +11,12 @@ local Config = require(Shared.Config)
 local Registry = require(script.Parent.Registry)
 local Logger = require(script.Parent.Util.Logger)
 local WorldBuilder = require(script.Parent.World.WorldBuilder)
+local MeshLibrary = require(script.Parent.World.MeshLibrary)
 
 Net.Event("StateSync") -- crea la cartella dei remoti
 
+-- mesh ad alta qualità (asset glTF caricati via Open Cloud); fallback alle primitive se mancanti
+MeshLibrary.Preload(25)
 WorldBuilder.Build()
 
 local servicesFolder = script.Parent.Services

@@ -19,6 +19,7 @@ local GridUtil = require(script.Parent.Parent.Util.GridUtil)
 local Format = require(script.Parent.Parent.Util.Format)
 local Strings = require(script.Parent.Parent.Strings)
 local PartUtil = require(script.Parent.PartUtil)
+local MeshUtil = require(script.Parent.MeshUtil)
 local CreatureModel = require(script.Parent.CreatureModel)
 local ModuleModel = require(script.Parent.ModuleModel)
 local DecorationModel = require(script.Parent.DecorationModel)
@@ -121,10 +122,14 @@ function PlotBuilder:_buildBase()
 	}) do
 		PartUtil.Part({ Size = side[2], Material = Enum.Material.Neon, Color = trim, Transparency = 0.35, CFrame = origin * side[1], Parent = structure, Name = "Rim", CanCollide = false, CastShadow = false })
 	end
-	-- roccia sotto l'isola e nuvole
-	PartUtil.Part({ Size = Vector3.new(size * 0.8, 6, size * 0.8), Material = Enum.Material.Slate, Color = Color3.fromRGB(150, 160, 190), CFrame = origin * CFrame.new(0, -4.2, 0), Parent = structure, Name = "Rock", CanCollide = false })
-	PartUtil.Part({ Size = Vector3.new(size * 0.5, 7, size * 0.5), Material = Enum.Material.Slate, Color = Color3.fromRGB(130, 140, 175), CFrame = origin * CFrame.new(0, -10, 0) * CFrame.Angles(0, math.rad(20), 0), Parent = structure, Name = "Rock2", CanCollide = false })
-	PartUtil.Part({ Size = Vector3.new(size * 0.22, 8, size * 0.22), Material = Enum.Material.Slate, Color = Color3.fromRGB(115, 125, 160), CFrame = origin * CFrame.new(0, -16, 0) * CFrame.Angles(0, math.rad(40), 0), Parent = structure, Name = "Rock3", CanCollide = false })
+	-- isola rocciosa sotto la piattaforma (mesh; la collisione resta alle piastrelle) e nuvole
+	local islandH = 24
+	local islandMesh = MeshUtil.Make("island_plot", Vector3.new(size * 1.06, islandH, size * 1.06), { Material = Enum.Material.Slate, Color = Color3.fromRGB(150, 160, 190), CFrame = origin * CFrame.new(0, -1.0 - islandH * 0.405, 0), Parent = structure, Name = "Island" })
+	if not islandMesh then
+		PartUtil.Part({ Size = Vector3.new(size * 0.8, 6, size * 0.8), Material = Enum.Material.Slate, Color = Color3.fromRGB(150, 160, 190), CFrame = origin * CFrame.new(0, -4.2, 0), Parent = structure, Name = "Rock", CanCollide = false })
+		PartUtil.Part({ Size = Vector3.new(size * 0.5, 7, size * 0.5), Material = Enum.Material.Slate, Color = Color3.fromRGB(130, 140, 175), CFrame = origin * CFrame.new(0, -10, 0) * CFrame.Angles(0, math.rad(20), 0), Parent = structure, Name = "Rock2", CanCollide = false })
+		PartUtil.Part({ Size = Vector3.new(size * 0.22, 8, size * 0.22), Material = Enum.Material.Slate, Color = Color3.fromRGB(115, 125, 160), CFrame = origin * CFrame.new(0, -16, 0) * CFrame.Angles(0, math.rad(40), 0), Parent = structure, Name = "Rock3", CanCollide = false })
+	end
 	local rng = Random.new(math.floor(origin.X * 13 + origin.Z * 7))
 	for i = 1, 7 do
 		local a = (i / 7) * math.pi * 2 + rng:NextNumber(-0.3, 0.3)
@@ -149,17 +154,20 @@ function PlotBuilder:_buildStructures()
 	if hasCupola then
 		local h = Defenses.EffectiveParams("cupola").Height or 7
 		pozzaY = h
-		PartUtil.Cylinder(4.2, h, Color3.fromRGB(220, 200, 255), origin * CFrame.new(0, h / 2, 0), structure, { Material = Enum.Material.Glass, Transparency = 0.25, Reflectance = 0.2, Name = "Pedestal" })
+		local _ = MeshUtil.Make("pedestal", Vector3.new(8.6, h, 8.6), { Color = Color3.fromRGB(220, 200, 255), Material = Enum.Material.Glass, Transparency = 0.25, Reflectance = 0.2, CFrame = origin * CFrame.new(0, h / 2, 0), Parent = structure, Name = "Pedestal", CanCollide = true })
+			or PartUtil.Cylinder(4.2, h, Color3.fromRGB(220, 200, 255), origin * CFrame.new(0, h / 2, 0), structure, { Material = Enum.Material.Glass, Transparency = 0.25, Reflectance = 0.2, Name = "Pedestal" })
 		-- trampolini di luce intorno
 		for i = 1, 3 do
 			local a = (i / 3) * math.pi * 2 + math.rad(90)
-			local pad = PartUtil.Cylinder(1.6, 0.4, Color3.fromRGB(255, 200, 255), origin * CFrame.new(math.cos(a) * 7.5, 0.2, math.sin(a) * 7.5), structure, { Material = Enum.Material.Neon, Name = "BouncePad" })
+			local pad = MeshUtil.Make("bounce_pad", Vector3.new(3.4, 0.5, 3.4), { Color = Color3.fromRGB(255, 200, 255), Material = Enum.Material.Neon, CFrame = origin * CFrame.new(math.cos(a) * 7.5, 0.25, math.sin(a) * 7.5), Parent = structure, Name = "BouncePad", CanCollide = true })
+				or PartUtil.Cylinder(1.6, 0.4, Color3.fromRGB(255, 200, 255), origin * CFrame.new(math.cos(a) * 7.5, 0.2, math.sin(a) * 7.5), structure, { Material = Enum.Material.Neon, Name = "BouncePad" })
 			pad:SetAttribute("Bounce", 95)
 			PartUtil.Light(pad, Color3.fromRGB(255, 200, 255), 1, 10)
 		end
 	end
-	local basin = PartUtil.Cylinder(3.6, 1.4, Color3.fromRGB(236, 232, 220), origin * CFrame.new(0, pozzaY + 0.7, 0), structure, { Material = Enum.Material.Marble, Name = "PozzaBasin" })
-	local water = PartUtil.Cylinder(3.1, 0.4, Color3.fromRGB(255, 205, 90), origin * CFrame.new(0, pozzaY + 1.3, 0), structure, { Material = Enum.Material.Neon, Transparency = 0.15, Name = "Pozza", CanCollide = false })
+	local basin = MeshUtil.Make("basin", Vector3.new(7.6, 1.6, 7.6), { Color = Color3.fromRGB(236, 232, 220), Material = Enum.Material.Marble, CFrame = origin * CFrame.new(0, pozzaY + 0.8, 0), Parent = structure, Name = "PozzaBasin", CanCollide = true })
+		or PartUtil.Cylinder(3.6, 1.4, Color3.fromRGB(236, 232, 220), origin * CFrame.new(0, pozzaY + 0.7, 0), structure, { Material = Enum.Material.Marble, Name = "PozzaBasin" })
+	local water = PartUtil.Cylinder(2.65, 0.4, Color3.fromRGB(255, 205, 90), origin * CFrame.new(0, pozzaY + 1.3, 0), structure, { Material = Enum.Material.Neon, Transparency = 0.15, Name = "Pozza", CanCollide = false })
 	water:SetAttribute("Interactive", true)
 	PartUtil.Light(water, Color3.fromRGB(255, 200, 90), 1.6, 18)
 	self.PozzaEmitter = PartUtil.Emitter(water, { Color = Color3.fromRGB(255, 225, 130), Rate = 8, Speed = NumberRange.new(1.5, 3.5), Lifetime = NumberRange.new(0.8, 1.6), Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.35), NumberSequenceKeypoint.new(1, 0) }), Name = "Sparks" })
@@ -169,9 +177,13 @@ function PlotBuilder:_buildStructures()
 	self.ExposedLabel = exposedLabel
 
 	-- Ingresso (fronte, -Z) e Uscita (retro, +Z)
-	local entrance = PartUtil.Cylinder(3, 0.4, Color3.fromRGB(150, 232, 200), origin * CFrame.new(0, 0.1, -(HALF + MARGIN / 2)), structure, { Material = Enum.Material.Neon, Transparency = 0.2, Name = "Entrance" })
+	local function pad(name, color, cf, transparency)
+		return MeshUtil.Make("platform_pad", Vector3.new(6, 0.5, 6), { Color = color, Material = Enum.Material.Neon, Transparency = transparency, CFrame = cf * CFrame.new(0, 0.15, 0), Parent = structure, Name = name, CanCollide = true })
+			or PartUtil.Cylinder(3, 0.4, color, cf * CFrame.new(0, 0.1, 0), structure, { Material = Enum.Material.Neon, Transparency = transparency, Name = name })
+	end
+	local entrance = pad("Entrance", Color3.fromRGB(150, 232, 200), origin * CFrame.new(0, 0, -(HALF + MARGIN / 2)), 0.2)
 	self.Entrance = entrance
-	local exitPad = PartUtil.Cylinder(3, 0.4, Color3.fromRGB(255, 170, 220), origin * CFrame.new(0, 0.1, HALF + MARGIN / 2), structure, { Material = Enum.Material.Neon, Transparency = 0.2, Name = "Exit" })
+	local exitPad = pad("Exit", Color3.fromRGB(255, 170, 220), origin * CFrame.new(0, 0, HALF + MARGIN / 2), 0.2)
 	self.Exit = exitPad
 	-- arco dell'uscita
 	for _, dx in ipairs({ -3.2, 3.2 }) do
@@ -186,8 +198,11 @@ function PlotBuilder:_buildStructures()
 	-- Cassaforte (lato sinistro) e pad di spawn (lato destro): solo per home/visit/demo
 	if mode ~= "raid" then
 		local vaultCF = origin * CFrame.new(-(HALF + MARGIN / 2), 0, 6)
-		local vaultBody = PartUtil.Cylinder(2.6, 4.6, Color3.fromRGB(120, 150, 210), vaultCF * CFrame.new(0, 2.3, 0), structure, { Material = Enum.Material.Metal, Reflectance = 0.15, Name = "VaultBody" })
-		PartUtil.Cylinder(2.8, 0.5, Color3.fromRGB(90, 115, 170), vaultCF * CFrame.new(0, 4.75, 0), structure, { Material = Enum.Material.Metal, Name = "VaultTop" })
+		local vaultBody = MeshUtil.Make("vault", Vector3.new(5.4, 4.9, 5.4), { Color = Color3.fromRGB(120, 150, 210), Material = Enum.Material.Metal, Reflectance = 0.15, CFrame = vaultCF * CFrame.new(0, 2.45, 0), Parent = structure, Name = "VaultBody", CanCollide = true })
+		if not vaultBody then
+			vaultBody = PartUtil.Cylinder(2.6, 4.6, Color3.fromRGB(120, 150, 210), vaultCF * CFrame.new(0, 2.3, 0), structure, { Material = Enum.Material.Metal, Reflectance = 0.15, Name = "VaultBody" })
+			PartUtil.Cylinder(2.8, 0.5, Color3.fromRGB(90, 115, 170), vaultCF * CFrame.new(0, 4.75, 0), structure, { Material = Enum.Material.Metal, Name = "VaultTop" })
+		end
 		local door = PartUtil.Part({ Size = Vector3.new(3.2, 3.2, 0.5), Color = Color3.fromRGB(150, 180, 235), Material = Enum.Material.Metal, CFrame = vaultCF * CFrame.new(0, 2.3, 2.5), Parent = structure, Name = "VaultDoor" })
 		local dial = PartUtil.Cylinder(0.7, 0.4, Color3.fromRGB(255, 215, 110), vaultCF * CFrame.new(0, 2.3, 2.85) * CFrame.Angles(math.rad(90), 0, 0), structure, { Material = Enum.Material.Neon, Name = "VaultDial", CanCollide = false })
 		PartUtil.Light(dial, Color3.fromRGB(255, 215, 110), 1, 10)
@@ -200,7 +215,7 @@ function PlotBuilder:_buildStructures()
 			self.DepositPrompt = prompt
 		end
 
-		local spawn = PartUtil.Cylinder(3, 0.4, Color3.fromRGB(190, 230, 255), origin * CFrame.new(HALF + MARGIN / 2, 0.1, 6), structure, { Material = Enum.Material.Neon, Transparency = 0.3, Name = "SpawnPad" })
+		local spawn = pad("SpawnPad", Color3.fromRGB(190, 230, 255), origin * CFrame.new(HALF + MARGIN / 2, 0, 6), 0.3)
 		self.SpawnPad = spawn
 		-- portale verso l'hub (lato destro, dietro lo spawn)
 		local hubPad = PartUtil.Cylinder(2.2, 0.4, Color3.fromRGB(160, 200, 255), origin * CFrame.new(HALF + MARGIN / 2, 0.1, -12), structure, { Material = Enum.Material.Neon, Transparency = 0.2, Name = "HubPad" })

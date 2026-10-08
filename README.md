@@ -1,6 +1,6 @@
 # Il Vivaio delle Nuvole · Roblox
 
-Implementazione completa del GDD **«Il Vivaio delle Nuvole» v1.0**: social collection, base defense leggera e incursioni asincrone istanziate. Tutto il gioco è costruito via codice (Luau) con grafica procedurale: nessun asset esterno, nessuna dipendenza, pronto da aprire in Roblox Studio.
+Implementazione completa del GDD **«Il Vivaio delle Nuvole» v1.0**: social collection, base defense leggera e incursioni asincrone istanziate. Tutto il gioco è costruito via codice (Luau). La grafica usa **35 mesh ad alta risoluzione** (fino a 7.000 triangoli ciascuna, normali smooth) generate dalla pipeline in `tools/meshgen/` e caricate su Roblox via Open Cloud; se una mesh non è disponibile il gioco ripiega automaticamente su primitive, quindi il place funziona sempre.
 
 ## Avvio rapido
 
@@ -38,6 +38,18 @@ python3 scripts/run_tests.py            # 85 test sui moduli condivisi + simulaz
 
 Dettagli: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/GDD_COVERAGE.md`](docs/GDD_COVERAGE.md), [`docs/BALANCE.md`](docs/BALANCE.md).
 
+## Mesh 3D ad alta qualità
+
+| | |
+|---|---|
+| Generazione | `python3 tools/meshgen/generate.py` → `assets/meshes/*.glb` + anteprime in `assets/previews/` (contact sheet `_contact_sheet.png`) |
+| Upload | `python3 tools/meshgen/upload.py --creator <userId>` → crea asset *Model* via Open Cloud Assets API e scrive `src/Shared/Catalog/MeshAssets.luau` |
+| Runtime | `Server/World/MeshLibrary` carica gli asset con `InsertService:LoadAsset` e li espone in `ReplicatedStorage.MeshTemplates`; `Shared/Models/MeshUtil` li clona e dimensiona; i costruttori (`CreatureModel`, `ModuleModel`, `DecorationModel`, `PlotBuilder`, `WorldBuilder`) li preferiscono alle primitive |
+
+Gli asset attuali appartengono all'utente Roblox **118377242** (la chiave Open Cloud di questo ambiente). `InsertService` carica un asset solo nei place dello stesso proprietario: se pubblichi il gioco da un altro account o da un gruppo, ri-esegui `upload.py` con il tuo `--creator` (serve una chiave con scope `asset:read` e `asset:write`) e committa il nuovo `MeshAssets.luau`. In Studio senza accesso agli asset vedrai nell'Output quante mesh sono state caricate; le mancanti usano le primitive.
+
+Catalogo: 4 corpi di creatura (sfera solare, goccia, soffio inclinato, ovale d'aurora) + raggi, cappello di nuvola, codina, nastri di vento, archi d'aurora; 3 cumuli, 3 rocce, 2 isole (hub e vivaio), cristallo sfaccettato; colonna, lampada, campana, vasca, cassaforte, anello del portale, arco, lanterna esagonale, palo, cespuglio, tronco, pedana, piedistallo, trampolino, bocchetta, pietra a fungo, aiuola fiorita.
+
 ## Controlli
 
 Movimento standard Roblox · **E** interagisci (ProximityPrompt) · **F** raccogli tutto · **G** deposita · **B** costruisci · **R** ruota · **X** modalità modifica · **N** incursione · **C** commissioni · **V** album · **K** bozzoli · **L** galleria · **P** negozio · **O** opzioni · **T** emote. Su mobile tutto è raggiungibile dai pulsanti dell'HUD e dai prompt a schermo.
@@ -51,5 +63,7 @@ src/Server/               Main + 16 servizi (Data, Player, Economy, Plot, Defens
 src/Client/               Main + controller (Build, Raid, WorldAnimator, Visuals, Tutorial) + UI
 src/ReplicatedFirst/      schermata di caricamento
 scripts/                  test harness e simulazione economica
+tools/meshgen/            generatore di mesh (numpy), esportatore glTF/FBX, upload Open Cloud
+assets/meshes, previews/  mesh .glb caricate e anteprime PNG
 build/                    place costruito (.rbxlx)
 ```

@@ -1,0 +1,247 @@
+{
+ "arch": {
+  "assetId": 108875469516890,
+  "hash": "6921ca6a5db4128e",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 1372
+ },
+ "aurora_arc": {
+  "assetId": 113894338244421,
+  "hash": "8021778b099beece",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 1568
+ },
+ "basin": {
+  "assetId": 92947560942964,
+  "hash": "1f6535d7692c6dfd",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 5264
+ },
+ "bell": {
+  "assetId": 99204078749415,
+  "hash": "0ecfec907e8daaff",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 6048
+ },
+ "body_aurora": {
+  "assetId": 84363914893592,
+  "hash": "1f4da73ac16bce6c",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 6016
+ },
+ "body_pioggia": {
+  "assetId": 115302625747427,
+  "hash": "054a14069cad63de",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 7040
+ },
+ "body_sole": {
+  "assetId": 104878532045682,
+  "hash": "83837cac54641218",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 5120
+ },
+ "body_vento": {
+  "assetId": 111950590811588,
+  "hash": "d7c526cf2ea703cb",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 7040
+ },
+ "bounce_pad": {
+  "assetId": 108700584201264,
+  "hash": "6af8cf20ff19af23",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 1200
+ },
+ "bush": {
+  "assetId": 91279447503636,
+  "hash": "5dfecdff372afa10",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 1280
+ },
+ "cloud_a": {
+  "assetId": 132997693484642,
+  "hash": "1b06ab5627f0c416",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 5120
+ },
+ "cloud_b": {
+  "assetId": 98365237880288,
+  "hash": "9955bcd66b48dcba",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 5120
+ },
+ "cloud_c": {
+  "assetId": 136522472032774,
+  "hash": "5b518ddb408cfe1e",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 5120
+ },
+ "cloud_hat": {
+  "assetId": 78550007037830,
+  "hash": "140015b535fb8ba6",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 5120
+ },
+ "crystal": {
+  "assetId": 94020561418655,
+  "hash": "d11e5fb77929c7f3",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 20
+ },
+ "drop_tail": {
+  "assetId": 84631954142064,
+  "hash": "93d3afecf1102aa7",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 2480
+ },
+ "flower_bed": {
+  "assetId": 137079341999375,
+  "hash": "1fa13b537e941a52",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 2000
+ },
+ "island_hub": {
+  "assetId": 71783811229446,
+  "hash": "f44ce2f44b93b78e",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 5120
+ },
+ "island_plot": {
+  "assetId": 96202285950910,
+  "hash": "c50795a4c2777a80",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 5120
+ },
+ "lamp_head": {
+  "assetId": 75921473693714,
+  "hash": "2b3dfe905166ec0a",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 1280
+ },
+ "lantern": {
+  "assetId": 85392043528718,
+  "hash": "2fde103fe9689af4",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 72
+ },
+ "mushroom_stone": {
+  "assetId": 115799982578639,
+  "hash": "4b1bf6d016fbd8dd",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 1344
+ },
+ "pedestal": {
+  "assetId": 133558849311790,
+  "hash": "e65d334e3840b746",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 2592
+ },
+ "pillar": {
+  "assetId": 94660258786251,
+  "hash": "3261aceef850cc14",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 3120
+ },
+ "platform_pad": {
+  "assetId": 103460487830702,
+  "hash": "1477ca5e4dbab605",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 1440
+ },
+ "portal_ring": {
+  "assetId": 137232077353988,
+  "hash": "33d92829556637a9",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 2880
+ },
+ "post": {
+  "assetId": 95755764142269,
+  "hash": "88cb549dcae834b8",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 608
+ },
+ "rock_a": {
+  "assetId": 126700285268435,
+  "hash": "c85bb2d26b7a9dc4",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 1280
+ },
+ "rock_b": {
+  "assetId": 85912415197790,
+  "hash": "be016872314cbcf2",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 1280
+ },
+ "rock_c": {
+  "assetId": 116269724230658,
+  "hash": "2d24dbe81175b84b",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 1280
+ },
+ "sun_petals": {
+  "assetId": 114633134395153,
+  "hash": "4f93b9db41de6234",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 2560
+ },
+ "swirl_ribbon": {
+  "assetId": 99902786955346,
+  "hash": "5c0c0057206e2b47",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 236
+ },
+ "trunk": {
+  "assetId": 71296182655000,
+  "hash": "29c052b3e913fcf9",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 2448
+ },
+ "vault": {
+  "assetId": 73567416969388,
+  "hash": "f03ed92393a01f84",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 2784
+ },
+ "vent": {
+  "assetId": 75126513232500,
+  "hash": "4e37421c97288111",
+  "revisionId": "1",
+  "state": "Approved",
+  "tris": 896
+ }
+}

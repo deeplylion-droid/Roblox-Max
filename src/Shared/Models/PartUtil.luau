@@ -1,6 +1,8 @@
 --!nonstrict
 -- Helper per costruire geometria procedurale in modo conciso.
 local PartUtil = {}
+local MeshUtil = require(script.Parent.MeshUtil)
+local CLOUD_VARIANTS = { "cloud_a", "cloud_b", "cloud_c" }
 
 function PartUtil.Part(props)
 	local p = Instance.new(props.Class or "Part")
@@ -139,6 +141,12 @@ end
 function PartUtil.Cloud(cf, scale, parent, color, transparency)
 	local m = PartUtil.Model("Cloud", parent)
 	color = color or Color3.fromRGB(250, 252, 255)
+	-- mesh di cumulo (variante scelta in modo deterministico dalla posizione)
+	local variant = CLOUD_VARIANTS[(math.floor(math.abs(cf.X * 7 + cf.Z * 13 + cf.Y * 3)) % 3) + 1]
+	local mesh = MeshUtil.Make(variant, scale * 3.6, { Color = color, Transparency = transparency or 0, CFrame = cf * CFrame.Angles(0, (cf.X + cf.Z) * 0.37, 0), Parent = m, CastShadow = false, Name = "CloudMesh" })
+	if mesh then
+		return m
+	end
 	local offsets = {
 		{ 0, 0, 0, 1 }, { 0.9, -0.1, 0.2, 0.75 }, { -0.9, -0.05, -0.1, 0.8 }, { 0.3, 0.35, -0.4, 0.6 }, { -0.4, 0.3, 0.5, 0.55 }, { 0.1, -0.3, 0.8, 0.6 },
 	}
