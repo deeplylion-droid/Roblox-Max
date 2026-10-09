@@ -111,11 +111,6 @@
   "gulpy_pretende": {
    "eyes": [
     [
-     -1.9,
-     3.95,
-     -1.65
-    ],
-    [
      -0.8421,
      1.8877,
      0.1435
@@ -135,7 +130,7 @@
     "lamp": {
      "file": "gulpy_pretende_lamp.webp",
      "res": 1.0,
-     "scale": 0.32
+     "scale": 0.35000000000000003
     },
     "lantern": {
      "file": "gulpy_pretende_lantern.webp",
@@ -144,13 +139,13 @@
     }
    },
    "rect": [
-    1816,
-    61,
-    2336,
-    648
+    1821,
+    55,
+    2332,
+    662
    ],
    "space": "boat",
-   "yaw": -25.5628
+   "yaw": -25.5707
   },
   "gulpy_sale": {
    "eyes": [

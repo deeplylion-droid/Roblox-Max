@@ -60,35 +60,8 @@ def _elbow(sh, wr, side, L1, L2, out=None):
     return (sh + wr) / 2 + o * b
 
 
-def body_field(grip=None):
-    """grip: None (braccia che pendono) oppure (polso sinistro, polso destro) in coordinate locali:
-    le mani afferrano il bordo e le dita si piegano verso l'interno della barca."""
-    back = chain([V(0, 0.24, -0.20), V(0, 0.22, 0.95), V(0, 0.17, 1.55), V(0, 0.05, 2.05), V(0, -0.15, 2.42), V(0, -0.30, 2.52)], [0.17, 0.16, 0.18, 0.19, 0.17, 0.125], k=0.06)
-    chest = sdf.ellipsoid(V(0, -0.07, 1.80), (0.185, 0.14, 0.34))
-    belly = sdf.ellipsoid(V(0, 0.02, 1.25), (0.15, 0.12, 0.25))
-    sh = sdf.union(*[sdf.ellipsoid(V(s * 0.25, -0.05, 2.25), (0.11, 0.12, 0.09)) for s in (-1, 1)], k=0.1)
-    acromion = sdf.union(*[sdf.sphere(V(s * 0.31, -0.06, 2.27), 0.045) for s in (-1, 1)])
-    clav = sdf.union(*[sdf.capsule(V(s * 0.03, -0.20, 2.17), V(s * 0.28, -0.12, 2.27), 0.018) for s in (-1, 1)])
-    neck = chain([V(0, -0.28, 2.50), V(0, -0.52, 2.46), V(0, -0.74, 2.24), V(0, -0.84, 2.03)], [0.10, 0.093, 0.095, 0.085], k=0.04)
-    # carne gonfia sopra e sotto il salvagente che stringe
-    bulge = sdf.union(sdf.sphere(RING_C - RING_AXIS * 0.072, 0.108), sdf.sphere(RING_C + RING_AXIS * 0.072, 0.105), k=0.03)
-    # costole: archi in rilievo sul davanti del torace, sterno, clavicole
-    ribs = []
-    for i in range(7):
-        z = 1.56 + i * 0.072
-        w = 0.17 - 0.004 * i
-        pts = [V(-w, 0.02, z + 0.02), V(-w * 0.75, -0.13, z - 0.005), V(-0.045, -0.205, z - 0.04), V(0.045, -0.205, z - 0.04), V(w * 0.75, -0.13, z - 0.005), V(w, 0.02, z + 0.02)]
-        ribs.append(hair_clump(pts, 0.010, 0.0095))
-    sternum = chain([V(0, -0.205, 1.64), V(0, -0.21, 2.12)], [0.011, 0.014], k=0.01)
-    spine = []
-    sp = [V(0, 0.17, 1.55), V(0, 0.05, 2.05), V(0, -0.15, 2.42), V(0, -0.30, 2.52)]
-    for i in range(9):
-        t = i / 8
-        j = min(int(t * 3), 2)
-        u = t * 3 - j
-        c = sp[j] * (1 - u) + sp[j + 1] * u
-        n = unit(V(0, 1.0 - 0.9 * t, 0.25 + 1.2 * t))
-        spine.append(sdf.sphere(c + n * (0.18 - 0.05 * t), 0.036))
+def arm_parts(grip=None):
+    """Braccia, mani e dita (pezzi da unire)."""
     arms = []
     for i, s in enumerate((-1, 1)):
         sh_p = V(s * SHOULDER[0], SHOULDER[1], SHOULDER[2])
@@ -115,7 +88,50 @@ def body_field(grip=None):
             arms.append(hair_clump([wr, k1, k2, k3], 0.019, 0.008))
             arms.append(sdf.sphere(k1, 0.0165))
             arms.append(sdf.sphere(k2, 0.0125))
-    body = sdf.union(back, chest, belly, sh, acromion, clav, neck, bulge, *spine, *arms, k=0.045)
+    return arms
+
+
+def arms_field(grip=None):
+    """Le braccia da sole, con la stessa pelle bitorzoluta del corpo."""
+    a = sdf.union(*arm_parts(grip), k=0.045)
+    a = sdf.displace(a, skin.bumps(51, 0.05, 0.004), 1.0)
+    return sdf.displace(a, skin.bumps(52, 0.012, 0.0012), 1.0)
+
+
+def body_field(grip=None, with_arms=True):
+    """grip: None (braccia che pendono) oppure (polso sinistro, polso destro) in coordinate locali:
+    le mani afferrano il bordo e le dita si piegano verso l'interno della barca.
+    with_arms=False: solo il tronco (le braccia si aggiungono a parte, vedi build)."""
+    back = chain([V(0, 0.24, -0.20), V(0, 0.22, 0.95), V(0, 0.17, 1.55), V(0, 0.05, 2.05), V(0, -0.15, 2.42), V(0, -0.30, 2.52)], [0.17, 0.16, 0.18, 0.19, 0.17, 0.125], k=0.06)
+    chest = sdf.ellipsoid(V(0, -0.07, 1.80), (0.185, 0.14, 0.34))
+    belly = sdf.ellipsoid(V(0, 0.02, 1.25), (0.15, 0.12, 0.25))
+    sh = sdf.union(*[sdf.ellipsoid(V(s * 0.25, -0.05, 2.25), (0.11, 0.12, 0.09)) for s in (-1, 1)], k=0.1)
+    acromion = sdf.union(*[sdf.sphere(V(s * 0.31, -0.06, 2.27), 0.045) for s in (-1, 1)])
+    clav = sdf.union(*[sdf.capsule(V(s * 0.03, -0.20, 2.17), V(s * 0.28, -0.12, 2.27), 0.018) for s in (-1, 1)])
+    neck = chain([V(0, -0.28, 2.50), V(0, -0.52, 2.46), V(0, -0.74, 2.24), V(0, -0.84, 2.03)], [0.10, 0.093, 0.095, 0.085], k=0.04)
+    # carne gonfia sopra e sotto il salvagente che stringe
+    bulge = sdf.union(sdf.sphere(RING_C - RING_AXIS * 0.072, 0.108), sdf.sphere(RING_C + RING_AXIS * 0.072, 0.105), k=0.03)
+    # costole: archi in rilievo sul davanti del torace, sterno, clavicole
+    ribs = []
+    for i in range(7):
+        z = 1.56 + i * 0.072
+        w = 0.17 - 0.004 * i
+        pts = [V(-w, 0.02, z + 0.02), V(-w * 0.75, -0.13, z - 0.005), V(-0.045, -0.205, z - 0.04), V(0.045, -0.205, z - 0.04), V(w * 0.75, -0.13, z - 0.005), V(w, 0.02, z + 0.02)]
+        ribs.append(hair_clump(pts, 0.010, 0.0095))
+    sternum = chain([V(0, -0.205, 1.64), V(0, -0.21, 2.12)], [0.011, 0.014], k=0.01)
+    spine = []
+    sp = [V(0, 0.17, 1.55), V(0, 0.05, 2.05), V(0, -0.15, 2.42), V(0, -0.30, 2.52)]
+    for i in range(9):
+        t = i / 8
+        j = min(int(t * 3), 2)
+        u = t * 3 - j
+        c = sp[j] * (1 - u) + sp[j + 1] * u
+        n = unit(V(0, 1.0 - 0.9 * t, 0.25 + 1.2 * t))
+        spine.append(sdf.sphere(c + n * (0.18 - 0.05 * t), 0.036))
+    parts = [back, chest, belly, sh, acromion, clav, neck, bulge, *spine]
+    if with_arms:
+        parts += arm_parts(grip)
+    body = sdf.union(*parts, k=0.045)
     body = sdf.union(body, *ribs, sternum, k=0.022)
     # ventre incavato sotto le costole
     body = sdf.subtract(body, sdf.ellipsoid(V(0, -0.24, 1.40), (0.13, 0.06, 0.12)), k=0.06)
@@ -273,10 +289,13 @@ def build(grip=None, viewer=None, lo=None, hi=None):
                             vein=(0.12, 0.13, 0.18), rough=0.68, sss=0.10, scale=1.3)
     # corpo e testa sono lo stesso campo, tagliato al salvagente (la cucitura resta sotto l'anello)
     head_w = HEAD.field(head_local())
-    full = sdf.union(body_field(grip), head_w, k=0.035)
+    # tronco e testa sono lo stesso campo, tagliato al salvagente; le braccia si uniscono dopo il taglio,
+    # così una mano che passa davanti alla faccia non viene tagliata via con la testa
+    full = sdf.union(body_field(grip, with_arms=False), head_w, k=0.035)
     head_zone = sdf.intersect(above(RING_C, RING_AXIS), sdf.sphere(HEAD.pos, 0.55))
     head_zone2 = sdf.intersect(above(RING_C - RING_AXIS * 0.01, RING_AXIS), sdf.sphere(HEAD.pos, 0.56))
-    body = sdf_object('GulpyBody', sdf.subtract(full, head_zone), lo if lo is not None else V(-0.62, -1.0, -0.02),
+    trunk = sdf.union(sdf.subtract(full, head_zone), arms_field(grip), k=0.045)
+    body = sdf_object('GulpyBody', trunk, lo if lo is not None else V(-0.62, -1.0, -0.02),
                       hi if hi is not None else V(0.62, 0.48, 2.72), res=rb, banded=True)
     body.data.materials.append(sk)
     head = sdf_object('GulpyHead', sdf.intersect(full, head_zone2), V(-0.14, -1.12, 1.45), V(0.14, -0.58, 2.40), res=rh,
