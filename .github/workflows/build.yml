@@ -1,11 +1,11 @@
-# Eseguibili del gioco (Electron) per Windows e Linux: si costruiscono a ogni push su claude/lampara e su
-# richiesta; gli installer finiscono negli artifact del workflow.
+# Eseguibili del gioco (Electron) per Windows e Linux: si costruiscono su richiesta (Actions → build →
+# Run workflow) e per i tag di versione (v0.2.0…); gli installer finiscono negli artifact del workflow.
 name: build
 
 on:
-  push:
-    branches: [claude/lampara, main]
   workflow_dispatch:
+  push:
+    tags: ['v*']
 
 jobs:
   dist:
