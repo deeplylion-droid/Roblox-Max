@@ -36,6 +36,8 @@ Horror in prima persona a inquadratura fissa (alla *Five Nights at Freddy's*): s
 
 ## 4. Struttura della notte
 
+> **Difficoltà della Notte 1** (10 ottobre, su richiesta: «75% dei giocatori maldestri vince»): le creature tornano il 10% prima, l'attività cresce del 10% all'ora (prima 8%) e per ferrare ci sono 2,15 s (prima 2,6). Con i giocatori simulati (`npm run sim -- 1 1000`): esperto 100%, medio 89%, maldestro 76% (prima 100 / 98,5 / 97).
+
 - Dalle **00:00 alle 06:00**; un'ora di gioco dura **75 secondi**, quindi circa 7 minuti e mezzo per notte.
 - Ogni ora la campana del paese batte i rintocchi: è l'orologio diegetico.
 - All'inizio della notte chiama **una voce alla radio**, senza nome come il Phone Guy di FNAF: spiega le regole in modo breve e sommario (al massimo 20 secondi).
@@ -45,7 +47,7 @@ Horror in prima persona a inquadratura fissa (alla *Five Nights at Freddy's*): s
 
 1. **Lancio** (`Spazio` o clic sulla canna): la lenza entra in acqua.
 2. **Attesa**: il tempo prima dell'abboccata dipende dalla lampara.
-3. **Abboccata**: suona il **campanellino** in punta alla canna (come nella pesca notturna vera) e la punta si piega. Hai circa 2,5 s per ferrare, altrimenti il pesce si mangia l'esca.
+3. **Abboccata**: suona il **campanellino** in punta alla canna (come nella pesca notturna vera) e la punta si piega. Hai circa 2 s per ferrare (2,15 s), altrimenti il pesce si mangia l'esca.
 4. **Recupero**: tieni premuto per riavvolgere. La tensione sale mentre recuperi e quando il pesce strattona; se supera il massimo **la lenza si spezza**, se scende a zero **il pesce si slama**. Mentre recuperi lo sguardo resta bloccato sulla canna.
 5. **Cattura**: il gioco ti **mostra il pesce** che hai preso (render, nome, una riga di descrizione) e lo registra nel **Catalogo**. Poi finisce nel secchio. Ogni tanto, al posto del pesce, sale **un oggetto**: sono i frammenti di lore (vedi `LORE.md`).
 

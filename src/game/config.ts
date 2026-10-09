@@ -39,7 +39,7 @@ export const VIEW = {
 export const FISHING = {
   castTime: 1.0,
   biteWait: [6, 12] as const,
-  biteWindow: 2.6,
+  biteWindow: 2.15,
   rebaitTime: 2.0,
   landTime: 1.3,
   /** recupero */
@@ -120,7 +120,7 @@ export const NIGHTS: Record<number, NightConfig> = {
   1: {
     night: 1,
     quota: 8,
-    hourlyRamp: 0.08,
+    hourlyRamp: 0.1,
     guaranteedLoreAt: 4,
     loreChance: 0.08,
     exclusive: [
@@ -128,9 +128,9 @@ export const NIGHTS: Record<number, NightConfig> = {
       ['gulpy', 'hatch'],
     ],
     minGapBetweenStarts: 6,
-    gulpy: { firstAt: 1 * H + 6, cooldown: [75, 115], rise: 7, climb: 6, patience: 8, eat: 4.5 },
-    molly: { firstAt: 2 * H + 8, cooldown: [48, 78], knock: 5, attention: 4.2, neglectMax: 8, tantrumMax: 6.5 },
-    hatch: { firstAt: 3 * H + 6, cooldown: [58, 88], calls: 10, callInterval: 1.1, search: [8, 10.5] },
+    gulpy: { firstAt: 1 * H + 6, cooldown: [68, 104], rise: 7, climb: 6, patience: 8, eat: 4.5 },
+    molly: { firstAt: 2 * H + 8, cooldown: [43, 70], knock: 5, attention: 4.2, neglectMax: 8, tantrumMax: 6.5 },
+    hatch: { firstAt: 3 * H + 6, cooldown: [52, 79], calls: 10, callInterval: 1.1, search: [8, 10.5] },
     hideTime: 0.7,
     unhideTime: 0.6,
   },
