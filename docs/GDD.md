@@ -71,8 +71,8 @@ Sono i bambini spariti a **Splashland** nel 1997, presi e trasformati dalla Madr
 
 > Il design visivo si definisce insieme (tavole in `docs/concept/`).
 > - **Gulpy**: sagoma C «Avvoltoio», testa B «Cerniera». Modello dettagliato **approvato** (`tools/render/gulpy.py`).
-> - **Molly**: sagoma C «Dita», testa B «Luna».
-> - **Hatch**: sagoma C «Spilungone», testa A «Pescatrice».
+> - **Molly**: sagoma C «Dita», testa B «Luna». Modello dettagliato **approvato** (`tools/render/molly.py`): occhi asimmetrici (uno ti fissa, l'altro scivola via), testa piegata di lato, melma verdastra.
+> - **Hatch**: sagoma C «Spilungone», testa A «Pescatrice». Modello dettagliato **approvato** (`tools/render/hatch.py`).
 >
 > Le tavole dei dettagli sono bozze: i modelli definitivi devono avere molto più dettaglio nelle forme e nelle texture. La pelle sotto è opaca, ma **tutti i mostri hanno sopra uno strato di melma e un effetto bagnato**: chiazze lucide, colature, bava che gocciola, fili tra le dita e tra i denti.
 
