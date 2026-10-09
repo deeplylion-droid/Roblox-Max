@@ -37,7 +37,7 @@
     "lamp": {
      "file": "fish2_lamp.webp",
      "res": 1.0,
-     "scale": 0.25
+     "scale": 3.6
     },
     "lantern": {
      "file": "fish2_lantern.webp",
@@ -46,13 +46,13 @@
     }
    },
    "rect": [
-    2015,
-    666,
-    2084,
-    765
+    2009,
+    579,
+    2093,
+    712
    ],
    "space": "boat",
-   "yaw": 10.3132
+   "yaw": 17.9357
   },
   "fish5": {
    "passes": {
@@ -64,22 +64,22 @@
     "lamp": {
      "file": "fish5_lamp.webp",
      "res": 1.0,
-     "scale": 0.25
+     "scale": 1.1
     },
     "lantern": {
      "file": "fish5_lantern.webp",
      "res": 1.0,
-     "scale": 0.25
+     "scale": 0.29
     }
    },
    "rect": [
-    2005,
-    658,
-    2090,
-    771
+    1993,
+    572,
+    2108,
+    719
    ],
    "space": "boat",
-   "yaw": 10.4068
+   "yaw": 18.1011
   },
   "fish9": {
    "passes": {
