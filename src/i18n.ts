@@ -242,7 +242,7 @@ export interface RadioLine {
   text: string;
 }
 
-/** La chiamata alla radio della Notte 1: breve, al massimo 20 secondi (bozza da approvare). */
+/** La chiamata alla radio della Notte 1: breve, al massimo 20 secondi (testo approvato). */
 export const RADIO_NIGHT1: Record<Lang, RadioLine[]> = {
   it: [
     { at: 0.0, text: 'Pronto? Prima notte.' },

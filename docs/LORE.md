@@ -42,10 +42,20 @@ Si pescano al posto di un pesce e finiscono nel **Diario**.
 
 Evento raro (Notte 1): **Sotto di te**, per un giro del sonar un'ombra grande quanto la baia passa sotto la barca (3%).
 
-## Chiamata alla radio, Notte 1 (bozza, circa 19 secondi)
+## Testi approvati
+
+### Chiamata alla radio, Notte 1 (circa 19 secondi)
 
 **Italiano**
 > Pronto? Prima notte. Entro le sei, otto pesci nel secchio: sono per la Madre. Se non arrivano, si prende un altro bambino. Gulpy sale a prua: tiragli un pesce. Molly bussa sul fianco: guardala finché non se ne va. Hatch conta dietro di te: nasconditi sotto il telone. Buona pesca.
 
 **English**
 > Hello? First night. By six, eight fish in the bucket: they're for the Mother. If they don't come, she takes another child. Gulpy comes up at the bow: toss him a fish. Molly knocks on the side: watch her until she leaves. Hatch counts behind you: hide under the tarp. Good fishing.
+
+### Quota mancata alle 6
+- IT: «Alle sei il secchio non era pieno. Stanotte la Madre si prenderà un altro bambino.»
+- EN: "At six the bucket wasn't full. Tonight the Mother will take another child."
+
+### Fine della conta di Hatch
+- IT: «…Dieci! Chi c'è c'è, chi non c'è non c'è!»
+- EN: "…Ten! Ready or not, here I come!"
