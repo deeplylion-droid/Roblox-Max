@@ -813,7 +813,8 @@ export class Night {
       baseScale: tp.base.scale,
       glow: tp.glow.tex,
       glowScale: tp.glow.scale,
-      wBase: 0.35 + 0.65 * this.d.stage.lampWeight() / 1.7,
+      // la tela cerata lascia passare poco: la si intravede appena, finché non passa la luce di Hatch
+      wBase: 1.6 + 1.6 * this.d.stage.lampWeight() / 1.7,
       wGlow: 1.2 * v.toy,
       blob: [searchX, 0.74 + bob, 0.24, 0.015],
       aspect: tp.aspect,
