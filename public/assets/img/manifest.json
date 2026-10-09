@@ -191,6 +191,40 @@
    "space": "world",
    "yaw": -16.2347
   },
+  "hatch_conta": {
+   "eyes": [
+    [
+     0.425,
+     -6.7306,
+     -0.2785
+    ],
+    [
+     0.275,
+     -6.7306,
+     -0.2785
+    ]
+   ],
+   "passes": {
+    "ambient": {
+     "file": "hatch_conta_ambient.webp",
+     "res": 1.0,
+     "scale": 1.4000000000000001
+    },
+    "lamp": {
+     "file": "hatch_conta_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    2013,
+    403,
+    2087,
+    666
+   ],
+   "space": "world",
+   "yaw": 177.0131
+  },
   "molly_destra": {
    "passes": {
     "ambient": {

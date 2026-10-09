@@ -9,7 +9,7 @@ mare nasconde la parte sott'acqua.
     gulpy_pretende   Gulpy che si sporge sulla prua, le mani sul bordo, la mascella aperta
     molly_destra     Molly aggrappata al bordo destro, accanto al pescatore
     molly_sinistra   Molly aggrappata al bordo sinistro
-    hatch_conta      Hatch in acqua dietro la poppa, col pesciolino luminoso
+    hatch_conta      Hatch in acqua dietro la poppa, alto fino alla vita, col pesciolino luminoso
 
 Uso: tools/.venv/bin/python tools/render/jobs.py creature --quality preview
 """
@@ -106,7 +106,9 @@ def molly(side):
 
 def hatch_conta():
     import hatch
-    M = LAST_M['hatch_conta'] = M_of((0.35, -8.0, -1.65), yaw=180.0)
+    # vicino alla poppa e alto fuori dall'acqua: quando ti volti spunta da dietro lo specchio di poppa
+    o = (0.25, -5.6, -0.9)
+    M = LAST_M['hatch_conta'] = M_of(o, yaw=facing_yaw(o), pitch=8.0)
     obs = hatch.build(viewer=to_local(M, EYE))
     lights = [o for o in bpy.data.objects if o.type == 'LIGHT' and o.name.startswith('ToyLight')]
     return place(obs + lights, M)
