@@ -21,8 +21,8 @@ from mathutils import Matrix, Vector
 import scena_creature as sc
 from common import CACHE, EYE, OUT_IMG, log, perspective_camera, render
 
-FRAMES = 10
-FPS = 12
+FRAMES = 8
+FPS = 10
 
 
 def ease(t):
@@ -114,7 +114,9 @@ def run(q, who, post_mod, overlays_path, build_scene, coll_objects, renderable):
     # la camera guarda la creatura, un po' sotto la testa (come quando alzi gli occhi di scatto)
     cam_target = tuple(Vector(EYE) + (aim - Vector(EYE)).normalized() * 2.0 + Vector((0, 0, -0.12)))
     perspective_camera(EYE, cam_target, lens=20.0, name='JumpCam')
-    W, H = (1920, 1080) if q.name == 'final' else (1280, 720) if q.name == 'preview' else (854, 480)
+    # la versione da approvare basta più piccola e con meno campioni (ci sono scosse e grana sopra)
+    W, H = (1920, 1080) if q.name == 'final' else (960, 540) if q.name == 'preview' else (640, 360)
+    samples = q.samples if q.name == 'final' else min(q.samples, 32)
     out_dir = os.path.join(CACHE, q.name, 'jumpscare')
     os.makedirs(out_dir, exist_ok=True)
 
@@ -123,7 +125,7 @@ def run(q, who, post_mod, overlays_path, build_scene, coll_objects, renderable):
         o.hide_render = True
     bg_exr = os.path.join(out_dir, f'{who}_bg.exr')
     t = time.time()
-    render(bg_exr, q.samples, (W, H), data_passes=())
+    render(bg_exr, samples, (W, H), data_passes=())
     log(f'jumpscare {who} sfondo', round(time.time() - t), 's')
     for o in meshes:
         o.hide_render = False
@@ -142,7 +144,7 @@ def run(q, who, post_mod, overlays_path, build_scene, coll_objects, renderable):
         _set_creature(creature, base, M0inv, _lerp_matrix(M0, M1, u))
         exr = os.path.join(out_dir, f'{who}_{i:02d}.exr')
         t = time.time()
-        render(exr, q.samples, (W, H), transparent=True, data_passes=('Alpha',))
+        render(exr, samples, (W, H), transparent=True, data_passes=('Alpha',))
         p = post_mod.read_exr(exr)
         fg = sum(p[g][..., :3] for g in ('ambient', 'lamp', 'lantern') if g in p)
         a = p['alpha'][..., None] if 'alpha' in p else np.ones(fg.shape[:2] + (1,), np.float32)

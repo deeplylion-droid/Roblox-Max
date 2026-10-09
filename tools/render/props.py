@@ -24,8 +24,8 @@ from nodes import material
 LANTERN_HOOK = (-0.80, -0.27, 0.865)   # staffa sul capodibanda di sinistra, accanto al pescatore
 LANTERN_POS = (-0.80, -0.27, 0.585)
 DUCK_POS = (0.20, 2.22, 0.962)
-FLASK_POS = (0.30, 0.99, 0.42)
-TALLY_POS = (0.16, 0.905, 0.4215)
+FLASK_POS = (0.22, 0.99, 0.42)         # accanto al secchio, sul banco di prua
+TALLY_POS = (0.08, 0.905, 0.4215)
 JAR_POS = (0.10, 1.80, -0.088)
 GOGGLES_POS = (0.22, 2.112, 0.56)
 ROSARY_TOP = (0.0, 2.76, 1.36)

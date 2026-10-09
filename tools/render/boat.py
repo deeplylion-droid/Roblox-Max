@@ -26,8 +26,9 @@ WORK_LIGHT = (0.0, 2.04, 0.80)        # lampadina di servizio sotto il bordo del
 ROD_BUTT = (0.86, 0.30, 0.40)
 ROD_GUNWALE = (0.97, 0.55, 0.74)
 ROD_TIP = (2.02, 2.95, 1.86)
-BUCKET_POS = (0.40, 1.62, -0.09)
-TARP_POS = (-0.44, 1.52, -0.09)
+BENCH_TOP = 0.42                      # piano del banco di prua (ThwartFwd)
+BUCKET_POS = (0.50, 0.98, BENCH_TOP)  # sul banco di prua, a destra (dal pagliolo non si vedeva)
+TARP_POS = (-0.55, 0.98, BENCH_TOP)   # telone piegato sul banco di prua, a sinistra vicino alla bambola
 AFT_DECK_Z = 0.595                    # piano del ponte di poppa, dove si appoggiano gli oggetti
 SONAR_PIVOT = (0.30, -2.04, 0.715)    # perno della staffa dell'ecoscandaglio portatile (ponte di poppa, a destra)
 SONAR_TILT = 22.0                     # gradi: l'apparecchio è inclinato sulla staffa, lo schermo guarda verso l'occhio
@@ -618,12 +619,12 @@ def build_bucket(mats, fish_count=0, name='Bucket', with_body=True):
 
 
 def build_tarp(mats):
-    """Telone ripiegato: un 'cuscino' di tela con pieghe."""
+    """Telone ripiegato sul banco: un fagotto di tela con pieghe, legato con una cima."""
     x, y, z = TARP_POS
-    bpy.ops.mesh.primitive_cube_add(size=1, location=(x, y, z + 0.09))
+    bpy.ops.mesh.primitive_cube_add(size=1, location=(x, y, z + 0.07))
     ob = bpy.context.object
     ob.name = 'Tarp'
-    ob.scale = (0.40, 0.62, 0.16)
+    ob.scale = (0.42, 0.30, 0.13)
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
     link(ob, 'boat')
     sub = ob.modifiers.new('S', 'SUBSURF')
@@ -640,8 +641,8 @@ def build_tarp(mats):
     ob.data.materials.append(mats['canvas'])
     ob.rotation_euler = (0, 0, math.radians(8))
     set_lightgroup(ob, 'ambient')
-    # corda che lo lega
-    rope = tube('TarpRope', [(x - 0.22, y + 0.05, z + 0.02), (x - 0.15, y + 0.06, z + 0.19), (x + 0.15, y + 0.09, z + 0.19), (x + 0.22, y + 0.10, z + 0.02)], 0.008, n=8)
+    # cima che lo lega, di traverso sul fagotto
+    rope = tube('TarpRope', [(x + 0.03, y - 0.17, z + 0.02), (x + 0.02, y - 0.12, z + 0.145), (x - 0.01, y + 0.12, z + 0.145), (x - 0.02, y + 0.17, z + 0.02)], 0.008, n=8)
     rope.data.materials.append(mats['rope'])
     set_lightgroup(rope, 'ambient')
     return [ob, rope]

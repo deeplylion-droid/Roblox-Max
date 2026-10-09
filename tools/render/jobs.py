@@ -328,13 +328,13 @@ def job_tarp(q):
     build_scene(fish=0, rod=False)
     # il telone è sopra il pescatore; gli oggetti sul banco di prua finirebbero dentro la tela
     for o in bpy.data.objects:
-        if o.name in ('Tarp', 'TarpRope') or o.name.startswith(('Doll', 'Flask', 'Tally')):
+        if o.name in ('Tarp', 'TarpRope') or o.name.startswith(('Doll', 'Flask', 'Tally', 'Bucket')):
             o.hide_render = True
     # tutta la luce di fuori nel passo base; il passo 'lamp' resta per il giocattolo
     for o in bpy.data.objects:
         if o.lightgroup in ('lamp', 'lantern'):
             o.lightgroup = 'ambient'
-    telone.build_drape()
+    telone.simulate_drape()
     telone.toy_backlight()
     perspective_camera(telone.EYE_HIDDEN, telone.LOOK_AT, lens=22.0)
     W, H = (1920, 1080) if q.name == 'final' else (1280, 720) if q.name == 'preview' else (854, 480)
