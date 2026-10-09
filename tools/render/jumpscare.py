@@ -77,15 +77,15 @@ def molly_attack():
 
 def hatch_attack():
     import hatch
-    o = (0.0, -2.35, 0.58)                            # in piedi sul ponte di poppa, piegato su di te
-    M0 = sc.M_of(o, yaw=sc.facing_yaw(o), pitch=18.0)
+    o = (0.0, -2.45, 0.58)                            # in piedi sul ponte di poppa, già piegato su di te
+    M0 = sc.M_of(o, yaw=sc.facing_yaw(o), pitch=38.0)
     obs = hatch.build(viewer=sc.to_local(M0, EYE))
     lights = [ob for ob in bpy.data.objects if ob.type == 'LIGHT' and ob.name.startswith('ToyLight')]
     for li in lights:
         li.data.energy = 3.0
     obs = sc.place(obs + lights, M0)
     head = hatch.HEAD.pos
-    M1 = _toward_eye(M0, head, 0.36, extra_pitch=24.0)
+    M1 = _toward_eye(M0, head, 0.34, extra_pitch=14.0)
     aim = M0 @ Vector(tuple(map(float, head)))
     return obs, M0, M1, aim
 
@@ -112,8 +112,12 @@ def run(q, who, post_mod, overlays_path, build_scene, coll_objects, renderable):
     base = {o.name: o.matrix_world.copy() for o in creature}
     M0inv = M0.inverted()
     # la camera guarda la creatura, un po' sotto la testa (come quando alzi gli occhi di scatto)
-    cam_target = tuple(Vector(EYE) + (aim - Vector(EYE)).normalized() * 2.0 + Vector((0, 0, -0.12)))
-    perspective_camera(EYE, cam_target, lens=20.0, name='JumpCam')
+    d = (aim - Vector(EYE)).normalized()
+    hor = math.hypot(d.x, d.y)
+    max_up = math.tan(math.radians(22.0)) * hor
+    d = Vector((d.x, d.y, min(d.z, max_up) - 0.06)).normalized()
+    cam_target = tuple(Vector(EYE) + d * 2.0)
+    perspective_camera(EYE, cam_target, lens=22.0, name='JumpCam')
     # la versione da approvare basta più piccola e con meno campioni (ci sono scosse e grana sopra)
     W, H = (1920, 1080) if q.name == 'final' else (960, 540) if q.name == 'preview' else (640, 360)
     samples = q.samples if q.name == 'final' else min(q.samples, 32)

@@ -75,6 +75,44 @@
      "scale": 0.25
     }
    ]
+  },
+  "molly": {
+   "aspect": 1.7778,
+   "fps": 10,
+   "frames": [
+    {
+     "file": "js_molly_00.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_molly_01.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_molly_02.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_molly_03.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_molly_04.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_molly_05.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_molly_06.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_molly_07.webp",
+     "scale": 0.25
+    }
+   ]
   }
  },
  "tarp": {
