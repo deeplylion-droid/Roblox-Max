@@ -80,5 +80,5 @@ Nessun dialogo dei mostri: solo versi. L'unica eccezione è la conta di Hatch (t
 | Ruota panoramica | Una cabina **accesa**; dentro, un **bambino seduto** che guarda la barca (solo una sagoma). | Uno dei bambini della Night Splash è rimasto sulla ruota. |
 | Albergo Miramare | Nell'unica finestra accesa, una **figura nera con la videocamera all'occhio**, puntata sulla baia; la lucina rossa del **REC** lampeggia. | Qualcuno filma la baia ogni notte. Lega col nastro VHS dei jumpscare: la tua morte viene registrata. |
 | Edicola votiva | Fra i lumini, **tre fotografie di bambini** in cornice, i volti sbiaditi fino al bianco. | I tre bambini spariti nell'agosto 1997. |
-| Relitto | Sulla tuga, a vernice bianca, le **tacche** di tante notti contate (63), come quelle sul banco della nostra barca. | Chi pescava qui prima di te contava le notti. Sono tante, e poi si sono fermate. |
+| Relitto | Sul fasciame della prua, a vernice bianca, le **tacche** di tante notti contate (63), come quelle sul banco della nostra barca. | Chi pescava qui prima di te contava le notti. Sono tante, e poi si sono fermate. |
 

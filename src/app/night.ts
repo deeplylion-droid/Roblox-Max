@@ -237,6 +237,7 @@ export class Night {
     st.view.rockBoost = 0;
     st.view.hfov = 90;
     st.view.shake = 0;
+    st.view.steady = st.view.swayYaw = st.view.swayPitch = 0;
   }
 
   setPaused(p: boolean): void {
@@ -486,6 +487,7 @@ export class Night {
       const t = this.d.stage.time;
       view.swayYaw = e * (0.10 * Math.sin(t * 0.9) + 0.05 * Math.sin(t * 2.3 + 1.0) + 0.03 * Math.sin(t * 5.1));
       view.swayPitch = e * (0.08 * Math.sin(t * 0.7 + 2.0) + 0.04 * Math.sin(t * 1.9));
+      view.steady = 0.75 * e;
     }
     // mentre guardi nel binocolo non vedi la barca: Molly non si sente guardata
     sim.setView(view.yaw, this.sonarOpen || this.bino > 0.5);
@@ -761,7 +763,7 @@ export class Night {
     this.js = { killer, t: 0, yaw };
     this.binoUp = false;
     this.bino = 0;
-    this.d.stage.view.swayYaw = this.d.stage.view.swayPitch = 0;
+    this.d.stage.view.swayYaw = this.d.stage.view.swayPitch = this.d.stage.view.steady = 0;
     if (this.sonarOpen) this.toggleSonar(false);
     const reduce = this.d.options.reduceFlash;
     this.d.sfx.jumpscare(killer);

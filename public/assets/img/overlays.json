@@ -1,4 +1,94 @@
 {
+ "binocular": {
+  "places": [
+   {
+    "aspect": 1.7778,
+    "file": "bino_albergo.webp",
+    "hfov": 5.0,
+    "key": "albergo",
+    "pitch": 3.033,
+    "scale": 0.62,
+    "yaw": 124.749
+   },
+   {
+    "aspect": 1.7778,
+    "file": "bino_edicola.webp",
+    "hfov": 10.0,
+    "key": "edicola",
+    "pitch": 1.896,
+    "scale": 0.54,
+    "yaw": -73.671
+   },
+   {
+    "aspect": 1.0,
+    "file": "bino_faro.webp",
+    "hfov": 3.2,
+    "key": "faro",
+    "pitch": 2.116,
+    "scale": 1.2000000000000002,
+    "yaw": 77.974
+   },
+   {
+    "aspect": 1.7778,
+    "file": "bino_ingresso.webp",
+    "hfov": 6.0,
+    "key": "ingresso",
+    "pitch": 2.373,
+    "scale": 6.0,
+    "yaw": 166.985
+   },
+   {
+    "aspect": 1.7778,
+    "file": "bino_paese.webp",
+    "hfov": 13.0,
+    "key": "paese",
+    "pitch": 3.144,
+    "scale": 1.5,
+    "yaw": -37.972
+   },
+   {
+    "aspect": 1.7778,
+    "file": "bino_relitto.webp",
+    "hfov": 11.0,
+    "key": "relitto",
+    "pitch": 0.42,
+    "scale": 0.25,
+    "yaw": 13.955
+   },
+   {
+    "aspect": 1.0,
+    "file": "bino_ruota.webp",
+    "hfov": 6.4,
+    "key": "ruota",
+    "pitch": 3.505,
+    "scale": 0.25,
+    "yaw": -158.53
+   },
+   {
+    "aspect": 1.7778,
+    "file": "bino_scivoli.webp",
+    "hfov": 7.5,
+    "key": "scivoli",
+    "pitch": 1.789,
+    "scale": 0.25,
+    "yaw": -166.985
+   },
+   {
+    "aspect": 1.0,
+    "file": "bino_statua.webp",
+    "hfov": 4.2,
+    "key": "statua",
+    "pitch": 2.198,
+    "scale": 5.300000000000001,
+    "yaw": 180.0
+   }
+  ],
+  "rec": [
+   725.502,
+   -503.353,
+   49.975
+  ]
+ },
  "jumpscares": {
   "gulpy": {
    "aspect": 1.7778,

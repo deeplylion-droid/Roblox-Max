@@ -8,7 +8,7 @@ dettagli di lore che si vedono solo così, criptici al massimo.
   ruota      una cabina accesa, con dentro un bambino seduto che guarda la barca
   albergo    nell'unica finestra accesa, una figura nera con la videocamera all'occhio, puntata sulla baia (REC)
   edicola    tre fotografie di bambini, i volti sbiaditi fino al bianco
-  relitto    sulla tuga, a vernice bianca, le tacche di tante notti contate
+  relitto    sul fasciame della prua, a vernice bianca, le tacche di tante notti contate
 
 Ogni luogo è una camera prospettica dall'occhio del pescatore con un campo stretto. Si rende il passo
 'ambient' (le luci lontane sono emissive) più la nebbia (mist) nel canale alfa: il motore lo disegna sopra
@@ -74,20 +74,20 @@ def places():
     """(chiave, punto mirato, hfov in gradi, risoluzione)."""
     gx, gy, gz = _gate()[0]
     st = ground(180.0, 10.0)
-    (hx, hy, hz), R, _ = _wheel_frame()
+    (hx, hy, hz), R, (px, py) = _wheel_frame()
     hw = _hotel_window()[0]
     cx, cy = _chapel()[0]
-    sl = ground(190.0, 38.0)
+    sl = ground(193.0, 45.0)          # la torre degli scivoli (landmarks.py)
     lh = env.surface_at(env.LIGHTHOUSE_YAW, 22)
     vil = env.surface_at(env.VILLAGE_YAW, 30)
     a = math.radians(14.0)
     return [
         ('ingresso', (gx, gy, gz + 14.0), 6.0, (2048, 1152)),
-        ('statua', (st[0], st[1], st[2] + 11.5), 4.2, (1600, 1600)),
-        ('ruota', (hx, hy, hz - 1.5), 5.4, (1600, 1600)),
-        ('scivoli', (sl[0], sl[1], sl[2] + 10.0), 7.0, (2048, 1152)),
+        ('statua', (st[0], st[1], st[2] + 15.5), 4.2, (1600, 1600)),
+        ('ruota', (hx - 3.75 * px, hy - 3.75 * py, hz + 4.1), 6.4, (1600, 1600)),
+        ('scivoli', (sl[0], sl[1], sl[2] + 11.0), 7.5, (2048, 1152)),
         ('albergo', (hw[0], hw[1], hw[2] - 3.0), 5.0, (2048, 1152)),
-        ('edicola', (cx, cy, 5.5), 10.0, (2048, 1152)),
+        ('edicola', (cx, cy, 4.3), 10.0, (2048, 1152)),
         ('relitto', (170.0 * math.sin(a), 170.0 * math.cos(a), 2.5), 11.0, (2048, 1152)),
         ('faro', (lh[0], lh[1], lh[2] + 16.0), 3.2, (1600, 1600)),
         ('paese', (vil[0], vil[1], vil[2] + 12.0), 13.0, (2560, 1440)),
@@ -116,10 +116,26 @@ def banner_texture():
         x, y = int(rng.integers(0, W)), int(rng.integers(40, H - 40))
         d.ellipse((x - r, y - r, x + r, y + r), outline=(40, 168, 176), width=3)
     f = ImageFont.truetype(FONT, 150)
-    text = 'NIGHT SPLASH ★ TONIGHT ★'
-    w = d.textlength(text, font=f)
-    d.text(((W - w) / 2 + 5, 72 + 5), text, font=f, fill=(120, 20, 70))
-    d.text(((W - w) / 2, 72), text, font=f, fill=(226, 44, 128))
+    # Limelight non ha la stella: il testo si scrive a pezzi e le ★ si disegnano a mano
+    parts = 'NIGHT SPLASH ★ TONIGHT ★'.split('★')
+    star = 118
+    w = sum(d.textlength(t, font=f) for t in parts) + star * (len(parts) - 1)
+    b = d.textbbox((0, 72), 'N', font=f)
+    cy = (b[1] + b[3]) / 2
+
+    def star_at(x, y, fill):
+        R, r = star * 0.46, star * 0.46 * 0.42
+        pts = [(x + (R if i % 2 == 0 else r) * math.sin(i * math.pi / 5), y - (R if i % 2 == 0 else r) * math.cos(i * math.pi / 5)) for i in range(10)]
+        d.polygon(pts, fill=fill)
+
+    for dx, fill in ((5, (120, 20, 70)), (0, (226, 44, 128))):
+        x = (W - w) / 2 + dx
+        for i, t in enumerate(parts):
+            d.text((x, 72 + dx), t, font=f, fill=fill)
+            x += d.textlength(t, font=f)
+            if i < len(parts) - 1:
+                star_at(x + star / 2, cy + dx, fill)
+                x += star
     path = _tex_path('striscione.png')
     im.save(path)
     return path
@@ -351,7 +367,7 @@ def lore_photos():
     obs = []
     frame = painted('PhotoFrame', (0.18, 0.12, 0.07), rust=0.0, rough=0.6)
     for i, lx in enumerate((-0.7, 0.0, 0.7)):
-        c = lp(lx, 0.25, 0.42 + (0.04 if i == 1 else 0.0))
+        c = lp(lx, 0.25, 1.12 + (0.04 if i == 1 else 0.0))     # sul primo ripiano sopra gli scogli
         fr = quad(f'PhotoFrame{i}', tuple(c), right, up, 0.5, 0.62, frame, segs=2)
         so = fr.modifiers.new('T', 'SOLIDIFY')
         so.thickness = 0.04
@@ -362,26 +378,64 @@ def lore_photos():
 
 
 def lore_tally():
-    """Le tacche sulla tuga del relitto, sul lato che guarda la barca."""
-    house = bpy.data.objects.get('WreckHouse')
-    if not house:
+    """Le tacche a vernice bianca sul relitto. La tuga è affondata a filo d'acqua (il relitto è sprofondato di
+    poppa), quindi le tacche stanno sul fasciame della prua, la parte fuori dall'acqua che guarda la barca."""
+    hull = bpy.data.objects.get('WreckHull')
+    if not hull:
         return []
     bpy.context.view_layer.update()
-    M = house.matrix_world
+    dg = bpy.context.evaluated_depsgraph_get()
+    ev = hull.evaluated_get(dg)
+    me = ev.to_mesh()
+    M = ev.matrix_world
+    N = M.to_3x3().inverted().transposed()
     eye = Vector(EYE)
-    best = None
-    for n, off, w, h in (((0, -1, 0), 1.5, 3.6, 2.8), ((0, 1, 0), 1.5, 3.6, 2.8), ((1, 0, 0), 1.8, 3.0, 2.8), ((-1, 0, 0), 1.8, 3.0, 2.8)):
-        nl = Vector(n)
-        c = M @ (nl * (off + 0.03))
-        nw = (M.to_3x3() @ nl).normalized()
-        score = nw.dot((eye - c).normalized())
-        if best is None or score > best[0]:
-            best = (score, c, nw, w, h, nl)
-    _, c, nw, w, h, nl = best
-    up = (M.to_3x3() @ Vector((0, 0, 1))).normalized()
+    pts, nrm = [], []
+    for v in me.vertices:
+        w = M @ v.co
+        n = (N @ v.normal).normalized()
+        if 1.2 < w.z < 4.5 and n.dot((eye - w).normalized()) > 0.55:
+            pts.append(w)
+            nrm.append(n)
+    ev.to_mesh_clear()
+    if not pts:
+        return []
+    c = sum(pts, Vector()) / len(pts)
+    nw = sum(nrm, Vector()).normalized()
+    up = Vector((0, 0, 1))
     right = up.cross(nw).normalized()
+    up = nw.cross(right).normalized()
     mat = image_material('TallyMat', tally_texture(), rough=0.8, alpha=True)
-    return [quad('WreckTally', tuple(c), tuple(right), tuple(up), w * 0.9, w * 0.9 * 420 / 1600, mat, segs=2)]
+    w = 3.2
+    return [quad('WreckTally', tuple(c + nw * 0.12), tuple(right), tuple(up), w, w * 420 / 1600, mat, segs=2)]
+
+
+def wreck_fill():
+    """Il relitto sta fra la barca e la luna: il lato con le tacche è in controluce. La luna che si riflette
+    sul mare davanti al relitto gli rimanda un po' di luce fredda dal basso (una luce d'area larga e debole,
+    accesa solo per il suo render)."""
+    house = bpy.data.objects.get('WreckHouse')
+    if not house:
+        return None
+    bpy.context.view_layer.update()
+    c = house.matrix_world.translation
+    to_eye = (Vector(EYE) - c)
+    to_eye.z = 0
+    to_eye.normalize()
+    pos = c + to_eye * 22.0
+    pos.z = 0.4
+    ld = bpy.data.lights.new('WreckSeaFill', 'AREA')
+    ld.shape = 'RECTANGLE'
+    ld.size, ld.size_y = 26.0, 6.0
+    ld.energy = float(os.environ.get('RELITTO_FILL', '3500'))
+    ld.color = (0.60, 0.72, 1.0)
+    ob = bpy.data.objects.new('WreckSeaFill', ld)
+    collection(COL).objects.link(ob)
+    ob.location = pos
+    ob.rotation_mode = 'QUATERNION'
+    ob.rotation_quaternion = (Vector((c.x, c.y, c.z + 1.0)) - pos).to_track_quat('-Z', 'Y')
+    set_lightgroup(ob, 'ambient')
+    return ob
 
 
 # ───────────────────────── render ─────────────────────────
@@ -399,10 +453,18 @@ def run(q, post_mod, overlays_path, build_scene, coll_objects):
     out_dir = os.path.join(CACHE, q.name, 'binocolo')
     os.makedirs(out_dir, exist_ok=True)
     only = [k for k in os.environ.get('LUOGHI', '').split(',') if k]
+    fill = wreck_fill()
+    # i fari colorati della statua, pensati per la vista a occhio nudo, bruciano la pancia nello zoom
+    for k in range(2):
+        fl = bpy.data.objects.get(f'MarinaFlood{k}')
+        if fl:
+            fl.data.energy *= 0.3
     entries = []
     for key, target, hfov, (W, H) in places():
         if only and key not in only:
             continue
+        if fill:
+            fill.hide_render = key != 'relitto'
         d = Vector(target) - Vector(EYE)
         yaw = math.degrees(math.atan2(d.x, d.y))
         pitch = math.degrees(math.atan2(d.z, math.hypot(d.x, d.y)))

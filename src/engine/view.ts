@@ -69,6 +69,8 @@ export class View {
   /** piccolo tremolio delle mani (gradi), per il binocolo */
   swayYaw = 0;
   swayPitch = 0;
+  /** 0..1: quanta parte del dondolio della barca si toglie dalla vista (binocolo alzato) */
+  steady = 0;
   /** matrici risultanti */
   boatRot: number[] = rotZ(0);
   worldRot: number[] = rotZ(0);
@@ -102,8 +104,9 @@ export class View {
     const breath = 0.18 * Math.sin(t * 1.25);
     // spazio barca: solo lo sguardo del pescatore
     this.boatRot = mul(rotZ(this.yaw + shx + this.swayYaw), mul(rotX(this.pitch + breath + shy + this.swayPitch), rotY(shx * 0.3)));
-    // spazio mondo: la barca rolla/beccheggia rispetto all'orizzonte
-    const boatMotion = mul(rotY(roll), rotX(pitch + heave));
+    // spazio mondo: la barca rolla/beccheggia rispetto all'orizzonte (col binocolo le mani ne compensano una parte)
+    const loose = 1 - this.steady;
+    const boatMotion = mul(rotY(roll * loose), rotX((pitch + heave) * loose));
     this.motion = boatMotion;
     this.worldRot = mul(boatMotion, this.boatRot);
     this.tanX = Math.tan((this.hfov / 2) * D2R);
