@@ -30,8 +30,8 @@ JAR_POS = (0.10, 1.80, -0.088)
 GOGGLES_POS = (0.22, 2.112, 0.56)
 ROSARY_TOP = (0.0, 2.76, 1.36)
 STERN_BELL_TOP = (0.0, -2.79, 1.06)
-TIN_POS = (0.47, -1.97, 1.0)
-FIGURINE_POS = (0.53, -2.14, 1.0)
+TIN_POS = (-0.08, -2.02, 0.595)
+FIGURINE_POS = (0.36, -2.10, 1.155)   # in cima alla cupola della console
 
 
 def mat(name, **kw):

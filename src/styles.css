@@ -1,0 +1,84 @@
+:root {
+  --ink: #e9e2d0;
+  --dim: #8f8a7c;
+  --amber: #ffb35c;
+  --teal: #3fd6c4;
+  --blood: #c4303a;
+  --night: #05080d;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--night);
+  color: var(--ink);
+  overflow: hidden;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  user-select: none;
+}
+#scene {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  display: block;
+  cursor: crosshair;
+}
+#ui {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+@font-face {
+  font-family: 'Limelight';
+  src: url('/fonts/Limelight-Regular.ttf') format('truetype');
+  font-display: block;
+}
+
+.deco { font-family: 'Limelight', 'Georgia', serif; letter-spacing: 0.06em; }
+
+/* ── HUD ── */
+.hud { position: fixed; inset: 0; pointer-events: none; color: var(--ink); text-shadow: 0 1px 3px #000, 0 0 12px rgba(0,0,0,.8); }
+.hud-clock { position: absolute; top: 18px; left: 22px; line-height: 1.1; }
+.hud-clock .night { font-size: 15px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.25em; }
+.hud-clock .time { font-family: 'Limelight', serif; font-size: 40px; color: var(--amber); }
+.hud-quota { position: absolute; top: 18px; right: 22px; text-align: right; }
+.hud-quota .label { font-size: 13px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--dim); }
+.hud-quota .count { font-family: 'Limelight', serif; font-size: 34px; }
+.hud-quota .count.ok { color: #9fe0a8; }
+.hud-lamp { position: absolute; top: 74px; right: 22px; display: flex; gap: 6px; align-items: center; font-size: 12px; color: var(--dim); letter-spacing: 0.2em; text-transform: uppercase; }
+.hud-lamp i { width: 10px; height: 10px; border-radius: 50%; border: 1px solid var(--amber); display: inline-block; }
+.hud-lamp i.on { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+.hud-hint { position: absolute; bottom: 64px; width: 100%; text-align: center; font-size: 16px; color: var(--ink); opacity: 0; transition: opacity .3s; }
+.hud-hint.show { opacity: 0.85; }
+.hud-sub { position: absolute; bottom: 104px; left: 50%; transform: translateX(-50%); max-width: min(900px, 86vw); padding: 10px 18px; background: rgba(0,0,0,.55); border-left: 2px solid var(--amber); font-size: 18px; line-height: 1.35; opacity: 0; transition: opacity .25s; }
+.hud-sub.show { opacity: 1; }
+.hud-sub .who { display: block; font-size: 11px; letter-spacing: .25em; text-transform: uppercase; color: var(--amber); margin-bottom: 4px; }
+.hud-toast { position: absolute; top: 22%; left: 50%; transform: translateX(-50%); text-align: center; opacity: 0; transition: opacity .4s, transform .4s; }
+.hud-toast.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
+.hud-toast .big { font-family: 'Limelight', serif; font-size: 34px; color: var(--ink); }
+.hud-toast .small { font-size: 14px; letter-spacing: .2em; text-transform: uppercase; color: var(--amber); }
+.hud-turn { position: absolute; bottom: 0; left: 30%; width: 40%; height: 34px; border-top: 1px solid rgba(255,179,92,.35); background: linear-gradient(to top, rgba(255,179,92,.12), transparent); opacity: 0; transition: opacity .2s; pointer-events: auto; display: flex; align-items: center; justify-content: center; font-size: 13px; letter-spacing: .3em; color: var(--amber); }
+.hud-turn.show { opacity: 1; }
+.hud-hover { position: absolute; font-size: 13px; letter-spacing: .15em; text-transform: uppercase; color: var(--amber); opacity: 0; transform: translate(14px, 10px); transition: opacity .15s; }
+.hud-hover.show { opacity: .9; }
+.hud-reel { position: absolute; left: 50%; bottom: 150px; width: 260px; height: 8px; transform: translateX(-50%); border: 1px solid rgba(233,226,208,.5); opacity: 0; transition: opacity .2s; }
+.hud-reel.show { opacity: 1; }
+.hud-reel .bar { position: absolute; left: 0; top: 0; bottom: 0; background: var(--amber); }
+.hud-reel .zone { position: absolute; top: -4px; bottom: -4px; left: 80%; width: 2px; background: var(--blood); }
+
+/* ── schermate ── */
+.screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: auto; background: radial-gradient(ellipse at center, rgba(5,8,13,.55), rgba(5,8,13,.96)); }
+.screen h1 { font-family: 'Limelight', serif; font-size: clamp(48px, 10vw, 120px); margin: 0; color: var(--amber); letter-spacing: .08em; text-shadow: 0 0 30px rgba(255,140,40,.35); }
+.screen h2 { font-family: 'Limelight', serif; font-size: clamp(28px, 5vw, 56px); margin: 0 0 12px; }
+.screen p { max-width: 640px; color: var(--ink); opacity: .85; font-size: 18px; line-height: 1.5; padding: 0 16px; }
+.screen .menu { display: flex; flex-direction: column; gap: 10px; margin-top: 28px; }
+.screen button { background: none; border: none; color: var(--ink); font: inherit; font-family: 'Limelight', serif; font-size: 24px; letter-spacing: .08em; cursor: pointer; padding: 6px 18px; opacity: .8; }
+.screen button:hover, .screen button:focus { color: var(--amber); opacity: 1; outline: none; }
+.screen .muted { color: var(--dim); font-size: 14px; letter-spacing: .25em; text-transform: uppercase; margin-top: 30px; }
+.fade-in { animation: fadeIn 1.2s ease both; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.death { background: radial-gradient(ellipse at center, rgba(40,0,4,.65), rgba(0,0,0,.98)); }
+.death h2 { color: var(--blood); }

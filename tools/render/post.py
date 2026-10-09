@@ -41,8 +41,9 @@ def rgb(a: np.ndarray) -> np.ndarray:
     return a[..., :3] if a.ndim == 3 else np.repeat(a[..., None], 3, axis=2)
 
 
-def tonemap(lin: np.ndarray, exposure_ev: float = 0.0, contrast: float = 1.12, saturation: float = 1.08) -> np.ndarray:
-    """Lineare (Rec.709) → sRGB 0..1. Identico a src/engine/shaders (tonemap)."""
+def tonemap(lin: np.ndarray, exposure_ev: float = 0.0, contrast: float = 1.16, saturation: float = 1.12) -> np.ndarray:
+    """Lineare (Rec.709) → sRGB 0..1, con il "look noir" (ombre verso il turchese, luci verso l'ambra).
+    Identico allo shader del motore (src/engine/shaders)."""
     x = np.maximum(lin * (2.0 ** exposure_ev), 1e-10)
     x = x @ AGX  # AGX è scritta per riga: v' = v · M (equivale a mat3 GLSL colonna)
     x = np.clip(np.log2(x), MIN_EV, MAX_EV)
@@ -56,7 +57,11 @@ def tonemap(lin: np.ndarray, exposure_ev: float = 0.0, contrast: float = 1.12, s
     x = 0.5 + (x - 0.5) * contrast
     x = x @ AGX_INV
     x = np.clip(x, 0.0, 1.0)
-    return x
+    # viraggio: ombre turchesi, alte luci calde
+    l = (x * np.array([0.2126, 0.7152, 0.0722])).sum(-1, keepdims=True)
+    x = x + np.array([-0.010, 0.022, 0.032]) * (1.0 - l) ** 3
+    x = x * (1.0 + np.array([0.05, 0.0, -0.06]) * l ** 2)
+    return np.clip(x, 0.0, 1.0)
 
 
 def srgb_encode(x):

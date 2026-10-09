@@ -28,8 +28,9 @@ ROD_TIP = (2.02, 2.95, 1.86)
 BUCKET_POS = (0.40, 1.62, -0.09)
 TARP_POS = (-0.44, 1.52, -0.09)
 CONSOLE_POS = (0.36, -2.08, 0.60)     # base della console sul ponte di poppa
-SCREEN_CENTER = (0.36, -1.915, 0.84)
-SCREEN_SIZE = (0.20, 0.15)
+SCREEN_CENTER = (0.36, -1.878, 0.84)
+SCREEN_SIZE = (0.20, 0.20)            # schermo tondo (CRT a oblò): quadrato che lo contiene
+SCREEN_TILT = 15.0                    # gradi: lo schermo guarda un po' in su, verso l'occhio
 
 
 # ───────────────────────── forma dello scafo ─────────────────────────
@@ -260,7 +261,7 @@ def make_materials():
     _, _, z = g.sep(co)
     n1 = g.noise(co, scale=6.0, detail=8.0, rough=0.62)
     chip = g.smoothstep(0.66, 0.70, g.noise(co, scale=2.2, detail=7.0, rough=0.7).fac)
-    paint = g.ramp(n1.fac, [(0.3, (0.16, 0.34, 0.31)), (0.7, (0.24, 0.45, 0.40))])
+    paint = g.ramp(n1.fac, [(0.3, (0.07, 0.22, 0.22)), (0.7, (0.11, 0.29, 0.28))])
     grain_c, grain = g.wave(g.mapping(co, scale=(0.1, 1.0, 0.1)), scale=12.0, distortion=6.0, detail=3.0, kind='BANDS', axis='Y')
     wood = g.ramp(grain, [(0.2, (0.12, 0.08, 0.05)), (0.8, (0.22, 0.15, 0.09))])
     col = g.mix(chip, paint, wood)
@@ -632,43 +633,83 @@ def build_tarp(mats):
 
 
 def build_console(mats):
+    """Console art déco di poppa: mobiletto di mogano con profili d'ottone e cupola, sonar con lo
+    schermo tondo a oblò, radio di bachelite con la manopola illuminata e la cornetta col filo a spirale."""
     x, y, z = CONSOLE_POS
     obs = []
-    body = rbox('Console', (0.50, 0.34, 0.40), (x, y, z + 0.20), bevel=0.015)
-    body.data.materials.append(mats['wood_varnish'])
+    maho = bpy.data.materials.get('Mahogany')
+    if maho is None:
+        maho, g = material('Mahogany')
+        co = g.texcoord('Object')
+        grain_c, grain = g.wave(g.mapping(co, scale=(1.0, 0.15, 1.0)), scale=40.0, distortion=4.0, detail=3.0, kind='BANDS', axis='X')
+        col = g.ramp(grain, [(0.2, (0.06, 0.02, 0.012)), (0.8, (0.14, 0.05, 0.025))])
+        g.output_material(g.principled(color=col, rough=0.3, coat=0.8, coat_rough=0.08, normal=g.bump(grain, strength=0.05, distance=0.002)))
+    W, D, H = 0.52, 0.34, 0.40
+    body = rbox('Console', (W, D, H), (x, y, z + H / 2), bevel=0.02)
+    body.data.materials.append(maho)
     obs.append(body)
-    # sonar: scatola nera inclinata verso il giocatore
-    sc_ = rbox('SonarBox', (0.30, 0.10, 0.24), (SCREEN_CENTER[0], SCREEN_CENTER[1] - 0.06, SCREEN_CENTER[2]), rot=(math.radians(-8), 0, 0), bevel=0.012)
-    sc_.data.materials.append(mats['black_plastic'])
-    obs.append(sc_)
-    sw, sh = SCREEN_SIZE
-    scr = rbox('SonarScreen', (sw, 0.006, sh), SCREEN_CENTER, rot=(math.radians(-8), 0, 0), bevel=0.0)
+    top = cylinder('ConsoleDome', D / 2, W, (x, y, z + H), rot=(0, math.radians(90), 0), verts=32)
+    top.data.materials.append(maho)
+    obs.append(top)
+    brass = mats['brass']
+    fy = y + D / 2 + 0.004
+    for zz in (z + 0.03, z + H - 0.03):
+        t = tube('ConsoleTrim', [(x - W / 2 + 0.01, fy, zz), (x + W / 2 - 0.01, fy, zz)], 0.005, n=6)
+        t.data.materials.append(brass)
+        obs.append(t)
+    for xx in (x - W / 2 + 0.03, x + W / 2 - 0.03):
+        t = tube('ConsoleTrimV', [(xx, fy, z + 0.03), (xx, fy, z + H - 0.03)], 0.005, n=6)
+        t.data.materials.append(brass)
+        obs.append(t)
+    # sonar: CRT tondo a oblò, appena inclinato verso il giocatore
+    cx, cy, cz = SCREEN_CENTER
+    r_ = SCREEN_SIZE[0] / 2
+    tilt = math.radians(SCREEN_TILT)
+    ux, uy, uz = 0.0, -math.sin(tilt), math.cos(tilt)          # "su" nel piano dello schermo
+    rb = r_ + 0.012
+    ring = [(cx + rb * math.cos(a), cy + 0.008 + rb * math.sin(a) * uy, cz + rb * math.sin(a) * uz) for a in np.linspace(0, 2 * math.pi, 49)]
+    bez = tube('SonarBezel', ring, 0.013, n=10)
+    bez.data.materials.append(brass)
+    obs.append(bez)
+    scr = cylinder('SonarScreen', r_, 0.01, (cx, cy + 0.004, cz), rot=(tilt - math.radians(90), 0, 0), verts=48)
     scr.data.materials.append(mats['screen'])
     obs.append(scr)
-    for k, dx in enumerate((-0.10, -0.06, 0.06, 0.10)):
-        kn = cylinder(f'SonarKnob{k}', 0.011, 0.02, (SCREEN_CENTER[0] + dx, SCREEN_CENTER[1] + 0.01, SCREEN_CENTER[2] - 0.10), rot=(math.radians(90), 0, 0), verts=12)
-        kn.data.materials.append(mats['grey_plastic'])
+    for k, dx in enumerate((-0.09, -0.03, 0.03, 0.09)):
+        kn = cylinder(f'SonarKnob{k}', 0.013, 0.022, (cx + dx, cy + 0.02, z + 0.07), rot=(math.radians(90), 0, 0), verts=14)
+        kn.data.materials.append(mats['red_plastic'] if k == 1 else mats['black_plastic'])
         obs.append(kn)
-    # radio VHF sul lato sinistro della console
-    rad = rbox('Radio', (0.20, 0.16, 0.07), (x - 0.13, y + 0.02, z + 0.44), bevel=0.008)
-    rad.data.materials.append(mats['grey_plastic'])
+    plate = rbox('SonarPlate', (0.12, 0.004, 0.022), (cx, fy + 0.002, z + 0.115), bevel=0.0)
+    plate.data.materials.append(brass)
+    obs.append(plate)
+    # radio di bachelite sul piano, a sinistra
+    bak = bpy.data.materials.get('Bakelite')
+    if bak is None:
+        bak, g = material('Bakelite')
+        g.output_material(g.principled(color=(0.10, 0.045, 0.02), rough=0.25, coat=0.9, coat_rough=0.05))
+    rx, ry, rz_ = x - 0.58, y - 0.02, z + 0.055      # sul ponte di poppa, a sinistra della console
+    rad = rbox('Radio', (0.22, 0.13, 0.11), (rx, ry, rz_), bevel=0.03)
+    rad.data.materials.append(bak)
     obs.append(rad)
-    disp = rbox('RadioDisplay', (0.08, 0.004, 0.025), (x - 0.13, y + 0.10, z + 0.45), bevel=0.0)
+    for k in range(5):
+        sl = rbox('RadioGrille', (0.08, 0.004, 0.006), (rx - 0.045, ry + 0.066, rz_ - 0.025 + k * 0.012), bevel=0.0)
+        sl.data.materials.append(brass)
+        obs.append(sl)
+    dial = cylinder('RadioDial', 0.026, 0.006, (rx + 0.055, ry + 0.066, rz_ + 0.005), rot=(math.radians(90), 0, 0), verts=24)
     m_disp = bpy.data.materials.get('RadioLCD')
     if m_disp is None:
         m_disp, g = material('RadioLCD')
-        g.output_material(g.emission((1.0, 0.45, 0.08), 2.0))
-    disp.data.materials.append(m_disp)
-    obs.append(disp)
-    mic = rbox('RadioMic', (0.05, 0.03, 0.09), (x - 0.27, y + 0.05, z + 0.34), rot=(0, math.radians(20), 0), bevel=0.01)
-    mic.data.materials.append(mats['black_plastic'])
+        g.output_material(g.emission((1.0, 0.45, 0.08), 2.5))
+    dial.data.materials.append(m_disp)
+    obs.append(dial)
+    mic = rbox('RadioMic', (0.05, 0.03, 0.09), (rx + 0.15, ry + 0.07, z + 0.09), rot=(0, math.radians(-15), 0), bevel=0.012)
+    mic.data.materials.append(bak)
     obs.append(mic)
-    coil = [(x - 0.20 + 0.012 * math.cos(t * 7), y + 0.06 + 0.012 * math.sin(t * 7), z + 0.43 - t * 0.04) for t in np.linspace(0, 1.6, 60)]
+    coil = [(rx + 0.09 + 0.012 * math.cos(t * 7), ry + 0.065 + 0.012 * math.sin(t * 7), rz_ + 0.03 - t * 0.03) for t in np.linspace(0, 1.6, 60)]
     cord = tube('MicCord', coil, 0.003, n=6)
     cord.data.materials.append(mats['black_plastic'])
     obs.append(cord)
-    # santino di Santa Brina incastrato nella cornice
-    card = rbox('Santino', (0.055, 0.002, 0.085), (x + 0.20, y + 0.172, z + 0.30), rot=(0, math.radians(-6), 0), bevel=0.0)
+    # santino di Santa Brina infilato nella cornice d'ottone
+    card = rbox('Santino', (0.055, 0.002, 0.085), (x + 0.20, fy + 0.003, z + 0.29), rot=(0, math.radians(-6), 0), bevel=0.0)
     m_card = bpy.data.materials.get('SantinoMat')
     if m_card is None:
         m_card, g = material('SantinoMat')

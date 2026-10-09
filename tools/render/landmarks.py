@@ -121,33 +121,55 @@ def build_splashland(lights):
     # statua di Mama Marina sulla battigia, rivolta verso la baia
     x, y, z = ground(180.0, 10.0)
     obs += mascot.build_statue((x, y, z + 0.2), facing((x, y, z)), height=22.0)
+    rz0 = math.radians(facing((x, y, z)))
+    for k, (side, col) in enumerate(((-1, (0.25, 1.0, 0.75)), (1, (1.0, 0.30, 0.45)))):
+        sd = bpy.data.lights.new(f'MarinaFlood{k}', 'SPOT')
+        sd.energy = 90000
+        sd.color = col
+        sd.spot_size = math.radians(40)
+        sd.spot_blend = 0.5
+        so = bpy.data.objects.new(f'MarinaFlood{k}', sd)
+        collection(COL).objects.link(so)
+        so.location = (x + side * 9 * math.cos(rz0) + 12 * math.sin(rz0), y + side * 9 * math.sin(rz0) - 12 * math.cos(rz0), z + 0.5)
+        from mathutils import Vector
+        so.rotation_mode = 'QUATERNION'
+        so.rotation_quaternion = (Vector((x, y, z + 13)) - Vector(so.location)).to_track_quat('-Z', 'Y')
+        set_lightgroup(so, 'ambient')
+    lights['marina'] = (x, y, z + 14.0)
 
-    # insegna al neon su due pali
-    yaw, s = 167.0, 55.0
-    x, y, z = ground(yaw, s)
+    # ingresso art déco: due piloni a gradoni, raggiera e insegna al neon in Limelight
+    import deco
+    yaw, s_ = 167.0, 55.0
+    x, y, z = ground(yaw, s_)
     rz = math.radians(facing((x, y, z)))
-    frame = painted('SignFrame', (0.55, 0.55, 0.58), rust=0.45, metal=0.6)
+    cream = deco.deco_paint('GateCream', (0.62, 0.56, 0.44), grime=0.45)
+    teal = deco.deco_paint('GateTeal', (0.10, 0.32, 0.32), grime=0.35)
     for side in (-1, 1):
-        px = x + side * 20 * math.cos(rz)
-        py = y + side * 20 * math.sin(rz)
-        obs.append(tube(f'SignPole{side}', [(px, py, z - 1), (px, py, z + 15)], 0.35, n=10, col=COL))
-        obs[-1].data.materials.append(frame)
-    panel = rbox('SignPanel', (46.0, 1.0, 8.0), (x, y, z + 18), rot=(0, 0, rz), bevel=0.2, col=COL)
-    panel.data.materials.append(painted('SignPanelPaint', (0.06, 0.10, 0.22), rust=0.4))
-    obs.append(panel)
-    lit = emissive('NeonPink', (1.0, 0.22, 0.55), 9.0)
-    dim = emissive('NeonPinkDim', (1.0, 0.22, 0.55), 0.6)
-    dead = painted('NeonDead', (0.20, 0.08, 0.12), rust=0.2, rough=0.3)
-    word = 'SPLASHLAND'
-    state = 'LLLDLLLLDL'   # L acceso, D spento (la H e la N sono morte)
-    for i, ch in enumerate(word):
-        off = (i - (len(word) - 1) / 2) * 4.2
-        lx = x + off * math.cos(rz) + 0.7 * math.sin(rz)
-        ly = y + off * math.sin(rz) - 0.7 * math.cos(rz)
-        m = lit if state[i] == 'L' else (dead if i == 4 else dim)
-        obs.append(text_obj(f'Neon{i}', ch, 6.0, (lx, ly, z + 18.0), rz, m))
-    lights['neon'] = (x, y, z + 18.0)
-    point_light('NeonGlow', (x + 1.5 * math.sin(rz), y - 1.5 * math.cos(rz), z + 18), 18000, (1.0, 0.25, 0.55), radius=6.0)
+        px = x + side * 21 * math.cos(rz)
+        py = y + side * 21 * math.sin(rz)
+        tob, top = deco.stepped_tower(f'GatePylon{side}', (px, py, z - 1), rz, (7.0, 7.0), 30.0, steps=4, shrink=0.78, mat=cream, fins=3, fin_mat=teal)
+        obs += tob
+        cap = neon_ball = sphere(f'GatePylonGlobe{side}', 1.2, (px, py, top + 1.0), segs=16, rings=8, col=COL)
+        cap.data.materials.append(deco.neon_material('GateGlobe', (0.20, 0.95, 0.90), 18.0))
+        obs.append(cap)
+    beam = rbox('GateBeam', (46.0, 2.0, 3.0), (x, y, z + 15.5), rot=(0, 0, rz), bevel=0.3, col=COL)
+    beam.data.materials.append(teal)
+    obs.append(beam)
+    obs += deco.sunburst('GateSun', (x + 1.2 * math.sin(rz), y - 1.2 * math.cos(rz), z + 17.0), rz, 14.0, rays=15, spread=170, width=0.05,
+                         mat=deco.deco_paint('SunGold', (0.55, 0.40, 0.10), grime=0.3, rough=0.35))
+    sign = deco.neon_text('SplashSign', 'SPLASHLAND', 6.5, (x + 1.6 * math.sin(rz), y - 1.6 * math.cos(rz), z + 21.0), rz,
+                          deco.neon_material('NeonPink', (1.0, 0.22, 0.55), 10.0), extrude=0.35)
+    sign.data.materials.append(deco.neon_material('NeonPinkDim', (1.0, 0.22, 0.55), 0.8))
+    sign.data.materials.append(deco.deco_paint('NeonDead', (0.18, 0.06, 0.10), grime=0.2, rough=0.3))
+    for i, st in enumerate('LLLLDLLLXL'):         # la seconda S è fioca, la N è morta
+        sign.data.body_format[i].material_index = {'L': 0, 'D': 1, 'X': 2}[st]
+    obs.append(sign)
+    sub = deco.neon_text('SplashSub', "MAMA MARINA'S", 2.2, (x + 1.6 * math.sin(rz), y - 1.6 * math.cos(rz), z + 26.5), rz,
+                         deco.neon_material('NeonCyan', (0.15, 0.95, 0.90), 8.0), extrude=0.2)
+    obs.append(sub)
+    lights['neon'] = (x, y, z + 21.0)
+    point_light('NeonGlow', (x + 4 * math.sin(rz), y - 4 * math.cos(rz), z + 21), 26000, (1.0, 0.25, 0.55), radius=6.0)
+    frame = painted('SignFrame', (0.55, 0.55, 0.58), rust=0.45, metal=0.6)
 
     # torre degli scivoli con tubi colorati sbiaditi
     yaw, s = 193.0, 45.0
@@ -432,74 +454,158 @@ def build_radio_mast(lights):
 
 
 def build_hotel(lights):
+    """Albergo Miramare in stile streamline: corpo lungo con un'estremità tonda, fasce orizzontali,
+    insegna verticale al neon (metà lettere morte), coronamento a gradoni. Una sola finestra accesa."""
+    import deco
     obs = []
-    yaw, s = 124.0, 45.0
-    x, y, z = ground(yaw, s)
+    yaw, s_ = 124.0, 45.0
+    x, y, z = ground(yaw, s_)
     rz = math.radians(facing((x, y, z)))
-    m = env.house_material('HotelWall', (0.62, 0.58, 0.50))
-    body = rbox('Hotel', (56, 18, 27), (x, y, z + 13.5), rot=(0, 0, rz), bevel=0.3, col=COL)
-    body.data.materials.append(m)
+    wall = env.house_material('HotelWall', (0.58, 0.54, 0.46), lit_ratio=0.0)
+    body = rbox('Hotel', (48, 18, 27), (x, y, z + 13.5), rot=(0, 0, rz), bevel=0.3, col=COL)
+    body.data.materials.append(wall)
     obs.append(body)
-    slab = painted('HotelConcrete', (0.45, 0.43, 0.40), rust=0.35)
+    ex, ey = x + 24 * math.cos(rz), y + 24 * math.sin(rz)
+    bpy.ops.mesh.primitive_cylinder_add(vertices=32, radius=9.0, depth=27, location=(ex, ey, z + 13.5))
+    rnd = link(bpy.context.object, COL)
+    rnd.data.materials.append(wall)
+    obs.append(rnd)
+    slab = deco.deco_paint('HotelBands', (0.36, 0.34, 0.31), grime=0.45)
     for k in range(1, 8):
-        b = rbox('HotelBalcony', (56.5, 2.2, 0.35), (x + 10.1 * math.sin(rz), y - 10.1 * math.cos(rz), z + k * 3.4), rot=(0, 0, rz), bevel=0.05, col=COL)
-        b.data.materials.append(slab)
-        obs.append(b)
+        b_ = rbox('HotelBand', (49.0, 19.2, 0.45), (x, y, z + k * 3.4), rot=(0, 0, rz), bevel=0.1, col=COL)
+        b_.data.materials.append(slab)
+        obs.append(b_)
+        bpy.ops.mesh.primitive_cylinder_add(vertices=32, radius=9.6, depth=0.45, location=(ex, ey, z + k * 3.4))
+        rb = link(bpy.context.object, COL)
+        rb.data.materials.append(slab)
+        obs.append(rb)
+    tob, top = deco.stepped_tower('HotelCrown', (x - 10 * math.cos(rz), y - 10 * math.sin(rz), z + 27), rz, (14.0, 10.0), 9.0, steps=3, shrink=0.7, mat=wall, fins=3, fin_mat=slab)
+    obs += tob
+    # insegna verticale sulla curva
+    bx, by = ex + 9.4 * math.sin(rz), ey - 9.4 * math.cos(rz)
+    blade = rbox('HotelBlade', (1.4, 0.8, 24.0), (bx, by, z + 17.0), rot=(0, 0, rz), bevel=0.15, col=COL)
+    blade.data.materials.append(deco.deco_paint('BladeDark', (0.08, 0.06, 0.08), grime=0.3))
+    obs.append(blade)
+    sign = deco.neon_text('HotelSign', 'MIRAMARE', 2.6, (bx + 0.6 * math.sin(rz), by - 0.6 * math.cos(rz), z + 17.0), rz,
+                          deco.neon_material('NeonRed', (1.0, 0.10, 0.08), 12.0), vertical=True, extrude=0.15)
+    sign.data.materials.append(deco.deco_paint('NeonDeadRed', (0.16, 0.05, 0.05), grime=0.2, rough=0.3))
+    for i, st in enumerate('LXLLXLXL'):
+        sign.data.body_format[i if i == 0 else i * 2].material_index = 0 if st == 'L' else 1
+    obs.append(sign)
+    lights['hotelSign'] = (bx, by, z + 17.0)
     # l'unica finestra accesa
     win = rbox('HotelLitWindow', (1.6, 0.2, 2.0), (x + 12 * math.cos(rz) + 9.2 * math.sin(rz), y + 12 * math.sin(rz) - 9.2 * math.cos(rz), z + 5 * 3.4 + 1.6), rot=(0, 0, rz), bevel=0.0, col=COL)
     win.data.materials.append(emissive('HotelWindowMat', (1.0, 0.70, 0.35), 14.0))
     obs.append(win)
     lights['hotelWindow'] = tuple(win.location)
-    # traliccio dell'insegna sul tetto (le lettere sono cadute)
-    for k in range(6):
-        off = (k - 2.5) * 6
-        px, py = x + off * math.cos(rz), y + off * math.sin(rz)
-        obs.append(tube('HotelSignPost', [(px, py, z + 27), (px, py, z + 32)], 0.15, n=5, col=COL))
-        obs[-1].data.materials.append(slab)
     return obs
 
 
 # ───────────────────────── a sinistra ─────────────────────────
 
+def skull_mesh():
+    """Teschio stilizzato (usato in copie collegate)."""
+    import sdf as S
+    from creature import sdf_object
+    me = bpy.data.meshes.get('SkullMesh')
+    if me:
+        return me
+    cran = S.ellipsoid((0, 0.01, 0.03), (0.075, 0.09, 0.08))
+    face = S.ellipsoid((0, -0.045, -0.02), (0.06, 0.05, 0.06))
+    jaw = S.box((0, -0.05, -0.075), (0.042, 0.035, 0.02), 0.015)
+    f = S.union(cran, face, jaw, k=0.02)
+    f = S.subtract(f, S.union(S.sphere((0.027, -0.09, 0.0), 0.022), S.sphere((-0.027, -0.09, 0.0), 0.022),
+                              S.round_cone((0, -0.095, -0.035), (0, -0.085, -0.02), 0.012, 0.006)), k=0.006)
+    ob = sdf_object('SkullProto', f, (-0.1, -0.15, -0.12), (0.1, 0.12, 0.13), res=0.004, col=COL)
+    me = ob.data
+    me.name = 'SkullMesh'
+    m, g = material('SkullBone')
+    co = g.texcoord('Object')
+    n = g.noise(co, scale=40.0, detail=4.0).fac
+    g.output_material(g.principled(color=g.mix(g.mul(n, 0.5), (0.62, 0.56, 0.44), (0.30, 0.24, 0.16)), rough=0.6))
+    me.materials.append(m)
+    bpy.data.objects.remove(ob)
+    return me
+
+
 def build_chapel(lights):
+    """Edicola votiva su uno scoglio, con il muro dei teschi (il culto delle anime del purgatorio)
+    e una distesa di lumini rossi. Il tocco folk alla Grim Fandango."""
+    import deco
     obs = []
-    x, y, _ = P(-72.0, 130.0)
-    # scoglio
+    x, y, _ = P(-74.0, 92.0)
     bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=5, radius=1.0, location=(x, y, 0))
     rock = link(bpy.context.object, COL)
     rock.name = 'ChapelRock'
-    rr = np.random.default_rng(17)
     for v in rock.data.vertices:
         c = np.array(v.co)
         n = env.value_noise_2d(np.array([c[0] * 3 + c[2]]), np.array([c[1] * 3 - c[2]]), 61, 0.7, 4)[0]
         v.co = v.co * (1 + 0.35 * n)
-    rock.scale = (6.0, 5.0, 4.2)
+    rock.scale = (7.0, 6.0, 4.0)
     bpy.ops.object.shade_smooth()
     rock.data.materials.append(bpy.data.materials.get('Limestone') or painted('ChapelRockMat', (0.25, 0.23, 0.20), rust=0.0, rough=0.9))
     obs.append(rock)
     rz = math.radians(facing((x, y, 0)))
-    white = painted('ChapelWhite', (0.75, 0.73, 0.68), rust=0.25)
-    ch = rbox('Chapel', (1.8, 1.5, 2.2), (x, y, 4.2), rot=(0, 0, rz), bevel=0.05, col=COL)
-    ch.data.materials.append(white)
-    obs.append(ch)
+    white = deco.deco_paint('ChapelWhite', (0.70, 0.66, 0.58), grime=0.5)
+    W, D, H = 4.4, 2.6, 4.2
+    base_z = 3.6
+
+    def lp(lx, ly, lz):
+        return (x + lx * math.cos(rz) - ly * math.sin(rz), y + lx * math.sin(rz) + ly * math.cos(rz), base_z + lz)
+    back = rbox('ChapelBack', (W, 0.3, H), lp(0, D / 2, H / 2), rot=(0, 0, rz), bevel=0.05, col=COL)
+    back.data.materials.append(white)
+    obs.append(back)
     for side in (-1, 1):
-        r_ = rbox('ChapelRoof', (2.0, 1.1, 0.12), (x + side * 0.45 * math.cos(rz), y + side * 0.45 * math.sin(rz), 5.55),
-                  rot=(side * 0.0, side * 0.55, rz), bevel=0.02, col=COL)
-        r_.data.materials.append(painted('ChapelRoofTiles', (0.40, 0.16, 0.10), rust=0.2))
-        obs.append(r_)
-    crs = rbox('ChapelCross', (0.08, 0.08, 0.6), (x, y, 6.1), rot=(0, 0, rz), bevel=0.0, col=COL)
+        wall = rbox('ChapelSide', (0.35, D, H), lp(side * W / 2, 0, H / 2), rot=(0, 0, rz), bevel=0.05, col=COL)
+        wall.data.materials.append(white)
+        obs.append(wall)
+    roof = rbox('ChapelRoof', (W + 0.8, D + 0.8, 0.35), lp(0, 0, H + 0.2), rot=(0, 0, rz), bevel=0.08, col=COL)
+    roof.data.materials.append(deco.deco_paint('ChapelRoofTiles', (0.35, 0.12, 0.08), grime=0.4))
+    obs.append(roof)
+    pedi = rbox('ChapelPediment', (W * 0.6, 0.35, 1.1), lp(0, -D / 2 + 0.2, H + 0.9), rot=(0, 0, rz), bevel=0.05, col=COL)
+    pedi.data.materials.append(white)
+    obs.append(pedi)
+    crs = rbox('ChapelCross', (0.12, 0.12, 1.2), lp(0, -D / 2 + 0.2, H + 2.0), rot=(0, 0, rz), bevel=0.0, col=COL)
     crs.data.materials.append(white)
     obs.append(crs)
-    niche = rbox('ChapelNiche', (0.6, 0.1, 0.8), (x - 0.77 * math.sin(rz + math.pi), y + 0.77 * math.cos(rz + math.pi), 4.3), rot=(0, 0, rz), bevel=0.0, col=COL)
-    niche.data.materials.append(painted('NicheDark', (0.02, 0.015, 0.01), rust=0.0, rough=0.9))
-    obs.append(niche)
-    cx, cy = x - 0.82 * math.sin(rz + math.pi), y + 0.82 * math.cos(rz + math.pi)
-    flame = sphere('ChapelFlame', 0.05, (cx, cy, 4.15), segs=8, rings=6, col=COL, scale=(1, 1, 1.8))
-    flame.data.materials.append(emissive('CandleFlame', (1.0, 0.55, 0.15), 80.0))
-    obs.append(flame)
-    point_light('ChapelCandle', (cx, cy, 4.2), 25, (1.0, 0.55, 0.2), radius=0.03)
-    lights['candle'] = (cx, cy, 4.15)
+    # muro dei teschi: file ordinate sugli scaffali in fondo
+    me = skull_mesh()
+    rr = np.random.default_rng(13)
+    shelf_m = deco.deco_paint('ChapelShelf', (0.25, 0.16, 0.10), grime=0.3)
+    for row in range(5):
+        lz = 0.55 + row * 0.72
+        sh = rbox('ChapelShelf', (W - 0.5, 0.45, 0.06), lp(0, D / 2 - 0.35, lz - 0.12), rot=(0, 0, rz), bevel=0.0, col=COL)
+        sh.data.materials.append(shelf_m)
+        obs.append(sh)
+        for k in range(14):
+            lx = -W / 2 + 0.45 + k * (W - 0.9) / 13
+            o = bpy.data.objects.new('Skull', me)
+            bpy.data.collections[COL].objects.link(o)
+            o.location = lp(lx, D / 2 - 0.35, lz)
+            o.rotation_euler = (rr.normal(0, 0.1), rr.normal(0, 0.08), rz + rr.normal(0, 0.25))
+            o.scale = (1.5,) * 3
+            set_lightgroup(o, 'ambient')
+            obs.append(o)
+    # lumini rossi sul davanzale e sugli scogli davanti
+    red_glass = deco.neon_material('VotiveRed', (1.0, 0.18, 0.08), 14.0)
+    for k in range(26):
+        lx = rr.uniform(-W / 2 + 0.4, W / 2 - 0.4)
+        ly = rr.uniform(-D / 2 - 0.3, D / 2 - 0.6)
+        c = cylinder_at('Votive', 0.07, 0.16, lp(lx, ly, 0.08), red_glass)
+        obs.append(c)
+    for k, (lx, ly) in enumerate(((-0.8, -0.3), (0.9, -0.2), (0.0, 0.4))):
+        point_light(f'ChapelCandle{k}', lp(lx, ly, 0.6), 35, (1.0, 0.35, 0.12), radius=0.05)
+    lights['candle'] = lp(0, 0, 0.3)
     return obs
+
+
+def cylinder_at(name, r, h, loc, mat):
+    bpy.ops.mesh.primitive_cylinder_add(vertices=10, radius=r, depth=h, location=loc)
+    o = link(bpy.context.object, COL)
+    o.name = name
+    o.data.materials.append(mat)
+    set_lightgroup(o, 'ambient')
+    return o
 
 
 def build_fish_farm(lights):

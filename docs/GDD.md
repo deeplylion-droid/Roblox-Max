@@ -10,7 +10,7 @@ Horror in prima persona a inquadratura fissa (alla *Five Nights at Freddy's*): s
 
 ## 2. Pilastri
 
-1. **Lavorare mentre si ha paura.** In FNAF sopravvivi e basta; qui devi anche *produrre*. Ogni secondo passato a difenderti è un secondo in cui non peschi.
+1. **Pescare è la tua telecamera.** In FNAF l'attenzione va alle telecamere; qui va alla canna. Devi pescare davvero per fare la quota, e ogni secondo passato a difenderti è un secondo in cui non peschi.
 2. **Il pesce è insieme obiettivo e moneta.** Lo stesso pesce che serve alla quota è quello che devi lanciare a Gulpy per non farti mangiare.
 3. **La lampara è un'avidità regolabile.** Più luce = più pesci che abboccano, ma anche più creature che salgono.
 4. **Tre minacce, tre direzioni, tre risposte.** Prua → *sfamare*. Fianchi → *guardare*. Poppa → *nascondersi*. Leggibile al primo sguardo, difficile quando si sovrappongono.
@@ -46,9 +46,15 @@ Horror in prima persona a inquadratura fissa (alla *Five Nights at Freddy's*): s
 2. **Attesa**: il tempo prima dell'abboccata dipende dalla lampara.
 3. **Abboccata**: suona il **campanellino** in punta alla canna (come nella pesca notturna vera) e la punta si piega. Hai circa 2,5 s per ferrare, altrimenti il pesce si mangia l'esca.
 4. **Recupero**: tieni premuto per riavvolgere. La tensione sale mentre recuperi e quando il pesce strattona; se supera il massimo **la lenza si spezza**, se scende a zero **il pesce si slama**. Mentre recuperi lo sguardo resta bloccato sulla canna.
-5. **Cattura**: il pesce finisce nel secchio. Ogni tanto, al posto del pesce, sale **un oggetto**: sono i frammenti di lore (vedi `LORE.md`).
+5. **Cattura**: il gioco ti **mostra il pesce** che hai preso (render, nome, una riga di descrizione) e lo registra nel **Catalogo**. Poi finisce nel secchio. Ogni tanto, al posto del pesce, sale **un oggetto**: sono i frammenti di lore (vedi `LORE.md`).
 
-Specie (cosmetiche nella Notte 1): acciuga, sgombro, orata, spigola, triglia.
+### Il Catalogo dei pesci
+
+- **Circa cento specie**, tutte ispirate a pesci veri del Mediterraneo e degli abissi, ma trasformate nello stile del gioco (alla Grim Fandango). Le famiglie di trasformazione: **scheletrici** (carne mancante, lisca e cranio in vista), **zombi** (marci, occhi lattiginosi, pinne strappate, punti di sutura), **glitchati** (fette del corpo sfalsate, colori separati, pixel), **corrotti** (occhi in più, bocche sbagliate, escrescenze, melma nera), **sanguinanti** (ferite, denti sporchi, colature).
+- Ogni voce ha: nome (derivato dal nome reale, come per le creature), specie a cui si ispira, rarità, peso record, quante volte l'hai preso e una descrizione inquietante. Le specie non ancora prese appaiono come sagome.
+- La rarità e le specie disponibili dipendono dalla notte, dall'ora e dal livello della lampara: alcuni pesci abboccano solo al buio, altri solo quando una creatura è vicina.
+- Le specie diverse hanno anche un comportamento diverso al recupero (strattoni più o meno forti e frequenti).
+- Il Catalogo resta tra una partita e l'altra: è un obiettivo di collezione e un motivo per rigiocare le notti.
 
 ## 6. La lampara
 
@@ -106,7 +112,8 @@ Volume generale/musica/effetti, lingua (italiano, inglese), luminosità, schermo
 
 ## 12. Direzione artistica
 
-- **3D pre-renderizzato** (Blender/Cycles) con passi di luce separati, ricomposti in tempo reale: la lampara può tremolare, abbassarsi, spegnersi.
+- **Riferimento di stile: Grim Fandango** (in particolare Rubacava, il porto notturno): architettura art déco e noir, luci da film noir (pochi pozzi di luce colorata nel buio, ombre nette, nebbia), forte contrasto caldo/freddo, superfici "dipinte" e scolpite più che realistiche, e un tocco folk mediterraneo del culto dei morti (teschi, lumini, ex voto).
+- **3D pre-renderizzato** (Blender/Cycles) con passi di luce separati, ricomposti in tempo reale: la lampara può tremolare, abbassarsi, spegnersi; la lanterna accanto al pescatore ha un canale suo.
 - Palette: blu-petrolio della notte, ambra della lampara; i colori "allegri" sbiaditi di Splashland (giallo paperella, fucsia, turchese piscina) come unica nota stonata.
 - **Un orizzonte pieno di luoghi**, come l'ufficio di FNAF pieno di oggetti di scena:
   - *davanti*: il paese col campanile, il relitto di un peschereccio con la prua fuori dall'acqua, una boa con la campana e la luce verde che lampeggia, il faro col fascio che gira;

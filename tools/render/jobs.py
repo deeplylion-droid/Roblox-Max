@@ -170,7 +170,7 @@ def write_globals(width):
     post.update_manifest(MANIFEST, 'pano', {'width': W, 'height': H, 'latMin': LAT_MIN, 'latMax': LAT_MAX})
     sx, sy = boat.SCREEN_SIZE
     cx, cy, cz = boat.SCREEN_CENTER
-    tilt = math.radians(-8)
+    tilt = math.radians(boat.SCREEN_TILT)
     # angoli dello schermo del sonar (relativi all'occhio, x destra y avanti z alto)
     def rel(p):
         return [round(p[0] - EYE[0], 4), round(p[1] - EYE[1], 4), round(p[2] - EYE[2], 4)]
@@ -185,6 +185,7 @@ def write_globals(width):
         'bucket': rel(boat.BUCKET_POS),
         'tarp': rel(boat.TARP_POS),
         'sonarScreen': [rel(p) for p in corners],
+        'sonarRound': True,
         'lighthouseYaw': env.LIGHTHOUSE_YAW,
         'moonYaw': env.MOON_YAW, 'moonElev': env.MOON_ELEV,
     })
