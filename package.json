@@ -1,8 +1,8 @@
 {
-  "name": "lampara",
-  "productName": "LAMPARA",
+  "name": "what-is-below",
+  "productName": "WHAT IS BELOW",
   "version": "0.1.0",
-  "description": "Horror di pesca notturna: raggiungi la quota prima delle 6, sfama i Piccoli, non farti trovare.",
+  "description": "Horror di pesca notturna in prima persona.",
   "private": true,
   "type": "module",
   "main": "electron/main.cjs",

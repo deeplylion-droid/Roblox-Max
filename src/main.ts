@@ -1,5 +1,5 @@
 /**
- * Avvio di LAMPARA. Per ora: visore della scena dalla barca (motore grafico + controlli),
+ * Avvio di WHAT IS BELOW. Per ora: visore della scena dalla barca (motore grafico + controlli),
  * su cui si innestano la notte, l'audio e l'interfaccia.
  */
 import { loadLayer, loadManifest } from './engine/assets.ts';
@@ -94,7 +94,7 @@ async function boot(): Promise<void> {
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
-  (window as unknown as { __lampara: unknown }).__lampara = { view, renderer: r };
+  (window as unknown as { __wib: unknown }).__wib = { view, renderer: r };
 }
 
 boot().catch((e) => {

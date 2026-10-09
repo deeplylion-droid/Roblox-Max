@@ -1,12 +1,10 @@
-# LAMPARA — Game Design Document
-
-> *Raggiungi la quota prima delle sei. Dai da mangiare ai ragazzi. Non farti trovare.*
+# WHAT IS BELOW — Game Design Document
 
 Versione 0.1 — obiettivo del primo traguardo: **Notte 1 completa e rifinita** (vertical slice).
 
 ## 1. Il gioco in una frase
 
-Horror in prima persona a inquadratura fissa (alla *Five Nights at Freddy's*): sei il pescatore di turno sopra **il Pozzo**, la voragine al centro della baia di **Santa Brina**. Devi riempire il secchio con la **quota di pesci** entro le 6:00, mentre i figli della Madre, i bambini spariti nel 1997 a **Splashland**, il parco acquatico abbandonato alle tue spalle, salgono a bordo. Ognuno vuole qualcosa di diverso.
+Horror in prima persona a inquadratura fissa (alla *Five Nights at Freddy's*): sei il pescatore di turno in mezzo alla baia. Devi riempire il secchio con la **quota di pesci** entro le 6:00 per sfamare **la Madre**, mentre i suoi figli salgono a bordo: sono i bambini spariti a **Splashland**, il parco acquatico abbandonato alle tue spalle, rapiti da lei e trasformati in mostri. Ognuno vuole qualcosa di diverso.
 
 ## 2. Pilastri
 
@@ -33,12 +31,14 @@ Horror in prima persona a inquadratura fissa (alla *Five Nights at Freddy's*): s
 | Sonar a tutto schermo | barra in alto | `Tab` |
 | Pausa | | `Esc` |
 
+- **Binocolo (da fare)**: zoom sugli elementi dello sfondo per vederne una versione ingrandita.
+
 ## 4. Struttura della notte
 
 - Dalle **00:00 alle 06:00**; un'ora di gioco dura **75 secondi**, quindi circa 7 minuti e mezzo per notte.
-- Ogni ora la campana del campanile di Santa Brina batte i rintocchi: è l'orologio diegetico.
-- All'inizio della notte chiama **Marzio** alla radio VHF (l'equivalente del Phone Guy): spiega le regole, scherza, e lascia scappare dettagli che non dovrebbe.
-- Alle 06:00: se il secchio contiene almeno la quota la notte è superata (alba, campane, gabbiani). Se no, **la Madre si sveglia** (finale negativo della notte).
+- Ogni ora la campana del paese batte i rintocchi: è l'orologio diegetico.
+- All'inizio della notte chiama **una voce alla radio**, senza nome come il Phone Guy di FNAF: spiega le regole in modo breve e sommario (al massimo 20 secondi).
+- Alle 06:00: se il secchio contiene almeno la quota la notte è superata. Se no, la Madre resta affamata e **si prende un altro bambino**: game over.
 
 ## 5. Pesca
 
@@ -68,23 +68,23 @@ Horror in prima persona a inquadratura fissa (alla *Five Nights at Freddy's*): s
 
 Sono i bambini spariti a **Splashland** nel 1997, presi e trasformati dalla Madre (vedi `LORE.md`). Non sono cuccioli e non sono carini: sono **allungati, magri, sproporzionati** (riferimento: SCP-096 "Shy Guy"), pelle grigio-pallida e bagnata, occhi bianchi senza pigmento, collo e arti troppo lunghi, dita palmate lunghissime, branchie sul collo. Il tocco "family friendly" c'è ma è distorto fino all'orrore, come il bavaglino di Chica in FNAF: ognuno porta ancora addosso qualcosa del parco. I nomi vengono da nomi inglesi di pesci, accorciati come diminutivi da bambino.
 
-> Il design visivo si definisce insieme: prima le sagome per confrontare le proporzioni, poi la modellazione.
+> Il design visivo si definisce insieme. **Sagome scelte**: Gulpy C «Avvoltoio», Molly C «Dita», Hatch C «Spilungone» (`docs/concept/`). Prossimo passo, sempre insieme: i dettagli, poi la modellazione.
 
 ### Gulpy — prua — *SFAMARE*
-Ispirato al pesce pellicano (*gulper eel*): tutto bocca su un corpo lunghissimo. Ha un salvagente giallo a paperella incastrato sul collo, che ormai stringe la carne.
+Ispirato al pesce pellicano (*gulper eel*): tutto bocca su un corpo lunghissimo. Sagoma C: un gigante curvo in piedi nell'acqua fino alla vita, con la testa che pende davanti al petto e un braccio lunghissimo teso verso la barca. Ha un salvagente giallo a paperella incastrato sul collo, che ormai stringe la carne.
 - **Sale** (si avvicina in superficie davanti alla prua, si sentono lo sciabordio e il suo verso affamato) → **si sporge** (le mani enormi sul bordo di prua, si piega sopra la barca) → **pretende** (la mascella si sgancia fino al petto, aspetta).
 - Gli lanci un pesce dal secchio → lo inghiotte e torna giù. Puoi lanciarglielo anche prima, mentre sale.
 - Se non riceve il pesce in tempo → **jumpscare**. Il telone non serve: Gulpy sente l'odore.
 - Lezione: tieni sempre almeno un pesce nel secchio.
 
 ### Molly — fianchi — *FISSARE*
-Ispirata al barreleye (testa trasparente, gli occhi dentro che ruotano e ti seguono) e alla *mola*, il pesce luna. Porta i braccioli gonfiabili su braccia lunghe due metri. Da bambina gridava "Guardami!" dal trampolino.
-- **Bussa** sullo scafo a sinistra o a destra → **si alza** lungo la fiancata e piega il collo sopra il bordo, la faccia a mezzo metro dalla tua.
+Ispirata al barreleye (testa trasparente, gli occhi dentro che ruotano e ti seguono) e alla *mola*, il pesce luna. Sagoma C: resta quasi tutta sott'acqua, si vedono solo la testa e le dita lunghissime aggrappate al bordo. Porta i braccioli gonfiabili. Da bambina gridava "Guardami!" dal trampolino.
+- **Bussa** sullo scafo a sinistra o a destra → **si affaccia** sul bordo: la testa e le dita aggrappate, a mezzo metro da te.
 - Devi **guardarla** (tenerla al centro della visuale) finché non è soddisfatta: allora si lascia scivolare in acqua.
 - Se la ignori si offende e **dondola la barca**, sempre più forte (la visuale si inclina, entra acqua). Se continui a ignorarla **trascina giù la barca**.
 
 ### Hatch — poppa — *NASCONDERSI*
-Ispirato alla rana pescatrice e all'*hatchetfish*: si muove a quattro zampe con arti lunghissimi, quasi un ragno. La sua esca è il giocattolo luminoso del negozio del parco, che gli pende dalla fronte: lo usa per cercarti.
+Ispirato alla rana pescatrice e all'*hatchetfish*. Sagoma C: un bipede altissimo e piegato in avanti. La sua esca è il giocattolo luminoso del negozio del parco, che gli penzola davanti alla faccia: lo usa per cercarti.
 - Gioca a nascondino: **conta fino a dieci** ad alta voce, da dietro la barca ("…eight, nine, ten… ready or not, here I come!", localizzato).
 - Finita la conta **sale a bordo**. Devi già essere **sotto il telone**.
 - Sotto il telone vedi la luce del giocattolo che fruga attraverso la tela e senti i passi bagnati. Se esci prima che torni in acqua → jumpscare.
@@ -95,12 +95,12 @@ Ispirato alla rana pescatrice e all'*hatchetfish*: si muove a quattro zampe con 
 
 ## 8. Sonar
 
-Il sonar (lo schermo sulla console di poppa, o `Tab` per vederlo a tutto schermo con effetto CRT) mostra un cerchio con la barca al centro. Il fascio gira e *pinga*: puntini piccoli = pesci, ombre grandi = creature che salgono dal fondo, con direzione e profondità. È la "telecamera" di LAMPARA: anticipa le minacce, ma mentre lo guardi non vedi la barca.
+Il sonar (un piccolo ecoscandaglio portatile appoggiato a poppa, o `Tab` per vederlo a tutto schermo con effetto CRT) mostra un cerchio con la barca al centro. Il fascio gira e *pinga*: puntini piccoli = pesci, ombre grandi = creature che salgono dal fondo, con direzione e profondità. Anticipa le minacce, ma mentre lo guardi non vedi la barca.
 
 ## 9. Morte e sconfitta
 
 - Jumpscare (sequenza renderizzata + urlo), poi statica e **schermata di game over** dedicata a ogni creatura.
-- Quota mancata alle 6:00: l'acqua si fa liscia come uno specchio e sotto la barca si apre **un occhio**.
+- Quota mancata alle 6:00: la Madre resta affamata e si prende un altro bambino (la scena è da definire insieme).
 
 ## 10. Flusso dei menu
 
@@ -120,7 +120,8 @@ Volume generale/musica/effetti, lingua (italiano, inglese), luminosità, schermo
   - *a destra*: un albergo abbandonato sulla scogliera con una sola finestra accesa, un traliccio radio con la luce rossa;
   - *alle spalle*: **Splashland** con la statua di Mama Marina, gli scivoli, l'insegna al neon che sfarfalla, le luci accese della Deep End e la ruota panoramica ferma sul pontile;
   - *a sinistra*: i faraglioni all'imbocco della baia, un'edicola votiva su uno scoglio con un lume acceso, le gabbie di un allevamento ittico.
-- **Una barca piena di oggetti**: lanterna arrugginita, borraccia ammaccata, una bambola di legno seduta sul banco che ti guarda, una paperella di gomma del parco, un barattolo con un occhio che galleggia, occhialini da piscina appesi a un chiodo, un rosario di conchiglie sul palo della lampara, tacche incise sul banco a contare le notti, una campanella legata a poppa, una scatola di latta con mozziconi di candela, una statuina di Mama Marina sulla console.
+- **Una barca piena di oggetti**: lanterna arrugginita, borraccia ammaccata, una bambola di legno seduta sul banco che ti guarda, una paperella di gomma del parco, un barattolo con un occhio che galleggia, occhialini da piscina appesi a un chiodo, un rosario di conchiglie sul palo della lampara, tacche incise sul banco a contare le notti, una campanella legata a poppa, una scatola di latta con mozziconi di candela, una statuina di Mama Marina.
+- **Niente console**: è una barca a remi. Anche la radio e il sonar sono oggetti appoggiati in giro sulla struttura della barca, come tutto il resto.
 - Post-processing: bloom, grana della pellicola, vignettatura, leggera aberrazione cromatica.
 
 ## 13. Audio

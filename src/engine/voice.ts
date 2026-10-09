@@ -1,6 +1,6 @@
 /**
  * Voci borbottate sintetizzate al volo (stile "animalese", ma umano): ogni sillaba è un'onda a dente di sega
- * filtrata da due formanti scelte dalla vocale del testo. Serve per la radio di Marzio e per la conta di Hatch,
+ * filtrata da due formanti scelte dalla vocale del testo. Serve per la voce alla radio e per la conta di Hatch,
  * finché non ci saranno voci registrate.
  */
 import type { AudioEngine } from './audio.ts';
@@ -20,7 +20,7 @@ export interface VoiceProfile {
   gain: number;
 }
 
-export const MARZIO: VoiceProfile = { pitch: 104, jitter: 0.18, rate: 7.2, formant: 1, radio: true, gain: 0.55 };
+export const RADIO_VOICE: VoiceProfile = { pitch: 104, jitter: 0.18, rate: 7.2, formant: 1, radio: true, gain: 0.55 };
 export const CHILD: VoiceProfile = { pitch: 285, jitter: 0.1, rate: 3.6, formant: 1.28, radio: false, gain: 0.5 };
 
 const FORMANTS: Record<string, [number, number]> = {

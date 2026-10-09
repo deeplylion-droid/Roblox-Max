@@ -1,5 +1,5 @@
 """
-Mattoni art déco / noir per gli edifici di Santa Brina (riferimento: Grim Fandango, Rubacava).
+Mattoni art déco / noir per gli edifici del paese (riferimento: Grim Fandango, Rubacava).
 
   stepped_tower  torre a gradoni con lesene verticali
   sunburst       raggiera (ventaglio di raggi)

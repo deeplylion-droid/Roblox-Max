@@ -1,5 +1,5 @@
 """
-Genera gli asset audio di LAMPARA (tutti sintetizzati, nessun campione esterno).
+Genera gli asset audio di WHAT IS BELOW (tutti sintetizzati, nessun campione esterno).
 
 Uso:
   tools/.venv/bin/python tools/audio/generate.py                 # tutti gli id di docs/AUDIO.md

@@ -1,5 +1,5 @@
 """
-Ambiente della baia di Santa Brina: cielo notturno, luna, mare, costa, paese col campanile,
+Ambiente della baia: cielo notturno, luna, mare, costa, paese col campanile,
 faro, faraglioni. Tutto procedurale e deterministico.
 
 Direzioni: yaw ψ in gradi misurato da +Y (avanti) verso +X (destra).

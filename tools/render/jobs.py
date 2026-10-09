@@ -1,5 +1,5 @@
 """
-Job di render di LAMPARA.
+Job di render di WHAT IS BELOW.
 
 Uso:
   tools/.venv/bin/python tools/render/jobs.py <job> [<job> ...] [--quality draft|preview|final]
@@ -176,7 +176,8 @@ def write_globals(width):
         return [round(p[0] - EYE[0], 4), round(p[1] - EYE[1], 4), round(p[2] - EYE[2], 4)]
     up = np.array((0, -math.sin(tilt), math.cos(tilt))) * sy / 2
     right = np.array((-sx / 2, 0, 0))   # lo schermo guarda +Y: la destra del giocatore voltato è -X
-    c = np.array((cx, cy + 0.004, cz))
+    normal = np.array((0, math.cos(tilt), math.sin(tilt)))
+    c = np.array((cx, cy, cz)) + normal * 0.0025
     corners = [c - right + up, c + right + up, c + right - up, c - right - up]
     post.update_manifest(MANIFEST, 'points', {
         'eye': list(EYE),
@@ -185,7 +186,7 @@ def write_globals(width):
         'bucket': rel(boat.BUCKET_POS),
         'tarp': rel(boat.TARP_POS),
         'sonarScreen': [rel(p) for p in corners],
-        'sonarRound': True,
+        'sonarRound': False,
         'lighthouseYaw': env.LIGHTHOUSE_YAW,
         'moonYaw': env.MOON_YAW, 'moonElev': env.MOON_ELEV,
     })

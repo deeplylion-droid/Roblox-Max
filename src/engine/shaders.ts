@@ -169,11 +169,16 @@ void main() {
   float x = dot(p, uRight) / dot(uRight, uRight);
   float y = dot(p, uUp) / dot(uUp, uUp);
   if (abs(x) > 1.0 || abs(y) > 1.0) discard;
-  float r = length(vec2(x, y));
-  if (uRound > 0.5 && r > 0.97) discard;
-  vec3 c = texture(uTex, vec2(x, -y) * 0.5 + 0.5).rgb;
+  bool isRound = uRound > 0.5;
+  float r = isRound ? length(vec2(x, y)) : max(abs(x), abs(y));
+  if (isRound && r > 0.97) discard;
+  // schermo rettangolare: il quadrato del sonar sta al centro, ai lati resta il fondo scuro
+  float aspect = length(uRight) / length(uUp);
+  vec2 q = isRound ? vec2(x, y) : vec2(x * aspect, y);
+  vec3 c = vec3(0.0, 0.02, 0.01);
+  if (abs(q.x) <= 1.0) c = texture(uTex, vec2(q.x, -q.y) * 0.5 + 0.5).rgb;
   // bombatura del vetro: bordo più scuro
-  c *= 1.0 - smoothstep(0.75, 0.97, r) * 0.6;
+  c *= 1.0 - smoothstep(0.78, 1.0, r) * 0.6;
   frag = vec4(c * uGain, 0.0);
 }`;
 

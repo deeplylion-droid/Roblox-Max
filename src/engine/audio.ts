@@ -1,5 +1,5 @@
 /**
- * Audio di LAMPARA: Web Audio con suoni spazializzati (HRTF) attorno al pescatore.
+ * Audio di WHAT IS BELOW: Web Audio con suoni spazializzati (HRTF) attorno al pescatore.
  * Coordinate come i render (x destra, y avanti, z alto, metri dall'occhio); il motore le converte
  * nel sistema di Web Audio (x destra, y alto, −z avanti).
  */

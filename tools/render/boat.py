@@ -1,7 +1,8 @@
 """
 Il gozzo del pescatore: scafo a doppia punta, interni dipinti verde acqua, pagliolato,
-banchi, ordinate, capodibanda, coperta di prua, console di poppa con sonar e radio,
-lampara a pressione sul buttafuori, canna con campanellino, secchio, telone, remi.
+banchi, ordinate, capodibanda, coperte di prua e di poppa, lampara a pressione sul buttafuori,
+canna con campanellino, secchio, telone, remi. Niente console: l'ecoscandaglio portatile e la radio
+sono appoggiati sul ponte di poppa come gli altri oggetti.
 
 Prua verso +Y. Linea di galleggiamento z = 0. Tutte le misure in metri.
 """
@@ -27,10 +28,23 @@ ROD_GUNWALE = (0.97, 0.55, 0.74)
 ROD_TIP = (2.02, 2.95, 1.86)
 BUCKET_POS = (0.40, 1.62, -0.09)
 TARP_POS = (-0.44, 1.52, -0.09)
-CONSOLE_POS = (0.36, -2.08, 0.60)     # base della console sul ponte di poppa
-SCREEN_CENTER = (0.36, -1.878, 0.84)
-SCREEN_SIZE = (0.20, 0.20)            # schermo tondo (CRT a oblò): quadrato che lo contiene
-SCREEN_TILT = 15.0                    # gradi: lo schermo guarda un po' in su, verso l'occhio
+AFT_DECK_Z = 0.595                    # piano del ponte di poppa, dove si appoggiano gli oggetti
+SONAR_PIVOT = (0.30, -2.04, 0.715)    # perno della staffa dell'ecoscandaglio portatile (ponte di poppa, a destra)
+SONAR_TILT = 22.0                     # gradi: l'apparecchio è inclinato sulla staffa, lo schermo guarda verso l'occhio
+RADIO_POS = (-0.30, -2.06, AFT_DECK_Z)  # radio appoggiata sul ponte di poppa, a sinistra
+
+
+def sonar_local(p):
+    """Coordinate locali dell'ecoscandaglio (x destra, y verso il giocatore, z su) → mondo."""
+    a = math.radians(SONAR_TILT)
+    x, y, z = p
+    px, py, pz = SONAR_PIVOT
+    return (px + x, py + y * math.cos(a) - z * math.sin(a), pz + y * math.sin(a) + z * math.cos(a))
+
+
+SCREEN_SIZE = (0.15, 0.11)            # schermo rettangolare dell'ecoscandaglio
+SCREEN_CENTER = sonar_local((0.0, 0.089, 0.012))
+SCREEN_TILT = SONAR_TILT
 
 
 # ───────────────────────── forma dello scafo ─────────────────────────
@@ -632,98 +646,88 @@ def build_tarp(mats):
     return [ob, rope]
 
 
-def build_console(mats):
-    """Console art déco di poppa: mobiletto di mogano con profili d'ottone e cupola, sonar con lo
-    schermo tondo a oblò, radio di bachelite con la manopola illuminata e la cornetta col filo a spirale."""
-    x, y, z = CONSOLE_POS
+def build_stern_gear(mats):
+    """Sul ponte di poppa, appoggiati come capita: l'ecoscandaglio portatile sulla sua staffa
+    (col cavo che scavalca il bordo e finisce in acqua) e la radio col microfono a spirale."""
     obs = []
-    maho = bpy.data.materials.get('Mahogany')
-    if maho is None:
-        maho, g = material('Mahogany')
+    tilt = math.radians(SONAR_TILT)
+    case = bpy.data.materials.get('SonarCase')
+    if case is None:
+        case, g = material('SonarCase')
         co = g.texcoord('Object')
-        grain_c, grain = g.wave(g.mapping(co, scale=(1.0, 0.15, 1.0)), scale=40.0, distortion=4.0, detail=3.0, kind='BANDS', axis='X')
-        col = g.ramp(grain, [(0.2, (0.06, 0.02, 0.012)), (0.8, (0.14, 0.05, 0.025))])
-        g.output_material(g.principled(color=col, rough=0.3, coat=0.8, coat_rough=0.08, normal=g.bump(grain, strength=0.05, distance=0.002)))
-    W, D, H = 0.52, 0.34, 0.40
-    body = rbox('Console', (W, D, H), (x, y, z + H / 2), bevel=0.02)
-    body.data.materials.append(maho)
-    obs.append(body)
-    top = cylinder('ConsoleDome', D / 2, W, (x, y, z + H), rot=(0, math.radians(90), 0), verts=32)
-    top.data.materials.append(maho)
-    obs.append(top)
-    brass = mats['brass']
-    fy = y + D / 2 + 0.004
-    for zz in (z + 0.03, z + H - 0.03):
-        t = tube('ConsoleTrim', [(x - W / 2 + 0.01, fy, zz), (x + W / 2 - 0.01, fy, zz)], 0.005, n=6)
-        t.data.materials.append(brass)
-        obs.append(t)
-    for xx in (x - W / 2 + 0.03, x + W / 2 - 0.03):
-        t = tube('ConsoleTrimV', [(xx, fy, z + 0.03), (xx, fy, z + H - 0.03)], 0.005, n=6)
-        t.data.materials.append(brass)
-        obs.append(t)
-    # sonar: CRT tondo a oblò, appena inclinato verso il giocatore
-    cx, cy, cz = SCREEN_CENTER
-    r_ = SCREEN_SIZE[0] / 2
-    tilt = math.radians(SCREEN_TILT)
-    ux, uy, uz = 0.0, -math.sin(tilt), math.cos(tilt)          # "su" nel piano dello schermo
-    rb = r_ + 0.012
-    ring = [(cx + rb * math.cos(a), cy + 0.008 + rb * math.sin(a) * uy, cz + rb * math.sin(a) * uz) for a in np.linspace(0, 2 * math.pi, 49)]
-    bez = tube('SonarBezel', ring, 0.013, n=10)
-    bez.data.materials.append(brass)
-    obs.append(bez)
-    scr = cylinder('SonarScreen', r_, 0.01, (cx, cy + 0.004, cz), rot=(tilt - math.radians(90), 0, 0), verts=48)
-    scr.data.materials.append(mats['screen'])
-    obs.append(scr)
-    for k, dx in enumerate((-0.09, -0.03, 0.03, 0.09)):
-        kn = cylinder(f'SonarKnob{k}', 0.013, 0.022, (cx + dx, cy + 0.02, z + 0.07), rot=(math.radians(90), 0, 0), verts=14)
-        kn.data.materials.append(mats['red_plastic'] if k == 1 else mats['black_plastic'])
-        obs.append(kn)
-    plate = rbox('SonarPlate', (0.12, 0.004, 0.022), (cx, fy + 0.002, z + 0.115), bevel=0.0)
-    plate.data.materials.append(brass)
-    obs.append(plate)
-    # radio di bachelite sul piano, a sinistra
+        n = g.noise(co, scale=38.0, detail=6.0).fac
+        dirt = g.smoothstep(0.45, 0.75, n)
+        col = g.mix(dirt, (0.46, 0.44, 0.38), (0.20, 0.18, 0.14))
+        g.output_material(g.principled(color=col, rough=0.62))
+    steel = mats['chrome']
+
+    def part(ob, m):
+        ob.data.materials.append(m)
+        obs.append(ob)
+
+    # corpo, cornice, schermo, visiera parasole e manopole (tutti ruotati con l'apparecchio)
+    def lbox(name, size, local, m, bevel=0.004):
+        part(rbox(name, size, sonar_local(local), rot=(tilt, 0, 0), bevel=bevel), m)
+
+    lbox('SonarBody', (0.24, 0.16, 0.17), (0, 0, 0), case, bevel=0.02)
+    lbox('SonarBezel', (0.19, 0.008, 0.14), (0, 0.082, 0.012), mats['black_plastic'])
+    lbox('SonarScreen', (SCREEN_SIZE[0], 0.004, SCREEN_SIZE[1]), (0, 0.086, 0.012), mats['screen'], bevel=0.0)
+    lbox('SonarHoodTop', (0.20, 0.07, 0.006), (0, 0.115, 0.088), mats['black_plastic'])
+    for sx in (-1, 1):
+        lbox(f'SonarHoodSide{sx}', (0.006, 0.07, 0.15), (sx * 0.098, 0.115, 0.016), mats['black_plastic'])
+    for k, dx in enumerate((-0.06, 0.06)):
+        kn = cylinder(f'SonarKnob{k}', 0.011, 0.02, sonar_local((dx, 0.09, -0.068)), rot=(tilt + math.radians(90), 0, 0), verts=14)
+        part(kn, mats['black_plastic'])
+    # staffa a U avvitata sul ponte, con i pomelli di bloccaggio sui fianchi
+    px, py, pz = SONAR_PIVOT
+    part(rbox('SonarBracketBase', (0.30, 0.09, 0.008), (px, py, AFT_DECK_Z + 0.004), bevel=0.002), steel)
+    for sx in (-1, 1):
+        arm = tube(f'SonarBracketArm{sx}', [(px + sx * 0.142, py, AFT_DECK_Z + 0.006), (px + sx * 0.142, py, pz)], 0.007, n=8)
+        part(arm, steel)
+        kn = cylinder(f'SonarLockKnob{sx}', 0.022, 0.018, (px + sx * 0.158, py, pz), rot=(0, math.radians(90), 0), verts=16)
+        part(kn, mats['black_plastic'])
+    # cavo del trasduttore: dal retro, scavalca il capodibanda di destra ed entra in acqua
+    back = sonar_local((0.05, -0.085, -0.03))
+    yg = -2.36
+    zg = float(sheer(yg / HALF)) + 0.03
+    xg = half_width_at(yg, zg - 0.05) + 0.07
+    path = catmull([back, (back[0] + 0.08, back[1] - 0.10, AFT_DECK_Z + 0.02), (xg - 0.06, yg + 0.04, zg - 0.02),
+                    (xg, yg, zg + 0.015), (xg + 0.06, yg - 0.01, zg - 0.12), (xg + 0.08, yg - 0.02, -0.15)], 8)
+    part(tube('SonarCable', path, 0.005, n=6), mats['black_plastic'])
+
+    # radio di bachelite appoggiata storta sul ponte, con il microfono buttato accanto
     bak = bpy.data.materials.get('Bakelite')
     if bak is None:
         bak, g = material('Bakelite')
         g.output_material(g.principled(color=(0.10, 0.045, 0.02), rough=0.25, coat=0.9, coat_rough=0.05))
-    rx, ry, rz_ = x - 0.58, y - 0.02, z + 0.055      # sul ponte di poppa, a sinistra della console
-    rad = rbox('Radio', (0.22, 0.13, 0.11), (rx, ry, rz_), bevel=0.03)
-    rad.data.materials.append(bak)
-    obs.append(rad)
+    rx, ry, rz0 = RADIO_POS
+    yaw = math.radians(-18)
+    cy_, sy_ = math.cos(yaw), math.sin(yaw)
+
+    def rp(dx, dy, z):
+        return (rx + dx * cy_ - dy * sy_, ry + dx * sy_ + dy * cy_, z)
+
+    zc = rz0 + 0.055
+    part(rbox('Radio', (0.22, 0.13, 0.11), rp(0, 0, zc), rot=(0, 0, yaw), bevel=0.03), bak)
     for k in range(5):
-        sl = rbox('RadioGrille', (0.08, 0.004, 0.006), (rx - 0.045, ry + 0.066, rz_ - 0.025 + k * 0.012), bevel=0.0)
-        sl.data.materials.append(brass)
-        obs.append(sl)
-    dial = cylinder('RadioDial', 0.026, 0.006, (rx + 0.055, ry + 0.066, rz_ + 0.005), rot=(math.radians(90), 0, 0), verts=24)
+        part(rbox(f'RadioGrille{k}', (0.08, 0.004, 0.006), rp(-0.045, 0.066, zc - 0.025 + k * 0.012), rot=(0, 0, yaw), bevel=0.0), mats['brass'])
     m_disp = bpy.data.materials.get('RadioLCD')
     if m_disp is None:
         m_disp, g = material('RadioLCD')
         g.output_material(g.emission((1.0, 0.45, 0.08), 2.5))
-    dial.data.materials.append(m_disp)
-    obs.append(dial)
-    mic = rbox('RadioMic', (0.05, 0.03, 0.09), (rx + 0.15, ry + 0.07, z + 0.09), rot=(0, math.radians(-15), 0), bevel=0.012)
-    mic.data.materials.append(bak)
-    obs.append(mic)
-    coil = [(rx + 0.09 + 0.012 * math.cos(t * 7), ry + 0.065 + 0.012 * math.sin(t * 7), rz_ + 0.03 - t * 0.03) for t in np.linspace(0, 1.6, 60)]
-    cord = tube('MicCord', coil, 0.003, n=6)
-    cord.data.materials.append(mats['black_plastic'])
-    obs.append(cord)
-    # santino di Santa Brina infilato nella cornice d'ottone
-    card = rbox('Santino', (0.055, 0.002, 0.085), (x + 0.20, fy + 0.003, z + 0.29), rot=(0, math.radians(-6), 0), bevel=0.0)
-    m_card = bpy.data.materials.get('SantinoMat')
-    if m_card is None:
-        m_card, g = material('SantinoMat')
-        co = g.texcoord('Object')
-        x_, _, z_ = g.sep(co)
-        d = g.add(g.mul(g.mul(x_, x_), 1 / 0.016 ** 2), g.mul(g.mul(g.sub(z_, 0.01), g.sub(z_, 0.01)), 1 / 0.03 ** 2))
-        fig = g.smoothstep(1.0, 0.8, d)
-        halo_d = g.add(g.mul(g.mul(x_, x_), 1 / 0.02 ** 2), g.mul(g.mul(g.sub(z_, 0.03), g.sub(z_, 0.03)), 1 / 0.02 ** 2))
-        halo = g.mul(g.smoothstep(1.0, 0.85, halo_d), g.smoothstep(0.55, 0.7, halo_d))
-        col = g.mix(fig, (0.62, 0.55, 0.40), (0.10, 0.18, 0.35))
-        col = g.mix(halo, col, (0.75, 0.55, 0.12))
-        g.output_material(g.principled(color=col, rough=0.6))
-    card.data.materials.append(m_card)
-    obs.append(card)
+    part(cylinder('RadioDial', 0.026, 0.006, rp(0.055, 0.066, zc + 0.005), rot=(math.radians(90), 0, yaw), verts=24), m_disp)
+    handle = [rp(-0.08, 0.0, zc + 0.055), rp(-0.06, 0.0, zc + 0.095), rp(0.06, 0.0, zc + 0.095), rp(0.08, 0.0, zc + 0.055)]
+    part(tube('RadioHandle', catmull(handle, 6), 0.007, n=8), bak)
+    mic_at = rp(0.17, 0.10, rz0 + 0.016)
+    part(rbox('RadioMic', (0.05, 0.09, 0.03), mic_at, rot=(0, 0, yaw + math.radians(35)), bevel=0.012), bak)
+    coil = []
+    a0 = rp(0.10, 0.05, zc - 0.02)
+    for t in np.linspace(0, 1, 70):
+        bx = a0[0] + (mic_at[0] - a0[0]) * t
+        by = a0[1] + (mic_at[1] - a0[1]) * t
+        bz = a0[2] + (mic_at[2] + 0.01 - a0[2]) * t
+        coil.append((bx + 0.011 * math.cos(t * 44), by + 0.011 * math.sin(t * 44), bz + 0.008 * math.sin(t * 44 + 1.3)))
+    part(tube('MicCord', coil, 0.003, n=6), mats['black_plastic'])
     for ob in obs:
         set_lightgroup(ob, 'ambient')
     return obs
@@ -795,7 +799,7 @@ def build_boat(fish_in_bucket=3, rod=True):
     parts['lampara'] = build_lampara(mats)
     parts['holder'] = build_rod_holder(mats)
     parts['tarp'] = build_tarp(mats)
-    parts['console'] = build_console(mats)
+    parts['stern_gear'] = build_stern_gear(mats)
     parts['props'] = build_props(mats)
     parts['player'] = build_player_proxy()
     if rod:

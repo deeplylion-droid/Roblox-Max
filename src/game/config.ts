@@ -75,7 +75,6 @@ export interface LoreItem {
 export const LORE: LoreItem[] = [
   { id: 'wristband', night: 1 },
   { id: 'clipping', night: 1 },
-  { id: 'holycard', night: 1 },
 ];
 
 export interface GulpyConfig {

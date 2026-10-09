@@ -1,5 +1,5 @@
 """
-I luoghi sull'orizzonte di Santa Brina (come gli oggetti di scena dell'ufficio di FNAF):
+I luoghi sull'orizzonte della baia (come gli oggetti di scena dell'ufficio di FNAF):
 
   alle spalle  Splashland: statua di Mama Marina, insegna al neon, torre degli scivoli, piscina
                "Deep End" con le luci ancora accese, Snack Shack, torretta del bagnino, palme morte,

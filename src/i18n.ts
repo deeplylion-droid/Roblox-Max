@@ -3,8 +3,7 @@
 export type Lang = 'it' | 'en';
 
 const IT = {
-  title: 'LAMPARA',
-  tagline: 'Raggiungi la quota prima delle sei. Dai da mangiare ai ragazzi. Non farti trovare.',
+  title: 'WHAT IS BELOW',
   newGame: 'Nuova partita',
   continue: 'Continua',
   extras: 'Diario',
@@ -49,8 +48,8 @@ const IT = {
   deaths: {
     gulpy: 'Gulpy aveva fame. Il secchio era vuoto.',
     molly: 'Molly voleva solo che la guardassi.',
-    hatch: '«Ready or not, here I come.» Ti ha trovato.',
-    mother: 'Alle sei il secchio non era pieno. La Madre si è svegliata.',
+    hatch: '«Chi c’è c’è, chi non c’è non c’è.» Ti ha trovato.',
+    mother: 'Alle sei il secchio non era pieno. Stanotte la Madre si prenderà un altro bambino.',
   },
   retry: 'Riprova',
   menu: 'Menu principale',
@@ -66,7 +65,7 @@ const IT = {
   reduceFlash: 'Riduci lampi e scosse',
   paused: 'Pausa',
   resume: 'Riprendi',
-  radioName: 'Marzio · canale 16',
+  radioName: 'Radio · canale 16',
   labels: { rod: 'Canna', bucket: 'Secchio', tarp: 'Telone', lamp: 'Lampara', sonar: 'Sonar' },
   look: 'Bordi dello schermo o A/D per guardarti intorno',
   sonarHint: 'Tab: sonar',
@@ -99,7 +98,7 @@ const IT = {
     hatchStep: 'passi bagnati',
     hatchSniff: 'annusa',
     hatchLeave: 'tonfo in acqua a poppa',
-    bell: 'la campana di Santa Brina',
+    bell: 'la campana del paese',
     left: 'sinistra',
     right: 'destra',
   },
@@ -110,8 +109,7 @@ const IT = {
 };
 
 const EN: typeof IT = {
-  title: 'LAMPARA',
-  tagline: 'Make the quota before six. Feed the kids. Don’t get found.',
+  title: 'WHAT IS BELOW',
   newGame: 'New game',
   continue: 'Continue',
   extras: 'Journal',
@@ -157,7 +155,7 @@ const EN: typeof IT = {
     gulpy: 'Gulpy was hungry. The bucket was empty.',
     molly: 'Molly only wanted you to watch her.',
     hatch: '"Ready or not, here I come." He found you.',
-    mother: 'At six the bucket wasn’t full. The Mother woke up.',
+    mother: 'At six the bucket wasn’t full. Tonight the Mother will take another child.',
   },
   retry: 'Try again',
   menu: 'Main menu',
@@ -173,7 +171,7 @@ const EN: typeof IT = {
   reduceFlash: 'Reduce flashes and shaking',
   paused: 'Paused',
   resume: 'Resume',
-  radioName: 'Marzio · channel 16',
+  radioName: 'Radio · channel 16',
   labels: { rod: 'Rod', bucket: 'Bucket', tarp: 'Tarp', lamp: 'Lampara', sonar: 'Sonar' },
   look: 'Screen edges or A/D to look around',
   sonarHint: 'Tab: sonar',
@@ -206,7 +204,7 @@ const EN: typeof IT = {
     hatchStep: 'wet footsteps',
     hatchSniff: 'sniffing',
     hatchLeave: 'splash at the stern',
-    bell: 'the bell of Santa Brina',
+    bell: 'the village bell',
     left: 'left',
     right: 'right',
   },
@@ -229,20 +227,12 @@ export const LORE_TEXT: Record<Lang, Record<string, { title: string; body: strin
       title: 'Ritaglio di giornale',
       body: 'Gazzetta del Golfo, 17 agosto 1997. «SPLASHLAND, SPARITO UN TERZO BAMBINO. Il parco chiude a tempo indeterminato. Le ricerche dei sommozzatori nella piscina "Deep End" non hanno dato esito. Il proprietario: "Mama Marina ama i suoi piccoli, non…"» Il resto è illeggibile.',
     },
-    holycard: {
-      title: 'Santino di Santa Brina',
-      body: 'Sul retro: «Santa Brina, madre dei pesci, / tu che vegli sul Pozzo, / prendi la nostra luce / e dacci il pane del mare. / Uno per ogni generazione. Amen.»',
-    },
   },
   en: {
     wristband: { title: 'Entry wristband', body: 'Faded fuchsia plastic: "MAMA MARINA’S SPLASHLAND · NIGHT SPLASH · 14·08·1997 · CHILD".' },
     clipping: {
       title: 'Newspaper clipping',
       body: 'Gulf Gazette, 17 August 1997. "SPLASHLAND: A THIRD CHILD MISSING. The park closes indefinitely. Divers searching the ‘Deep End’ pool found nothing. The owner: ‘Mama Marina loves her little ones, she would never…’" The rest is unreadable.',
-    },
-    holycard: {
-      title: 'Holy card of Santa Brina',
-      body: 'On the back: "Santa Brina, mother of fish, / you who watch over the Well, / take our light / and give us the bread of the sea. / One for every generation. Amen."',
     },
   },
 };
@@ -252,39 +242,27 @@ export interface RadioLine {
   text: string;
 }
 
-/** La chiamata di Marzio, Notte 1 (vedi docs/LORE.md). */
+/** La chiamata alla radio della Notte 1: breve, al massimo 20 secondi (bozza da approvare). */
 export const RADIO_NIGHT1: Record<Lang, RadioLine[]> = {
   it: [
-    { at: 0.0, text: 'Pronto? Pronto, mi senti? Qui Marzio, dal porto, canale sedici. Bene.' },
-    { at: 4.8, text: 'Allora. Prima notte. Non ti spaventare, dai: l’ho fatta per trent’anni questa notte, e guarda, sono ancora qua. Quasi tutto.' },
-    { at: 11.5, text: 'Le regole sono semplici. La Cooperativa vuole il secchio pieno entro le sei: otto pesci, stanotte. Non uno di meno.' },
-    { at: 17.5, text: 'La lampara tienila accesa, che i pesci la luce la cercano. Però non solo i pesci. Più luce fai, più gente sale a vedere. Regolati.' },
-    { at: 25.0, text: 'E poi ci sono i ragazzi. Li chiamiamo così, i ragazzi. Vengono dal parco, quello dietro di te. Non guardarlo troppo, il parco.' },
-    { at: 33.0, text: 'Gulpy arriva da davanti. Ha sempre fame, poveretto. Tienigli sempre un pesce da parte: glielo tiri e se ne torna giù.' },
-    { at: 40.0, text: 'Se non ce l’hai… be’, ce l’hai. Ce l’hai sempre.' },
-    { at: 44.0, text: 'Molly bussa sullo scafo. Vuole solo che la guardi. Guardala finché non si stufa, e non girarti dall’altra parte, che si offende.' },
-    { at: 51.5, text: 'E quando Molly si offende la barca balla. E poi va giù.' },
-    { at: 55.5, text: 'E poi c’è Hatch. Hatch gioca a nascondino. Quando lo senti contare dietro di te, ti infili sotto il telone e non fiati.' },
-    { at: 63.0, text: 'Non uscire finché non è tornato in acqua. Mai. Neanche se ti sembra che se ne sia andato.' },
-    { at: 68.5, text: 'Ha un giocattolino che si illumina. Se lo vedi… no, niente. Niente.' },
-    { at: 73.5, text: 'Buona pesca, ragazzo. Ci sentiamo domani. Se Dio vuole. Se la Madre vuole.' },
-    { at: 79.0, text: '' },
+    { at: 0.0, text: 'Pronto? Prima notte.' },
+    { at: 1.8, text: 'Entro le sei, otto pesci nel secchio: sono per la Madre.' },
+    { at: 5.6, text: 'Se non arrivano, si prende un altro bambino.' },
+    { at: 8.6, text: 'Gulpy sale a prua: tiragli un pesce.' },
+    { at: 11.2, text: 'Molly bussa sul fianco: guardala finché non se ne va.' },
+    { at: 14.6, text: 'Hatch conta dietro di te: nasconditi sotto il telone.' },
+    { at: 17.8, text: 'Buona pesca.' },
+    { at: 19.2, text: '' },
   ],
   en: [
-    { at: 0.0, text: 'Hello? Hello, can you hear me? Marzio here, from the harbour, channel sixteen. Good.' },
-    { at: 4.8, text: 'So. First night. Don’t be scared, come on: I did this night for thirty years, and look at me, still here. Mostly.' },
-    { at: 11.5, text: 'The rules are simple. The Cooperative wants the bucket full by six: eight fish tonight. Not one less.' },
-    { at: 17.5, text: 'Keep the lampara on, fish go looking for light. But not just fish. The more light you make, the more folks come up to see. Mind that.' },
-    { at: 25.0, text: 'And then there are the kids. That’s what we call them, the kids. They come from the park, the one behind you. Don’t look at the park too long.' },
-    { at: 33.0, text: 'Gulpy comes from the front. Always hungry, poor thing. Always keep a fish aside for him: toss it and he goes back down.' },
-    { at: 40.0, text: 'If you don’t have one… well, you do. You always do.' },
-    { at: 44.0, text: 'Molly knocks on the hull. She just wants you to watch her. Watch her until she gets bored, and don’t you turn away, she takes offence.' },
-    { at: 51.5, text: 'And when Molly takes offence the boat starts rocking. And then it goes down.' },
-    { at: 55.5, text: 'And then there’s Hatch. Hatch plays hide-and-seek. When you hear him counting behind you, get under the tarp and don’t breathe.' },
-    { at: 63.0, text: 'Don’t come out until he’s back in the water. Never. Not even if you think he’s gone.' },
-    { at: 68.5, text: 'He has a little toy that lights up. If you see it… no. Nothing. Never mind.' },
-    { at: 73.5, text: 'Good fishing, kid. Talk tomorrow. God willing. Mother willing.' },
-    { at: 79.0, text: '' },
+    { at: 0.0, text: 'Hello? First night.' },
+    { at: 1.8, text: 'By six, eight fish in the bucket: they’re for the Mother.' },
+    { at: 5.6, text: 'If they don’t come, she takes another child.' },
+    { at: 8.6, text: 'Gulpy comes up at the bow: toss him a fish.' },
+    { at: 11.2, text: 'Molly knocks on the side: watch her until she leaves.' },
+    { at: 14.6, text: 'Hatch counts behind you: hide under the tarp.' },
+    { at: 17.8, text: 'Good fishing.' },
+    { at: 19.2, text: '' },
   ],
 };
 

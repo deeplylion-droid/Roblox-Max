@@ -1,5 +1,5 @@
 """
-Utilità condivise della pipeline di render di LAMPARA (Blender 5.2 come modulo Python).
+Utilità condivise della pipeline di render di WHAT IS BELOW (Blender 5.2 come modulo Python).
 
 Convenzioni di scena (metri):
   - livello del mare z = 0, prua verso +Y, dritta (destra) verso +X;
@@ -370,5 +370,5 @@ def render(exr_path: str, samples: int, resolution, region=None, groups=LIGHTGRO
 
 
 def log(*a):
-    print('[lampara]', *a, flush=True)
+    print('[wib]', *a, flush=True)
     sys.stdout.flush()

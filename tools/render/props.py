@@ -4,7 +4,7 @@ Oggetti di scena sulla barca (come l'ufficio di FNAF: tanti, quasi tutti davanti
   lanterna arrugginita, borraccia ammaccata, bambola di legno seduta sul banco che ti guarda,
   paperella di gomma di Splashland, barattolo con un occhio, occhialini da piscina appesi,
   rosario di conchiglie sotto la lampara, tacche incise sul banco, campanella a poppa,
-  scatola di latta con mozziconi di candela, statuina di Mama Marina sulla console.
+  scatola di latta con mozziconi di candela, statuina di Mama Marina sul ponte di poppa.
 """
 from __future__ import annotations
 
@@ -31,7 +31,7 @@ GOGGLES_POS = (0.22, 2.112, 0.56)
 ROSARY_TOP = (0.0, 2.76, 1.36)
 STERN_BELL_TOP = (0.0, -2.79, 1.06)
 TIN_POS = (-0.08, -2.02, 0.595)
-FIGURINE_POS = (0.36, -2.10, 1.155)   # in cima alla cupola della console
+FIGURINE_POS = (-0.04, -2.44, 0.595)  # sul ponte di poppa, davanti al dritto, rivolta verso il parco
 
 
 def mat(name, **kw):
