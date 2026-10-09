@@ -2,12 +2,12 @@
  * Il gioco intero: avvertenza → titolo → intro della notte → notte → alba o game over.
  * Tiene il salvataggio, le opzioni e lo sfondo animato dei menu (la scena dalla barca).
  */
-import type { AudioEngine } from '../engine/audio.ts';
+import type { AudioEngine, Voice } from '../engine/audio.ts';
 import { NIGHTS, type MonsterId } from '../game/config.ts';
 import { STRINGS, type Lang } from '../i18n.ts';
 import { Night, type NightAssets, type NightEnd } from './night.ts';
 import { writeSave, type Options, type SaveData } from './save.ts';
-import { Screens } from './screens.ts';
+import { Screens, setUiSound } from './screens.ts';
 import type { Sfx } from './sfx.ts';
 import type { Stage } from './stage.ts';
 
@@ -47,15 +47,29 @@ export class App {
   begin(): void {
     this.mode = 'warning';
     this.screens.warning(() => {
-      void this.audio.start().then(() => this.applyOptions());
+      void this.audio.start().then(() => {
+        this.applyOptions();
+        setUiSound((id) => this.audio.play(id));
+        if (this.mode === 'title') this.titleMusic(true);
+      });
       this.title();
     });
   }
 
   // ───────────────────────── schermate ─────────────────────────
 
+  /** La ninna nanna della Madre al carillon, nel menu (si avvia solo se non suona già). */
+  private titleMusic(on: boolean): void {
+    if (on && !this.music) this.music = this.audio.play('mus_title', { loop: true, fadeIn: 2.5 });
+    if (!on && this.music) {
+      this.music.stop(1.5);
+      this.music = null;
+    }
+  }
+
   private title(): void {
     this.mode = 'title';
+    this.titleMusic(true);
     this.stage.lampTarget = 1;
     this.stage.view.hfov = 90;
     this.screens.title({
@@ -121,7 +135,9 @@ export class App {
     this.mode = 'intro';
     this.timer = 3.6;
     this.screens.intro(1, NIGHTS[1]!.quota);
-    this.audio.play('foghorn', { gain: 0.5, lowpass: 1800 });
+    this.titleMusic(false);
+    this.audio.play('mus_night_start', { gain: 0.9 });
+    setTimeout(() => this.audio.play('foghorn', { gain: 0.5, lowpass: 1800 }), 1500);
   }
 
   private startNight(): void {
@@ -199,6 +215,7 @@ export class App {
       this.mode = 'end';
       this.night?.destroy();
       this.night = null;
+      if (r.kind === 'dead' && r.killer !== 'mother') this.audio.play('mus_gameover', { gain: 0.9 });
       this.screens.results({
         won: r.kind === 'won',
         text: r.kind === 'won' ? S.quotaMet : S.deaths[r.killer as MonsterId | 'mother'],
@@ -220,6 +237,7 @@ export class App {
   }
 
   private afterStatic: (() => void) | null = null;
+  private music: Voice | null = null;
 
   // ───────────────────────── ciclo ─────────────────────────
 

@@ -108,6 +108,24 @@ export class Sfx {
     this.synthGurgle(pos, gain);
   }
 
+  /**
+   * Una creatura che emerge dall'acqua: Gulpy lontano davanti alla prua (scrosci, sbuffo da balena,
+   * gemito), Hatch dietro la poppa (l'acqua che gli scorre di dosso, il giocattolo che si accende), Molly
+   * accanto al bordo (come peek).
+   */
+  emerge(who: Creature, pos: Vec3): void {
+    if (who === 'molly') return this.peek(pos);
+    if (this.playAny(`${who}_rise`, { pos, spread: 0.02 })) return;
+    this.audio.play('splash_s3', { pos, gain: 0.8 });
+  }
+
+  /** Gulpy riemerge aggrappato alla prua: le mani enormi sul capodibanda, la prua che affonda e geme. */
+  grab(pos: Vec3): void {
+    if (this.playAny('gulpy_grab', { pos, spread: 0.02 })) return;
+    this.audio.play('hull_thump', { pos, gain: 1 });
+    this.audio.play('creak_3', { pos, gain: 0.9 });
+  }
+
   /** Mastica e inghiotte (Gulpy ha preso il pesce): morso, lische, deglutizione enorme. */
   chew(pos: Vec3): void {
     if (this.playAny('gulpy_eat', { pos, spread: 0.03 })) return;
@@ -145,6 +163,12 @@ export class Sfx {
     }
   }
 
+  /** Molly si affaccia sul bordo: la testa che esce dall'acqua, le dita bagnate sul capodibanda, un fiato. */
+  peek(pos: Vec3): void {
+    if (this.playAny('molly_peek', { pos, spread: 0.03 })) return;
+    this.audio.play('splash_s1', { pos, gain: 0.5 });
+  }
+
   giggle(pos: Vec3): void {
     if (this.playAny('molly_giggle', { pos })) return;
     this.child('hi hi hi hi', pos, { pitch: 360, rate: 8, jitter: 0.25 }, 0.9);
@@ -169,7 +193,7 @@ export class Sfx {
    */
   rock(amount: number): void {
     const a = Math.max(0, Math.min(1, amount));
-    if (a > 0.02 && !this.rockLoop && this.audio.has('molly_rock')) this.rockLoop = this.audio.play('molly_rock', { loop: true, gain: 0, fadeIn: 0.3 });
+    if (a > 0.02 && !this.rockLoop && this.audio.has('molly_rock')) this.rockLoop = this.audio.play('molly_rock', { loop: true, gain: 0 });
     if (!this.rockLoop) return;
     this.rockLoop.setGain(Math.pow(a, 0.8), 0.15);
     this.rockLoop.setRate(0.92 + 0.16 * a);

@@ -48,41 +48,57 @@ def bubble_burst(buf, rng, t0, count, spread, f_lo, f_hi, amp, xi=(0.05, 0.4), w
         place(buf, b, t, wrap=wrap)
 
 
-def droplet(rng, f=None, amp=1.0):
-    """Goccia che ricade sull'acqua: minuscolo impatto + bollicina con forte salita di tono ('plink')."""
-    f = f or float(loguniform(rng, 1400, 5200))
-    b = bubble(f, xi=rng.uniform(0.3, 1.2), amp=1.0)
-    k = ns(0.0006)
-    b[:k] += rng.standard_normal(k) * np.linspace(1, 0, k) * 0.2
-    return amp * b
+def droplet(rng, f=None, amp=1.0, tonal=0.45):
+    """Goccia che ricade sull'acqua: minuscolo impatto bagnato; solo a volte (tonal = probabilità) intrappola
+    una bollicina che canta ('plink', il tono sale). In una pioggia di gocce la maggior parte ticchetta e basta."""
+    k = ns(0.0008)
+    imp = rng.standard_normal(k) * np.linspace(1, 0, k)
+    if rng.random() < tonal:
+        f = f or float(loguniform(rng, 1400, 5200))
+        b = bubble(f, xi=rng.uniform(0.08, 0.5), amp=1.0, max_dur=0.1)
+        b[:k] += 0.25 * imp
+        return amp * b
+    m = ns(0.014)
+    y = np.zeros(m)
+    y[:k] = imp
+    y = bandpass(y, 1200, 10000, 2) + 0.5 * resonate(y, float(loguniform(rng, 1800, 6500)), 3.0)
+    return amp * 0.7 * normalize(y)
 
 
 def splash(rng, size=0.5, dur=None):
-    """Schizzo d'acqua; size 0..1 (0 = spruzzo, 1 = tonfo pesante)."""
+    """Schizzo d'acqua; size 0..1 (0 = spruzzo, 1 = tonfo pesante): l'impatto (crepitio fitto a banda larga),
+    lo spruzzo e la corona (rumore a strappi), la cavità che si richiude (un 'plop' grave e corto, con poca
+    salita di tono), tante bolle piccole e deboli, la pioggia di gocce che ricadono (soprattutto ticchettii)
+    e la schiuma che frigge."""
     dur = dur or (0.35 + 1.2 * size)
     n = ns(dur)
     y = np.zeros(n)
-    # 1) impatto: rumore a banda larga, attacco istantaneo, coda breve
-    ni = min(n, ns(0.04 + 0.3 * size))
-    burst = rng.standard_normal(ni) * exp_env(ni, 0.05 + 0.35 * size, attack=0.0015)
-    burst = bandpass(burst, 300 - 200 * size, 9000, 2)
-    y[:ni] += normalize(burst) * 0.9
-    # 2) corona: secondo fiotto più morbido
-    nc = ns(0.06 + 0.3 * size)
-    crown = rng.standard_normal(nc) * curve(nc, [(0, 0), (0.008, 1), (0.06 + 0.3 * size, 0)])
-    place(y, normalize(bandpass(crown, 600, 7000)) * 0.45, rng.uniform(0.012, 0.03 + 0.05 * size))
-    # 3) la cavità d'aria si richiude: bolla grande con forte salita di tono ('bloop')
-    if size > 0.2:
-        fb = rng.uniform(380, 650) * (1.35 - size)
-        place(y, bubble(fb, xi=rng.uniform(0.8, 2.0), amp=0.8 * size), rng.uniform(0.03, 0.08 + 0.1 * size))
-    # 4) bolle intrappolate
-    bubble_burst(y, rng, 0.01, 6 + 40 * size, 0.04 + 0.12 * size, 500, 3500, 0.22, xi=(0.1, 0.6))
-    # 5) gocce che ricadono
-    for _ in range(int(4 + 40 * size)):
-        place(y, droplet(rng, amp=rng.uniform(0.04, 0.22)), rng.uniform(0.08, 0.12 + 0.9 * size))
-    # 6) frizzio di schiuma
-    fz = rng.standard_normal(n) * exp_env(n, 0.25 + 0.8 * size, attack=0.02)
-    y += highpass(fz, 2500, 2) * 0.04
+    # 1) impatto
+    ni = min(n, ns(0.025 + 0.14 * size))
+    crack = rng.standard_normal(ni) * exp_env(ni, 0.02 + 0.14 * size, attack=0.0008)
+    crack = bandpass(crack, 260 - 160 * size, 10000, 2)
+    y[:ni] += normalize(crack) * 0.9
+    # 2) spruzzo e corona: rumore a strappi
+    nsp = min(n, ns(0.09 + 0.45 * size))
+    spray = rng.standard_normal(nsp) * (0.35 + 0.65 * np.abs(np.tanh(1.5 * rand_curve(nsp, 70.0, rng))))
+    spray *= curve(nsp, [(0, 0), (0.006, 1), (0.04 + 0.12 * size, 0.65), (0.09 + 0.45 * size, 0)])
+    place(y, 0.5 * normalize(bandpass(spray, 650, 9500, 2)), rng.uniform(0.004, 0.015))
+    # 3) la cavità d'aria che si richiude: 'plop' grave, salita di tono contenuta
+    if size > 0.15:
+        fb = rng.uniform(280, 520) * (1.3 - 0.6 * size)
+        b = bubble(fb, xi=rng.uniform(0.08, 0.28), amp=0.5 * size ** 0.6, decay_mult=rng.uniform(0.7, 1.1))
+        place(y, b, rng.uniform(0.03, 0.06 + 0.08 * size))
+    # 4) bolle intrappolate: tante, piccole, deboli
+    bubble_burst(y, rng, 0.01, 10 + 70 * size, 0.03 + 0.15 * size, 600, 5000, 0.07, xi=(0.0, 0.25))
+    # 5) gocce che ricadono, sempre più rade
+    for _ in range(int(6 + 60 * size)):
+        t = 0.03 + rng.gamma(2.0, 0.04 + 0.13 * size)
+        if t < dur - 0.03:
+            a = rng.uniform(0.03, 0.15) * np.exp(-t / (0.18 + 0.5 * size))
+            place(y, droplet(rng, amp=a, tonal=0.3), t)
+    # 6) schiuma che frigge
+    fz = rng.standard_normal(n) * exp_env(n, 0.2 + 0.7 * size, attack=0.02)
+    y += highpass(fz, 2500, 2) * 0.035
     return y
 
 
@@ -91,42 +107,44 @@ HULL_MODES = ([105.0, 168.0, 243.0, 331.0, 452.0, 610.0], [0.20, 0.15, 0.12, 0.0
 
 
 def lap(rng, strength=1.0, dur=1.0, hull=0.35, clop_prob=0.8, bright=1.0):
-    """Un colpo d'acqua contro lo scafo (mare calmo): l'acqua che risale il fasciame, lo schiaffo morbido,
-    il legno che risponde, la sacca d'aria che si chiude ('clop'), le bollicine e lo scolo."""
+    """Un colpo d'acqua contro lo scafo (mare calmo): l'acqua che risale il fasciame ('shhlop' scuro e
+    turbolento), lo schiaffo morbido, il legno che risponde, la sacca d'aria che si chiude ('clop' con poca
+    salita di tono), qualche bollicina e lo scolo dal fasciame."""
     n = ns(dur)
     y = np.zeros(n)
     rise = rng.uniform(0.04, 0.14)
-    # l'acqua che sale lungo il fasciame: fruscio scuro con inviluppo lento
-    nr = min(n, ns(rise + 0.35))
-    w = bandpass(rng.standard_normal(nr), 130, 900 * bright, 2)
-    env = curve(nr, [(0, 0), (rise, 1), (rise + 0.07, 0.45), (rise + 0.35, 0)])
-    y[:nr] += 0.3 * normalize(w * env)
+    # l'acqua che sale lungo il fasciame: fruscio scuro, turbolento, con inviluppo lento
+    nr = min(n, ns(rise + 0.4))
+    w = bandpass(rng.standard_normal(nr), 110, 850 * bright, 2) * (0.55 + 0.45 * np.abs(np.tanh(rand_curve(nr, 30.0, rng))))
+    env = curve(nr, [(0, 0), (rise, 1), (rise + 0.08, 0.5), (rise + 0.4, 0)])
+    y[:nr] += 0.36 * normalize(w * env)
     # schiaffo morbido (acqua contro legno, non contro roccia)
-    nsl = ns(0.16)
-    slap = rng.standard_normal(nsl) * exp_env(nsl, rng.uniform(0.05, 0.12), attack=rng.uniform(0.004, 0.012))
-    slap = normalize(bandpass(slap, 200, (1700 + 900 * strength) * bright, 2))
-    place(y, 0.42 * slap * strength, rise)
+    nsl = ns(0.14)
+    slap = rng.standard_normal(nsl) * exp_env(nsl, rng.uniform(0.04, 0.1), attack=rng.uniform(0.004, 0.012))
+    slap = normalize(bandpass(slap, 200, (1600 + 900 * strength) * bright, 2))
+    place(y, 0.36 * slap * strength, rise)
     # risposta del legno dello scafo (modi bassi, smorzati)
     if hull > 0:
         f, T, g = HULL_MODES
         f = np.array(f) * rng.uniform(0.93, 1.07, len(f))
         place(y, hull * normalize(modal(slap, f, T, g)) * strength, rise)
-    # la sacca d'aria che si chiude: 'clop' breve con il tono che sale
+    # la sacca d'aria che si chiude: 'clop' breve
     if rng.random() < clop_prob:
-        fc = float(loguniform(rng, 170, 460))
-        b = bubble(fc, xi=rng.uniform(0.25, 0.6), amp=rng.uniform(0.45, 0.9) * strength,
+        fc = float(loguniform(rng, 160, 430))
+        b = bubble(fc, xi=rng.uniform(0.08, 0.3), amp=rng.uniform(0.35, 0.75) * strength,
                    decay_mult=rng.uniform(0.3, 0.55))
         place(y, b, rise + rng.uniform(0.0, 0.025))
-    # 'plip' liquidi attorno all'impatto
-    for _ in range(int(rng.integers(2, 7))):
-        b = bubble(float(loguniform(rng, 380, 1500)), rng.uniform(0.1, 0.45),
-                   rng.uniform(0.12, 0.32) * strength, decay_mult=rng.uniform(0.5, 1.0))
+    # qualche 'plip' liquido attorno all'impatto
+    for _ in range(int(rng.integers(1, 5))):
+        b = bubble(float(loguniform(rng, 380, 1500)), rng.uniform(0.04, 0.25),
+                   rng.uniform(0.07, 0.2) * strength, decay_mult=rng.uniform(0.5, 1.0))
         place(y, b, rise + rng.exponential(0.05))
     # scolo: bollicine rade e un filo di fruscio
-    bubble_burst(y, rng, rise + 0.08, rng.integers(2, 7), 0.18, 900, 3000, 0.06 * strength, xi=(0.05, 0.4))
+    bubble_burst(y, rng, rise + 0.08, rng.integers(3, 9), 0.2, 900, 3800, 0.04 * strength, xi=(0.0, 0.25))
     nd = ns(0.5)
-    drain = bandpass(rng.standard_normal(nd), 900, 3800) * exp_env(nd, 0.35, attack=0.03)
-    place(y, 0.035 * normalize(drain) * strength * bright, rise + 0.05)
+    drain = bandpass(rng.standard_normal(nd), 900, 4200) * exp_env(nd, 0.38, attack=0.03)
+    drain *= 0.6 + 0.4 * np.abs(rand_curve(nd, 18.0, rng))
+    place(y, 0.045 * normalize(drain) * strength * bright, rise + 0.05)
     return y
 
 
@@ -140,7 +158,7 @@ def gush(n, rng, intensity, bubble_rate=220.0, f_lo=140.0, f_hi=1600.0):
     buf = np.zeros(n)
     for tb in times:
         f = float(loguniform(rng, f_lo, f_hi))
-        place(buf, bubble(f, rng.uniform(0.1, 1.2), rng.lognormal(0, 0.4) * (f_lo / f) ** 0.25), tb)
+        place(buf, bubble(f, rng.uniform(0.02, 0.35), rng.lognormal(0, 0.4) * (f_lo / f) ** 0.25), tb)
     return y + 0.6 * buf / (np.sqrt(bubble_rate) * 0.12 + 1e-9)
 
 

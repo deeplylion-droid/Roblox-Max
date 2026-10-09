@@ -257,7 +257,10 @@ def lore_wheel_child():
     g = bpy.data.objects.get(f'Gondola{k}')
     if g:
         g.hide_render = True
-    c = np.array((ax, ay, az - 1.7))
+    # la cabina aperta sta un po' davanti al piano della ruota, così i cerchi non coprono il bambino
+    tb = -np.array((ax, ay, 0.0))
+    tb /= np.linalg.norm(tb)
+    c = np.array((ax, ay, az - 1.7)) + tb * 1.1
     rz = math.atan2(py, px)
     paint = painted('GondolaPaint1', (0.75, 0.62, 0.12), rust=0.4, rough=0.4)
     obs = []
@@ -307,7 +310,7 @@ def lore_camcorder():
     base = np.array((wx, wy, wz)) + out * 0.16
     black = painted('FigureBlack', (0.008, 0.008, 0.009), rust=0.0, rough=0.9)
     obs = []
-    hip = base + np.array((0, 0, -1.1)) + right * 0.15
+    hip = base + np.array((0, 0, -0.78)) + right * 0.12
     neck = hip + np.array((0, 0, 0.62))
     obs.append(tube('FigTorso', [tuple(hip), tuple(neck)], 0.21, n=12, col=COL))
     head = neck + np.array((0, 0, 0.22)) + out * 0.02
@@ -407,7 +410,7 @@ def run(q, post_mod, overlays_path, build_scene, coll_objects):
         perspective_camera(EYE, target, lens=lens, name=f'Bino_{key}')
         scale = {'draft': 0.5, 'preview': 0.75}.get(q.name, 1.0)
         w, h = int(W * scale) // 2 * 2, int(H * scale) // 2 * 2
-        samples = min(q.samples, 64) if q.name != 'draft' else q.samples
+        samples = {'draft': q.samples, 'preview': 40}.get(q.name, min(q.samples, 64))
         exr = os.path.join(out_dir, f'{key}.exr')
         t = time.time()
         render(exr, samples, (w, h), data_passes=('Mist',))

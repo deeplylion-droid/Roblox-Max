@@ -73,7 +73,7 @@
   },
   "creak_1": {
     "file": "creak_1.ogg",
-    "duration": 0.6,
+    "duration": 0.65,
     "loop": false,
     "channels": 1,
     "gain": 0.6,
@@ -81,7 +81,7 @@
   },
   "creak_2": {
     "file": "creak_2.ogg",
-    "duration": 1.4,
+    "duration": 1.45,
     "loop": false,
     "channels": 1,
     "gain": 0.6,
@@ -89,7 +89,7 @@
   },
   "creak_3": {
     "file": "creak_3.ogg",
-    "duration": 0.95,
+    "duration": 1.0,
     "loop": false,
     "channels": 1,
     "gain": 0.6,
@@ -97,7 +97,7 @@
   },
   "creak_4": {
     "file": "creak_4.ogg",
-    "duration": 1.1,
+    "duration": 1.15,
     "loop": false,
     "channels": 1,
     "gain": 0.6,
@@ -105,7 +105,7 @@
   },
   "fish_bucket": {
     "file": "fish_bucket.ogg",
-    "duration": 0.9,
+    "duration": 0.95,
     "loop": false,
     "channels": 1,
     "gain": 0.75,
@@ -121,7 +121,7 @@
   },
   "fish_throw": {
     "file": "fish_throw.ogg",
-    "duration": 0.8,
+    "duration": 0.7,
     "loop": false,
     "channels": 1,
     "gain": 0.7,
@@ -135,21 +135,237 @@
     "gain": 0.6,
     "category": "sfx"
   },
+  "gulpy_breath_1": {
+    "file": "gulpy_breath_1.ogg",
+    "duration": 2.45,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.85,
+    "category": "mon"
+  },
+  "gulpy_breath_2": {
+    "file": "gulpy_breath_2.ogg",
+    "duration": 1.95,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.85,
+    "category": "mon"
+  },
+  "gulpy_breath_3": {
+    "file": "gulpy_breath_3.ogg",
+    "duration": 2.2,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.85,
+    "category": "mon"
+  },
+  "gulpy_eat_1": {
+    "file": "gulpy_eat_1.ogg",
+    "duration": 3.6,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.85,
+    "category": "mon"
+  },
+  "gulpy_eat_2": {
+    "file": "gulpy_eat_2.ogg",
+    "duration": 3.3,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.85,
+    "category": "mon"
+  },
+  "gulpy_grab": {
+    "file": "gulpy_grab.ogg",
+    "duration": 2.1,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.9,
+    "category": "mon"
+  },
+  "gulpy_gurgle_1": {
+    "file": "gulpy_gurgle_1.ogg",
+    "duration": 1.7,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.85,
+    "category": "mon"
+  },
+  "gulpy_gurgle_2": {
+    "file": "gulpy_gurgle_2.ogg",
+    "duration": 1.85,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.85,
+    "category": "mon"
+  },
+  "gulpy_gurgle_3": {
+    "file": "gulpy_gurgle_3.ogg",
+    "duration": 1.4,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.85,
+    "category": "mon"
+  },
+  "gulpy_gurgle_4": {
+    "file": "gulpy_gurgle_4.ogg",
+    "duration": 1.5,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.85,
+    "category": "mon"
+  },
+  "gulpy_jaw": {
+    "file": "gulpy_jaw.ogg",
+    "duration": 1.75,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.9,
+    "category": "mon"
+  },
+  "gulpy_rise": {
+    "file": "gulpy_rise.ogg",
+    "duration": 2.7,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.9,
+    "category": "mon"
+  },
+  "gulpy_rubber_1": {
+    "file": "gulpy_rubber_1.ogg",
+    "duration": 0.95,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.6,
+    "category": "mon"
+  },
+  "gulpy_rubber_2": {
+    "file": "gulpy_rubber_2.ogg",
+    "duration": 0.85,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.6,
+    "category": "mon"
+  },
+  "hatch_board": {
+    "file": "hatch_board.ogg",
+    "duration": 2.3,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.9,
+    "category": "mon"
+  },
+  "hatch_rise": {
+    "file": "hatch_rise.ogg",
+    "duration": 2.1,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.85,
+    "category": "mon"
+  },
+  "hatch_sniff_1": {
+    "file": "hatch_sniff_1.ogg",
+    "duration": 1.05,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.85,
+    "category": "mon"
+  },
+  "hatch_sniff_2": {
+    "file": "hatch_sniff_2.ogg",
+    "duration": 1.15,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.85,
+    "category": "mon"
+  },
+  "hatch_sniff_3": {
+    "file": "hatch_sniff_3.ogg",
+    "duration": 1.2,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.85,
+    "category": "mon"
+  },
+  "hatch_step_1": {
+    "file": "hatch_step_1.ogg",
+    "duration": 0.7,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.9,
+    "category": "mon"
+  },
+  "hatch_step_2": {
+    "file": "hatch_step_2.ogg",
+    "duration": 0.72,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.9,
+    "category": "mon"
+  },
+  "hatch_step_3": {
+    "file": "hatch_step_3.ogg",
+    "duration": 0.66,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.9,
+    "category": "mon"
+  },
+  "hatch_step_4": {
+    "file": "hatch_step_4.ogg",
+    "duration": 0.75,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.9,
+    "category": "mon"
+  },
+  "hatch_toy": {
+    "file": "hatch_toy.ogg",
+    "duration": 12.0,
+    "loop": true,
+    "channels": 1,
+    "gain": 0.55,
+    "category": "mon"
+  },
   "heartbeat": {
     "file": "heartbeat.ogg",
     "duration": 1.0,
-    "loop": false,
+    "loop": true,
     "channels": 1,
     "gain": 0.8,
     "category": "sfx"
   },
   "hull_thump": {
     "file": "hull_thump.ogg",
-    "duration": 0.6,
+    "duration": 0.75,
     "loop": false,
     "channels": 1,
     "gain": 0.9,
     "category": "sfx"
+  },
+  "js_gulpy": {
+    "file": "js_gulpy.ogg",
+    "duration": 1.4,
+    "loop": false,
+    "channels": 2,
+    "gain": 1.0,
+    "category": "mon"
+  },
+  "js_hatch": {
+    "file": "js_hatch.ogg",
+    "duration": 1.4,
+    "loop": false,
+    "channels": 2,
+    "gain": 1.0,
+    "category": "mon"
+  },
+  "js_molly": {
+    "file": "js_molly.ogg",
+    "duration": 1.35,
+    "loop": false,
+    "channels": 2,
+    "gain": 1.0,
+    "category": "mon"
   },
   "lamp_flicker": {
     "file": "lamp_flicker.ogg",
@@ -182,6 +398,134 @@
     "channels": 1,
     "gain": 0.5,
     "category": "sfx"
+  },
+  "molly_giggle_1": {
+    "file": "molly_giggle_1.ogg",
+    "duration": 1.3,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.8,
+    "category": "mon"
+  },
+  "molly_giggle_2": {
+    "file": "molly_giggle_2.ogg",
+    "duration": 1.5,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.8,
+    "category": "mon"
+  },
+  "molly_knock_1": {
+    "file": "molly_knock_1.ogg",
+    "duration": 1.3,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.9,
+    "category": "mon"
+  },
+  "molly_knock_2": {
+    "file": "molly_knock_2.ogg",
+    "duration": 1.1,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.9,
+    "category": "mon"
+  },
+  "molly_knock_3": {
+    "file": "molly_knock_3.ogg",
+    "duration": 1.65,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.9,
+    "category": "mon"
+  },
+  "molly_peek": {
+    "file": "molly_peek.ogg",
+    "duration": 1.35,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.8,
+    "category": "mon"
+  },
+  "molly_rock": {
+    "file": "molly_rock.ogg",
+    "duration": 9.6,
+    "loop": true,
+    "channels": 2,
+    "gain": 0.8,
+    "category": "mon"
+  },
+  "molly_tantrum_1": {
+    "file": "molly_tantrum_1.ogg",
+    "duration": 2.95,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.9,
+    "category": "mon"
+  },
+  "molly_tantrum_2": {
+    "file": "molly_tantrum_2.ogg",
+    "duration": 2.9,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.9,
+    "category": "mon"
+  },
+  "molly_whine_1": {
+    "file": "molly_whine_1.ogg",
+    "duration": 2.05,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.8,
+    "category": "mon"
+  },
+  "molly_whine_2": {
+    "file": "molly_whine_2.ogg",
+    "duration": 1.95,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.8,
+    "category": "mon"
+  },
+  "mus_6am": {
+    "file": "mus_6am.ogg",
+    "duration": 7.0,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.8,
+    "category": "mus"
+  },
+  "mus_gameover": {
+    "file": "mus_gameover.ogg",
+    "duration": 8.0,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.8,
+    "category": "mus"
+  },
+  "mus_madre": {
+    "file": "mus_madre.ogg",
+    "duration": 10.0,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.9,
+    "category": "mus"
+  },
+  "mus_night_start": {
+    "file": "mus_night_start.ogg",
+    "duration": 4.0,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.8,
+    "category": "mus"
+  },
+  "mus_title": {
+    "file": "mus_title.ogg",
+    "duration": 64.0,
+    "loop": true,
+    "channels": 2,
+    "gain": 0.7,
+    "category": "mus"
   },
   "plop": {
     "file": "plop.ogg",
@@ -255,9 +599,17 @@
     "gain": 0.5,
     "category": "sfx"
   },
+  "sonar_warn": {
+    "file": "sonar_warn.ogg",
+    "duration": 0.9,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.7,
+    "category": "sfx"
+  },
   "splash_big": {
     "file": "splash_big.ogg",
-    "duration": 1.5,
+    "duration": 1.6,
     "loop": false,
     "channels": 1,
     "gain": 0.85,
@@ -265,7 +617,7 @@
   },
   "splash_s1": {
     "file": "splash_s1.ogg",
-    "duration": 0.45,
+    "duration": 0.5,
     "loop": false,
     "channels": 1,
     "gain": 0.6,
@@ -273,7 +625,7 @@
   },
   "splash_s2": {
     "file": "splash_s2.ogg",
-    "duration": 0.6,
+    "duration": 0.65,
     "loop": false,
     "channels": 1,
     "gain": 0.6,
@@ -281,7 +633,7 @@
   },
   "splash_s3": {
     "file": "splash_s3.ogg",
-    "duration": 0.8,
+    "duration": 0.85,
     "loop": false,
     "channels": 1,
     "gain": 0.6,
@@ -310,5 +662,37 @@
     "channels": 1,
     "gain": 0.7,
     "category": "sfx"
+  },
+  "ui_back": {
+    "file": "ui_back.ogg",
+    "duration": 0.11,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.6,
+    "category": "ui"
+  },
+  "ui_click": {
+    "file": "ui_click.ogg",
+    "duration": 0.09,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.6,
+    "category": "ui"
+  },
+  "ui_hover": {
+    "file": "ui_hover.ogg",
+    "duration": 0.04,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.5,
+    "category": "ui"
+  },
+  "ui_start": {
+    "file": "ui_start.ogg",
+    "duration": 1.5,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.7,
+    "category": "ui"
   }
 }

@@ -11,38 +11,51 @@ from sounds import sound
 
 # ───────────────────────── mare ─────────────────────────
 
-def sea_texture(n, rng, swell_cycles, lap_rate=0.75, laps_per_wave=(2, 3), splashes=0, bed=1.0,
-                bright=1.0, width=0.8, hull=0.35, babble=3.0, lap_gain=0.6):
-    """Sciabordio contro lo scafo (loop): letto d'acqua che respira col moto ondoso, colpi d'onda
-    vicino alle creste (a destra e a sinistra), colpi sparsi più piccoli, bollicine e qualche schizzo."""
+def sea_texture(n, rng, swell_cycles, lap_rate=0.22, splashes=0, bed=1.0, bright=1.0, width=0.8, hull=0.35,
+                glug_rate=0.3, lap_gain=0.6, follow=0.7, babble=1.5, precursor=0.4):
+    """Sciabordio contro lo scafo (loop): il mare respira con l'onda lunga (swell_cycles cicli nel loop). A ogni
+    cresta l'acqua sbatte su un fianco e, poco dopo e più piano, sull'altro (l'onda passa sotto la barca); a
+    volte un colpetto la precede. Nel cavo quasi silenzio: qualche gorgoglio fra le tavole, bollicine.
+    Sotto, un letto d'acqua lontano che segue l'onda (basso: i colpi devono staccarsi)."""
     dur = n / SR
     t = tvec(n)
     out = np.zeros((2, n))
     period = dur / swell_cycles
     swell = 0.5 + 0.5 * np.sin(TWO_PI * swell_cycles * t / dur)
-    slow = 0.5 + 0.5 * np.sin(TWO_PI * 3 * t / dur + 1.3)
     for c in range(2):
-        body = spectral_noise(n, rng, lambda f: bw_bp(f, 55, 900 * bright, 2), exponent=1.0)
+        body = spectral_noise(n, rng, lambda f: bw_bp(f, 60, 800 * bright, 2), exponent=1.0)
         fine = spectral_noise(n, rng, lambda f: bw_bp(f, 900, 5000 * bright, 2), exponent=0.5)
-        env = 0.35 + 0.65 * np.roll(swell, c * ns(0.35)) ** 1.5
-        out[c] += bed * (0.022 * body * env + 0.005 * fine * env * (0.6 + 0.4 * slow))
+        env = 0.15 + 0.85 * np.roll(swell, c * ns(0.35)) ** 2
+        out[c] += bed * (0.012 * body * env + 0.003 * fine * env)
     events = []
+    side = 1.0
     for k in range(swell_cycles):
-        crest = (k + 0.25) * period
-        for _ in range(int(rng.integers(laps_per_wave[0], laps_per_wave[1] + 1))):
-            events.append((crest + rng.normal(0, 0.18 * period), rng.uniform(0.5, 1.0)))
+        crest = (k + 0.25) * period + rng.normal(0, 0.08 * period)
+        side = float(rng.choice([-1.0, 1.0])) if rng.random() < 0.35 else -side
+        st = rng.uniform(0.6, 1.0)
+        events.append((crest, st, side))
+        if rng.random() < follow:
+            events.append((crest + rng.uniform(0.25, 0.6), st * rng.uniform(0.4, 0.7), -side))
+        if rng.random() < precursor:
+            events.append((crest - rng.uniform(0.2, 0.5), rng.uniform(0.2, 0.4), side))
     for te in poisson_times(rng, lap_rate, 0.0, dur):
-        events.append((te, rng.uniform(0.15, 0.5)))
-    for te, st in events:
+        events.append((te, rng.uniform(0.15, 0.4), float(rng.choice([-1.0, 1.0]))))
+    for te, st, sd in events:
         y = lap(rng, st, dur=1.0, hull=hull, bright=bright)
-        p = rng.choice([-1.0, 1.0]) * rng.uniform(0.25, width)
-        place(out, pan(y, p) * lap_gain * st, te % dur, wrap=True)
+        place(out, pan(y, sd * rng.uniform(0.3, width)) * lap_gain * st, te % dur, wrap=True)
     for _ in range(splashes):
         y = splash(rng, size=rng.uniform(0.08, 0.18), dur=0.8)
-        place(out, pan(y, rng.uniform(-width, width)) * 0.25, rng.uniform(0, dur), wrap=True)
-    # gorgoglii sparsi: bollicine isolate qua e là
+        place(out, pan(y, rng.uniform(-width, width)) * 0.22, rng.uniform(0, dur), wrap=True)
+    # gorgoglii fra le tavole e sotto la chiglia: 'glug' bassi a gruppetti
+    for te in poisson_times(rng, glug_rate, 0.0, dur):
+        p = rng.uniform(-width, width)
+        for j in range(int(rng.integers(1, 4))):
+            b = bubble(float(loguniform(rng, 140, 420)), rng.uniform(0.02, 0.15), 0.12 * rng.lognormal(0, 0.3),
+                       decay_mult=rng.uniform(0.4, 0.7))
+            place(out, pan(b, p + rng.uniform(-0.1, 0.1)), te + j * rng.uniform(0.06, 0.14), wrap=True)
+    # bollicine isolate qua e là
     for te in poisson_times(rng, babble, 0.0, dur):
-        b = bubble(float(loguniform(rng, 500, 2400)), rng.uniform(0.1, 0.6), 0.05 * rng.lognormal(0, 0.4))
+        b = bubble(float(loguniform(rng, 600, 2600)), rng.uniform(0.02, 0.3), 0.035 * rng.lognormal(0, 0.4))
         place(out, pan(b, rng.uniform(-width, width)), te, wrap=True)
     return out
 
@@ -50,12 +63,12 @@ def sea_texture(n, rng, swell_cycles, lap_rate=0.75, laps_per_wave=(2, 3), splas
 @sound('amb_sea', 32.0, loop=True, channels=2, category='amb', gain=0.85, rms=-26.0)
 def amb_sea(s, rng):
     n = s.n
-    out = sea_texture(n, rng, swell_cycles=8, splashes=3)
+    out = sea_texture(n, rng, swell_cycles=8, splashes=2)
     # onde lontane sugli scogli: un respiro largo e basso, sfasato rispetto al mare vicino
     t = tvec(n)
     far = np.stack([spectral_noise(n, rng, lambda f: bw_bp(f, 60, 700, 2), exponent=1.0) for _ in range(2)])
-    far *= 0.4 + 0.6 * (0.5 + 0.5 * np.sin(TWO_PI * 8 * t / s.dur + 2.2)) ** 2
-    out += 0.01 * far
+    far *= 0.3 + 0.7 * (0.5 + 0.5 * np.sin(TWO_PI * 8 * t / s.dur + 2.2)) ** 2
+    out += 0.006 * far
     # bassi presenti ma non rimbombanti
     out = circular(lambda x: eq(highpass(x, 45, 2), 'lowshelf', 110, gain_db=-3.0), out)
     return out
@@ -112,6 +125,19 @@ def amb_drone(s, rng):
         y = circular(lambda x: lowpass(x, 260, 2), y)
         rumble = spectral_noise(n, rng, lambda f: bw_bp(f, 18, 90, 4), exponent=2.0)
         out[c] = y + 0.12 * rumble
+    # il relitto del peschereccio, lontano sott'acqua: la lamiera che si piega e geme (due volte nel loop)
+    wreck = np.zeros(n)
+    for t0, d in [(9.0, 3.2), (20.5, 2.6)]:
+        m = ns(d)
+        rate = curve(m, [(0, 7), (d * 0.4, 16), (d * 0.75, 11), (d, 5)], 'log') * (1 + 0.15 * rand_curve(m, 3.0, rng))
+        amp = curve(m, [(0, 0), (d * 0.2, 1), (d * 0.7, 0.8), (d, 0)]) * (0.4 + 0.6 * np.abs(np.tanh(2 * rand_curve(m, 5.0, rng))))
+        exc = stick_slip(m, rng, rate, amp, jitter=0.15, grain=0.001)
+        fr = np.sort(rng.uniform(70, 900, 14))
+        g = modal(exc, fr, rng.uniform(0.8, 2.5, 14), rng.uniform(0.3, 1.0, 14))
+        place(wreck, normalize(g), t0, wrap=True)
+    wreck = circular(lambda x: lowpass(x, 650, 2), wreck)
+    wr = convolve(wreck, reverb_ir(4.0, rng, lo=1.2, hi=0.3, attack=0.06, lp=1200), circular=True)
+    wr = 0.2 * stereo(wreck) + wr
     # 'canto di balena' lontanissimo: due richiami filtrati dall'acqua e immersi in un riverbero enorme
     whale = np.zeros(n)
     w1 = whale_moan(rng, 4.6, [(0, 105), (1.4, 205), (2.6, 180), (4.6, 92)],
@@ -124,13 +150,14 @@ def amb_drone(s, rng):
     whale = circular(lambda x: lowpass(x, 750, 2), whale)
     ir = reverb_ir(4.5, rng, lo=1.2, hi=0.3, attack=0.05, lp=1500)
     w = 0.25 * stereo(whale) + convolve(whale, ir, circular=True)
-    # un velo: livello 'attivo' del richiamo ~13 dB sotto il bordone
+    # un velo: livello 'attivo' del richiamo ~13 dB sotto il bordone, la lamiera ~15 dB sotto
     w *= rms(out) * db_to_lin(-13.0) / db_to_lin(active_rms_db(w))
-    out = out + w
+    wr *= rms(out) * db_to_lin(-15.0) / db_to_lin(active_rms_db(wr))
+    out = out + w + wr
     # pressione dell'acqua profonda: un soffio appena percettibile (30 dB sotto). Serve anche al codec:
     # senza contenuto acuto l'errore di codifica ai bordi del file diventerebbe un tic alla giunzione
     air = np.stack([spectral_noise(n, rng, lambda f: bw_bp(f, 200, 12000, 1), exponent=1.0) for _ in range(2)])
-    return out + air * rms(out) * db_to_lin(-30.0)
+    return out + air * rms(out) * db_to_lin(-24.0)
 
 
 # ───────────────────────── sotto il telone ─────────────────────────
@@ -138,7 +165,7 @@ def amb_drone(s, rng):
 @sound('amb_tarp', 16.0, loop=True, channels=2, category='amb', gain=0.8, rms=-28.0)
 def amb_tarp(s, rng):
     n, dur = s.n, s.dur
-    sea = sea_texture(n, rng, swell_cycles=4, lap_rate=0.4, bed=1.3, bright=0.8, babble=1.0, lap_gain=0.25)
+    sea = sea_texture(n, rng, swell_cycles=4, lap_rate=0.3, bed=1.6, bright=0.8, babble=1.0, lap_gain=0.3)
     # la tela cerata filtra tutto: passa-basso ~600 Hz e una lieve risonanza dello spazio chiuso
     sea = circular(lambda x: eq(lowpass(x, 600, 4), 'peak', 170, 1.2, 4.0), sea)
     sea = circular(lambda x: highpass(x, 40, 2), sea)
@@ -170,30 +197,34 @@ def amb_tarp(s, rng):
 
 @sound('amb_dawn', 24.0, loop=True, channels=2, category='amb', gain=0.8, rms=-26.0)
 def amb_dawn(s, rng):
+    """L'alba: il mare si è calmato (colpetti radi e leggeri), la risacca sulla riva lontana, una brezza, i
+    gabbiani che si chiamano dalla baia. I livelli si fissano sull'RMS di ogni strato: i gabbiani devono
+    sentirsi, il resto è un letto morbido."""
     n, dur = s.n, s.dur
     t = tvec(n)
-    out = sea_texture(n, rng, swell_cycles=6, lap_rate=0.25, laps_per_wave=(0, 2), bed=1.2, bright=1.1,
-                      hull=0.25, babble=1.5, lap_gain=0.18)
-    # onde calme sulla riva lontana: fruscio largo che sale e si ritira
+    sea = sea_texture(n, rng, swell_cycles=6, lap_rate=0.15, bed=1.0, bright=1.1, hull=0.25, babble=1.5,
+                      lap_gain=0.22, follow=0.4, precursor=0.1, glug_rate=0.15)
+    # la risacca sulla riva lontana: fruscio largo che sale e si ritira
+    shore = np.zeros((2, n))
     for c in range(2):
-        sh = spectral_noise(n, rng, lambda f: bw_bp(f, 140, 2600, 2), exponent=0.8)
+        sh = spectral_noise(n, rng, lambda f: bw_bp(f, 160, 2400, 2), exponent=0.9)
         ph = TWO_PI * 4 * t / dur + c * 0.6
         env = np.clip(np.sin(ph), 0, None) ** 3 + 0.25 * np.clip(np.sin(ph + 0.5), 0, None) ** 6
-        out[c] += 0.05 * sh * (0.2 + env)
-    # brezza leggera
-    out += 0.45 * wind_layer(n, rng, gust_rate=0.15, low=0.25, mid=0.3, high=0.16, whistle=0.0, bright=1.3)
-    # gabbiani lontani (riverbero di baia, molto passa-basso)
+        shore[c] = sh * (0.12 + env)
+    breeze = wind_layer(n, rng, gust_rate=0.15, low=0.2, mid=0.3, high=0.08, whistle=0.0, bright=1.0)
     gulls = np.zeros((2, n))
     for (tg, p, kind, fb, g) in [(2.2, -0.65, 'long', 1150, 0.9), (9.6, 0.55, 'short', 1250, 0.7),
-                                 (14.8, -0.15, 'long', 1050, 0.6), (20.5, 0.75, 'short', 1180, 0.5)]:
+                                 (14.8, -0.15, 'long', 1050, 0.65), (20.5, 0.75, 'short', 1180, 0.55)]:
         y = gull_call(rng, kind, fb)
         place(gulls, pan(y, p) * g, tg, wrap=True)
-    gulls = circular(lambda x: lowpass(x, 3800, 2), gulls)
+    gulls = circular(lambda x: lowpass(x, 4200, 2), gulls)
     ir = reverb_ir(2.4, rng, lo=1.1, hi=0.5, sparse=0.6, early=[(0.33, 0.3, 0.4), (0.7, 0.2, -0.5)])
     gw = gulls + 0.6 * convolve(gulls.mean(axis=0), ir, circular=True)
-    out += 0.035 * gw
-    out = circular(lambda x: highpass(x, 40, 2), out)
-    return out
+    ref = rms(sea)
+    out = sea + shore * ref / rms(shore) * db_to_lin(-6.0) + breeze * ref / rms(breeze) * db_to_lin(-9.0)
+    # i gabbiani: livello 'attivo' appena sotto quello del mare (si sentono, lontani)
+    out += gw * ref / db_to_lin(active_rms_db(gw)) * db_to_lin(-2.0)
+    return circular(lambda x: highpass(x, 40, 2), out)
 
 
 # ───────────────────────── statica radio ─────────────────────────

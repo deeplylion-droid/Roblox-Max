@@ -4,7 +4,7 @@ pesce, secchio, lampara, telone, cuore, sonar, radio.
 """
 from __future__ import annotations
 
-from instruments import *  # noqa: F401,F403
+from creatures import *  # noqa: F401,F403  (instruments + modelli dei corpi bagnati)
 from sounds import register, sound
 
 
@@ -20,42 +20,44 @@ def _whoosh(rng, dur, pts, f_lo=300.0, f_hi=2600.0, q=0.7):
 
 @sound('cast', 1.1, category='sfx', gain=0.7, rms=-18.0)
 def cast(s, rng):
+    """Il lancio: l'archetto del mulinello che si apre (scatto metallico), la frusta della canna (un fruscio
+    netto che sale e ricade con la velocità della punta, e il fischio sottile della vetta), poi il filo che
+    corre via dalla bobina: un sibilo fino che sfarfalla contro il primo anello e rallenta."""
     n = s.n
     y = np.zeros(n)
-    # l'archetto del mulinello che si apre: scatto metallico secco (filo libero)
     exc = np.zeros(ns(0.06))
     exc[0], exc[1] = 1.0, -0.5
     bail = modal(exc, [2300, 3650, 5200, 7400], [0.03, 0.022, 0.015, 0.01], [1, 0.7, 0.45, 0.3])
     y[:len(exc)] += 0.45 * normalize(bail + 0.4 * modal(exc, [880, 1350], [0.025, 0.02]))
-    # la frusta della canna: il centro del fruscio segue la velocità della punta
-    sw, v = _whoosh(rng, 0.45, [(0, 0.25), (0.1, 0.4), (0.19, 1.0), (0.27, 0.45), (0.45, 0.0)], 300, 2700)
-    tone = np.sin(TWO_PI * phase_of(2200 + 2600 * v)) * v ** 3          # fischio eolico della punta sottile
-    body, _ = _whoosh(rng, 0.45, [(0, 0.1), (0.17, 1.0), (0.3, 0.3), (0.45, 0)], 120, 600)
-    place(y, 0.85 * sw + 0.12 * tone + 0.35 * body, 0.0)
-    # il filo che corre: la bobina libera gira veloce e rallenta (spire che si svolgono + sibilo negli anelli)
-    nz = ns(0.92)
-    rot = curve(nz, [(0, 5), (0.05, 48), (0.45, 34), (0.92, 9)], 'lin')
-    am = 0.55 + 0.45 * np.sin(TWO_PI * phase_of(rot * 6)) ** 2
-    hiss = bandpass(rng.standard_normal(nz), 2200, 9000) * am
-    zz = resonate(rng.standard_normal(nz), 3600, 6.0) * am
-    tick = stick_slip(nz, rng, rot, 1.0, jitter=0.02)                   # il filo che sfiora il bordo della bobina
-    tick = highpass(tick, 1500)
-    env = curve(nz, [(0, 0), (0.04, 1), (0.5, 0.6), (0.92, 0)])
-    place(y, (0.5 * normalize(hiss) + 0.3 * normalize(zz) + 0.12 * normalize(tick)) * env, 0.13)
+    sw, v = _whoosh(rng, 0.34, [(0, 0.15), (0.1, 0.45), (0.17, 1.0), (0.23, 0.4), (0.34, 0.0)], 380, 3200, 0.5)
+    tone = np.sin(TWO_PI * phase_of(2600 + 2400 * v)) * v ** 3
+    body, _ = _whoosh(rng, 0.34, [(0, 0.1), (0.16, 1.0), (0.26, 0.25), (0.34, 0)], 140, 650, 0.6)
+    place(y, 0.9 * sw + 0.1 * tone + 0.3 * body, 0.02)
+    nz = ns(0.85)
+    rot = curve(nz, [(0, 8), (0.05, 52), (0.4, 36), (0.85, 10)], 'lin')
+    flap = 0.5 + 0.5 * np.sin(TWO_PI * phase_of(rot * 2.0)) ** 2
+    hiss = bandpass(rng.standard_normal(nz), 3200, 10000) * flap
+    tick = highpass(stick_slip(nz, rng, rot * 2.0, 1.0, jitter=0.03), 2500)
+    env = curve(nz, [(0, 0), (0.05, 1), (0.45, 0.55), (0.85, 0)])
+    place(y, (0.28 * normalize(hiss) + 0.1 * normalize(tick)) * env, 0.2)
     return y
 
 
-@sound('plop', 0.4, category='sfx', gain=0.7, rms=-18.0)
+@sound('plop', 0.4, category='sfx', gain=0.7, rms=-18.0, max_gr=6.0)
 def plop(s, rng):
+    """Il piombo con l'esca che entra in acqua: il tic dell'impatto, la cavità che si richiude in un 'plup'
+    corto (poca salita di tono), due bollicine e qualche goccia."""
     n = s.n
     y = np.zeros(n)
-    k = ns(0.0015)
-    y[:k] += 0.4 * rng.standard_normal(k) * np.linspace(1, 0, k)       # il piombo che tocca l'acqua
-    place(y, bubble(560, xi=0.5, amp=1.0, decay_mult=0.6), 0.003)     # la cavità che si richiude: 'bloop'
+    k = ns(0.0012)
+    y[:k] += 0.45 * bandpass(rng.standard_normal(k + 32), 800, 9000)[:k] * np.linspace(1, 0, k)
+    place(y, bubble(rng.uniform(430, 560), xi=0.13, amp=0.9, decay_mult=0.5), 0.005)
     for _ in range(3):
-        place(y, bubble(float(loguniform(rng, 900, 2400)), rng.uniform(0.1, 0.5), rng.uniform(0.1, 0.25)),
-              rng.uniform(0.02, 0.12))
-    y += 0.07 * highpass(rng.standard_normal(n), 2500) * exp_env(n, 0.08, attack=0.001)
+        place(y, bubble(float(loguniform(rng, 900, 2600)), rng.uniform(0.04, 0.3), rng.uniform(0.06, 0.15)),
+              rng.uniform(0.02, 0.1))
+    for _ in range(4):
+        place(y, droplet(rng, amp=rng.uniform(0.03, 0.08), tonal=0.3), rng.uniform(0.04, 0.25))
+    y += 0.05 * highpass(rng.standard_normal(n), 2500) * exp_env(n, 0.07, attack=0.001)
     return y
 
 
@@ -104,44 +106,58 @@ def reel_loop(s, rng):
     return y + (0.07 * whir + 0.025 * line) * hand
 
 
-@sound('line_tension', 2.0, loop=True, category='sfx', gain=0.5, rms=-21.0)
+@sound('line_tension', 2.0, loop=True, category='sfx', gain=0.5, rms=-21.0, max_gr=6.0)
 def line_tension(s, rng):
+    """La lenza sotto sforzo (loop): la canna che si flette e scricchiola a strappi, la frizione del mulinello
+    che slitta a scatti ('zzzt', quando il pesce tira), il filo teso che taglia l'acqua e canta appena."""
     n = s.n
-    # il nylon teso che sfrega negli anelli: moto di Helmholtz (dente di sega) a ~1,1 kHz che vaga
-    f = periodic_freq(1050.0 * cents(60 * rand_curve(n, 1.5, rng) + 15 * rand_curve(n, 9.0, rng)))
-    ph = phase_of(f)
-    saw = sum(np.sin(TWO_PI * k * ph) / k ** 1.2 for k in range(1, 8))
-    amp = np.clip(0.55 + 0.5 * rand_curve(n, 2.0, rng), 0.0, 1.3) ** 2
-    squeal = circular(lambda x: resonate(x, 2300, 2.0) + 0.6 * resonate(x, 4100, 3.0) + 0.3 * x, saw * amp)
-    # cigolio della canna che si flette (stick-slip lento sull'impugnatura)
-    rate = 70.0 * cents(400 * rand_curve(n, 0.8, rng))
-    a2 = np.clip(0.6 + 0.5 * rand_curve(n, 1.2, rng), 0.05, 1.2)
-    exc = stick_slip(n, rng, rate, a2, jitter=0.08)
-    f_m, T_m, g_m = wood_modes(rng, 420.0, 7, 0.05, 1.2)
+    # la canna: scricchiolii del grezzo, stick-slip lento e irregolare su risonanze medie
+    rate = 52.0 * cents(450 * rand_curve(n, 0.9, rng))
+    amp = np.clip(0.5 + 0.6 * rand_curve(n, 1.3, rng), 0.0, 1.2) ** 1.5
+    exc = stick_slip(n, rng, rate, amp, jitter=0.12)
+    f_m, T_m, g_m = wood_modes(rng, 390.0, 8, 0.05, 1.3)
     crk = circular(lambda x: modal(x, f_m, T_m, g_m), exc, pad=0.5)
-    # il filo che vibra grave sotto tensione
-    hum = np.sin(TWO_PI * phase_of(periodic_freq(np.full(n, 187.0)))) * (0.5 + 0.3 * rand_curve(n, 3.0, rng))
-    return 0.55 * normalize(squeal) + 0.35 * normalize(crk) + 0.025 * hum
+    # la frizione che slitta: raffiche di scatti metallici fitti
+    gate = circular(lambda x: lowpass(x, 30.0, 1), (rand_curve(n, 1.7, rng) > 0.5).astype(float), pad=0.5)
+    clicks = stick_slip(n, rng, 68.0 * cents(150 * rand_curve(n, 3.0, rng)), np.clip(gate, 0, 1), jitter=0.04)
+    drag = circular(lambda x: modal(x, [2650.0, 4150.0, 6300.0, 8800.0], [0.009, 0.007, 0.005, 0.003], [1.0, 0.7, 0.45, 0.3]),
+                    clicks, pad=0.2)
+    # il filo: sibilo dove taglia l'acqua, e un canto sottile che vaga
+    hiss = spectral_noise(n, rng, lambda f: bw_bp(f, 2500, 9000, 2)) * np.clip(0.55 + 0.5 * rand_curve(n, 2.2, rng), 0.1, 1.3)
+    fs = periodic_freq(1850.0 * cents(90 * rand_curve(n, 0.7, rng)))
+    sing = np.sin(TWO_PI * phase_of(fs)) * np.clip(rand_curve(n, 1.1, rng), 0.0, 1.0)
+    return 0.55 * normalize(crk) + 0.4 * normalize(drag) + 0.1 * hiss / (np.max(np.abs(hiss)) + 1e-9) + 0.05 * sing
 
 
-@sound('line_snap', 0.6, category='sfx', gain=0.8, rms=-17.0)
+@sound('line_snap', 0.6, category='sfx', gain=0.8, rms=-17.0, max_gr=6.0)
 def line_snap(s, rng):
+    """Il filo che cede: uno schiocco secco e brillante (il nylon che si spezza sotto carico), il moncone che
+    frusta l'aria e sbatte sugli anelli, la canna che torna su di scatto (fruscio grave e un colpetto nel
+    mulinello); solo un'ombra di vibrazione, smorzata e stonata (il nylon non 'canta' come una corda)."""
     n = s.n
     y = np.zeros(n)
-    # schiocco secco del nylon che cede
-    k = ns(0.0008)
-    crack = rng.standard_normal(k) * np.linspace(1, 0, k)
-    crack[0] += 3.0
-    y[:k] += 0.9 * normalize(crack)
-    # twang: il moncone libero vibra mentre la tensione crolla (il tono precipita)
-    m = ns(0.45)
-    f0 = curve(m, [(0, 820), (0.035, 360), (0.12, 190), (0.45, 172)], 'log')
-    tw = additive(f0, [1, 0.6, 0.45, 0.3, 0.2, 0.12, 0.08]) * exp_env(m, 0.3, attack=0.0005)
-    place(y, 0.6 * normalize(tw), 0.002)
-    # la frustata del filo nell'aria e il colpo della canna che si raddrizza
-    wh, _ = _whoosh(rng, 0.18, [(0, 1.0), (0.18, 0.0)], 1500, 4000, 0.8)
-    place(y, 0.35 * wh, 0.004)
-    place(y, 0.25 * knock(rng, 0.002, base=240, t60=0.06, dur=0.2), 0.01)
+    k = ns(0.0015)
+    crack = rng.standard_normal(k) * np.exp(-np.arange(k) / (k / 4.0))
+    crack[0] += 2.5
+    crack = bandpass(np.pad(crack, (0, ns(0.02))), 900, 12000, 2)
+    place(y, normalize(crack), 0.0)
+    place(y, 0.35 * modal(np.pad(crack[:k], (0, ns(0.05))), [2400.0, 3900.0, 5600.0], [0.02, 0.012, 0.008], [1.0, 0.6, 0.4]), 0.0)
+    # il moncone che frusta e picchietta sugli anelli
+    wh, _ = _whoosh(rng, 0.2, [(0, 1.0), (0.06, 0.6), (0.2, 0.0)], 1800, 6000, 0.6)
+    place(y, 0.4 * wh, 0.003)
+    for i, t0 in enumerate([0.03, 0.055, 0.09, 0.14]):
+        tick = knock(rng, force=0.0003, base=rng.uniform(1600, 2400), t60=0.02, count=5, bright=1.5, dur=0.05)
+        place(y, 0.18 * 0.75 ** i * tick, t0 + rng.uniform(-0.004, 0.004))
+    # un'ombra di vibrazione del moncone, smorzata e inarmonica
+    m = ns(0.25)
+    f0 = curve(m, [(0, 420), (0.05, 260), (0.25, 240)], 'log')
+    tw = (np.sin(TWO_PI * phase_of(f0)) + 0.4 * np.sin(TWO_PI * phase_of(f0 * 2.07)) + 0.2 * np.sin(TWO_PI * phase_of(f0 * 3.2))) \
+        * exp_env(m, 0.12, attack=0.001)
+    place(y, 0.18 * tw, 0.004)
+    # la canna che torna su: fruscio grave e un colpetto del mulinello
+    sw, _ = _whoosh(rng, 0.3, [(0, 0.3), (0.08, 1.0), (0.3, 0.0)], 200, 900, 0.7)
+    place(y, 0.45 * sw, 0.02)
+    place(y, 0.25 * knock(rng, 0.0015, base=260, t60=0.06, dur=0.2), 0.12)
     return y
 
 
@@ -173,50 +189,62 @@ def fish_out(s, rng):
     return y
 
 
-BUCKET = (np.array([285, 452, 664, 870, 1130, 1420, 1765, 2150, 2610, 3120, 3700], dtype=float),
-          np.array([0.5, 0.45, 0.4, 0.35, 0.3, 0.26, 0.22, 0.18, 0.15, 0.12, 0.1]),
-          np.array([1.0, 0.8, 0.75, 0.6, 0.5, 0.45, 0.35, 0.3, 0.22, 0.18, 0.12]))
+def _shell_modes(rng, lo, hi, count, t60, bright=1.0):
+    """Modi fitti e inarmonici di una lamiera sottile (secchio zincato): più lunghi i gravi."""
+    f = np.exp(np.linspace(np.log(lo), np.log(hi), count)) * rng.uniform(0.95, 1.05, count)
+    T = t60 * (lo / f) ** 0.45 * rng.uniform(0.7, 1.3, count)
+    g = (1.0 / np.arange(1, count + 1) ** (0.5 / bright)) * rng.uniform(0.5, 1.2, count)
+    return f, T, g
 
 
-def _bucket_hit(rng, n, force, damp, gain):
+def _hit(rng, n, force, modes, gain):
     exc = np.zeros(n)
     k = max(2, ns(force))
     exc[:k] = np.sin(np.pi * (np.arange(k) + 0.5) / k)
-    f, T, g = BUCKET
-    return gain * normalize(modal(exc, f * rng.uniform(0.985, 1.015, len(f)), T * damp, g * rng.uniform(0.7, 1.2, len(g))))
+    f, T, g = modes
+    return gain * normalize(modal(exc, f, T, g * rng.uniform(0.7, 1.2, len(g))))
 
 
-@sound('fish_bucket', 0.9, category='sfx', gain=0.75, rms=-17.0, max_gr=8.0, release=0.015)
+@sound('fish_bucket', 0.95, category='sfx', gain=0.75, rms=-17.0, max_gr=8.0, release=0.015)
 def fish_bucket(s, rng):
+    """Il pesce (morbido e pesante) sul fondo di un secchio di lamiera zincata con un dito d'acqua: un tonfo
+    carnoso, la lamiera che risuona smorzata dal corpo bagnato; poi i colpi di coda contro le pareti (più
+    acuti, sempre più deboli) e l'acqua che sciaguatta."""
     n = s.n
     y = np.zeros(n)
-    # il pesce (morbido e pesante) sul fondo di lamiera zincata: tonfo carnoso + lamiera smorzata
-    y += _bucket_hit(rng, n, 0.006, 0.55, 0.55)
+    bottom = _shell_modes(rng, 240, 2400, 18, 0.22, bright=0.8)
+    wall = _shell_modes(rng, 520, 7200, 26, 0.16, bright=1.2)
+    y += _hit(rng, n, 0.007, bottom, 0.5)
     y += 0.5 * wet_slap(rng, size=0.7, surface='flesh', dur=s.dur, drops=0.5)
-    # colpi di coda contro le pareti, sempre più deboli
-    for i, t in enumerate([0.17, 0.27, 0.35, 0.46, 0.6]):
-        a = 0.75 * 0.8 ** i
+    for i, t in enumerate([0.17, 0.28, 0.36, 0.47, 0.61]):
+        a = 0.7 * 0.8 ** i
         m = n - ns(t)
-        hit = _bucket_hit(rng, m, 0.003, 0.35, 0.35) + 0.6 * wet_slap(rng, size=0.25, surface='none', dur=m / SR,
-                                                                       drops=0.4)
+        hit = _hit(rng, m, rng.uniform(0.002, 0.004), wall, 0.3) + 0.6 * wet_slap(rng, size=0.25, surface='none',
+                                                                                    dur=m / SR, drops=0.4)
         place(y, a * hit, t + rng.uniform(-0.01, 0.01))
-    # un dito d'acqua sul fondo che sciaguatta
-    sl = bandpass(rng.standard_normal(n), 300, 2500) * curve(n, [(0, 0), (0.03, 1), (0.4, 0.4), (0.9, 0)])
-    y += 0.06 * normalize(sl)
+    sl = bandpass(rng.standard_normal(n), 300, 2500) * curve(n, [(0, 0), (0.03, 1), (0.4, 0.4), (s.dur, 0)])
+    sl *= 0.6 + 0.4 * np.abs(rand_curve(n, 14.0, rng))
+    y += 0.07 * normalize(sl)
     return y
 
 
-@sound('fish_throw', 0.8, category='sfx', gain=0.7, rms=-18.0)
+@sound('fish_throw', 0.7, category='sfx', gain=0.7, rms=-18.0)
 def fish_throw(s, rng):
+    """Il lancio di un pesce a Gulpy: il pesce afferrato nel secchio (scivola bagnato, la coda tocca la
+    lamiera), il braccio che lancia (fruscio), il pesce che vola perdendo gocce e sbattendo la coda.
+    L'arrivo non c'è: lo fanno il tonfo in acqua (splash_big) o il morso di Gulpy (gulpy_eat)."""
     n = s.n
     y = np.zeros(n)
-    # il pesce che taglia l'aria (e perde gocce)
-    sw, v = _whoosh(rng, 0.38, [(0, 0.25), (0.12, 1.0), (0.3, 0.5), (0.38, 0)], 400, 2000, 0.8)
-    place(y, 0.7 * sw, 0.0)
-    m = len(v)
-    place(y, 0.08 * normalize(highpass(rng.standard_normal(m), 3000)) * v, 0.0)
-    # arrivo: schiaffo bagnato sulla carne
-    place(y, wet_slap(rng, size=0.6, surface='flesh', dur=0.38), 0.42)
+    place(y, 0.45 * squish(rng, 0.12, 400, 2600, density=1000, sticky=0.5), 0.0)
+    exc = np.zeros(ns(0.3))
+    exc[:ns(0.002)] = 1.0
+    rim = modal(exc, [690.0, 1180.0, 1730.0, 2600.0, 3900.0], [0.12, 0.09, 0.07, 0.05, 0.035], [1.0, 0.7, 0.5, 0.35, 0.2])
+    place(y, 0.12 * normalize(rim), 0.02)
+    sw, v = _whoosh(rng, 0.34, [(0, 0.2), (0.12, 1.0), (0.24, 0.45), (0.34, 0)], 380, 2200, 0.6)
+    place(y, 0.75 * sw, 0.1)
+    place(y, 0.3 * wet_slap(rng, size=0.2, surface='none', dur=0.2, drops=0.6), 0.32)
+    for _ in range(6):
+        place(y, droplet(rng, amp=rng.uniform(0.03, 0.08), tonal=0.2), rng.uniform(0.15, 0.6))
     return y
 
 
@@ -293,51 +321,89 @@ def tarp_out(s, rng):
 
 # ───────────────────────── corpo ─────────────────────────
 
-@sound('heartbeat', 1.0, category='sfx', gain=0.8, rms=-17.0)
+@sound('heartbeat', 1.0, loop=True, category='sfx', gain=0.8, rms=-17.0)
 def heartbeat(s, rng):
+    """Il battito sentito da dentro (loop di un secondo: 60 al minuto, il gioco lo accelera col playbackRate):
+    'lub' grave e pieno, 'dub' più corto e un po' più alto, il sangue che pulsa nelle orecchie."""
     n = s.n
     y = np.zeros(n)
-    # lub (S1) e dub (S2): toni smorzati con caduta di tono + tonfo filtrato, tutto ovattato
-    for t0, f1, f2, T, a in [(0.0, 58.0, 44.0, 0.16, 1.0), (0.27, 72.0, 58.0, 0.11, 0.75)]:
-        m = ns(0.35)
-        f = curve(m, [(0, f1), (0.08, f2), (0.35, f2)], 'log')
-        thump = osc(f) * exp_env(m, T, attack=0.004) + 0.35 * osc(f * 2.1) * exp_env(m, T * 0.6, attack=0.003)
-        nz = lowpass(rng.standard_normal(m), 160, 2) * exp_env(m, 0.06, attack=0.003)
-        place(y, a * (thump + 0.4 * normalize(nz)), t0)
-    return lowpass(y, 230, 2)
+    for t0, f1, f2, T, a in [(0.0, 54.0, 39.0, 0.26, 1.0), (0.27, 70.0, 52.0, 0.18, 0.72)]:
+        m = ns(0.32)
+        f = curve(m, [(0, f1), (0.05, f2), (0.32, f2 * 0.96)], 'log')
+        thump = osc(f) * exp_env(m, T, attack=0.007) + 0.3 * osc(f * 2.3) * exp_env(m, T * 0.5, attack=0.005)
+        nz = lowpass(rng.standard_normal(m), 150, 2) * exp_env(m, 0.1, attack=0.005)
+        knock_ = bandpass(rng.standard_normal(m), 120, 420) * exp_env(m, 0.05, attack=0.003)
+        place(y, a * (thump + 0.45 * normalize(nz) + 0.12 * normalize(knock_)), t0, wrap=True)
+    t = tvec(n)
+    pulse = np.exp(-((t - 0.06) / 0.12) ** 2) + 0.6 * np.exp(-((t - 0.33) / 0.1) ** 2)
+    whoosh = spectral_noise(n, rng, lambda f: bw_bp(f, 40, 260, 2), exponent=1.0) * (0.25 + pulse)
+    y = y + 0.06 * whoosh / (np.max(np.abs(whoosh)) + 1e-9)
+    return circular(lambda x: lowpass(x, 380, 2), y)
 
 
 # ───────────────────────── sonar ─────────────────────────
 
-def _ping(m, f):
+def _ping(rng, m, f, t60=0.9):
+    """Il ping del trasduttore: un tono che cala appena, il tic d'attacco, due parziali metalliche."""
     t = tvec(m)
-    fr = f * (1 + 0.004 * np.exp(-t / 0.1))
+    fr = f * (1 + 0.006 * np.exp(-t / 0.08))
     ph = phase_of(fr)
-    return (np.sin(TWO_PI * ph) * exp_env(m, 0.9, attack=0.004)
-            + 0.12 * np.sin(TWO_PI * 2 * ph) * exp_env(m, 0.4, attack=0.004)
-            + 0.05 * np.sin(TWO_PI * 3.07 * ph) * exp_env(m, 0.15, attack=0.004))
+    y = (np.sin(TWO_PI * ph) * exp_env(m, t60, attack=0.004)
+         + 0.1 * np.sin(TWO_PI * 2 * ph) * exp_env(m, t60 * 0.4, attack=0.004)
+         + 0.04 * np.sin(TWO_PI * 2.76 * ph + 1.0) * exp_env(m, t60 * 0.2, attack=0.004))
+    k = ns(0.002)
+    y[:k] += 0.25 * bandpass(rng.standard_normal(k), 2000, 9000) * np.linspace(1, 0, k)
+    return y
 
 
 @sound('sonar_ping', 2.2, channels=2, category='sfx', gain=0.5, rms=-20.0)
 def sonar_ping(s, rng):
+    """Ping dell'ecoscandaglio: il tono che parte, la coda d'acqua (un riverbero denso che ondeggia), l'eco
+    che torna dal fondo più scura e più grave, sotto il crepitio dei gamberetti (il mare caldo di notte)."""
     n = s.n
     dry = np.zeros(n)
-    place(dry, _ping(ns(1.2), 1180.0), 0.0)
-    # eco di ritorno dal fondo: più debole, più scura, un filo più grave
+    place(dry, _ping(rng, ns(1.3), 1180.0), 0.0)
     echo = np.zeros(n)
-    place(echo, lowpass(_ping(ns(1.0), 1174.0), 2500, 2) * 0.25, 0.78)
-    place(echo, lowpass(_ping(ns(0.7), 1171.0), 1800, 2) * 0.1, 1.42)
-    ir = reverb_ir(2.0, rng, lo=1.0, hi=0.5, attack=0.03, lp=5000)
-    return pan(dry, 0.0) + pan(echo, 0.3) + 0.35 * convolve(dry + echo, ir)
+    place(echo, lowpass(_ping(rng, ns(1.0), 1173.0, 0.7), 2400, 2) * 0.24, 0.78)
+    place(echo, lowpass(_ping(rng, ns(0.7), 1169.0, 0.5), 1700, 2) * 0.09, 1.42)
+    ir = reverb_ir(2.1, rng, lo=1.0, hi=0.55, attack=0.03, lp=5500)
+    wet = convolve(dry + echo, ir)
+    wet = np.stack([time_warp(c, 1 + 0.0025 * rand_curve(n, 0.8, rng), circular=False) for c in wet])
+    crackle = np.zeros(n)
+    for tc in poisson_times(rng, 35.0, 0.0, s.dur):
+        k = max(3, ns(rng.uniform(0.0002, 0.0008)))
+        place(crackle, rng.standard_normal(k) * np.exp(-np.arange(k) / (k / 3.0)) * rng.lognormal(-1.5, 0.8), tc)
+    crackle = bandpass(crackle, 2000, 10000)
+    return pan(dry, 0.0) + pan(echo, 0.3) + 0.38 * wet + 0.05 * pan(crackle, -0.2)
 
 
 @sound('sonar_blip', 0.15, category='sfx', gain=0.5, rms=-20.0)
 def sonar_blip(s, rng):
+    """Il bip di un contatto: il cicalino piezoelettrico dell'apparecchio (onda quasi quadra, risonanza acuta)."""
     n = s.n
-    f = curve(n, [(0, 1700), (0.01, 1760), (0.15, 1760)])
+    f = curve(n, [(0, 1720), (0.008, 1760), (0.15, 1760)])
     ph = phase_of(f)
-    return (np.sin(TWO_PI * ph) + 0.08 * np.sin(TWO_PI * 2 * ph) + 0.03 * np.sin(TWO_PI * 3 * ph)) \
-        * exp_env(n, 0.11, attack=0.0015)
+    sq = np.sin(TWO_PI * ph) + 0.22 * np.sin(3 * TWO_PI * ph) + 0.08 * np.sin(5 * TWO_PI * ph)
+    y = (sq + 0.4 * resonate(sq, 3600, 2.0)) * exp_env(n, 0.12, attack=0.0015)
+    return lowpass(y, 9000, 2)
+
+
+@sound('sonar_warn', 0.9, category='sfx', gain=0.7, rms=-18.0)
+def sonar_warn(s, rng):
+    """L'avviso dell'ecoscandaglio quando sale qualcosa di grosso: due bip più gravi e sporchi, il secondo
+    più basso, ognuno con un colpo sordo sotto (come se l'eco tornasse da qualcosa di enorme)."""
+    n = s.n
+    y = np.zeros(n)
+    for t0, f in [(0.0, 520.0), (0.24, 390.0)]:
+        m = ns(0.4)
+        ph = phase_of(np.full(m, f) * cents(-25 * np.linspace(0, 1, m)))
+        sq = np.tanh(2.2 * np.sin(TWO_PI * ph)) + 0.25 * np.sin(2 * TWO_PI * ph + 0.3)
+        buzz = 1 + 0.25 * np.sin(TWO_PI * 50.0 * tvec(m))
+        b = (sq * buzz + 0.3 * resonate(sq, 2800, 2.5)) * exp_env(m, 0.32, attack=0.003)
+        th = osc(curve(m, [(0, 95), (0.15, 58)], 'log')) * exp_env(m, 0.22, attack=0.004)
+        place(y, normalize(b) + 0.55 * th, t0)
+    ir = reverb_ir(0.8, rng, lo=1.0, hi=0.5, attack=0.005, stereo_out=False)
+    return lowpass(y + 0.15 * convolve(y, ir), 7000, 2)
 
 
 # ───────────────────────── radio VHF ─────────────────────────
@@ -377,22 +443,43 @@ def radio_off(s, rng):
 
 @sound('static_burst', 1.5, channels=2, category='sfx', gain=0.7, rms=-14.0, max_gr=6.0)
 def static_burst(s, rng):
+    """Il segnale che salta (dopo il jumpscare): uno schiocco elettrico, neve televisiva piena che va a
+    strappi, il ronzio a 50 Hz di un televisore che perde il quadro, fischi che strisciano come le righe di
+    un nastro rovinato, e alla fine il tubo che si spegne."""
     n = s.n
     t = tvec(n)
     out = np.zeros((2, n))
-    env = curve(n, [(0, 1.0), (0.85, 0.9), (1.15, 0.45), (1.5, 0.0)])
+    env = curve(n, [(0, 1.0), (0.85, 0.9), (1.2, 0.45), (1.5, 0.0)])
     common = rng.standard_normal(n)
+    hum = sum(a * np.sin(TWO_PI * 50.0 * k * t + rng.uniform(0, TWO_PI))
+              for k, a in [(1, 0.5), (2, 1.0), (3, 0.6), (4, 0.4), (6, 0.25), (8, 0.15)])
+    hum = hum * curve(n, [(0, 1.0), (0.8, 0.6), (1.5, 0.0)])
+    tears = np.zeros(n)
+    for tc in poisson_times(rng, 3.0, 0.05, 1.2):
+        d = rng.uniform(0.04, 0.15)
+        m = ns(d)
+        f = curve(m, [(0, float(loguniform(rng, 900, 6000))), (d, float(loguniform(rng, 900, 6000)))], 'log')
+        place(tears, np.sin(TWO_PI * phase_of(f)) * gate_env(m, 0, d - 0.01, 0.003, 0.008), tc)
     for c in range(2):
         nz = normalize(bandpass(0.7 * common + 0.7 * rng.standard_normal(n), 150, 11000, 2))
-        # interferenza: tratti "digitali" (quantizzati e tenuti) alternati al soffio pieno
         crushed = bitcrush(nz, bits=4, hold=7)
         sel = lowpass((np.sin(TWO_PI * 1.7 * t + c) > 0.3).astype(float), 60.0, 1)
         x = nz * (1 - sel) + 0.8 * crushed * sel
         chop = lowpass(0.35 + 0.65 * (hold_noise(n, rng.uniform(25, 40), rng) > -0.6), 400.0, 1)
-        hum = lowpass(np.sign(np.sin(TWO_PI * 60 * t)), 2000, 2) * 0.12 * (t < 0.7)
-        out[c] = softclip(3.0 * (x * chop + hum), 2.0) * env
+        y = x * chop + 0.08 * hum + 0.2 * tears
+        out[c] = softclip(2.6 * y, 2.0) * env
+    # lo schiocco iniziale
+    k = ns(0.012)
+    pop = rng.standard_normal(k) * np.exp(-np.arange(k) / (k / 5.0))
+    place(out, stereo(1.2 * pop), 0.0)
+    nb = ns(0.25)
+    place(out, stereo(0.6 * osc(curve(nb, [(0, 70), (0.2, 40)], 'log')) * exp_env(nb, 0.18, attack=0.002)), 0.0)
     for tc in poisson_times(rng, 25.0, 0.0, 1.3):
-        k = max(4, ns(rng.uniform(0.0003, 0.002)))
-        pop = rng.standard_normal(k) * np.exp(-np.arange(k) / (k / 4.0)) * rng.lognormal(0, 0.5)
-        place(out, pan(pop, rng.uniform(-0.8, 0.8)) * 0.35, tc)
+        kk = max(4, ns(rng.uniform(0.0003, 0.002)))
+        pp = rng.standard_normal(kk) * np.exp(-np.arange(kk) / (kk / 4.0)) * rng.lognormal(0, 0.5)
+        place(out, pan(pp, rng.uniform(-0.8, 0.8)) * 0.35, tc)
+    # il tubo che si spegne: un fischio che scende e si chiude
+    m = ns(0.35)
+    whine = np.sin(TWO_PI * phase_of(curve(m, [(0, 15600), (0.35, 6000)], 'log'))) * curve(m, [(0, 0), (0.05, 1), (0.35, 0)])
+    place(out, stereo(0.06 * whine), 1.1)
     return out

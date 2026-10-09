@@ -18,10 +18,18 @@ export function h<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<s
   return e;
 }
 
-function button(label: string, onClick: () => void): HTMLButtonElement {
+/** Suoni dell'interfaccia: li imposta l'App quando l'audio è pronto. */
+let uiSound: (id: string) => void = () => {};
+export function setUiSound(fn: (id: string) => void): void {
+  uiSound = fn;
+}
+
+function button(label: string, onClick: () => void, kind: 'click' | 'back' | 'start' = 'click'): HTMLButtonElement {
   const b = h('button', { type: 'button' }, label);
+  b.addEventListener('mouseenter', () => uiSound('ui_hover'));
   b.addEventListener('click', (e) => {
     e.stopPropagation();
+    uiSound(kind === 'back' ? 'ui_back' : kind === 'start' ? 'ui_start' : 'ui_click');
     onClick();
   });
   return b;
@@ -76,7 +84,7 @@ export class Screens {
 
   title(o: { canContinue: boolean; onNew: () => void; onContinue: () => void; onJournal: () => void; onOptions: () => void; onQuit: (() => void) | null }): void {
     const S = this.S;
-    const menu = h('div', { class: 'menu' }, button(S.newGame, o.onNew));
+    const menu = h('div', { class: 'menu' }, button(S.newGame, o.onNew, 'start'));
     if (o.canContinue) menu.append(button(S.continue, o.onContinue));
     menu.append(button(S.extras, o.onJournal), button(S.options, o.onOptions));
     if (o.onQuit) menu.append(button(S.quit, o.onQuit));
@@ -98,7 +106,7 @@ export class Screens {
 
   pause(o: { onResume: () => void; onOptions: () => void; onMenu: () => void }): void {
     const S = this.S;
-    this.show(h('div', { class: 'screen pause' }, h('h2', {}, S.paused), h('div', { class: 'menu' }, button(S.resume, o.onResume), button(S.options, o.onOptions), button(S.menu, o.onMenu))));
+    this.show(h('div', { class: 'screen pause' }, h('h2', {}, S.paused), h('div', { class: 'menu' }, button(S.resume, o.onResume), button(S.options, o.onOptions), button(S.menu, o.onMenu, 'back'))));
   }
 
   options(opts: Options, o: { onChange: (k: keyof Options | 'lang', v: number | boolean | string) => void; onBack: () => void; fullscreen: (() => void) | null }): void {
@@ -130,7 +138,7 @@ export class Screens {
       const fs = o.fullscreen;
       rows.append(h('label', {}, h('span', {}, S.fullscreen), button('⛶', fs)));
     }
-    this.show(h('div', { class: 'screen opts fade-in' }, h('h2', {}, S.optionsTitle), rows, h('div', { class: 'menu' }, button(S.back, o.onBack))));
+    this.show(h('div', { class: 'screen opts fade-in' }, h('h2', {}, S.optionsTitle), rows, h('div', { class: 'menu' }, button(S.back, o.onBack, 'back'))));
   }
 
   journal(found: string[], onBack: () => void): void {
@@ -144,14 +152,14 @@ export class Screens {
       if (found.includes(l.id)) list.append(h('div', { class: 'entry' }, h('h3', {}, t.title), h('p', {}, t.body)));
       else list.append(h('div', { class: 'entry locked' }, h('h3', {}, S.journalLocked)));
     }
-    this.show(h('div', { class: 'screen journal-screen fade-in' }, h('h2', {}, S.journalTitle), list, h('div', { class: 'menu' }, button(S.back, onBack))));
+    this.show(h('div', { class: 'screen journal-screen fade-in' }, h('h2', {}, S.journalTitle), list, h('div', { class: 'menu' }, button(S.back, onBack, 'back'))));
   }
 
   /** Extra: il Diario degli oggetti ripescati e il Catalogo dei pesci. */
   extras(o: { onJournal: () => void; onCatalog: () => void; onBack: () => void }): void {
     const S = this.S;
     this.show(
-      h('div', { class: 'screen title fade-in' }, h('h2', {}, S.extras), h('div', { class: 'menu' }, button(S.journalTitle, o.onJournal), button(S.catalogTitle, o.onCatalog), button(S.back, o.onBack))),
+      h('div', { class: 'screen title fade-in' }, h('h2', {}, S.extras), h('div', { class: 'menu' }, button(S.journalTitle, o.onJournal), button(S.catalogTitle, o.onCatalog), button(S.back, o.onBack, 'back'))),
     );
   }
 
@@ -201,7 +209,7 @@ export class Screens {
         h('h2', {}, `${S.catalogTitle} · ${got} / ${total}`),
         h('p', { class: 'muted' }, S.catalogHint),
         h('div', { class: 'cat-body' }, grid, detail),
-        h('div', { class: 'menu' }, button(S.back, o.onBack))),
+        h('div', { class: 'menu' }, button(S.back, o.onBack, 'back'))),
     );
   }
 
@@ -220,8 +228,8 @@ export class Screens {
       h('div', {}, h('span', {}, S.results.lore), h('b', {}, String(o.lore))),
     );
     const menu = h('div', { class: 'menu' });
-    if (!o.won) menu.append(button(S.retry, o.onRetry));
-    menu.append(button(S.menu, o.onMenu));
+    if (!o.won) menu.append(button(S.retry, o.onRetry, 'start'));
+    menu.append(button(S.menu, o.onMenu, 'back'));
     const el = h('div', { class: `screen ${o.won ? 'dawn' : 'death'} fade-in` }, h('h2', {}, o.won ? `${S.sixAm} · ${S.survived}` : S.deathTitle), h('p', {}, o.text), stats);
     if (o.demoEnd) el.append(h('p', { class: 'muted' }, S.demoEnd));
     el.append(menu);

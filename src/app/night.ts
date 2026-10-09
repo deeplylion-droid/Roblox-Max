@@ -229,6 +229,7 @@ export class Night {
     this.radio?.utt?.stop();
     this.radio?.hiss?.stop(0.2);
     this.radio = null;
+    this.d.sfx.stopLoops();
     this.hud.destroy();
     this.sonarEl.remove();
     this.d.audio.setMuffled(0);
@@ -593,7 +594,6 @@ export class Night {
         break;
       case 'throwFish':
         a.play('fish_throw', { pos: [0.2, 1.8, -0.2] });
-        setTimeout(() => a.play('splash_big', { pos: this.bowAt, gain: 0.6 }), 450);
         break;
       case 'denied':
         if (e.reason === 'noFish') this.hud.toast(S.denied.noFish, '', 1.4);
@@ -602,7 +602,7 @@ export class Night {
       case 'gulpy':
         switch (e.e) {
           case 'rise':
-            a.play('splash_s3', { pos: this.gulpyFar, gain: 0.8 });
+            fx.emerge('gulpy', this.gulpyFar);
             cap(S.captions.bowGurgle);
             break;
           case 'gurgle':
@@ -612,10 +612,7 @@ export class Night {
             // si rituffa e riemerge aggrappato alla prua: un tonfo, poi lo scafo che cede sotto il suo peso
             this.gulpyDive = 1;
             a.play('splash_big', { pos: this.gulpyFar, gain: 0.6 });
-            setTimeout(() => {
-              a.play('hull_thump', { pos: this.bowAt, gain: 1 });
-              a.play('creak_3', { pos: this.bowAt, gain: 0.9 });
-            }, 2200);
+            setTimeout(() => fx.grab(this.bowAt), 2200);
             cap(S.captions.bowClimb);
             break;
           case 'demand':
@@ -645,7 +642,7 @@ export class Night {
             cap(`${S.captions.knock} · ${sideName(e.side)}`);
             break;
           case 'peek':
-            a.play('splash_s1', { pos: mollyAt(), gain: 0.5 });
+            fx.peek(mollyAt());
             cap(`${S.captions.peek} · ${sideName(e.side)}`);
             break;
           case 'giggle':
@@ -679,14 +676,11 @@ export class Night {
             const text = e.last ? `${words[words.length - 1]} ${S.hatchReady}` : words[Math.min(n, words.length) - 1]!;
             speak(this.d.audio, text, { ...CHILD, pitch: 250, gain: 0.55 }, { pos: HATCH_AT, bus: 'sfx', maxDuration: e.last ? 2.6 : 0.9 });
             if (this.d.options.subtitles) this.hud.subtitle(S.hatchName, text);
-            if (n === 1) a.play('splash_s3', { pos: HATCH_AT, gain: 0.7 });
+            if (n === 1) fx.emerge('hatch', HATCH_AT);
             break;
           }
           case 'board':
-            setTimeout(() => {
-              a.play('hull_thump', { pos: [0, -2.2, -0.6], gain: 1 });
-              a.play('creak_2', { pos: [0, -2.2, -0.6], gain: 1 });
-            }, 900);
+            fx.board([0, -2.2, -0.6]);
             cap(S.captions.hatchBoard);
             break;
           case 'step':
@@ -712,7 +706,9 @@ export class Night {
         if (e.killer === 'mother') {
           this.endResult = { kind: 'dead', killer: 'mother', stats: this.stats() };
           this.endTimer = 4.5;
-          a.play('bell_dawn', { pos: dirPos(BELL_YAW, 5, 4), gain: 0.6, lowpass: 2500 });
+          // le campane della festa, ovattate, e sotto la Madre che si sveglia
+          a.play('bell_dawn', { pos: dirPos(BELL_YAW, 5, 4), gain: 0.35, lowpass: 900 });
+          a.play('mus_madre', { gain: 0.9 });
           this.hud.toast(S.sixAm, S.quotaMissed, 4);
         } else {
           this.startJumpscare(e.killer);
@@ -726,6 +722,7 @@ export class Night {
         this.endResult = { kind: 'won', stats: this.stats() };
         this.endTimer = 7;
         a.play('bell_dawn', { pos: dirPos(BELL_YAW, 5, 4), gain: 0.8, lowpass: 3000 });
+        setTimeout(() => a.play('mus_6am', { gain: 0.85 }), 1500);
         this.loops.dawn = a.play('amb_dawn', { loop: true, fadeIn: 4, gain: 0.8 });
         this.loops.drone?.stop(3);
         this.loops.drone = null;
@@ -752,8 +749,8 @@ export class Night {
     this.d.stage.view.swayYaw = this.d.stage.view.swayPitch = 0;
     if (this.sonarOpen) this.toggleSonar(false);
     const reduce = this.d.options.reduceFlash;
-    this.d.sfx.scream(1, killer === 'molly' ? 1.35 : killer === 'hatch' ? 0.85 : 0.7);
-    this.d.audio.play('static_burst', { gain: 0.7 });
+    this.d.sfx.jumpscare(killer);
+    setTimeout(() => this.d.audio.play('static_burst', { gain: 0.45 }), 900);
     this.d.stage.view.shake = reduce ? 0.6 : 3.2;
     this.loops.heart?.stop(0.1);
     this.loops.heart = null;
@@ -1025,6 +1022,8 @@ export class Night {
     const v = this.v;
     a.setListenerYaw(this.d.stage.view.yaw);
     a.setMuffled(v.tarp * 0.8);
+    this.d.sfx.rock(v.rock);
+    this.d.sfx.toy(v.toy, dirPos(180 + v.toyX * 35, 1.3, -15));
     // sibilo della lampara col livello
     this.loops.lamp?.setGain([0.0, 0.45, 0.8][sim.lamp]!, 0.15);
     // campane delle ore
