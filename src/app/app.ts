@@ -62,9 +62,23 @@ export class App {
       canContinue: false,
       onNew: () => this.intro(),
       onContinue: () => this.intro(),
-      onJournal: () => this.screens.journal(this.save.lore, () => this.title()),
+      onJournal: () => this.extras(),
       onOptions: () => this.options(() => this.title()),
       onQuit: isElectron ? () => window.close() : null,
+    });
+  }
+
+  private extras(): void {
+    this.screens.extras({
+      onJournal: () => this.screens.journal(this.save.lore, () => this.extras()),
+      onCatalog: () =>
+        this.screens.catalog({
+          caught: this.save.catalog,
+          images: this.assets.fish,
+          revealAll: new URLSearchParams(location.search).get('catalogo') === 'tutto',
+          onBack: () => this.extras(),
+        }),
+      onBack: () => this.title(),
     });
   }
 
@@ -126,6 +140,7 @@ export class App {
       seed: (Date.now() & 0x7fffffff) >>> 0,
       onEnd: (r) => this.endNight(r),
       onPause: () => this.pause(),
+      knownSpecies: new Set(Object.keys(this.save.catalog)),
       onCatch: (species, kg) => {
         const c = (this.save.catalog[species] ??= { count: 0, bestKg: 0 });
         c.count++;

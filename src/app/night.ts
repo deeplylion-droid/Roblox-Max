@@ -11,7 +11,8 @@ import { CHILD, RADIO_VOICE, speak, type Utterance } from '../engine/voice.ts';
 import { HOUR_SECONDS, NIGHTS, VIEW, YAW, type LampLevel, type MonsterId } from '../game/config.ts';
 import type { GameEvent } from '../game/events.ts';
 import { NightSim } from '../game/sim.ts';
-import { LORE_TEXT, RADIO_NIGHT1, SPECIES_NAMES, STRINGS, type Lang } from '../i18n.ts';
+import { FISH_BY_ID } from '../game/catalog.ts';
+import { LORE_TEXT, RADIO_NIGHT1, STRINGS, type Lang } from '../i18n.ts';
 import { Hud } from './hud.ts';
 import type { Options } from './save.ts';
 import type { Sfx } from './sfx.ts';
@@ -28,6 +29,8 @@ export interface NightAssets {
   tarp: { base: OverlayTex; glow: OverlayTex; aspect: number } | null;
   /** fotogrammi dei jumpscare renderizzati, se ci sono */
   jumpscares: Partial<Record<MonsterId, { frames: OverlayTex[]; fps: number; aspect: number }>>;
+  /** ritratti dei pesci del Catalogo già renderizzati: id → URL dell'immagine */
+  fish: Record<string, string>;
 }
 
 export interface NightStats {
@@ -55,6 +58,8 @@ export interface NightDeps {
   onPause: () => void;
   /** nuova cattura (per il Catalogo) */
   onCatch?: (species: string, kg: number) => void;
+  /** specie già nel Catalogo (per segnare le nuove) */
+  knownSpecies?: Set<string>;
 }
 
 const D2R = Math.PI / 180;
@@ -492,8 +497,23 @@ export class Night {
           this.hud.toast(lt?.title ?? '', S.loreFound, 3.2);
         } else if (e.species) {
           setTimeout(() => a.play('fish_bucket', { pos: this.d.stage.man.points.bucket }), 700);
-          const name = SPECIES_NAMES[this.d.lang][e.species] ?? e.species;
-          this.hud.toast(name, `${S.caught} · ${e.kg.toFixed(2)} ${S.kg}`, 2.4);
+          const sp = FISH_BY_ID[e.species];
+          const L = this.d.lang;
+          if (sp) {
+            const known = this.d.knownSpecies?.has(sp.id) ?? true;
+            this.hud.catchCard({
+              img: this.d.assets.fish[sp.id] ?? null,
+              name: sp.name[L],
+              meta: `${S.families[sp.family]} · ${S.rarities[sp.rarity]}`,
+              kg: `${e.kg < 1 ? e.kg.toFixed(2) : e.kg.toFixed(1)} ${S.kg}`,
+              desc: sp.desc[L] ?? sp.desc.it,
+              family: sp.family,
+              isNew: known ? null : S.newSpecies,
+            });
+            this.d.knownSpecies?.add(sp.id);
+          } else {
+            this.hud.toast(e.species, `${S.caught} · ${e.kg.toFixed(2)} ${S.kg}`, 2.4);
+          }
           this.d.onCatch?.(e.species, e.kg);
         }
         break;

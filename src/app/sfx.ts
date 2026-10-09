@@ -1,10 +1,23 @@
 /**
- * Suoni delle creature sintetizzati al volo: sono PROVVISORI, servono a giocare la notte finché non
- * decidiamo insieme quelli veri (vedi docs/AUDIO.md). Dove c'è già un file registrato lo usano.
+ * Versi delle creature (e qualche suono di gioco che ha bisogno di un po' di regia). Suonano i file
+ * sintetizzati da tools/audio (categoria `mon`, con più varianti: gulpy_gurgle_1…4, molly_knock_1…3…):
+ * ogni volta una variante a caso, mai la stessa due volte di fila, con piccole variazioni di intonazione e
+ * di volume. Se un file manca (manifest vecchio, decodifica non ancora finita) resta il ripiego
+ * sintetizzato al volo di prima. I versi sono DA APPROVARE (vedi docs/AUDIO.md).
  */
 import type { Vec3 } from '../engine/assets.ts';
-import type { AudioEngine } from '../engine/audio.ts';
+import type { AudioEngine, PlayOpts, Voice } from '../engine/audio.ts';
 import { CHILD, speak, type VoiceProfile } from '../engine/voice.ts';
+
+export type Creature = 'gulpy' | 'molly' | 'hatch';
+
+/** Opzioni di playAny: quelle di AudioEngine.play più la variazione casuale. */
+interface AnyOpts extends PlayOpts {
+  /** variazione casuale della velocità (±, frazione: 0.04 ≈ ±0,7 semitoni) */
+  spread?: number;
+  /** variazione casuale del volume (± dB) */
+  spreadDb?: number;
+}
 
 let noiseBuf: AudioBuffer | null = null;
 function noise(ctx: AudioContext): AudioBuffer {
@@ -28,7 +41,245 @@ function distortion(ctx: AudioContext, amount: number): WaveShaperNode {
 }
 
 export class Sfx {
+  /** ultima variante suonata per ogni gruppo (niente ripetizioni immediate) */
+  private last = new Map<string, string>();
+  private variants = new Map<string, string[]>();
+  private rockLoop: Voice | null = null;
+  private toyLoop: Voice | null = null;
+
   constructor(private audio: AudioEngine) {}
+
+  // ───────────────────────── file e varianti ─────────────────────────
+
+  /** Le varianti caricate di un suono: `base` stesso oppure `base_1`, `base_2`… */
+  private pool(base: string): string[] {
+    let ids = this.variants.get(base);
+    if (!ids) {
+      const re = new RegExp(`^${base}(_\\d+)?$`);
+      ids = Object.keys(this.audio.manifest)
+        .filter((k) => re.test(k))
+        .sort();
+      if (ids.length) this.variants.set(base, ids);
+    }
+    return ids.filter((id) => this.audio.has(id));
+  }
+
+  /** Suona una variante a caso del gruppo `base`; null se non ce n'è nessuna caricata. */
+  private playAny(base: string, o: AnyOpts = {}): Voice | null {
+    const ids = this.pool(base);
+    if (!ids.length) return null;
+    const prev = this.last.get(base);
+    const choices = ids.length > 1 ? ids.filter((id) => id !== prev) : ids;
+    const id = choices[Math.floor(Math.random() * choices.length)]!;
+    this.last.set(base, id);
+    const { spread = 0.035, spreadDb = 1.5, ...po } = o;
+    const rate = (po.rate ?? 1) * (1 + (Math.random() * 2 - 1) * spread);
+    const gain = (po.gain ?? 1) * Math.pow(10, ((Math.random() * 2 - 1) * spreadDb) / 20);
+    return this.audio.play(id, { ...po, rate, gain });
+  }
+
+  private later(ms: number, fn: () => void): void {
+    setTimeout(fn, ms);
+  }
+
+  // ───────────────────────── Gulpy ─────────────────────────
+
+  /**
+   * Gulpy: fiato affamato o gorgoglio (a caso), ogni tanto il salvagente di gomma che cigola sul collo.
+   * Con gain ≥ 1,3 (il momento in cui pretende, vedi night.ts) prima si sgancia la mascella.
+   */
+  gurgle(pos: Vec3, gain = 1): void {
+    if (gain >= 1.3 && this.pool('gulpy_jaw').length) {
+      this.jaw(pos, Math.min(gain, 1.2));
+      this.later(1100, () => this.playAny('gulpy_gurgle', { pos, gain }));
+      return;
+    }
+    const v = (Math.random() < 0.35 ? this.playAny('gulpy_breath', { pos, gain }) : null) ?? this.playAny('gulpy_gurgle', { pos, gain });
+    if (v) {
+      if (Math.random() < 0.3) this.later(250 + Math.random() * 700, () => this.playAny('gulpy_rubber', { pos, gain: gain * 0.75, spread: 0.06 }));
+      return;
+    }
+    this.synthGurgle(pos, gain);
+  }
+
+  /** La mascella di Gulpy che si sgancia fino al petto (schiocchi d'osso, carne che si stira, fiato). */
+  jaw(pos: Vec3, gain = 1): void {
+    if (this.playAny('gulpy_jaw', { pos, gain, spread: 0.02 })) return;
+    this.synthGurgle(pos, gain);
+  }
+
+  /** Mastica e inghiotte (Gulpy ha preso il pesce): morso, lische, deglutizione enorme. */
+  chew(pos: Vec3): void {
+    if (this.playAny('gulpy_eat', { pos, spread: 0.03 })) return;
+    const c = this.chain(pos, 1, 2.5);
+    if (!c) return;
+    for (let i = 0; i < 5; i++) this.noiseBurst(c.ctx, c.input, c.t + i * 0.34 + Math.random() * 0.06, 0.2, 'lowpass', 500, 1.2, 0.8, 200);
+  }
+
+  // ───────────────────────── Molly ─────────────────────────
+
+  /** Le nocche lunghe di Molly sullo scafo. */
+  knock(pos: Vec3): void {
+    if (this.playAny('molly_knock', { pos, spread: 0.03 })) return;
+    if (this.audio.has('hull_thump')) {
+      // ripiego: il colpo sotto lo scafo, due volte dal punto giusto
+      this.audio.play('hull_thump', { pos, rate: 1.25 + Math.random() * 0.15, gain: 0.8 });
+      this.later(260, () => this.audio.play('hull_thump', { pos, rate: 1.3 + Math.random() * 0.15, gain: 0.7 }));
+      return;
+    }
+    const c = this.chain(pos, 1, 1.2);
+    if (!c) return;
+    for (let i = 0; i < 2; i++) {
+      const t = c.t + i * 0.26;
+      const o = c.ctx.createOscillator();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(150, t);
+      o.frequency.exponentialRampToValueAtTime(70, t + 0.12);
+      const g = c.ctx.createGain();
+      g.gain.setValueAtTime(0.9, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+      o.connect(g).connect(c.input);
+      o.start(t);
+      o.stop(t + 0.2);
+      this.noiseBurst(c.ctx, c.input, t, 0.05, 'bandpass', 900, 1.5, 0.5);
+    }
+  }
+
+  giggle(pos: Vec3): void {
+    if (this.playAny('molly_giggle', { pos })) return;
+    this.child('hi hi hi hi', pos, { pitch: 360, rate: 8, jitter: 0.25 }, 0.9);
+  }
+
+  whine(pos: Vec3): void {
+    if (this.playAny('molly_whine', { pos })) return;
+    this.child('uuuh… uuuuh…', pos, { pitch: 300, rate: 2.2, jitter: 0.3 }, 1.8);
+  }
+
+  /** Il capriccio: strilli, pugni sullo scafo, la barca che comincia a dondolare (tutto nel file). */
+  tantrum(pos: Vec3): void {
+    if (this.playAny('molly_tantrum', { pos, spread: 0.025 })) return;
+    this.child('aaah! aaah!', pos, { pitch: 380, rate: 4, jitter: 0.35, gain: 0.6 }, 1.2);
+    this.knock(pos);
+  }
+
+  /**
+   * Il dondolio della barca quando Molly si arrabbia (fasciame che geme, acqua che sbatte, roba che si
+   * sposta): da chiamare a ogni fotogramma con la forza del dondolio (0..1, es. `v.rock`). Parte e si
+   * ferma da solo.
+   */
+  rock(amount: number): void {
+    const a = Math.max(0, Math.min(1, amount));
+    if (a > 0.02 && !this.rockLoop && this.audio.has('molly_rock')) this.rockLoop = this.audio.play('molly_rock', { loop: true, gain: 0, fadeIn: 0.3 });
+    if (!this.rockLoop) return;
+    this.rockLoop.setGain(Math.pow(a, 0.8), 0.15);
+    this.rockLoop.setRate(0.92 + 0.16 * a);
+    if (a <= 0.02) {
+      this.rockLoop.stop(0.6);
+      this.rockLoop = null;
+    }
+  }
+
+  // ───────────────────────── Hatch ─────────────────────────
+
+  /** Passo bagnato sul pagliolo. */
+  step(pos: Vec3): void {
+    if (this.playAny('hatch_step', { pos, spread: 0.05 })) return;
+    const c = this.chain(pos, 1, 0.6);
+    if (!c) return;
+    this.noiseBurst(c.ctx, c.input, c.t, 0.16, 'lowpass', 700, 0.7, 0.9);
+    this.noiseBurst(c.ctx, c.input, c.t + 0.03, 0.12, 'bandpass', 1900, 3, 0.35, 900);
+  }
+
+  /** Annusa. */
+  sniff(pos: Vec3): void {
+    if (this.playAny('hatch_sniff', { pos, spread: 0.04 })) return;
+    const c = this.chain(pos, 1, 1);
+    if (!c) return;
+    for (let i = 0; i < 3; i++) this.noiseBurst(c.ctx, c.input, c.t + i * 0.13, 0.1, 'bandpass', 2600 + i * 300, 2.2, 0.32, 3600);
+  }
+
+  /** Hatch sale a bordo dalla poppa (mano sul capodibanda, acqua che cola, la poppa che affonda e geme). */
+  board(pos: Vec3): void {
+    if (this.playAny('hatch_board', { pos, spread: 0.02 })) return;
+    this.audio.play('hull_thump', { pos, gain: 1 });
+    this.audio.play('creak_2', { pos, gain: 1 });
+  }
+
+  /**
+   * Il ronzio del giocattolo luminoso di Hatch (con il chip che prova a suonare la ninna nanna): da
+   * chiamare a ogni fotogramma con la sua intensità (0..1, es. `v.toy`) e la posizione della lucina.
+   */
+  toy(amount: number, pos?: Vec3): void {
+    const a = Math.max(0, Math.min(1, amount));
+    if (a > 0.02 && !this.toyLoop && this.audio.has('hatch_toy')) this.toyLoop = this.audio.play('hatch_toy', { loop: true, gain: 0, pos: pos ?? [0, -1.5, -0.4] });
+    if (!this.toyLoop) return;
+    this.toyLoop.setGain(a, 0.1);
+    if (pos) this.toyLoop.setPos(pos);
+    if (a <= 0.02) {
+      this.toyLoop.stop(0.3);
+      this.toyLoop = null;
+    }
+  }
+
+  /** Ferma i loop di regia (dondolio, giocattolo): da chiamare quando la notte finisce. */
+  stopLoops(): void {
+    this.rockLoop?.stop(0.4);
+    this.toyLoop?.stop(0.4);
+    this.rockLoop = this.toyLoop = null;
+  }
+
+  // ───────────────────────── jumpscare ─────────────────────────
+
+  /** L'urlo del jumpscare di ciascuna creatura (in faccia, non spazializzato). */
+  jumpscare(who: Creature): void {
+    this.stopLoops();
+    if (this.audio.play(`js_${who}`)) return;
+    this.synthScream(1, who === 'molly' ? 1.35 : who === 'hatch' ? 0.85 : 0.7);
+  }
+
+  /**
+   * Compatibilità con la chiamata di prima (scream(gain, pitch) in night.ts): se ci sono i file sceglie
+   * l'urlo dall'intonazione che night.ts usava per ogni creatura (Molly 1,35, Hatch 0,85, Gulpy 0,7).
+   * Meglio chiamare jumpscare(who).
+   */
+  scream(gain = 1, pitch = 1): void {
+    const who: Creature = pitch >= 1.15 ? 'molly' : pitch >= 0.78 ? 'hatch' : 'gulpy';
+    if (this.audio.has(`js_${who}`)) {
+      this.stopLoops();
+      this.audio.play(`js_${who}`, { gain });
+      return;
+    }
+    this.synthScream(gain, pitch);
+  }
+
+  // ───────────────────────── sonar ─────────────────────────
+
+  /** Bip dell'ecoscandaglio quando arriva qualcosa di grosso: più basso e doppio. */
+  sonarWarn(): void {
+    if (this.audio.has('sonar_warn')) {
+      this.audio.play('sonar_warn', { gain: 0.8 });
+      return;
+    }
+    const c = this.chain(undefined, 0.4, 1, 'sfx');
+    if (!c) return;
+    for (const [dt, f] of [
+      [0, 520],
+      [0.2, 390],
+    ] as const) {
+      const o = c.ctx.createOscillator();
+      o.type = 'triangle';
+      o.frequency.value = f;
+      const g = c.ctx.createGain();
+      g.gain.setValueAtTime(0, c.t + dt);
+      g.gain.linearRampToValueAtTime(0.8, c.t + dt + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.001, c.t + dt + 0.32);
+      o.connect(g).connect(c.input);
+      o.start(c.t + dt);
+      o.stop(c.t + dt + 0.35);
+    }
+  }
+
+  // ───────────────────────── ripieghi sintetizzati al volo ─────────────────────────
 
   /** Catena d'uscita usa e getta: guadagno → (panner) → bus. */
   private chain(pos: Vec3 | undefined, gain: number, life: number, bus: 'sfx' | 'voice' = 'sfx'): { ctx: AudioContext; input: GainNode; t: number } | null {
@@ -68,8 +319,13 @@ export class Sfx {
     n.stop(t + dur + 0.05);
   }
 
-  /** Gorgoglio: bolle che salgono in una gola piena d'acqua. */
-  gurgle(pos: Vec3, gain = 1): void {
+  /** Voce da bambina deformata (ripiego per Molly). */
+  private child(text: string, pos: Vec3, p: Partial<VoiceProfile> = {}, max?: number): void {
+    speak(this.audio, text, { ...CHILD, distance: 0, ...p }, { pos, bus: 'sfx', maxDuration: max });
+  }
+
+  /** Gorgoglio sintetizzato: bolle che salgono in una gola piena d'acqua e il verso sotto. */
+  private synthGurgle(pos: Vec3, gain: number): void {
     const c = this.chain(pos, gain, 2);
     if (!c) return;
     const { ctx, input } = c;
@@ -90,7 +346,6 @@ export class Sfx {
       o.stop(t + 0.12);
       t += 0.04 + Math.random() * 0.1;
     }
-    // il verso affamato sotto le bolle
     const o = ctx.createOscillator();
     o.type = 'sawtooth';
     o.frequency.setValueAtTime(62, c.t);
@@ -107,67 +362,8 @@ export class Sfx {
     o.stop(c.t + 1.3);
   }
 
-  /** Toc toc sullo scafo. */
-  knock(pos: Vec3): void {
-    if (this.audio.has('hull_thump')) {
-      // il file registrato, due colpi dal punto giusto
-      this.audio.play('hull_thump', { pos, rate: 1.25 + Math.random() * 0.15, gain: 0.8 });
-      setTimeout(() => this.audio.play('hull_thump', { pos, rate: 1.3 + Math.random() * 0.15, gain: 0.7 }), 260);
-      return;
-    }
-    const c = this.chain(pos, 1, 1.2);
-    if (!c) return;
-    for (let i = 0; i < 2; i++) {
-      const t = c.t + i * 0.26;
-      const o = c.ctx.createOscillator();
-      o.type = 'sine';
-      o.frequency.setValueAtTime(150, t);
-      o.frequency.exponentialRampToValueAtTime(70, t + 0.12);
-      const g = c.ctx.createGain();
-      g.gain.setValueAtTime(0.9, t);
-      g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
-      o.connect(g).connect(c.input);
-      o.start(t);
-      o.stop(t + 0.2);
-      this.noiseBurst(c.ctx, c.input, t, 0.05, 'bandpass', 900, 1.5, 0.5);
-    }
-  }
-
-  /** Voce da bambina deformata. */
-  private child(text: string, pos: Vec3, p: Partial<VoiceProfile> = {}, max?: number): void {
-    speak(this.audio, text, { ...CHILD, ...p }, { pos, bus: 'sfx', maxDuration: max });
-  }
-
-  giggle(pos: Vec3): void {
-    this.child('hi hi hi hi', pos, { pitch: 360, rate: 8, jitter: 0.25 }, 0.9);
-  }
-
-  whine(pos: Vec3): void {
-    this.child('uuuh… uuuuh…', pos, { pitch: 300, rate: 2.2, jitter: 0.3 }, 1.8);
-  }
-
-  tantrum(pos: Vec3): void {
-    this.child('aaah! aaah!', pos, { pitch: 380, rate: 4, jitter: 0.35, gain: 0.6 }, 1.2);
-    this.knock(pos);
-  }
-
-  /** Passo bagnato sul pagliolo. */
-  step(pos: Vec3): void {
-    const c = this.chain(pos, 1, 0.6);
-    if (!c) return;
-    this.noiseBurst(c.ctx, c.input, c.t, 0.16, 'lowpass', 700, 0.7, 0.9);
-    this.noiseBurst(c.ctx, c.input, c.t + 0.03, 0.12, 'bandpass', 1900, 3, 0.35, 900);
-  }
-
-  /** Annusa: tre inspirazioni rapide. */
-  sniff(pos: Vec3): void {
-    const c = this.chain(pos, 1, 1);
-    if (!c) return;
-    for (let i = 0; i < 3; i++) this.noiseBurst(c.ctx, c.input, c.t + i * 0.13, 0.1, 'bandpass', 2600 + i * 300, 2.2, 0.32, 3600);
-  }
-
-  /** Urlo del jumpscare: seghe stonate che scendono, rumore e saturazione. */
-  scream(gain = 1, pitch = 1): void {
+  /** Urlo sintetizzato: seghe stonate che scendono, rumore e saturazione. */
+  private synthScream(gain = 1, pitch = 1): void {
     const c = this.chain(undefined, 0.75 * gain, 2.2);
     if (!c) return;
     const { ctx, input, t } = c;
@@ -202,33 +398,5 @@ export class Sfx {
       lfo.stop(t + 1.9);
     }
     this.noiseBurst(ctx, ws, t, 1.6, 'bandpass', 2400, 0.8, 0.5, 900);
-  }
-
-  /** Bip dell'ecoscandaglio quando arriva qualcosa di grosso: più basso e doppio. */
-  sonarWarn(): void {
-    const c = this.chain(undefined, 0.4, 1, 'sfx');
-    if (!c) return;
-    for (const [dt, f] of [
-      [0, 520],
-      [0.2, 390],
-    ] as const) {
-      const o = c.ctx.createOscillator();
-      o.type = 'triangle';
-      o.frequency.value = f;
-      const g = c.ctx.createGain();
-      g.gain.setValueAtTime(0, c.t + dt);
-      g.gain.linearRampToValueAtTime(0.8, c.t + dt + 0.01);
-      g.gain.exponentialRampToValueAtTime(0.001, c.t + dt + 0.32);
-      o.connect(g).connect(c.input);
-      o.start(c.t + dt);
-      o.stop(c.t + dt + 0.35);
-    }
-  }
-
-  /** Mastica (Gulpy che inghiotte il pesce). */
-  chew(pos: Vec3): void {
-    const c = this.chain(pos, 1, 2.5);
-    if (!c) return;
-    for (let i = 0; i < 5; i++) this.noiseBurst(c.ctx, c.input, c.t + i * 0.34 + Math.random() * 0.06, 0.2, 'lowpass', 500, 1.2, 0.8, 200);
   }
 }

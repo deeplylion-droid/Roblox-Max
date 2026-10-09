@@ -261,7 +261,12 @@ export class NightSim {
       else if (n > 1 && this.rng.chance(this.cfg.loreChance)) lore = this.rng.pick(remaining).id;
     }
     if (lore) return { species: null, lore, kg: 0 };
-    const species = Fishing.rollSpecies(this.rng);
+    const species = Fishing.rollSpecies(this.rng, {
+      night: this.cfg.night,
+      lamp: this.lamp,
+      hour: this.hour,
+      near: { gulpy: this.gulpy.present, molly: this.molly.present, hatch: this.hatch.present },
+    });
     return { species, lore: null, kg: this.rng.range(species.kg[0], species.kg[1]) };
   }
 

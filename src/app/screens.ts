@@ -1,7 +1,12 @@
 /** Schermate in DOM sopra la scena: avvertenza, titolo, intro, pausa, opzioni, diario, alba, game over. */
+import { FISH, FISH_PROTOTYPES, type FishFamily, type FishSpecies } from '../game/catalog.ts';
 import { LORE } from '../game/config.ts';
 import { LORE_TEXT, STRINGS, type Lang } from '../i18n.ts';
-import type { Options } from './save.ts';
+import type { CatalogEntry, Options } from './save.ts';
+
+/** Sagoma generica per le specie senza figura. */
+const FISH_SHAPE =
+  '<svg viewBox="0 0 120 60" aria-hidden="true"><path d="M6 30 C 24 8, 64 6, 86 26 L 112 10 L 104 30 L 112 50 L 86 34 C 64 54, 24 52, 6 30 Z"/></svg>';
 
 export function h<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string, string> = {}, ...kids: (Node | string)[]): HTMLElementTagNameMap[K] {
   const e = document.createElement(tag);
@@ -140,6 +145,64 @@ export class Screens {
       else list.append(h('div', { class: 'entry locked' }, h('h3', {}, S.journalLocked)));
     }
     this.show(h('div', { class: 'screen journal-screen fade-in' }, h('h2', {}, S.journalTitle), list, h('div', { class: 'menu' }, button(S.back, onBack))));
+  }
+
+  /** Extra: il Diario degli oggetti ripescati e il Catalogo dei pesci. */
+  extras(o: { onJournal: () => void; onCatalog: () => void; onBack: () => void }): void {
+    const S = this.S;
+    this.show(
+      h('div', { class: 'screen title fade-in' }, h('h2', {}, S.extras), h('div', { class: 'menu' }, button(S.journalTitle, o.onJournal), button(S.catalogTitle, o.onCatalog), button(S.back, o.onBack))),
+    );
+  }
+
+  /** Il Catalogo: cento caselle per famiglia; le specie non ancora prese sono sagome. revealAll per le prove. */
+  catalog(o: { caught: Record<string, CatalogEntry>; images: Record<string, string>; revealAll: boolean; onBack: () => void }): void {
+    const S = this.S;
+    const L = this.lang;
+    const total = FISH.length;
+    const got = FISH.filter((f) => o.caught[f.id]).length;
+    const detail = h('div', { class: 'cat-detail' });
+    const showDetail = (f: FishSpecies) => {
+      detail.replaceChildren();
+      const c = o.caught[f.id];
+      if (o.images[f.id]) detail.append(h('img', { class: 'fish', src: o.images[f.id]!, alt: '' }));
+      detail.append(
+        h('h3', {}, f.name[L]),
+        h('div', { class: 'meta' }, `${S.families[f.family]} · ${S.rarities[f.rarity]}`),
+        h('div', { class: 'meta' }, `${S.inspiredBy}: ${f.real[L]} (${f.real.sci})`),
+        h('p', {}, f.desc[L] ?? f.desc.it),
+        h('div', { class: 'meta' }, c ? `${S.timesCaught}: ${c.count} · ${S.record}: ${c.bestKg < 1 ? c.bestKg.toFixed(2) : c.bestKg.toFixed(1)} ${S.kg}` : '—'),
+      );
+      detail.classList.add('show');
+    };
+    const grid = h('div', { class: 'cat-grid' });
+    const families: FishFamily[] = ['skeletal', 'zombie', 'glitch', 'corrupt', 'bleeding'];
+    for (const fam of families) {
+      grid.append(h('h4', { class: `fam-${fam}` }, S.families[fam]));
+      const row = h('div', { class: 'cat-row' });
+      for (const f of FISH.filter((x) => x.family === fam)) {
+        const known = !!o.caught[f.id] || o.revealAll;
+        const tile = h('button', { type: 'button', class: `cat-tile${known ? '' : ' locked'}${FISH_PROTOTYPES.includes(f.id) ? ' proto' : ''}` });
+        const img = o.images[f.id];
+        if (img) tile.append(h('img', { src: img, alt: '', loading: 'lazy' }));
+        else {
+          const sh = h('span', { class: 'shape' });
+          sh.innerHTML = FISH_SHAPE;
+          tile.append(sh);
+        }
+        tile.append(h('span', { class: 'label' }, known ? f.name[L] : S.unknownFish));
+        if (known) tile.addEventListener('click', () => showDetail(f));
+        row.append(tile);
+      }
+      grid.append(row);
+    }
+    this.show(
+      h('div', { class: 'screen catalog-screen fade-in' },
+        h('h2', {}, `${S.catalogTitle} · ${got} / ${total}`),
+        h('p', { class: 'muted' }, S.catalogHint),
+        h('div', { class: 'cat-body' }, grid, detail),
+        h('div', { class: 'menu' }, button(S.back, o.onBack))),
+    );
   }
 
   /** Statica tra il jumpscare e il game over. */

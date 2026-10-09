@@ -6,7 +6,7 @@ const IT = {
   title: 'SPLASHLAND IS CLOSED!',
   newGame: 'Nuova partita',
   continue: 'Continua',
-  extras: 'Diario',
+  extras: 'Extra',
   options: 'Opzioni',
   quit: 'Esci',
   back: 'Indietro',
@@ -78,6 +78,14 @@ const IT = {
   journalEmpty: 'Non hai ancora ripescato niente. Il mare restituisce le cose solo a chi pesca.',
   journalLocked: '???',
   catalogTitle: 'Catalogo',
+  catalogHint: 'Le specie che non hai ancora preso restano sagome.',
+  families: { skeletal: 'Scheletrico', zombie: 'Zombi', glitch: 'Glitchato', corrupt: 'Corrotto', bleeding: 'Sanguinante' },
+  rarities: { common: 'comune', uncommon: 'non comune', rare: 'raro', legendary: 'leggendario' },
+  newSpecies: 'Nuova specie',
+  record: 'Record',
+  timesCaught: 'Presi',
+  inspiredBy: 'Dalla specie',
+  unknownFish: '???',
   sonarClose: 'Tab o clic per chiudere',
   tapToClose: 'clic per chiudere',
   on: 'Sì',
@@ -113,7 +121,7 @@ const EN: typeof IT = {
   title: 'SPLASHLAND IS CLOSED!',
   newGame: 'New game',
   continue: 'Continue',
-  extras: 'Journal',
+  extras: 'Extras',
   options: 'Options',
   quit: 'Quit',
   back: 'Back',
@@ -185,6 +193,14 @@ const EN: typeof IT = {
   journalEmpty: 'You haven’t fished anything up yet. The sea only gives things back to those who fish.',
   journalLocked: '???',
   catalogTitle: 'Catalogue',
+  catalogHint: 'Species you haven’t caught yet stay silhouettes.',
+  families: { skeletal: 'Skeletal', zombie: 'Zombie', glitch: 'Glitched', corrupt: 'Corrupted', bleeding: 'Bleeding' },
+  rarities: { common: 'common', uncommon: 'uncommon', rare: 'rare', legendary: 'legendary' },
+  newSpecies: 'New species',
+  record: 'Record',
+  timesCaught: 'Caught',
+  inspiredBy: 'From',
+  unknownFish: '???',
   sonarClose: 'Tab or click to close',
   tapToClose: 'click to close',
   on: 'On',
@@ -217,11 +233,6 @@ const EN: typeof IT = {
 };
 
 /** Specie dei pesci (nomi provvisori finché non c'è il Catalogo completo). */
-export const SPECIES_NAMES: Record<Lang, Record<string, string>> = {
-  it: { anchovy: 'Acciuga', mackerel: 'Sgombro', mullet: 'Triglia', bream: 'Orata', bass: 'Spigola' },
-  en: { anchovy: 'Anchovy', mackerel: 'Mackerel', mullet: 'Red mullet', bream: 'Sea bream', bass: 'Sea bass' },
-};
-
 export const LORE_TEXT: Record<Lang, Record<string, { title: string; body: string }>> = {
   it: {
     wristband: { title: 'Braccialetto d’ingresso', body: 'Plastica fucsia scolorita: «MAMA MARINA’S SPLASHLAND · NIGHT SPLASH · 14·08·1997 · CHILD».' },

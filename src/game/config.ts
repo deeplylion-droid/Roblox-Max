@@ -59,13 +59,6 @@ export interface Species {
   kg: [number, number];
 }
 
-export const SPECIES: Species[] = [
-  { id: 'anchovy', weight: 30, strength: 0.15, kg: [0.03, 0.06] },
-  { id: 'mackerel', weight: 26, strength: 0.4, kg: [0.25, 0.5] },
-  { id: 'mullet', weight: 20, strength: 0.3, kg: [0.15, 0.35] },
-  { id: 'bream', weight: 16, strength: 0.6, kg: [0.4, 1.1] },
-  { id: 'bass', weight: 8, strength: 0.85, kg: [0.8, 2.4] },
-];
 
 export interface LoreItem {
   id: string;

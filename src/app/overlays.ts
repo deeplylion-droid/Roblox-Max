@@ -83,7 +83,16 @@ export async function loadNightAssets(gl: GL): Promise<NightAssets> {
   } catch {
     // niente overlay renderizzati: si usano i segnaposto
   }
-  const out: NightAssets = { tarp: null, jumpscares: {} };
+  const out: NightAssets = { tarp: null, jumpscares: {}, fish: {} };
+  try {
+    const r = await fetch(ASSET_BASE + 'img/fish/fish.json');
+    if (r.ok) {
+      const fm = (await r.json()) as Record<string, { file: string }>;
+      for (const [id, e] of Object.entries(fm)) out.fish[id] = ASSET_BASE + 'img/fish/' + e.file;
+    }
+  } catch {
+    // nessun pesce renderizzato: le schede restano senza figura
+  }
   try {
     if (man.tarp) out.tarp = { base: await tex(gl, man.tarp.base), glow: await tex(gl, man.tarp.glow), aspect: man.tarp.aspect };
   } catch (e) {

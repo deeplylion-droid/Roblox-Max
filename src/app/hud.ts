@@ -26,6 +26,8 @@ export class Hud {
   private reelEl: HTMLDivElement;
   private reelBar: HTMLDivElement;
   private toastTimer = 0;
+  private cardEl: HTMLDivElement;
+  private cardTimer = 0;
   private lastHint = '';
 
   constructor(
@@ -44,6 +46,7 @@ export class Hud {
     this.hintEl = el('div', 'hud-hint', this.root);
     this.subEl = el('div', 'hud-sub', this.root);
     this.toastEl = el('div', 'hud-toast', this.root);
+    this.cardEl = el('div', 'hud-card', this.root);
     this.capEl = el('div', 'hud-cap', this.root);
     this.hoverEl = el('div', 'hud-hover', this.root);
     this.turnEl = el('div', 'hud-turn', this.root, S.turnBar);
@@ -88,6 +91,25 @@ export class Hud {
     this.toastTimer = seconds;
   }
 
+  /** La scheda del pesce appena preso: figura, nome, famiglia e rarità, peso, la riga del Catalogo. */
+  catchCard(o: { img: string | null; name: string; meta: string; kg: string; desc: string; family: string; isNew: string | null }, seconds = 5): void {
+    const c = this.cardEl;
+    c.replaceChildren();
+    c.className = `hud-card fam-${o.family}`;
+    if (o.isNew) el('div', 'new', c, '').textContent = o.isNew;
+    if (o.img) {
+      const im = el('img', 'fish', c);
+      im.src = o.img;
+      im.alt = '';
+    }
+    el('div', 'name', c).textContent = o.name;
+    el('div', 'meta', c).textContent = `${o.meta} · ${o.kg}`;
+    el('div', 'desc', c).textContent = o.desc;
+    void c.offsetWidth;
+    c.classList.add('show');
+    this.cardTimer = seconds;
+  }
+
   /** Didascalia di un suono (per chi gioca senza audio): sparisce da sola. */
   caption(text: string, seconds = 2.4): void {
     this.capEl.textContent = text;
@@ -123,6 +145,10 @@ export class Hud {
     if (this.capTimer > 0) {
       this.capTimer -= dt;
       if (this.capTimer <= 0) this.capEl.classList.remove('show');
+    }
+    if (this.cardTimer > 0) {
+      this.cardTimer -= dt;
+      if (this.cardTimer <= 0) this.cardEl.classList.remove('show');
     }
   }
 

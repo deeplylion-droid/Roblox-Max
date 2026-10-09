@@ -1,4 +1,5 @@
-import { FISHING, LAMP, SPECIES, type LampLevel, type Species } from './config.ts';
+import { FISH, RARITY_WEIGHT, type FishSpecies } from './catalog.ts';
+import { FISHING, LAMP, type LampLevel, type Species } from './config.ts';
 import type { GameEvent } from './events.ts';
 import type { Rng } from './rng.ts';
 
@@ -190,7 +191,30 @@ export class Fishing {
   }
 
   /** Estrae la specie del prossimo pesce. */
-  static rollSpecies(rng: Rng): Species {
-    return rng.weighted(SPECIES.map((s) => ({ item: s, weight: s.weight })));
+  /** Quale specie abbocca: dal Catalogo, fra quelle che possono abboccare adesso, pesate per rarità. */
+  static rollSpecies(rng: Rng, ctx: BiteContext): Species {
+    const pool = FISH.filter((s) => canBite(s, ctx));
+    const f = rng.weighted((pool.length ? pool : FISH).map((s) => ({ item: s, weight: RARITY_WEIGHT[s.rarity] })));
+    return { id: f.id, weight: RARITY_WEIGHT[f.rarity], strength: f.strength, kg: f.kg };
   }
+}
+
+/** Il momento dell'abboccata: notte, lampara, ora e creature nei paraggi. */
+export interface BiteContext {
+  night: number;
+  lamp: LampLevel;
+  hour: number;
+  near: { gulpy: boolean; molly: boolean; hatch: boolean };
+}
+
+export function canBite(s: FishSpecies, c: BiteContext): boolean {
+  const w = s.when;
+  if (!w) return true;
+  if (w.night && c.night < w.night) return false;
+  if (w.lamp === 'dark' && c.lamp !== 0) return false;
+  if (w.lamp === 'bright' && c.lamp !== 2) return false;
+  if (w.from !== undefined && c.hour < w.from) return false;
+  if (w.near === 'any') return c.near.gulpy || c.near.molly || c.near.hatch;
+  if (w.near) return c.near[w.near];
+  return true;
 }
