@@ -267,6 +267,60 @@ def mesh(field, lo, hi, res=0.006, chunk=2_000_000):
     return verts, faces, normals
 
 
+def mesh_banded(field, lo, hi, res=0.002, coarse=4, chunk=1_500_000):
+    """Come mesh(), ma per griglie fini: valuta il campo esatto solo nella fascia vicina alla superficie
+    (stimata da una griglia grossolana interpolata). Permette dettagli di 1-2 mm su oggetti grandi."""
+    from scipy.ndimage import map_coordinates
+    from skimage.measure import marching_cubes
+    lo, hi = _v(lo), _v(hi)
+    n = np.ceil((hi - lo) / res).astype(int) + 1
+    cres = res * coarse
+    nc = np.ceil((hi - lo) / cres).astype(int) + 2
+    # griglia grossolana completa
+    cx = lo[0] + np.arange(nc[0], dtype=F) * cres
+    cy = lo[1] + np.arange(nc[1], dtype=F) * cres
+    cz = lo[2] + np.arange(nc[2], dtype=F) * cres
+    cvol = np.empty((nc[0], nc[1], nc[2]), F)
+    YY, ZZ = np.meshgrid(cy, cz, indexing='ij')
+    yz = np.stack([YY.ravel(), ZZ.ravel()], axis=1)
+    step = max(1, chunk // len(yz))
+    for i0 in range(0, nc[0], step):
+        i1 = min(nc[0], i0 + step)
+        P = np.empty(((i1 - i0) * len(yz), 3), F)
+        P[:, 0] = np.repeat(cx[i0:i1], len(yz))
+        P[:, 1:] = np.tile(yz, (i1 - i0, 1))
+        cvol[i0:i1] = field(P).reshape(i1 - i0, nc[1], nc[2])
+    band = 2.2 * cres
+    xs = lo[0] + np.arange(n[0], dtype=F) * res
+    ys = lo[1] + np.arange(n[1], dtype=F) * res
+    zs = lo[2] + np.arange(n[2], dtype=F) * res
+    vol = np.empty((n[0], n[1], n[2]), F)
+    YY, ZZ = np.meshgrid(ys, zs, indexing='ij')
+    iy, iz = (YY - lo[1]) / cres, (ZZ - lo[2]) / cres
+    exact = 0
+    for i in range(n[0]):
+        ix = np.full(iy.shape, (xs[i] - lo[0]) / cres, F)
+        approx = map_coordinates(cvol, [ix.ravel(), iy.ravel(), iz.ravel()], order=1, mode='nearest').astype(F)
+        m = np.abs(approx) < band
+        if m.any():
+            P = np.empty((int(m.sum()), 3), F)
+            P[:, 0] = xs[i]
+            P[:, 1] = YY.ravel()[m]
+            P[:, 2] = ZZ.ravel()[m]
+            approx[m] = field(P)
+            exact += len(P)
+        vol[i] = approx.reshape(n[1], n[2])
+    verts, faces, _, _ = marching_cubes(vol, level=0.0, spacing=(res, res, res))
+    verts = verts.astype(F) + lo
+    normals = gradient_normals(field, verts, res * 0.5)
+    a, b, c = verts[faces[:, 0]], verts[faces[:, 1]], verts[faces[:, 2]]
+    fn = np.cross(b - a, c - a)
+    agree = np.einsum('ij,ij->i', fn, normals[faces[:, 0]] + normals[faces[:, 1]] + normals[faces[:, 2]])
+    if np.mean(agree > 0) < 0.5:
+        faces = faces[:, ::-1]
+    return verts, faces, normals
+
+
 def gradient_normals(field, pts, eps):
     e = F(eps)
     g = np.empty_like(pts)

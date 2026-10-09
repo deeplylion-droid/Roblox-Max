@@ -13,9 +13,10 @@ from common import collection, mesh_from_arrays, set_custom_normals, set_lightgr
 from nodes import material
 
 
-def sdf_object(name, field, lo, hi, res=0.006, attrs=None, col='creatures', matrix=None):
-    """Crea un oggetto mesh dal campo; attrs: {nome: f(p)->(N,) o (N,3)} valutati sui vertici."""
-    V, Fc, N = sdf.mesh(field, lo, hi, res)
+def sdf_object(name, field, lo, hi, res=0.006, attrs=None, col='creatures', matrix=None, banded=False):
+    """Crea un oggetto mesh dal campo; attrs: {nome: f(p)->(N,) o (N,3)} valutati sui vertici.
+    banded=True: griglia fine valutata solo vicino alla superficie (per i dettagli piccoli)."""
+    V, Fc, N = (sdf.mesh_banded if banded else sdf.mesh)(field, lo, hi, res)
     ob = mesh_from_arrays(name, V, Fc.tolist(), smooth=True, col=col)
     set_custom_normals(ob, N)
     if attrs:
