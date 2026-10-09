@@ -10,7 +10,7 @@
     "lamp": {
      "file": "boat_lamp.webp",
      "res": 1.0,
-     "scale": 1.2000000000000002
+     "scale": 1.1
     },
     "lantern": {
      "file": "boat_lantern.webp",
