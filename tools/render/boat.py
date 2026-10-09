@@ -32,6 +32,7 @@ AFT_DECK_Z = 0.595                    # piano del ponte di poppa, dove si appogg
 SONAR_PIVOT = (0.30, -2.04, 0.715)    # perno della staffa dell'ecoscandaglio portatile (ponte di poppa, a destra)
 SONAR_TILT = 22.0                     # gradi: l'apparecchio è inclinato sulla staffa, lo schermo guarda verso l'occhio
 RADIO_POS = (-0.30, -2.06, AFT_DECK_Z)  # radio appoggiata sul ponte di poppa, a sinistra
+RADIO_SCALE = 0.25                    # la radio è piccola: un quarto della misura iniziale
 
 
 def sonar_local(p):
@@ -701,33 +702,38 @@ def build_stern_gear(mats):
         bak, g = material('Bakelite')
         g.output_material(g.principled(color=(0.10, 0.045, 0.02), rough=0.25, coat=0.9, coat_rough=0.05))
     rx, ry, rz0 = RADIO_POS
+    k = RADIO_SCALE
     yaw = math.radians(-18)
     cy_, sy_ = math.cos(yaw), math.sin(yaw)
 
-    def rp(dx, dy, z):
-        return (rx + dx * cy_ - dy * sy_, ry + dx * sy_ + dy * cy_, z)
+    def rp(dx, dy, dz):
+        """Coordinate locali della radio (alla scala piena, dz dal ponte) → mondo, rimpicciolite di k."""
+        return (rx + k * (dx * cy_ - dy * sy_), ry + k * (dx * sy_ + dy * cy_), rz0 + k * dz)
 
-    zc = rz0 + 0.055
-    part(rbox('Radio', (0.22, 0.13, 0.11), rp(0, 0, zc), rot=(0, 0, yaw), bevel=0.03), bak)
-    for k in range(5):
-        part(rbox(f'RadioGrille{k}', (0.08, 0.004, 0.006), rp(-0.045, 0.066, zc - 0.025 + k * 0.012), rot=(0, 0, yaw), bevel=0.0), mats['brass'])
+    def ks(*v):
+        return tuple(k * x for x in v)
+
+    zc = 0.055
+    part(rbox('Radio', ks(0.22, 0.13, 0.11), rp(0, 0, zc), rot=(0, 0, yaw), bevel=k * 0.03), bak)
+    for j in range(5):
+        part(rbox(f'RadioGrille{j}', ks(0.08, 0.004, 0.006), rp(-0.045, 0.066, zc - 0.025 + j * 0.012), rot=(0, 0, yaw), bevel=0.0), mats['brass'])
     m_disp = bpy.data.materials.get('RadioLCD')
     if m_disp is None:
         m_disp, g = material('RadioLCD')
         g.output_material(g.emission((1.0, 0.45, 0.08), 2.5))
-    part(cylinder('RadioDial', 0.026, 0.006, rp(0.055, 0.066, zc + 0.005), rot=(math.radians(90), 0, yaw), verts=24), m_disp)
+    part(cylinder('RadioDial', k * 0.026, k * 0.006, rp(0.055, 0.066, zc + 0.005), rot=(math.radians(90), 0, yaw), verts=24), m_disp)
     handle = [rp(-0.08, 0.0, zc + 0.055), rp(-0.06, 0.0, zc + 0.095), rp(0.06, 0.0, zc + 0.095), rp(0.08, 0.0, zc + 0.055)]
-    part(tube('RadioHandle', catmull(handle, 6), 0.007, n=8), bak)
-    mic_at = rp(0.17, 0.10, rz0 + 0.016)
-    part(rbox('RadioMic', (0.05, 0.09, 0.03), mic_at, rot=(0, 0, yaw + math.radians(35)), bevel=0.012), bak)
+    part(tube('RadioHandle', catmull(handle, 6), k * 0.007, n=8), bak)
+    mic_at = rp(0.17, 0.10, 0.016)
+    part(rbox('RadioMic', ks(0.05, 0.09, 0.03), mic_at, rot=(0, 0, yaw + math.radians(35)), bevel=k * 0.012), bak)
     coil = []
     a0 = rp(0.10, 0.05, zc - 0.02)
     for t in np.linspace(0, 1, 70):
         bx = a0[0] + (mic_at[0] - a0[0]) * t
         by = a0[1] + (mic_at[1] - a0[1]) * t
-        bz = a0[2] + (mic_at[2] + 0.01 - a0[2]) * t
-        coil.append((bx + 0.011 * math.cos(t * 44), by + 0.011 * math.sin(t * 44), bz + 0.008 * math.sin(t * 44 + 1.3)))
-    part(tube('MicCord', coil, 0.003, n=6), mats['black_plastic'])
+        bz = a0[2] + (mic_at[2] + k * 0.01 - a0[2]) * t
+        coil.append((bx + k * 0.011 * math.cos(t * 44), by + k * 0.011 * math.sin(t * 44), bz + k * 0.008 * math.sin(t * 44 + 1.3)))
+    part(tube('MicCord', coil, k * 0.003, n=6), mats['black_plastic'])
     for ob in obs:
         set_lightgroup(ob, 'ambient')
     return obs
