@@ -59,3 +59,12 @@ Evento raro (Notte 1): **Sotto di te**, per un giro del sonar un'ombra grande qu
 ### Fine della conta di Hatch
 - IT: «…Dieci! Chi c'è c'è, chi non c'è non c'è!»
 - EN: "…Ten! Ready or not, here I come!"
+
+### Game over
+- Gulpy — IT: «Gulpy aveva fame. Il secchio era vuoto.» · EN: "Gulpy was hungry. The bucket was empty."
+- Molly — IT: «Molly voleva solo che la guardassi.» · EN: "Molly only wanted you to watch her."
+- Hatch — IT: «"Chi c'è c'è, chi non c'è non c'è." Ti ha trovato.» · EN: ""Ready or not, here I come." He found you."
+- Quota mancata — vedi sopra.
+
+### I mostri non parlano
+Nessun dialogo dei mostri: solo versi. L'unica eccezione è la conta di Hatch (testo approvato qui sopra), che fa parte del gioco a nascondino.

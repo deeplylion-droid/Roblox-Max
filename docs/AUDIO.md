@@ -65,10 +65,12 @@ Rigenerazione: `tools/.venv/bin/python tools/audio/generate.py` (deterministico:
 
 ## Le creature (mono) — da definire
 
-I versi di Gulpy, Molly e Hatch si specificano dopo aver fissato il loro design. Intenzioni di massima:
+**I mostri non parlano: solo versi.** L'unica eccezione è la conta di Hatch fino a dieci (testo approvato, vedi `LORE.md`).
+
+Per ora nel gioco ci sono versi **provvisori**, sintetizzati al volo (`src/app/sfx.ts`): si sostituiranno quando li definiamo insieme. Intenzioni di massima:
 - **Gulpy**: respiro umido e affamato, deglutizioni enormi, la mascella che si sgancia (schiocco osseo), il salvagente di gomma che cigola.
-- **Molly**: nocche lunghe che bussano sullo scafo, una voce di bambina distorta che chiama "guardami", il legno che geme mentre dondola la barca.
-- **Hatch**: una voce di bambino che conta fino a dieci (localizzata), passi bagnati a quattro zampe, il ronzio del giocattolo luminoso.
+- **Molly**: nocche lunghe che bussano sullo scafo, versi di bambina distorti (risatina, piagnucolio, capriccio), il legno che geme mentre dondola la barca.
+- **Hatch**: la voce di bambino che conta fino a dieci (localizzata), passi bagnati, il ronzio del giocattolo luminoso.
 
 ## Musica e stinger (stereo)
 

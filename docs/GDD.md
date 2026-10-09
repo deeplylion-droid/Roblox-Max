@@ -73,6 +73,7 @@ Sono i bambini spariti a **Splashland** nel 1997, presi e trasformati dalla Madr
 > - **Gulpy**: sagoma C «Avvoltoio», testa B «Cerniera». Modello dettagliato **approvato** (`tools/render/gulpy.py`).
 > - **Molly**: sagoma C «Dita», testa B «Luna». Modello dettagliato **approvato** (`tools/render/molly.py`): occhi asimmetrici (uno ti fissa, l'altro scivola via), testa piegata di lato, melma verdastra.
 > - **Hatch**: sagoma C «Spilungone», testa A «Pescatrice». Modello dettagliato **approvato** (`tools/render/hatch.py`).
+> - **Pose di gioco** (`tools/render/scena_creature.py`), viste dal posto del pescatore con le luci della scena: Molly sui due fianchi e Gulpy **approvate**. Gulpy è un gigante (1,35 volte il modello della vetrina) e arriva dal lato sinistro della prua, perché davanti alla prua c'è la lampara sul buttafuori: quando sale è una sagoma in acqua, quando pretende ha una mano sul capodibanda sinistro e l'altra sulla punta di prua. Hatch che conta in acqua dietro la poppa, illuminato dalla sua esca: da approvare.
 >
 > Le tavole dei dettagli sono bozze: i modelli definitivi devono avere molto più dettaglio nelle forme e nelle texture. La pelle sotto è opaca, ma **tutti i mostri hanno sopra uno strato di melma e un effetto bagnato**: chiazze lucide, colature, bava che gocciola, fili tra le dita e tra i denti.
 
@@ -128,6 +129,7 @@ Volume generale/musica/effetti, lingua (italiano, inglese), luminosità, schermo
   - *a sinistra*: i faraglioni all'imbocco della baia, un'edicola votiva su uno scoglio con un lume acceso, le gabbie di un allevamento ittico.
 - **Una barca piena di oggetti**: lanterna arrugginita, borraccia ammaccata, una bambola di legno seduta sul banco che ti guarda, una paperella di gomma del parco, un barattolo con un occhio che galleggia, occhialini da piscina appesi a un chiodo, un rosario di conchiglie sul palo della lampara, tacche incise sul banco a contare le notti, una campanella legata a poppa, una scatola di latta con mozziconi di candela, una statuina di Mama Marina.
 - **Niente console**: è una barca a remi. Anche la radio e il sonar sono oggetti appoggiati in giro sulla struttura della barca, come tutto il resto.
+- **Secchio e telone sul banco di prua** (approvato): il secchio a destra con la borraccia accanto, il telone piegato a sinistra vicino alla bambola. Prima stavano sul pagliolo dietro il banco e dal posto del pescatore non si vedevano.
 - Post-processing: bloom, grana della pellicola, vignettatura, leggera aberrazione cromatica.
 
 ## 13. Audio
