@@ -59,9 +59,9 @@ def canvas_material():
     nrm = g.bump(g.add(g.mul(grain.fac, 0.4), g.mul(hem, 0.6)), strength=0.08, distance=0.002)
     surf = g.principled(color=col, rough=rough, coat=0.18, coat_rough=0.35, sheen=0.15, sheen_tint=(0.4, 0.45, 0.3), normal=nrm)
     # poca luce passa attraverso la tela cerata, meno ancora sull'orlo doppio
-    trans_col = g.mix(hem, g.vmath('SCALE', col, scale=2.6), (0.02, 0.02, 0.015))
+    trans_col = g.mix(hem, g.vmath('SCALE', col, scale=6.0), (0.05, 0.05, 0.035))
     trans = g.translucent(trans_col, normal=nrm)
-    g.output_material(g.mix_shader(0.16, surf, trans))
+    g.output_material(g.mix_shader(0.38, surf, trans))
     return m
 
 
@@ -208,7 +208,7 @@ def toy_backlight():
     ld.shape = 'RECTANGLE'
     ld.size = 2.2
     ld.size_y = 2.6
-    ld.energy = 60.0
+    ld.energy = 160.0
     ld.color = (0.30, 1.0, 0.82)
     ob = bpy.data.objects.new('ToyBacklight', ld)
     ob.location = (0.0, 0.35, 1.05)
