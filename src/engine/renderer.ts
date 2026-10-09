@@ -3,7 +3,7 @@
  * atmosfera (faro, luci), schermo del sonar, lenza, bloom e composizione finale.
  */
 import { FULLSCREEN_VS, FullscreenTri, Program, Target, createGL, hdrSupported, textureFromCanvas, type GL } from './gl.ts';
-import { ATMOS_FS, BRIGHT_FS, DOWN_FS, FINAL_FS, LAYER_FS, LINE_FS, LINE_VS, SCREEN_FS, UP_FS } from './shaders.ts';
+import { ATMOS_FS, BRIGHT_FS, DOWN_FS, FINAL_FS, LAYER_FS, LINE_FS, LINE_VS, OVERLAY_FS, SCREEN_FS, UP_FS } from './shaders.ts';
 import type { LoadedLayer, Manifest, Vec3 } from './assets.ts';
 import type { View } from './view.ts';
 
@@ -13,6 +13,35 @@ export interface LightGlow {
   dir: Vec3; // direzione dall'occhio (spazio mondo)
   color: Vec3; // già moltiplicato per l'intensità del momento
   radius: number; // radianti
+}
+
+/** Uno strato da disegnare, con la sua dissolvenza e l'eventuale spostamento (pixel del panorama). */
+export interface LayerDraw {
+  key: string;
+  opacity?: number;
+  shift?: [number, number];
+  /** riga del panorama sotto cui lo strato non si vede (il pelo dell'acqua mentre emerge) */
+  clipY?: number;
+}
+
+/** Immagine a tutto schermo dentro la scena (vista dal telone, jumpscare). */
+export interface Overlay {
+  base: WebGLTexture;
+  baseScale: number;
+  glow?: WebGLTexture | null;
+  glowScale?: number;
+  /** intensità dei due passi */
+  wBase: number;
+  wGlow?: number;
+  /** bagliore mobile sul passo glow: centro (uv, y in su), raggio (uv dell'altezza), fondo */
+  blob?: [number, number, number, number];
+  /** larghezza/altezza dell'immagine */
+  aspect: number;
+  alpha: number;
+  zoom?: number;
+  offset?: [number, number];
+  /** specchiata in orizzontale */
+  flipX?: boolean;
 }
 
 export interface FrameParams {
@@ -30,8 +59,10 @@ export interface FrameParams {
   glows: LightGlow[];
   /** bagliori sulla barca (spazio barca), disegnati sopra lo scafo */
   boatGlows?: LightGlow[];
-  /** strati da disegnare in ordine (chiavi del manifest) */
-  layers: string[];
+  /** strati da disegnare in ordine (chiavi del manifest, o con dissolvenza/spostamento) */
+  layers: (string | LayerDraw)[];
+  /** immagine a tutto schermo sopra la scena */
+  overlay?: Overlay | null;
   sonar: HTMLCanvasElement | null;
   sonarGain: number;
   line: { points: Vec3[]; alpha: number } | null;
@@ -48,6 +79,7 @@ export class Renderer {
   private pDown: Program;
   private pUp: Program;
   private pFinal: Program;
+  private pOverlay: Program;
   private hdr!: Target;
   private bloom: Target[] = [];
   private w = 0;
@@ -74,6 +106,7 @@ export class Renderer {
     this.pDown = new Program(gl, FULLSCREEN_VS, DOWN_FS, 'down');
     this.pUp = new Program(gl, FULLSCREEN_VS, UP_FS, 'up');
     this.pFinal = new Program(gl, FULLSCREEN_VS, FINAL_FS, 'final');
+    this.pOverlay = new Program(gl, FULLSCREEN_VS, OVERLAY_FS, 'overlay');
     this.lineVao = gl.createVertexArray()!;
     this.lineBuf = gl.createBuffer()!;
     gl.bindVertexArray(this.lineVao);
@@ -136,9 +169,11 @@ export class Renderer {
       .f1('uFogDensity', 1 / 3200)
       .f1('uShimmer', 1.0);
     let atmosDone = false;
-    for (const key of f.layers) {
+    for (const item of f.layers) {
+      const d: LayerDraw = typeof item === 'string' ? { key: item } : item;
+      const key = d.key;
       const l = this.layers.get(key);
-      if (!l) continue;
+      if (!l || (d.opacity ?? 1) <= 0.001) continue;
       // l'atmosfera va disegnata dopo il mondo e prima della barca
       if (!atmosDone && l.info.space === 'boat') {
         this.drawAtmos(view, f);
@@ -154,6 +189,9 @@ export class Renderer {
         .f3('uW', f.ambient, f.lamp, f.lantern)
         .f3('uHas', l.amb ? 1 : 0, l.lamp ? 1 : 0, l.lantern ? 1 : 0)
         .f1('uAlpha', key === 'world' ? 0 : 1)
+        .f1('uOpacity', d.opacity ?? 1)
+        .f2('uShift', d.shift?.[0] ?? 0, d.shift?.[1] ?? 0)
+        .f1('uClipY', d.clipY ?? 0)
         .f1('uHasData', l.data ? 1 : 0)
         .tex('uAmb', 0, l.amb)
         .tex('uLamp', 1, l.lamp)
@@ -165,6 +203,7 @@ export class Renderer {
     if (f.boatGlows?.length) this.drawGlows(view, f.boatGlows);
     if (f.sonar) this.drawScreen(view, f);
     if (f.line) this.drawLine(view, f.line);
+    if (f.overlay && f.overlay.alpha > 0.001) this.drawOverlay(f.overlay);
     gl.disable(gl.BLEND);
     this.drawBloom();
     this.drawFinal(f);
@@ -244,6 +283,29 @@ export class Renderer {
       .tex('uTex', 0, this.sonarTex);
     this.tri.draw();
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+  }
+
+  private drawOverlay(o: Overlay): void {
+    const gl = this.gl;
+    const sa = this.w / this.h;
+    // copre lo schermo mantenendo le proporzioni (come object-fit: cover)
+    const fit: [number, number] = sa > o.aspect ? [1, o.aspect / sa] : [sa / o.aspect, 1];
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    this.pOverlay
+      .use()
+      .tex('uBase', 0, o.base)
+      .tex('uGlow', 1, o.glow ?? o.base)
+      .f1('uHasGlow', o.glow ? 1 : 0)
+      .f2('uScale', o.baseScale, o.glowScale ?? 1)
+      .f2('uW', o.wBase, o.wGlow ?? 0)
+      .f4('uBlob', ...(o.blob ?? [0.5, 0.5, 0.2, 0]))
+      .f1('uAspect', o.aspect)
+      .f2('uFit', fit[0], fit[1])
+      .f2('uOffset', o.offset?.[0] ?? 0, o.offset?.[1] ?? 0)
+      .f1('uZoom', o.zoom ?? 1)
+      .f1('uFlip', o.flipX ? 1 : 0)
+      .f1('uAlpha', o.alpha);
+    this.tri.draw();
   }
 
   /** Lenza: polilinea 3D (spazio barca) proiettata e disegnata come nastro sottile. */

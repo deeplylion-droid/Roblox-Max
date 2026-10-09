@@ -138,6 +138,9 @@ export class Gulpy {
 
 export type MollyState = 'dormant' | 'away' | 'knocking' | 'peeking' | 'tantrum' | 'leaving' | 'attack';
 
+/** secondi di preavviso dell'ecoscandaglio prima che una creatura arrivi */
+export const SONAR_WARN = 5;
+
 export class Molly {
   state: MollyState = 'dormant';
   side: Side = 'left';
@@ -147,6 +150,8 @@ export class Molly {
   tantrum = 0;
   private knockTimer = 0;
   private whined = false;
+  /** il lato della prossima visita è già deciso (serve all'avviso del sonar) */
+  private sidePicked = false;
 
   constructor(private cfg: MollyConfig) {
     this.timer = cfg.firstAt;
@@ -172,10 +177,14 @@ export class Molly {
     switch (this.state) {
       case 'dormant':
       case 'away':
+        if (!this.sidePicked && this.timer <= SONAR_WARN) {
+          this.side = w.rng.chance(0.5) ? 'left' : 'right';
+          this.sidePicked = true;
+        }
         if (this.timer <= 0) {
           if (w.mayStart('molly')) {
             w.started('molly');
-            this.side = w.rng.chance(0.5) ? 'left' : 'right';
+            this.sidePicked = false;
             this.state = 'knocking';
             this.timer = this.cfg.knock;
             this.knockTimer = 0;

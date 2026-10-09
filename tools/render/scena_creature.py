@@ -26,17 +26,26 @@ from common import EYE
 F = np.float32
 
 
-def M_of(origin, yaw=0.0, pitch=0.0):
-    """Da coordinate locali della creatura a coordinate della barca: traslazione, poi yaw (Z), poi pitch (X)."""
+def M_of(origin, yaw=0.0, pitch=0.0, scale=1.0):
+    """Da coordinate locali della creatura a coordinate della barca: traslazione, poi yaw (Z), pitch (X), scala."""
     from mathutils import Matrix
     return (Matrix.Translation(tuple(map(float, origin))) @ Matrix.Rotation(math.radians(yaw), 4, 'Z')
-            @ Matrix.Rotation(math.radians(pitch), 4, 'X'))
+            @ Matrix.Rotation(math.radians(pitch), 4, 'X') @ Matrix.Scale(scale, 4))
+
+
+def facing_yaw(origin, target=EYE):
+    """Yaw che volta la faccia della creatura (−y locale) verso target."""
+    return math.degrees(math.atan2(target[0] - origin[0], origin[1] - target[1]))
 
 
 def to_local(M, p):
     from mathutils import Vector
     v = M.inverted() @ Vector(tuple(map(float, p)))
     return np.array((v.x, v.y, v.z), F)
+
+
+# l'ultima trasformazione usata per ogni posa (serve ai jumpscare, che partono dalla posa di gioco)
+LAST_M = {}
 
 
 def place(obs, M):
@@ -56,18 +65,30 @@ def gunwale_at(y, side):
 
 # ───────────────────────── pose ─────────────────────────
 
+# Gulpy è un gigante: più grande del modello della vetrina, e arriva dal lato sinistro della prua,
+# così l'albero della lampara non lo copre (davanti alla prua c'è la lampara sul buttafuori).
+GULPY_SCALE = 1.35
+
+
 def gulpy_sale():
     import gulpy
-    M = M_of((0.35, 7.6, -1.0))
+    o = (-2.2, 7.0, -1.1)
+    M = LAST_M['gulpy_sale'] = M_of(o, yaw=facing_yaw(o), pitch=6.0, scale=GULPY_SCALE)
     obs = gulpy.build(viewer=to_local(M, EYE))
     return place(obs, M)
 
 
 def gulpy_pretende():
     import gulpy
-    M = M_of((0.40, 4.05, -0.30), pitch=12.0)
-    grip = [to_local(M, (-0.29, 2.45, 0.99)), to_local(M, (0.29, 2.45, 0.99))]
-    obs = gulpy.build(grip=grip, viewer=to_local(M, EYE), lo=np.array((-1.0, -1.9, -0.02), F), hi=np.array((0.62, 0.48, 2.72), F))
+    o = (-1.9, 3.4, -0.4)
+    M = LAST_M['gulpy_pretende'] = M_of(o, yaw=facing_yaw(o), pitch=25.0, scale=GULPY_SCALE)
+    # una mano sul capodibanda di sinistra, l'altra sulla punta di prua
+    xg, zg = gunwale_at(1.2, -1)
+    xb, zb = gunwale_at(2.45, -1)
+    grip = [to_local(M, (xg + 0.02, 1.2, zg)), to_local(M, (xb + 0.04, 2.45, zb))]
+    lo = np.minimum(np.array((-0.62, -1.0, -0.02), F), np.min(grip, axis=0) - 0.25)
+    hi = np.maximum(np.array((0.62, 0.48, 2.72), F), np.max(grip, axis=0) + 0.25)
+    obs = gulpy.build(grip=grip, viewer=to_local(M, EYE), lo=lo, hi=hi)
     return place(obs, M)
 
 
@@ -75,7 +96,7 @@ def molly(side):
     import molly as mo
     y = -0.26 if side > 0 else 0.15
     xc, ztop = gunwale_at(y, side)
-    M = M_of((xc, y, ztop - mo.GUN_TOP), yaw=-90.0 if side > 0 else 90.0)
+    M = LAST_M['molly_destra' if side > 0 else 'molly_sinistra'] = M_of((xc, y, ztop - mo.GUN_TOP), yaw=-90.0 if side > 0 else 90.0)
     v = to_local(M, EYE)
     d = v - mo.C
     turn = max(-35.0, min(35.0, math.degrees(math.atan2(float(d[0]), float(-d[1])))))
@@ -85,7 +106,7 @@ def molly(side):
 
 def hatch_conta():
     import hatch
-    M = M_of((0.35, -8.0, -1.65), yaw=180.0)
+    M = LAST_M['hatch_conta'] = M_of((0.35, -8.0, -1.65), yaw=180.0)
     obs = hatch.build(viewer=to_local(M, EYE))
     lights = [o for o in bpy.data.objects if o.type == 'LIGHT' and o.name.startswith('ToyLight')]
     return place(obs + lights, M)

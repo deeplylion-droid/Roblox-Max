@@ -19,6 +19,8 @@ export class Hud {
   private hintEl: HTMLDivElement;
   private subEl: HTMLDivElement;
   private toastEl: HTMLDivElement;
+  private capEl: HTMLDivElement;
+  private capTimer = 0;
   private hoverEl: HTMLDivElement;
   readonly turnEl: HTMLDivElement;
   private reelEl: HTMLDivElement;
@@ -42,8 +44,9 @@ export class Hud {
     this.hintEl = el('div', 'hud-hint', this.root);
     this.subEl = el('div', 'hud-sub', this.root);
     this.toastEl = el('div', 'hud-toast', this.root);
+    this.capEl = el('div', 'hud-cap', this.root);
     this.hoverEl = el('div', 'hud-hover', this.root);
-    this.turnEl = el('div', 'hud-turn', this.root, '&#8635;');
+    this.turnEl = el('div', 'hud-turn', this.root, S.turnBar);
     this.reelEl = el('div', 'hud-reel', this.root);
     this.reelBar = el('div', 'bar', this.reelEl);
     el('div', 'zone', this.reelEl);
@@ -85,6 +88,13 @@ export class Hud {
     this.toastTimer = seconds;
   }
 
+  /** Didascalia di un suono (per chi gioca senza audio): sparisce da sola. */
+  caption(text: string, seconds = 2.4): void {
+    this.capEl.textContent = text;
+    this.capEl.classList.add('show');
+    this.capTimer = seconds;
+  }
+
   hover(text: string, x: number, y: number): void {
     this.hoverEl.textContent = text;
     this.hoverEl.style.left = `${x}px`;
@@ -109,6 +119,10 @@ export class Hud {
     if (this.toastTimer > 0) {
       this.toastTimer -= dt;
       if (this.toastTimer <= 0) this.toastEl.classList.remove('show');
+    }
+    if (this.capTimer > 0) {
+      this.capTimer -= dt;
+      if (this.capTimer <= 0) this.capEl.classList.remove('show');
     }
   }
 

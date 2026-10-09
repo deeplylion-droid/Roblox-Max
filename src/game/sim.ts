@@ -1,7 +1,7 @@
 import { HOUR_SECONDS, LAMP, LORE, NIGHT_HOURS, VIEW, YAW, angleDiff, type LampLevel, type MonsterId, type NightConfig } from './config.ts';
 import type { GameEvent } from './events.ts';
 import { Fishing, type Catch } from './fishing.ts';
-import { Hatch, Molly, Gulpy, type WorldView } from './monsters.ts';
+import { Hatch, Molly, Gulpy, SONAR_WARN, type WorldView } from './monsters.ts';
 import { Rng } from './rng.ts';
 
 export type Outcome = { kind: 'playing' } | { kind: 'won' } | { kind: 'dead'; killer: MonsterId | 'mother' };
@@ -265,6 +265,23 @@ export class NightSim {
     return { species, lore: null, kg: this.rng.range(species.kg[0], species.kg[1]) };
   }
 
+  /**
+   * Creature che arriveranno entro pochi secondi (se la regia le lascia partire): l'ecoscandaglio
+   * ne mostra l'ombra dal lato giusto. yaw in gradi come lo sguardo.
+   */
+  incoming(): { who: MonsterId; yaw: number; eta: number }[] {
+    const out: { who: MonsterId; yaw: number; eta: number }[] = [];
+    if (!this.playing) return out;
+    const waiting = (s: string) => s === 'dormant' || s === 'away';
+    const add = (who: MonsterId, yaw: number, timer: number) => {
+      if (timer <= SONAR_WARN && this.mayStart(who, true)) out.push({ who, yaw, eta: Math.max(0, timer) });
+    };
+    if (waiting(this.gulpy.state)) add('gulpy', YAW.bow, this.gulpy.timer);
+    if (waiting(this.molly.state)) add('molly', this.molly.yaw, this.molly.timer);
+    if (waiting(this.hatch.state)) add('hatch', YAW.stern, this.hatch.timer);
+    return out;
+  }
+
   /** la creatura è "in scena" (per le regole di esclusione della regia) */
   active(who: MonsterId): boolean {
     switch (who) {
@@ -277,8 +294,8 @@ export class NightSim {
     }
   }
 
-  private mayStart(who: MonsterId): boolean {
-    if (this.time - this.lastStart < this.cfg.minGapBetweenStarts) return false;
+  private mayStart(who: MonsterId, ignoreGap = false): boolean {
+    if (!ignoreGap && this.time - this.lastStart < this.cfg.minGapBetweenStarts) return false;
     for (const [a, b] of this.cfg.exclusive) {
       if (who === a && this.active(b)) return false;
       if (who === b && this.active(a)) return false;

@@ -160,6 +160,23 @@ describe('NightSim', () => {
     expect(sim.outcome).toEqual({ kind: 'dead', killer: 'hatch' });
   });
 
+  it('il sonar avvisa qualche secondo prima che arrivi una creatura, dal lato giusto', () => {
+    const cfg = { ...quiet(), molly: { ...N1.molly, firstAt: 30 } };
+    const sim = new NightSim(cfg, 5);
+    run(sim, 22);
+    expect(sim.incoming()).toEqual([]);
+    run(sim, 5);
+    const inc = sim.incoming();
+    expect(inc.length).toBe(1);
+    expect(inc[0]!.who).toBe('molly');
+    const yaw = inc[0]!.yaw;
+    // quando bussa, lo fa dal lato annunciato
+    const ev = run(sim, 6);
+    const knock = ev.find((e) => e.t === 'molly' && e.e === 'knock');
+    expect(knock).toBeTruthy();
+    expect(sim.molly.yaw).toBe(yaw);
+  });
+
   it('il frammento di lore garantito arriva alla quarta cattura', () => {
     const sim = new NightSim(quiet(), 21);
     sim.setView(YAW.rod, false);

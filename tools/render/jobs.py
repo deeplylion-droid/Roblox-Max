@@ -247,7 +247,9 @@ def render_sprite(q, key, objs, space='boat', margin=12, holdout_boat=True, samp
             sea_ob.visible_camera = True
             sea_ob.is_holdout = True
     pts = dense_points(objs)
-    yc = float(np.mean([yaw_of(p) for p in pts]))
+    # media circolare: dietro la poppa gli angoli scavalcano ±180°
+    ys = np.radians([yaw_of(p) for p in pts])
+    yc = float(np.degrees(np.arctan2(np.mean(np.sin(ys)), np.mean(np.cos(ys)))))
     cam = bpy.context.scene.camera
     set_pano_yaw(cam, yc)
     rect = pano_rect(pts, q.pano_width, yc, margin)
@@ -297,6 +299,57 @@ def job_creature(q):
         for o in new:
             o.hide_render = True
         bpy.context.view_layer.update()
+
+
+OVERLAYS = os.path.join(OUT_IMG, 'overlays.json')
+
+
+def encode_overlay(key, exr, groups):
+    """Immagine a tutto schermo (non panorama): ogni passo di luce in un webp, come gli strati."""
+    p = post.read_exr(exr)
+    entry = {}
+    for g, name in groups.items():
+        lin = p[g][..., :3]
+        scale = post.pick_scale(lin)
+        fn = f'{key}_{name}.webp'
+        post.save_webp(post.encode_light_pass(lin, scale), os.path.join(OUT_IMG, fn), quality=90)
+        entry[name] = {'file': fn, 'scale': scale}
+    return entry
+
+
+def job_tarp(q):
+    """La vista da sotto il telone (vedi telone.py): passo base e passo della luce del giocattolo."""
+    import telone
+    from common import perspective_camera
+    build_scene(fish=0, rod=False)
+    for n in ('Tarp', 'TarpRope'):
+        o = bpy.data.objects.get(n)
+        if o:
+            o.hide_render = True
+    # tutta la luce di fuori nel passo base; il passo 'lamp' resta per il giocattolo
+    for o in bpy.data.objects:
+        if o.lightgroup in ('lamp', 'lantern'):
+            o.lightgroup = 'ambient'
+    telone.build_drape()
+    telone.toy_backlight()
+    perspective_camera(telone.EYE_HIDDEN, telone.LOOK_AT, lens=18.0)
+    W, H = (1920, 1080) if q.name == 'final' else (1280, 720) if q.name == 'preview' else (854, 480)
+    exr = os.path.join(CACHE, q.name, 'tarp.exr')
+    t = time.time()
+    render(exr, q.samples, (W, H), data_passes=())
+    log('tarp render', round(time.time() - t), 's')
+    entry = encode_overlay('tarp', exr, {'ambient': 'base', 'lamp': 'glow'})
+    entry['aspect'] = round(W / H, 4)
+    post.update_manifest(OVERLAYS, 'tarp', entry)
+    log('tarp', entry)
+
+
+def job_jumpscare(q):
+    """I jumpscare delle creature (vedi jumpscare.py). JUMPSCARES=gulpy,molly,hatch per sceglierli."""
+    import jumpscare
+    who = [k for k in os.environ.get('JUMPSCARES', 'gulpy,molly,hatch').split(',') if k]
+    for w in who:
+        jumpscare.run(q, w, post, OVERLAYS, build_scene, coll_objects, renderable)
 
 
 def job_reencode(q):
@@ -351,7 +404,7 @@ def preview_composite(out_png, yaw=0.0, pitch=-12.0, lamp=1.0, ambient=1.0, extr
     post.save_png(post.tonemap(view, exposure), out_png)
 
 
-JOBS = {'world': job_world, 'boat': job_boat, 'props': job_props, 'creature': job_creature, 'reencode': job_reencode}
+JOBS = {'world': job_world, 'boat': job_boat, 'props': job_props, 'creature': job_creature, 'reencode': job_reencode, 'tarp': job_tarp, 'jumpscare': job_jumpscare}
 
 
 def main():
@@ -359,6 +412,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('jobs', nargs='+')
     ap.add_argument('--quality', default='draft', choices=list(QUALITY))
+    ap.add_argument('--fast', action='store_true', help='creature con mesh più grossolane (prove di posa)')
     a = ap.parse_args(argv)
     q = QUALITY[a.quality]
     os.makedirs(OUT_IMG, exist_ok=True)

@@ -20,6 +20,8 @@ export class Sonar {
   private fish: { a: number; r: number; v: number }[] = [];
   onPing: (() => void) | null = null;
   onContact: ((big: boolean) => void) | null = null;
+  /** un'ombra di avviso è passata sotto il fascio (bip diverso) */
+  onWarn: (() => void) | null = null;
 
   constructor(size = 384) {
     this.canvas = document.createElement('canvas');
@@ -29,8 +31,10 @@ export class Sonar {
   }
 
   /** contatti attuali delle creature: angolo e distanza (0 = sotto la barca, 1 = bordo) */
-  private contacts(sim: NightSim): { a: number; r: number }[] {
-    const out: { a: number; r: number }[] = [];
+  private contacts(sim: NightSim): { a: number; r: number; warn?: boolean }[] {
+    const out: { a: number; r: number; warn?: boolean }[] = [];
+    // avviso: l'ombra grande di chi sta per arrivare, dal suo lato, che si avvicina
+    for (const c of sim.incoming()) out.push({ a: c.yaw, r: 0.55 + 0.4 * Math.min(1, c.eta / 5), warn: true });
     const g = sim.gulpy;
     if (g.state === 'rising') out.push({ a: -12, r: 0.75 - 0.5 * g.phase });
     else if (g.state === 'climbing' || g.state === 'demanding' || g.state === 'eating') out.push({ a: 0, r: 0.18 });
@@ -61,8 +65,9 @@ export class Sonar {
     }
     for (const c of this.contacts(sim)) {
       if (crossed(c.a)) {
-        this.blips.push({ a: c.a, r: c.r, size: 9, kind: 'big', life: 1 });
-        this.onContact?.(true);
+        this.blips.push({ a: c.a, r: c.r, size: c.warn ? 16 : 9, kind: 'big', life: 1 });
+        if (c.warn) this.onWarn?.();
+        else this.onContact?.(true);
       }
     }
     for (const b of this.blips) b.life -= dt / 2.8;

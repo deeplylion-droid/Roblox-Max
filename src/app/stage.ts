@@ -3,7 +3,7 @@
  * Lo usano sia il menu (sfondo animato) sia la notte di gioco.
  */
 import type { Manifest, Vec3 } from '../engine/assets.ts';
-import { Renderer, type FrameParams, type LightGlow } from '../engine/renderer.ts';
+import { Renderer, type FrameParams, type LayerDraw, type LightGlow } from '../engine/renderer.ts';
 import { View, apply } from '../engine/view.ts';
 
 export function norm(v: Vec3): Vec3 {
@@ -81,7 +81,7 @@ export class Stage {
     return out.concat(extra).slice(0, 16);
   }
 
-  frame(p: Partial<FrameParams> & { layers: string[] }): void {
+  frame(p: Partial<FrameParams> & { layers: (string | LayerDraw)[] }): void {
     const t = this.time;
     this.renderer.render(this.view, {
       time: t,

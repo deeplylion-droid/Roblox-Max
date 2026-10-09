@@ -52,6 +52,9 @@ uniform float uTime;
 uniform vec3 uFogColor;
 uniform float uFogDensity;
 uniform float uShimmer;
+uniform float uOpacity;  // dissolvenza dello strato (le creature che compaiono e spariscono)
+uniform vec2 uShift;     // spostamento dello strato (pixel del panorama): la creatura che emerge
+uniform float uClipY;    // > 0: sotto questa riga del panorama non si disegna (il pelo dell'acqua)
 
 vec3 dec(vec4 t, float s) { vec3 c = t.rgb * t.rgb; return c * c * s; }   // gamma 4
 
@@ -61,6 +64,8 @@ void main() {
   lon = mod(lon + PI, 2.0 * PI) - PI;
   float lat = atan(d.z, length(d.xy));
   vec2 p = vec2((0.5 + lon / (2.0 * PI)) * uPano.x, (uLat.y - lat) / (uLat.y - uLat.x) * uPano.y);
+  if (uClipY > 0.0 && p.y > uClipY) discard;
+  p -= uShift;
   if (p.x < uRect.x || p.x > uRect.z || p.y < uRect.y || p.y > uRect.w) discard;
   vec2 uv = (p - uRect.xy) / (uRect.zw - uRect.xy);
   float mist = 0.0, sky = 0.0;
@@ -93,7 +98,43 @@ void main() {
     fog = mix(fog, horizon * 0.35, sky);
     c = mix(c, uFogColor, clamp(fog, 0.0, 0.92));
   }
-  frag = vec4(c * alpha, alpha);
+  frag = vec4(c * alpha, alpha) * uOpacity;
+}`;
+
+/**
+ * Immagine a tutto schermo dentro la scena (prima di bloom e grana): la vista da sotto il telone,
+ * i fotogrammi dei jumpscare. Passo base + passo "bagliore" modulato da una luce che si muove.
+ */
+export const OVERLAY_FS = /* glsl */ `#version 300 es
+precision highp float;
+in vec2 vUv;
+out vec4 frag;
+uniform sampler2D uBase, uGlow;
+uniform float uHasGlow;
+uniform vec2 uScale;     // decodifica dei passi (gamma 4)
+uniform vec2 uW;         // intensità: base, bagliore
+uniform vec4 uBlob;      // centro (uv dell'immagine), raggio, fondo sempre acceso
+uniform float uAspect;   // larghezza/altezza dell'immagine
+uniform vec2 uFit;       // uv dello schermo → uv dell'immagine (copertura)
+uniform vec2 uOffset;
+uniform float uZoom;
+uniform float uAlpha;
+uniform float uFlip;     // 1 = specchiata (Molly dal lato sinistro)
+
+vec3 dec(vec4 t, float s) { vec3 c = t.rgb * t.rgb; return c * c * s; }
+
+void main() {
+  vec2 uv = (vUv - 0.5) * uFit / uZoom + 0.5 + uOffset;
+  if (uFlip > 0.5) uv.x = 1.0 - uv.x;
+  uv = clamp(uv, vec2(0.0), vec2(1.0));
+  vec2 tuv = vec2(uv.x, 1.0 - uv.y);
+  vec3 c = dec(texture(uBase, tuv), uScale.x) * uW.x;
+  if (uHasGlow > 0.5) {
+    vec2 q = (uv - uBlob.xy) * vec2(uAspect, 1.0) / uBlob.z;
+    float k = uBlob.w + exp(-dot(q, q)) + 0.35 * exp(-dot(q, q) * 0.12);
+    c += dec(texture(uGlow, tuv), uScale.y) * uW.y * k;
+  }
+  frag = vec4(c * uAlpha, uAlpha);
 }`;
 
 /** Atmosfera nello spazio del mondo: fascio del faro e bagliori delle luci lontane (additivo). */
