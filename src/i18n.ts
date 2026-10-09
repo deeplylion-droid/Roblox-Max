@@ -3,7 +3,7 @@
 export type Lang = 'it' | 'en';
 
 const IT = {
-  title: 'WHAT IS BELOW',
+  title: 'SPLASHLAND IS CLOSED!',
   newGame: 'Nuova partita',
   continue: 'Continua',
   extras: 'Diario',
@@ -109,7 +109,7 @@ const IT = {
 };
 
 const EN: typeof IT = {
-  title: 'WHAT IS BELOW',
+  title: 'SPLASHLAND IS CLOSED!',
   newGame: 'New game',
   continue: 'Continue',
   extras: 'Journal',

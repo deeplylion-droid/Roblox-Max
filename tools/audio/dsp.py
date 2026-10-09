@@ -1,5 +1,5 @@
 """
-Mattoni DSP riutilizzabili della pipeline audio di WHAT IS BELOW (solo numpy + scipy, nessun campione esterno).
+Mattoni DSP riutilizzabili della pipeline audio di SPLASHLAND IS CLOSED! (solo numpy + scipy, nessun campione esterno).
 
 Convenzioni:
   - frequenza di campionamento SR = 48000 Hz, segnali float64 nominalmente in [-1, 1];

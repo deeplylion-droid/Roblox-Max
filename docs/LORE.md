@@ -1,4 +1,4 @@
-# WHAT IS BELOW — Lore
+# SPLASHLAND IS CLOSED! — Lore
 
 > ⚠️ Spoiler. Il giocatore la ricostruisce a pezzi, notte dopo notte.
 
@@ -18,7 +18,7 @@ I pescatori devono **sfamare la Madre con i pesci**. Se non lo fanno, lei si pre
 
 ## Le creature
 
-I bambini spariti, trasformati dalla Madre. Ognuno porta ancora addosso qualcosa del parco e un'abitudine di quando era bambino, che è diventata la sua regola. Sagome scelte: tutte e tre la **C** (`docs/concept/`); i dettagli si decidono insieme.
+I bambini spariti, trasformati dalla Madre. Ognuno porta ancora addosso qualcosa del parco e un'abitudine di quando era bambino, che è diventata la sua regola. Sagome scelte: tutte e tre la **C**. Teste scelte: Gulpy **B** «Cerniera», Molly **B** «Luna», Hatch **A** «Pescatrice» (`docs/concept/`).
 
 | Creatura | Ruolo | Ispirazione | Chi era | Cosa porta | L'abitudine diventata regola |
 |---|---|---|---|---|---|

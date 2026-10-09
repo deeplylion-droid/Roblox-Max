@@ -1,5 +1,5 @@
 """
-Job di render di WHAT IS BELOW.
+Job di render di SPLASHLAND IS CLOSED!.
 
 Uso:
   tools/.venv/bin/python tools/render/jobs.py <job> [<job> ...] [--quality draft|preview|final]

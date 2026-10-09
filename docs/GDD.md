@@ -1,4 +1,4 @@
-# WHAT IS BELOW — Game Design Document
+# SPLASHLAND IS CLOSED! — Game Design Document
 
 Versione 0.1 — obiettivo del primo traguardo: **Notte 1 completa e rifinita** (vertical slice).
 
@@ -68,23 +68,28 @@ Horror in prima persona a inquadratura fissa (alla *Five Nights at Freddy's*): s
 
 Sono i bambini spariti a **Splashland** nel 1997, presi e trasformati dalla Madre (vedi `LORE.md`). Non sono cuccioli e non sono carini: sono **allungati, magri, sproporzionati** (riferimento: SCP-096 "Shy Guy"), pelle grigio-pallida e bagnata, occhi bianchi senza pigmento, collo e arti troppo lunghi, dita palmate lunghissime, branchie sul collo. Il tocco "family friendly" c'è ma è distorto fino all'orrore, come il bavaglino di Chica in FNAF: ognuno porta ancora addosso qualcosa del parco. I nomi vengono da nomi inglesi di pesci, accorciati come diminutivi da bambino.
 
-> Il design visivo si definisce insieme. **Sagome scelte**: Gulpy C «Avvoltoio», Molly C «Dita», Hatch C «Spilungone» (`docs/concept/`). Prossimo passo, sempre insieme: i dettagli, poi la modellazione.
+> Il design visivo si definisce insieme (tavole in `docs/concept/`).
+> - **Gulpy**: sagoma C «Avvoltoio», testa B «Cerniera».
+> - **Molly**: sagoma C «Dita», testa B «Luna».
+> - **Hatch**: sagoma C «Spilungone», testa A «Pescatrice».
+>
+> Le tavole dei dettagli sono bozze: i modelli definitivi devono avere molto più dettaglio nelle forme e nelle texture, e una pelle opaca, non lucida.
 
 ### Gulpy — prua — *SFAMARE*
-Ispirato al pesce pellicano (*gulper eel*): tutto bocca su un corpo lunghissimo. Sagoma C: un gigante curvo in piedi nell'acqua fino alla vita, con la testa che pende davanti al petto e un braccio lunghissimo teso verso la barca. Ha un salvagente giallo a paperella incastrato sul collo, che ormai stringe la carne.
+Ispirato al pesce pellicano (*gulper eel*): tutto bocca su un corpo lunghissimo. Sagoma C: un gigante curvo in piedi nell'acqua fino alla vita, con la testa che pende davanti al petto e un braccio lunghissimo teso verso la barca. Testa B «Cerniera»: cranio allungato da quasi-uomo, occhi piccoli e infossati, la mascella sganciata che pende fino al petto, denti ad ago. Ha un salvagente giallo a paperella incastrato sul collo, che ormai stringe la carne.
 - **Sale** (si avvicina in superficie davanti alla prua, si sentono lo sciabordio e il suo verso affamato) → **si sporge** (le mani enormi sul bordo di prua, si piega sopra la barca) → **pretende** (la mascella si sgancia fino al petto, aspetta).
 - Gli lanci un pesce dal secchio → lo inghiotte e torna giù. Puoi lanciarglielo anche prima, mentre sale.
 - Se non riceve il pesce in tempo → **jumpscare**. Il telone non serve: Gulpy sente l'odore.
 - Lezione: tieni sempre almeno un pesce nel secchio.
 
 ### Molly — fianchi — *FISSARE*
-Ispirata al barreleye (testa trasparente, gli occhi dentro che ruotano e ti seguono) e alla *mola*, il pesce luna. Sagoma C: resta quasi tutta sott'acqua, si vedono solo la testa e le dita lunghissime aggrappate al bordo. Porta i braccioli gonfiabili. Da bambina gridava "Guardami!" dal trampolino.
+Ispirata al barreleye (testa trasparente, gli occhi dentro che ruotano e ti seguono) e alla *mola*, il pesce luna. Sagoma C: resta quasi tutta sott'acqua, si vedono solo la testa e le dita lunghissime e palmate aggrappate al bordo. Testa B «Luna»: faccia piatta e tonda come un pesce luna, occhioni bianchi, bocca minuscola a becco, i codini da bambina con gli elastici rosa. Porta i braccioli gonfiabili. Da bambina gridava "Guardami!" dal trampolino.
 - **Bussa** sullo scafo a sinistra o a destra → **si affaccia** sul bordo: la testa e le dita aggrappate, a mezzo metro da te.
 - Devi **guardarla** (tenerla al centro della visuale) finché non è soddisfatta: allora si lascia scivolare in acqua.
 - Se la ignori si offende e **dondola la barca**, sempre più forte (la visuale si inclina, entra acqua). Se continui a ignorarla **trascina giù la barca**.
 
 ### Hatch — poppa — *NASCONDERSI*
-Ispirato alla rana pescatrice e all'*hatchetfish*. Sagoma C: un bipede altissimo e piegato in avanti. La sua esca è il giocattolo luminoso del negozio del parco, che gli penzola davanti alla faccia: lo usa per cercarti.
+Ispirato alla rana pescatrice e all'*hatchetfish*. Sagoma C: un bipede altissimo e piegato in avanti. Testa A «Pescatrice»: testa grande e tonda, bocca spalancata con i denti di vetro rivolti all'indietro, occhietti in cima. La sua esca è il giocattolo luminoso del negozio del parco, che gli penzola davanti alla faccia: lo usa per cercarti.
 - Gioca a nascondino: **conta fino a dieci** ad alta voce, da dietro la barca ("…eight, nine, ten… ready or not, here I come!", localizzato).
 - Finita la conta **sale a bordo**. Devi già essere **sotto il telone**.
 - Sotto il telone vedi la luce del giocattolo che fruga attraverso la tela e senti i passi bagnati. Se esci prima che torni in acqua → jumpscare.

@@ -1,5 +1,5 @@
 """
-Registro dei suoni di WHAT IS BELOW. Ogni modulo tematico registra i propri id con @sound(...):
+Registro dei suoni di SPLASHLAND IS CLOSED!. Ogni modulo tematico registra i propri id con @sound(...):
 la funzione riceve (spec, rng) e restituisce il segnale grezzo (mono (n,) o stereo (2, n));
 livello, pulizia, codifica e verifica li fa master.py.
 """

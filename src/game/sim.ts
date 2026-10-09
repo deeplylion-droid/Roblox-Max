@@ -8,7 +8,7 @@ export type Outcome = { kind: 'playing' } | { kind: 'won' } | { kind: 'dead'; ki
 export type HideState = 'out' | 'goingIn' | 'in' | 'goingOut';
 
 /**
- * Una notte di WHAT IS BELOW, senza grafica né audio: deterministica a parità di seed e input.
+ * Una notte di SPLASHLAND IS CLOSED!, senza grafica né audio: deterministica a parità di seed e input.
  * Il presentatore chiama i metodi di input, poi update(dt), poi drainEvents().
  */
 export class NightSim {

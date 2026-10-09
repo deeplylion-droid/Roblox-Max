@@ -1,4 +1,4 @@
-# WHAT IS BELOW — Specifica audio
+# SPLASHLAND IS CLOSED! — Specifica audio
 
 Tutto l'audio è **sintetizzato da script** in `tools/audio/` (Python + numpy/scipy, nessun campione esterno) e scritto in `public/assets/audio/<id>.ogg` (Vorbis, 48 kHz, qualità ~6). Il manifest `public/assets/audio/manifest.json` elenca per ogni id: `file`, `duration` (s), `loop` (bool), `channels`, `gain` consigliato (lineare, 0..1) e `category` (`amb`, `sfx`, `mon`, `mus`, `ui`, `voice`).
 

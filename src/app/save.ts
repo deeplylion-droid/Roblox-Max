@@ -27,7 +27,7 @@ export interface SaveData {
   options: Options;
 }
 
-const KEY = 'whatisbelow.save.v1';
+const KEY = 'splashland.save.v1';
 
 export function defaultOptions(): Options {
   return { master: 0.9, music: 0.7, sfx: 0.9, brightness: 1, subtitles: true, reduceFlash: false, sensitivity: 1 };

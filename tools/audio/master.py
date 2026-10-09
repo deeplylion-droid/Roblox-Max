@@ -1,5 +1,5 @@
 """
-Finalizzazione degli asset audio di WHAT IS BELOW: pulizia (continua, dissolvenze, silenzio in testa),
+Finalizzazione degli asset audio di SPLASHLAND IS CLOSED!: pulizia (continua, dissolvenze, silenzio in testa),
 livello per categoria, limitatore, codifica Vorbis con ffmpeg, verifica sul file DECODIFICATO
 (lunghezza esatta con due decoder, picco, continuità del punto di loop) e spettrogrammi di controllo.
 """

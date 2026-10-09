@@ -1,5 +1,5 @@
 """
-Modelli sonori di medio livello per WHAT IS BELOW, costruiti sui mattoni di dsp.py:
+Modelli sonori di medio livello per SPLASHLAND IS CLOSED!, costruiti sui mattoni di dsp.py:
   - acqua: bolle (risonanza di Minnaert), gocce, schizzi, colpi d'onda sullo scafo, fiotti;
   - legno: modi di una tavola, attrito stick-slip (scricchiolii), colpi;
   - corpi bagnati: schiaffi, risucchi, applausi;
