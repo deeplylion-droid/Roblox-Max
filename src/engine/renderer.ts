@@ -40,6 +40,8 @@ export interface Overlay {
   alpha: number;
   zoom?: number;
   offset?: [number, number];
+  /** rollio della camera (radianti) */
+  roll?: number;
   /** specchiata in orizzontale */
   flipX?: boolean;
 }
@@ -54,6 +56,8 @@ export interface FrameParams {
   fade: number;
   flash: number;
   flashColor: Vec3;
+  /** nastro VHS rovinato, 0..1 (jumpscare) */
+  glitch?: number;
   beamAngle: number;
   /** bagliori lontani (spazio mondo), coperti dalla barca */
   glows: LightGlow[];
@@ -304,6 +308,7 @@ export class Renderer {
       .f2('uOffset', o.offset?.[0] ?? 0, o.offset?.[1] ?? 0)
       .f1('uZoom', o.zoom ?? 1)
       .f1('uFlip', o.flipX ? 1 : 0)
+      .f1('uRoll', o.roll ?? 0)
       .f1('uAlpha', o.alpha);
     this.tri.draw();
   }
@@ -380,6 +385,7 @@ export class Renderer {
       .f1('uAberration', 0.010)
       .f1('uFade', f.fade)
       .f1('uFlash', f.flash)
+      .f1('uGlitch', f.glitch ?? 0)
       .f3('uFlashColor', ...f.flashColor)
       .f2('uRes', this.canvas.width, this.canvas.height);
     this.tri.draw();

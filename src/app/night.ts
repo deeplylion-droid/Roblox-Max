@@ -82,6 +82,44 @@ function smooth01(x: number): number {
   return t * t * (3 - 2 * t);
 }
 
+function hash1(n: number): number {
+  const s = Math.sin(n * 127.1 + 311.7) * 43758.5453;
+  return s - Math.floor(s);
+}
+
+/** Rumore liscio in [-1, 1]. */
+function noise1(x: number, seed: number): number {
+  const i = Math.floor(x);
+  const f = x - i;
+  const u = f * f * (3 - 2 * f);
+  const a = hash1(i + seed * 101.3) * 2 - 1;
+  const b = hash1(i + 1 + seed * 101.3) * 2 - 1;
+  return a + (b - a) * u;
+}
+
+/** Camera a mano del jumpscare, in post: sobbalzo all'impatto, tremito rapido, rollio, un colpo di zoom a
+ *  ogni fotogramma nuovo e una lenta spinta in avanti. Lo zoom copre sempre lo schermo, anche con lo
+ *  spostamento e il rollio più grandi possibili in quell'istante. calm < 1 attenua tutto. */
+function jumpscareCamera(t: number, fps: number, frames: number, aspect: number, calm: number): { offset: [number, number]; roll: number; zoom: number } {
+  const amp = calm * (0.040 * Math.exp(-t * 2.2) + 0.012);
+  const joltEnv = calm * Math.exp(-t * 6);
+  const jolt = joltEnv * Math.cos(t * 38);
+  const ox = amp * (0.7 * noise1(t * 26, 1) + 0.3 * noise1(t * 53, 2)) + 0.025 * jolt;
+  const oy = amp * 0.8 * (0.7 * noise1(t * 24, 3) + 0.3 * noise1(t * 49, 4)) - 0.035 * jolt;
+  const rollAmp = calm * (0.035 * Math.exp(-t * 2.5) + 0.010);
+  const roll = rollAmp * noise1(t * 17, 5) + 0.015 * jolt;
+  const mx = amp + 0.025 * joltEnv;
+  const my = amp * 0.8 + 0.035 * joltEnv;
+  const r = rollAmp + 0.015 * joltEnv;
+  const cover = Math.max(
+    (aspect * Math.cos(r) + Math.sin(r)) / (aspect * (1 - 2 * mx)),
+    (aspect * Math.sin(r) + Math.cos(r)) / (1 - 2 * my),
+  );
+  const fi = Math.floor(t * fps);
+  const punch = fi < frames ? calm * 0.025 * Math.exp(-(t - fi / fps) * 16) : 0;
+  return { offset: [ox, oy], roll, zoom: cover * 1.005 + punch + 0.08 * smooth01(t / 1.9) };
+}
+
 function norm(v: Vec3): Vec3 {
   const l = Math.hypot(v[0], v[1], v[2]) || 1;
   return [v[0] / l, v[1] / l, v[2] / l];
@@ -797,8 +835,8 @@ export class Night {
         const fr = seq.frames[i]!;
         // Molly è renderizzata a destra: dal lato sinistro l'immagine si specchia
         const flipX = js.killer === 'molly' && this.sim.molly.side === 'left';
-        const zoom = 1 + 0.06 * Math.min(1, js.t * 1.5);
-        return { base: fr.tex, baseScale: fr.scale, wBase: 1, aspect: seq.aspect, alpha: Math.min(1, js.t * 12), flipX, zoom };
+        const cam = jumpscareCamera(js.t, seq.fps, seq.frames.length, seq.aspect, this.d.options.reduceFlash ? 0.35 : 1);
+        return { base: fr.tex, baseScale: fr.scale, wBase: 1, aspect: seq.aspect, alpha: Math.min(1, js.t * 12), flipX, ...cam };
       }
       return null;
     }
@@ -863,6 +901,12 @@ export class Night {
       flashColor = [0.95, 0.62, 0.42];
     }
     const dawnExposure = v.dawn * 0.9 - v.dark * 4;
+    // jumpscare: nastro VHS rovinato, più forte all'impatto e a strappi
+    let glitch = 0;
+    if (js) {
+      const spike = hash1(Math.floor(js.t * 7) + 3) > 0.72 ? 0.35 : 0;
+      glitch = Math.min(1, 0.3 + 0.55 * Math.exp(-js.t * 4) + spike) * (this.d.options.reduceFlash ? 0.4 : 1);
+    }
     st.frame({
       layers: this.layerDraws(),
       overlay: this.overlay(),
@@ -873,6 +917,7 @@ export class Night {
       exposure: st.brightness + dawnExposure * 0.5 - (js && js.t > 1.4 ? (js.t - 1.4) * 6 : 0),
       flash,
       flashColor,
+      glitch,
       fade: 1 - v.dark * 0.9,
       glows: st.landscapeGlows(eyes.world),
       boatGlows: eyes.boat,

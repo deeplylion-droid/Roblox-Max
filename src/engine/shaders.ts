@@ -120,11 +120,18 @@ uniform vec2 uOffset;
 uniform float uZoom;
 uniform float uAlpha;
 uniform float uFlip;     // 1 = specchiata (Molly dal lato sinistro)
+uniform float uRoll;     // rollio della camera (radianti)
 
 vec3 dec(vec4 t, float s) { vec3 c = t.rgb * t.rgb; return c * c * s; }
 
 void main() {
-  vec2 uv = (vUv - 0.5) * uFit / uZoom + 0.5 + uOffset;
+  vec2 p = (vUv - 0.5) * uFit;
+  // il rollio gira l'inquadratura attorno al centro (in unità isotrope dell'immagine)
+  p.x *= uAspect;
+  float cr = cos(uRoll), sr = sin(uRoll);
+  p = vec2(cr * p.x - sr * p.y, sr * p.x + cr * p.y);
+  p.x /= uAspect;
+  vec2 uv = p / uZoom + 0.5 + uOffset;
   if (uFlip > 0.5) uv.x = 1.0 - uv.x;
   uv = clamp(uv, vec2(0.0), vec2(1.0));
   vec2 tuv = vec2(uv.x, 1.0 - uv.y);
@@ -293,8 +300,29 @@ out vec4 frag;
 ${NOISE}
 uniform sampler2D uHdr, uBloom;
 uniform float uExposure, uBloomAmt, uTime, uGrain, uVignette, uAberration, uFade, uFlash;
+uniform float uGlitch;   // 0..1: nastro VHS rovinato (jumpscare)
 uniform vec3 uFlashColor;
 uniform vec2 uRes;
+
+float luma(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
+
+/** VHS rovinata: di quanto scorre di lato ogni riga (onda del nastro, strappi, cambio testine).
+ *  tear = 1 dentro una banda strappata. fr cambia 15 volte al secondo. */
+float vhsShift(float y, float fr, float t, out float tear) {
+  float s = (sin(y * 31.0 + t * 19.0) * 0.6 + sin(y * 87.0 - t * 43.0) * 0.4) * 0.0012;
+  tear = 0.0;
+  for (int i = 0; i < 3; i++) {
+    float fi = float(i) * 13.0;
+    float y0 = hash12(vec2(fr, fi + 1.0));
+    float h = 0.006 + 0.045 * hash12(vec2(fr, fi + 2.0));
+    float on = step(0.5, hash12(vec2(fr, fi + 3.0))) * step(y0, y) * step(y, y0 + h);
+    s += on * (hash12(vec2(fr, fi + 4.0)) - 0.3) * 0.06;
+    tear = max(tear, on);
+  }
+  float hsw = 1.0 - smoothstep(0.0, 0.035, y);
+  s += hsw * (0.015 + 0.035 * hash12(vec2(floor(y * 240.0), fr)));
+  return s;
+}
 
 const mat3 AGX = mat3(0.842479062253094, 0.0423282422610123, 0.0423756549057051,
                       0.0784335999999992, 0.878468636469772, 0.0784336,
@@ -325,13 +353,48 @@ void main() {
   float r2 = dot(cc, cc);
   // aberrazione cromatica ai bordi
   vec2 ab = cc * r2 * uAberration;
-  vec3 hdr = vec3(texture(uHdr, uv + ab).r, texture(uHdr, uv).g, texture(uHdr, uv - ab).b);
-  hdr += texture(uBloom, uv).rgb * uBloomAmt;
+  float k = uGlitch;
+  float fr = floor(uTime * 15.0);
+  float tear = 0.0;
+  vec2 suv = uv;
+  vec3 hdr;
+  if (k > 0.0) {
+    // righe che scorrono di lato e un piccolo sobbalzo verticale; fuori dal quadro, nero
+    suv = vec2(uv.x + vhsShift(uv.y, fr, uTime, tear) * k, uv.y + (hash12(vec2(fr, 7.7)) - 0.5) * 0.004 * k);
+    vec3 sharp = vec3(texture(uHdr, suv + ab).r, texture(uHdr, suv).g, texture(uHdr, suv - ab).b);
+    // la crominanza della VHS è sbavata e spostata a destra; la luminanza resta nitida
+    vec3 smear = vec3(0.0);
+    for (int i = 0; i < 6; i++) smear += texture(uHdr, suv + vec2((float(i) - 1.5) * 0.0024 - 0.002, 0.0) * k).rgb;
+    smear /= 6.0;
+    vec3 vhs = max(vec3(0.0), luma(sharp) + (smear - luma(smear)) * 1.15);
+    hdr = mix(sharp, vhs, min(1.0, k * 1.5)) * step(0.0, suv.x) * step(suv.x, 1.0);
+  } else {
+    hdr = vec3(texture(uHdr, uv + ab).r, texture(uHdr, uv).g, texture(uHdr, uv - ab).b);
+  }
+  hdr += texture(uBloom, suv).rgb * uBloomAmt;
   hdr *= exp2(uExposure);
   vec3 col = agx(hdr);
   col *= 1.0 - uVignette * smoothstep(0.08, 0.6, r2);
   float g = hash12(uv * uRes + fract(uTime * 37.0) * 400.0) - 0.5;
   col += g * uGrain * (0.6 + 0.4 * (1.0 - dot(col, vec3(0.333))));
+  if (k > 0.0) {
+    // nastro consumato: colori smorti, neri lattiginosi, righe, neve, tratti bianchi, rumore in fondo
+    col = mix(col, vec3(luma(col)), 0.25 * k);
+    col = col * (1.0 - 0.05 * k) + vec3(0.016, 0.018, 0.022) * k;
+    col *= 1.0 - 0.09 * k * (0.5 + 0.5 * sin(uv.y * uRes.y * 1.5708));
+    float row = floor(uv.y * uRes.y * 0.5);
+    float x0 = hash12(vec2(row, fr + 3.0));
+    float len = 0.02 + 0.16 * hash12(vec2(row, fr + 5.0));
+    float dash = step(0.995, hash12(vec2(row, fr))) * step(x0, uv.x) * step(uv.x, x0 + len) * (1.0 - (uv.x - x0) / len);
+    col += dash * 0.55 * k;
+    float snow = hash12(uv * uRes + fract(uTime * 61.0) * 911.0) - 0.5;
+    col += snow * (0.09 + 0.25 * tear) * k;
+    float hsw = 1.0 - smoothstep(0.0, 0.035, uv.y);
+    col = mix(col, vec3(hash12(vec2(floor(uv.x * uRes.x * 0.25), row + fr)) * 0.6), hsw * 0.6 * k);
+    // banda di disturbo che scorre verso l'alto
+    float band = fract(uv.y * 0.6 - uTime * 0.45);
+    col += vec3(0.045) * k * smoothstep(0.86, 1.0, band) * (0.5 + 0.5 * hash12(vec2(row, fr + 9.0)));
+  }
   col = mix(col, uFlashColor, uFlash);
   col *= uFade;
   col += (hash12(uv * uRes * 1.3 + 7.0) - 0.5) / 255.0;   // dithering

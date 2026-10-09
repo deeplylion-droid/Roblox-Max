@@ -89,8 +89,12 @@ async function boot(): Promise<void> {
   screens.clear();
   const app = new App(stage, audio, new Sfx(audio), canvas, ui, assets, save, lang);
   app.begin();
-  loop((dt) => app.frame(dt));
-  (window as unknown as { __game: unknown }).__game = { app, stage, renderer: r, audio };
+  // ?step: niente ciclo continuo, il tempo avanza solo con __game.step (catture fotogramma per fotogramma)
+  if (!params.has('step')) loop((dt) => app.frame(dt));
+  const step = (dt: number, n = 1) => {
+    for (let i = 0; i < n; i++) app.frame(dt);
+  };
+  (window as unknown as { __game: unknown }).__game = { app, stage, renderer: r, audio, step };
 }
 
 boot().catch((e) => {

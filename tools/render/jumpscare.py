@@ -77,13 +77,13 @@ def molly_attack():
 
 def hatch_attack():
     import hatch
-    o = (0.0, -2.45, 0.58)                            # in piedi sul ponte di poppa, già piegato su di te
-    M0 = sc.M_of(o, yaw=sc.facing_yaw(o), pitch=38.0)
-    obs = hatch.build(viewer=sc.to_local(M0, EYE))
-    lights = [ob for ob in bpy.data.objects if ob.type == 'LIGHT' and ob.name.startswith('ToyLight')]
-    for li in lights:
-        li.data.energy = 3.0
-    obs = sc.place(obs + lights, M0)
+    # dalla sua posa di gioco (in acqua dietro la poppa, piegato sulla barca) si avventa su di te.
+    # In piedi sul ponte di poppa non si può: è così alto che la testa finirebbe sopra di te, fuori quadro.
+    obs = sc.hatch_conta()
+    M0 = sc.LAST_M['hatch_conta']
+    for li in bpy.data.objects:
+        if li.type == 'LIGHT' and li.name.startswith('ToyLight'):
+            li.data.energy = 6.0                       # da vicino basta meno che a qualche metro
     head = hatch.HEAD.pos
     M1 = _toward_eye(M0, head, 0.34, extra_pitch=14.0)
     aim = M0 @ Vector(tuple(map(float, head)))
