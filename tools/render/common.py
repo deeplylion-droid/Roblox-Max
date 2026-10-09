@@ -23,7 +23,8 @@ import numpy as np
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 CACHE = os.path.join(ROOT, 'tools', 'render', 'cache')
-OUT_IMG = os.path.join(ROOT, 'public', 'assets', 'img')
+# RENDER_OUT: scrivere da un'altra parte (i render finali si preparano a parte e si installano tutti insieme)
+OUT_IMG = os.environ.get('RENDER_OUT') or os.path.join(ROOT, 'public', 'assets', 'img')
 
 EYE = (0.0, -0.55, 1.25)          # occhio del pescatore seduto sul banco
 LAT_MIN, LAT_MAX = -58.0, 36.0    # gradi coperti dal panorama in verticale
@@ -287,7 +288,7 @@ class Quality:
 QUALITY = {
     'draft': Quality('draft', 24, 2048, 0.5),
     'preview': Quality('preview', 64, 4096, 0.75),
-    'final': Quality('final', 160, PANO_W_FINAL, 1.0),
+    'final': Quality('final', 128, PANO_W_FINAL, 1.0),
 }
 
 
