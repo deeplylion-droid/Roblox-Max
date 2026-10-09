@@ -31,7 +31,7 @@ Horror in prima persona a inquadratura fissa (alla *Five Nights at Freddy's*): s
 | Sonar a tutto schermo | barra in alto | `Tab` |
 | Pausa | | `Esc` |
 
-- **Binocolo (da fare)**: zoom sugli elementi dello sfondo per vederne una versione ingrandita.
+- **Binocolo (da fare) — easter egg**: lo alzi con un tasto, la vista si stringe nei due cerchi e zooma forte sui luoghi dell'orizzonte, renderizzati a parte ad alta risoluzione. Mentre guardi nel binocolo non vedi la barca. Non serve a superare la notte: è un easter egg. Alcuni dettagli di lore si vedono solo così, e restano **criptici al massimo**.
 
 ## 4. Struttura della notte
 
@@ -55,6 +55,7 @@ Horror in prima persona a inquadratura fissa (alla *Five Nights at Freddy's*): s
 - La rarità e le specie disponibili dipendono dalla notte, dall'ora e dal livello della lampara: alcuni pesci abboccano solo al buio, altri solo quando una creatura è vicina.
 - Le specie diverse hanno anche un comportamento diverso al recupero (strattoni più o meno forti e frequenti).
 - Il Catalogo resta tra una partita e l'altra: è un obiettivo di collezione e un motivo per rigiocare le notti.
+- **Come lo facciamo**: prima la lista dei nomi (circa cento) da approvare, poi un primo gruppo di 5 pesci renderizzati, poi tutti gli altri.
 
 ## 6. La lampara
 
@@ -69,7 +70,7 @@ Horror in prima persona a inquadratura fissa (alla *Five Nights at Freddy's*): s
 Sono i bambini spariti a **Splashland** nel 1997, presi e trasformati dalla Madre (vedi `LORE.md`). Non sono cuccioli e non sono carini: sono **allungati, magri, sproporzionati** (riferimento: SCP-096 "Shy Guy"), pelle grigio-pallida e bagnata, occhi bianchi senza pigmento, collo e arti troppo lunghi, dita palmate lunghissime, branchie sul collo. Il tocco "family friendly" c'è ma è distorto fino all'orrore, come il bavaglino di Chica in FNAF: ognuno porta ancora addosso qualcosa del parco. I nomi vengono da nomi inglesi di pesci, accorciati come diminutivi da bambino.
 
 > Il design visivo si definisce insieme (tavole in `docs/concept/`).
-> - **Gulpy**: sagoma C «Avvoltoio», testa B «Cerniera».
+> - **Gulpy**: sagoma C «Avvoltoio», testa B «Cerniera». Modello dettagliato **approvato** (`tools/render/gulpy.py`).
 > - **Molly**: sagoma C «Dita», testa B «Luna».
 > - **Hatch**: sagoma C «Spilungone», testa A «Pescatrice».
 >
@@ -100,7 +101,7 @@ Ispirato alla rana pescatrice e all'*hatchetfish*. Sagoma C: un bipede altissimo
 
 ## 8. Sonar
 
-Un piccolo ecoscandaglio portatile appoggiato sul ponte di poppa. È soprattutto **scenografico**: lo schermo verde col fascio che gira e i puntini dei pesci. Ha un solo compito di gioco: **avvisare quando sta per arrivare una creatura**, così non ti coglie di sorpresa mentre stai pescando (come si avvisa è da definire).
+Un piccolo ecoscandaglio portatile appoggiato sul ponte di poppa. È soprattutto **scenografico**: lo schermo verde col fascio che gira e i puntini dei pesci. Ha un solo compito di gioco: **avvisare quando sta per arrivare una creatura**, così non ti coglie di sorpresa mentre stai pescando. Qualche secondo prima dell'arrivo, sullo schermo compare un'ombra grande dal lato da cui arriva, con un bip diverso dal solito.
 
 ## 9. Morte e sconfitta
 
