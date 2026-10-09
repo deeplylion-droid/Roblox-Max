@@ -21,9 +21,9 @@ function quiet(): NightConfig {
   const far = 1e9;
   return {
     ...N1,
-    pappo: { ...N1.pappo, firstAt: far },
-    lulu: { ...N1.lulu, firstAt: far },
-    cucu: { ...N1.cucu, firstAt: far },
+    gulpy: { ...N1.gulpy, firstAt: far },
+    molly: { ...N1.molly, firstAt: far },
+    hatch: { ...N1.hatch, firstAt: far },
   };
 }
 
@@ -102,62 +102,62 @@ describe('NightSim', () => {
     expect(wait(1)).toBeLessThan(wait(0));
   });
 
-  it('Pappo affamato ti mangia se non lo sfami', () => {
+  it('Gulpy affamato ti mangia se non lo sfami', () => {
     const sim = new NightSim(N1, 9);
-    const ev = run(sim, N1.pappo.firstAt + 30);
-    expect(ev.some((e) => e.t === 'pappo' && e.e === 'attack')).toBe(true);
-    expect(sim.outcome).toEqual({ kind: 'dead', killer: 'pappo' });
+    const ev = run(sim, N1.gulpy.firstAt + 30);
+    expect(ev.some((e) => e.t === 'gulpy' && e.e === 'attack')).toBe(true);
+    expect(sim.outcome).toEqual({ kind: 'dead', killer: 'gulpy' });
   });
 
-  it('Pappo se ne va contento se gli lanci un pesce', () => {
+  it('Gulpy se ne va contento se gli lanci un pesce', () => {
     const sim = new NightSim(N1, 9);
     sim.fish = 3;
     sim.setView(0, false);
-    const ev = run(sim, N1.pappo.firstAt + 30, (s) => {
-      if (s.pappo.state === 'demanding') s.throwFish();
+    const ev = run(sim, N1.gulpy.firstAt + 30, (s) => {
+      if (s.gulpy.state === 'demanding') s.throwFish();
     });
-    expect(ev.some((e) => e.t === 'pappo' && e.e === 'fed')).toBe(true);
+    expect(ev.some((e) => e.t === 'gulpy' && e.e === 'fed')).toBe(true);
     expect(sim.fish).toBe(2);
-    expect(sim.pappo.state).not.toBe('attack');
+    expect(sim.gulpy.state).not.toBe('attack');
   });
 
-  it('Lulù se ne va se la guardi, affonda la barca se la ignori', () => {
-    const cfg: NightConfig = { ...N1, pappo: { ...N1.pappo, firstAt: 1e9 }, cucu: { ...N1.cucu, firstAt: 1e9 } };
+  it('Molly se ne va se la guardi, affonda la barca se la ignori', () => {
+    const cfg: NightConfig = { ...N1, gulpy: { ...N1.gulpy, firstAt: 1e9 }, hatch: { ...N1.hatch, firstAt: 1e9 } };
     const good = new NightSim(cfg, 11);
     good.fish = 9;
-    const evGood = run(good, cfg.lulu.firstAt + 25, (s) => s.setView(s.lulu.state === 'peeking' ? s.lulu.yaw : 0, false));
-    expect(evGood.some((e) => e.t === 'lulu' && e.e === 'giggle')).toBe(true);
+    const evGood = run(good, cfg.molly.firstAt + 25, (s) => s.setView(s.molly.state === 'peeking' ? s.molly.yaw : 0, false));
+    expect(evGood.some((e) => e.t === 'molly' && e.e === 'giggle')).toBe(true);
     expect(good.playing).toBe(true);
 
     const bad = new NightSim(cfg, 11);
-    run(bad, cfg.lulu.firstAt + 40, (s) => s.setView(s.lulu.side === 'left' ? 90 : -90, false));
-    expect(bad.outcome).toEqual({ kind: 'dead', killer: 'lulu' });
+    run(bad, cfg.molly.firstAt + 40, (s) => s.setView(s.molly.side === 'left' ? 90 : -90, false));
+    expect(bad.outcome).toEqual({ kind: 'dead', killer: 'molly' });
   });
 
-  it('Cucù ti trova se non sei sotto il telone, ti risparmia se ti nascondi', () => {
-    const cfg: NightConfig = { ...N1, pappo: { ...N1.pappo, firstAt: 1e9 }, lulu: { ...N1.lulu, firstAt: 1e9 } };
+  it('Hatch ti trova se non sei sotto il telone, ti risparmia se ti nascondi', () => {
+    const cfg: NightConfig = { ...N1, gulpy: { ...N1.gulpy, firstAt: 1e9 }, molly: { ...N1.molly, firstAt: 1e9 } };
     const bad = new NightSim(cfg, 13);
-    run(bad, cfg.cucu.firstAt + 20);
-    expect(bad.outcome).toEqual({ kind: 'dead', killer: 'cucu' });
+    run(bad, cfg.hatch.firstAt + 20);
+    expect(bad.outcome).toEqual({ kind: 'dead', killer: 'hatch' });
 
     const good = new NightSim(cfg, 13);
     good.fish = 9;
-    const ev = run(good, cfg.cucu.firstAt + 40, (s) => {
-      if (s.cucu.state === 'counting' && s.cucu.count >= 3 && s.hide === 'out') s.toggleHide();
-      if (s.cucu.state === 'away' && s.hide === 'in') s.toggleHide();
+    const ev = run(good, cfg.hatch.firstAt + 40, (s) => {
+      if (s.hatch.state === 'counting' && s.hatch.count >= 6 && s.hide === 'out') s.toggleHide();
+      if (s.hatch.state === 'away' && s.hide === 'in') s.toggleHide();
     });
-    expect(ev.some((e) => e.t === 'cucu' && e.e === 'leave')).toBe(true);
+    expect(ev.some((e) => e.t === 'hatch' && e.e === 'leave')).toBe(true);
     expect(good.playing).toBe(true);
   });
 
-  it('uscire dal telone mentre Cucù cerca è fatale', () => {
-    const cfg: NightConfig = { ...N1, pappo: { ...N1.pappo, firstAt: 1e9 }, lulu: { ...N1.lulu, firstAt: 1e9 } };
+  it('uscire dal telone mentre Hatch cerca è fatale', () => {
+    const cfg: NightConfig = { ...N1, gulpy: { ...N1.gulpy, firstAt: 1e9 }, molly: { ...N1.molly, firstAt: 1e9 } };
     const sim = new NightSim(cfg, 13);
-    run(sim, cfg.cucu.firstAt + 40, (s) => {
-      if (s.cucu.state === 'counting' && s.hide === 'out') s.toggleHide();
-      if (s.cucu.state === 'searching' && s.hide === 'in') s.toggleHide();
+    run(sim, cfg.hatch.firstAt + 40, (s) => {
+      if (s.hatch.state === 'counting' && s.hide === 'out') s.toggleHide();
+      if (s.hatch.state === 'searching' && s.hide === 'in') s.toggleHide();
     });
-    expect(sim.outcome).toEqual({ kind: 'dead', killer: 'cucu' });
+    expect(sim.outcome).toEqual({ kind: 'dead', killer: 'hatch' });
   });
 
   it('il frammento di lore garantito arriva alla quarta cattura', () => {
@@ -168,7 +168,7 @@ describe('NightSim', () => {
       if (s.fishing.phase === 'reeling') s.setReelHeld(s.fishing.tension < 0.6 && !s.fishing.pulling);
     });
     expect(sim.landedCount).toBeGreaterThanOrEqual(4);
-    expect(sim.loreThisNight[0]).toBe('pacifier');
+    expect(sim.loreThisNight[0]).toBe('wristband');
   });
 
   it('un bot esperto supera quasi sempre la prima notte', () => {

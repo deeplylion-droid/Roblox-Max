@@ -1,8 +1,8 @@
-import { LAMP, angleDiff, VIEW, YAW, type CucuConfig, type LampLevel, type LuluConfig, type MonsterId, type PappoConfig, type Side } from './config.ts';
+import { LAMP, angleDiff, VIEW, YAW, type HatchConfig, type LampLevel, type MollyConfig, type MonsterId, type GulpyConfig, type Side } from './config.ts';
 import type { GameEvent } from './events.ts';
 import type { Rng } from './rng.ts';
 
-/** Ciò che i Piccoli possono sapere del pescatore e del mondo. */
+/** Ciò che le creature possono sapere del pescatore e del mondo. */
 export interface WorldView {
   time: number;
   hour: number;
@@ -29,19 +29,19 @@ function cooldown(w: WorldView, range: [number, number]): number {
   return w.rng.range(range[0], range[1]) / w.activity;
 }
 
-// ───────────────────────── Pappo: prua, va sfamato ─────────────────────────
+// ───────────────────────── Gulpy: prua, va sfamato ─────────────────────────
 
-export type PappoState = 'dormant' | 'away' | 'rising' | 'climbing' | 'demanding' | 'eating' | 'leaving' | 'attack';
+export type GulpyState = 'dormant' | 'away' | 'rising' | 'climbing' | 'demanding' | 'eating' | 'leaving' | 'attack';
 
-export class Pappo {
-  state: PappoState = 'dormant';
+export class Gulpy {
+  state: GulpyState = 'dormant';
   timer: number;
   /** 0..1 dentro lo stato corrente, per l'animazione */
   phase = 0;
   private stateTime = 0;
   private gurgleTimer = 0;
 
-  constructor(private cfg: PappoConfig) {
+  constructor(private cfg: GulpyConfig) {
     this.timer = cfg.firstAt;
   }
 
@@ -54,7 +54,7 @@ export class Pappo {
     return this.state === 'rising' || this.state === 'climbing' || this.state === 'demanding';
   }
 
-  private go(s: PappoState, t: number): void {
+  private go(s: GulpyState, t: number): void {
     this.state = s;
     this.timer = t;
     this.stateTime = t;
@@ -62,10 +62,10 @@ export class Pappo {
 
   feed(w: WorldView): void {
     if (this.state === 'rising') {
-      w.emit({ t: 'pappo', e: 'fedEarly' });
+      w.emit({ t: 'gulpy', e: 'fedEarly' });
       this.go('leaving', 2.2);
     } else {
-      w.emit({ t: 'pappo', e: 'fed' });
+      w.emit({ t: 'gulpy', e: 'fed' });
       this.go('eating', this.cfg.eat);
     }
   }
@@ -77,9 +77,9 @@ export class Pappo {
       case 'dormant':
       case 'away':
         if (this.timer <= 0) {
-          if (w.mayStart('pappo')) {
-            w.started('pappo');
-            w.emit({ t: 'pappo', e: 'rise' });
+          if (w.mayStart('gulpy')) {
+            w.started('gulpy');
+            w.emit({ t: 'gulpy', e: 'rise' });
             this.go('rising', this.cfg.rise);
             this.gurgleTimer = 1.0;
           } else {
@@ -90,14 +90,14 @@ export class Pappo {
       case 'rising':
         this.gurgle(dt, w);
         if (this.timer <= 0) {
-          w.emit({ t: 'pappo', e: 'climb' });
+          w.emit({ t: 'gulpy', e: 'climb' });
           this.go('climbing', this.cfg.climb);
         }
         break;
       case 'climbing':
         this.gurgle(dt, w);
         if (this.timer <= 0) {
-          w.emit({ t: 'pappo', e: 'demand' });
+          w.emit({ t: 'gulpy', e: 'demand' });
           this.go('demanding', this.cfg.patience);
         }
         break;
@@ -105,18 +105,18 @@ export class Pappo {
         this.gurgle(dt, w, 1.6);
         if (this.timer <= 0) {
           this.state = 'attack';
-          w.emit({ t: 'pappo', e: 'attack' });
+          w.emit({ t: 'gulpy', e: 'attack' });
         }
         break;
       case 'eating':
         if (this.timer <= 0) {
-          w.emit({ t: 'pappo', e: 'leave' });
+          w.emit({ t: 'gulpy', e: 'leave' });
           this.go('leaving', 2.2);
         }
         break;
       case 'leaving':
         if (this.timer <= 0) {
-          w.emit({ t: 'pappo', e: 'gone' });
+          w.emit({ t: 'gulpy', e: 'gone' });
           this.go('away', cooldown(w, this.cfg.cooldown));
         }
         break;
@@ -128,18 +128,18 @@ export class Pappo {
   private gurgle(dt: number, w: WorldView, rate = 1): void {
     this.gurgleTimer -= dt * rate;
     if (this.gurgleTimer <= 0) {
-      w.emit({ t: 'pappo', e: 'gurgle' });
+      w.emit({ t: 'gulpy', e: 'gurgle' });
       this.gurgleTimer = w.rng.range(2.2, 3.6);
     }
   }
 }
 
-// ───────────────────────── Lulù: fianchi, va guardata ─────────────────────────
+// ───────────────────────── Molly: fianchi, va guardata ─────────────────────────
 
-export type LuluState = 'dormant' | 'away' | 'knocking' | 'peeking' | 'tantrum' | 'leaving' | 'attack';
+export type MollyState = 'dormant' | 'away' | 'knocking' | 'peeking' | 'tantrum' | 'leaving' | 'attack';
 
-export class Lulu {
-  state: LuluState = 'dormant';
+export class Molly {
+  state: MollyState = 'dormant';
   side: Side = 'left';
   timer: number;
   attention = 0;
@@ -148,12 +148,12 @@ export class Lulu {
   private knockTimer = 0;
   private whined = false;
 
-  constructor(private cfg: LuluConfig) {
+  constructor(private cfg: MollyConfig) {
     this.timer = cfg.firstAt;
   }
 
   get yaw(): number {
-    return this.side === 'left' ? YAW.luluLeft : YAW.luluRight;
+    return this.side === 'left' ? YAW.mollyLeft : YAW.mollyRight;
   }
 
   get present(): boolean {
@@ -173,8 +173,8 @@ export class Lulu {
       case 'dormant':
       case 'away':
         if (this.timer <= 0) {
-          if (w.mayStart('lulu')) {
-            w.started('lulu');
+          if (w.mayStart('molly')) {
+            w.started('molly');
             this.side = w.rng.chance(0.5) ? 'left' : 'right';
             this.state = 'knocking';
             this.timer = this.cfg.knock;
@@ -187,7 +187,7 @@ export class Lulu {
       case 'knocking':
         this.knockTimer -= dt;
         if (this.knockTimer <= 0) {
-          w.emit({ t: 'lulu', e: 'knock', side: this.side });
+          w.emit({ t: 'molly', e: 'knock', side: this.side });
           this.knockTimer = 1.7;
         }
         if (this.timer <= 0) {
@@ -196,7 +196,7 @@ export class Lulu {
           this.neglect = 0;
           this.tantrum = 0;
           this.whined = false;
-          w.emit({ t: 'lulu', e: 'peek', side: this.side });
+          w.emit({ t: 'molly', e: 'peek', side: this.side });
         }
         break;
       case 'peeking':
@@ -204,7 +204,7 @@ export class Lulu {
           this.attention += dt;
           this.neglect = Math.max(0, this.neglect - dt * 0.5);
           if (this.attention >= this.cfg.attention) {
-            w.emit({ t: 'lulu', e: 'giggle', side: this.side });
+            w.emit({ t: 'molly', e: 'giggle', side: this.side });
             this.state = 'leaving';
             this.timer = 2.4;
           }
@@ -212,12 +212,12 @@ export class Lulu {
           this.neglect += dt;
           if (!this.whined && this.neglect > this.cfg.neglectMax * 0.55) {
             this.whined = true;
-            w.emit({ t: 'lulu', e: 'whine', side: this.side });
+            w.emit({ t: 'molly', e: 'whine', side: this.side });
           }
           if (this.neglect >= this.cfg.neglectMax) {
             this.state = 'tantrum';
             this.tantrum = 0;
-            w.emit({ t: 'lulu', e: 'tantrum', side: this.side });
+            w.emit({ t: 'molly', e: 'tantrum', side: this.side });
           }
         }
         break;
@@ -230,19 +230,19 @@ export class Lulu {
             this.neglect = this.cfg.neglectMax * 0.4;
             this.attention = Math.min(this.attention, this.cfg.attention * 0.5);
             this.whined = true;
-            w.emit({ t: 'lulu', e: 'calm', side: this.side });
+            w.emit({ t: 'molly', e: 'calm', side: this.side });
           }
         } else {
           this.tantrum += dt;
           if (this.tantrum >= this.cfg.tantrumMax) {
             this.state = 'attack';
-            w.emit({ t: 'lulu', e: 'attack', side: this.side });
+            w.emit({ t: 'molly', e: 'attack', side: this.side });
           }
         }
         break;
       case 'leaving':
         if (this.timer <= 0) {
-          w.emit({ t: 'lulu', e: 'gone', side: this.side });
+          w.emit({ t: 'molly', e: 'gone', side: this.side });
           this.state = 'away';
           this.timer = cooldown(w, this.cfg.cooldown);
         }
@@ -253,15 +253,15 @@ export class Lulu {
   }
 }
 
-// ───────────────────────── Cucù: poppa, nascondino ─────────────────────────
+// ───────────────────────── Hatch: poppa, nascondino ─────────────────────────
 
-/** secondi tra l'ultimo cucù e il momento in cui è davvero a bordo */
+/** secondi tra l'ultimo hatch e il momento in cui è davvero a bordo */
 export const BOARD_TIME = 1.3;
 
-export type CucuState = 'dormant' | 'away' | 'counting' | 'boarding' | 'searching' | 'leaving' | 'attack';
+export type HatchState = 'dormant' | 'away' | 'counting' | 'boarding' | 'searching' | 'leaving' | 'attack';
 
-export class Cucu {
-  state: CucuState = 'dormant';
+export class Hatch {
+  state: HatchState = 'dormant';
   timer: number;
   count = 0;
   /** posizione della lucina durante la perquisizione (-1..1 da sinistra a destra) */
@@ -269,7 +269,7 @@ export class Cucu {
   private stepTimer = 0;
   private searchTotal = 0;
 
-  constructor(private cfg: CucuConfig) {
+  constructor(private cfg: HatchConfig) {
     this.timer = cfg.firstAt;
   }
 
@@ -293,8 +293,8 @@ export class Cucu {
       case 'dormant':
       case 'away':
         if (this.timer <= 0) {
-          if (w.mayStart('cucu')) {
-            w.started('cucu');
+          if (w.mayStart('hatch')) {
+            w.started('hatch');
             this.state = 'counting';
             this.count = 0;
             this.timer = 0.4;
@@ -307,12 +307,12 @@ export class Cucu {
         if (this.timer <= 0) {
           this.count++;
           const last = this.count >= this.cfg.calls;
-          w.emit({ t: 'cucu', e: 'count', n: this.count, last });
+          w.emit({ t: 'hatch', e: 'count', n: this.count, last });
           if (last) {
-            // l'ultimo cucù: si arrampica sulla poppa
+            // l'ultimo hatch: si arrampica sulla poppa
             this.state = 'boarding';
             this.timer = BOARD_TIME;
-            w.emit({ t: 'cucu', e: 'board' });
+            w.emit({ t: 'hatch', e: 'board' });
           } else {
             this.timer = this.cfg.callInterval;
           }
@@ -323,7 +323,7 @@ export class Cucu {
           // è a bordo: se non sei già sotto il telone ti trova
           if (!hiding.hidden) {
             this.state = 'attack';
-            w.emit({ t: 'cucu', e: 'attack' });
+            w.emit({ t: 'hatch', e: 'attack' });
             break;
           }
           this.state = 'searching';
@@ -336,7 +336,7 @@ export class Cucu {
       case 'searching': {
         if (!hiding.hidden) {
           this.state = 'attack';
-          w.emit({ t: 'cucu', e: 'attack' });
+          w.emit({ t: 'hatch', e: 'attack' });
           break;
         }
         const p = this.searchProgress;
@@ -344,11 +344,11 @@ export class Cucu {
         this.stepTimer -= dt;
         if (this.stepTimer <= 0) {
           const sniff = w.rng.chance(0.3);
-          w.emit({ t: 'cucu', e: sniff ? 'sniff' : 'step' });
+          w.emit({ t: 'hatch', e: sniff ? 'sniff' : 'step' });
           this.stepTimer = w.rng.range(0.6, 1.3);
         }
         if (this.timer <= 0) {
-          w.emit({ t: 'cucu', e: 'leave' });
+          w.emit({ t: 'hatch', e: 'leave' });
           this.state = 'leaving';
           this.timer = 1.8;
         }
@@ -356,7 +356,7 @@ export class Cucu {
       }
       case 'leaving':
         if (this.timer <= 0) {
-          w.emit({ t: 'cucu', e: 'gone' });
+          w.emit({ t: 'hatch', e: 'gone' });
           this.state = 'away';
           this.timer = cooldown(w, this.cfg.cooldown);
         }

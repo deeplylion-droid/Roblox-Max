@@ -32,7 +32,9 @@ from mathutils import Vector  # noqa: E402
 
 import boat  # noqa: E402
 import env  # noqa: E402
+import landmarks  # noqa: E402
 import post  # noqa: E402
+import props  # noqa: E402
 from common import (CACHE, EYE, LAT_MAX, LAT_MIN, OUT_IMG, QUALITY, IDX_WATER, log, pano_size,  # noqa: E402
                     panorama_camera, render, reset_scene)
 
@@ -41,10 +43,17 @@ MANIFEST = os.path.join(OUT_IMG, 'manifest.json')
 
 # ───────────────────────── scena ─────────────────────────
 
+LIGHT_POINTS = {}
+
+
 def build_scene(fish=0, rod=False):
     reset_scene()
     info = env.build_environment(with_glow=True)
+    LIGHT_POINTS.clear()
+    LIGHT_POINTS.update(landmarks.build_landmarks())
+    LIGHT_POINTS['lighthouse'] = tuple(info['lighthouse'])
     parts, mats = boat.build_boat(fish_in_bucket=fish, rod=rod)
+    parts['props'] += props.build_props()
     return info, parts, mats
 
 
@@ -170,6 +179,9 @@ def write_globals(width):
         'lighthouseYaw': env.LIGHTHOUSE_YAW,
         'moonYaw': env.MOON_YAW, 'moonElev': env.MOON_ELEV,
     })
+    # luci animate dal motore (lampeggi, sfarfallii): direzioni dall'occhio
+    if LIGHT_POINTS:
+        post.update_manifest(MANIFEST, 'lights', {k: rel(v) for k, v in LIGHT_POINTS.items()})
 
 
 # ───────────────────────── job ─────────────────────────

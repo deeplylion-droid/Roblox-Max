@@ -63,40 +63,12 @@ Rigenerazione: `tools/.venv/bin/python tools/audio/generate.py` (deterministico:
 
 `voice_01` … `voice_24` (60–220 ms ciascuno): sillabe borbottate di un vecchio pescatore, voce roca e bassa (fondamentale ~95–120 Hz con jitter), vocali diverse (a, e, i, o, u con formanti realistiche) e consonanti accennate, già filtrate come una radio (passa-banda 300–3000 Hz, leggera saturazione). Il gioco le concatena a caso mentre scorrono i sottotitoli (stile "animalese" ma umano e malinconico).
 
-## I Piccoli (mono)
+## Le creature (mono) — da definire
 
-**Pappo** (rospo-neonato, grosso): voce gorgogliante e umida, da neonato affamato.
-| id | durata | descrizione |
-|---|---|---|
-| `pappo_gurgle_1`…`_3` | 1–1,6 s | "Gnaa… gnaa" gorgogliato, affamato, con bolle. |
-| `pappo_climb` | 1,1 s | Schiaffo bagnato pesante sul legno + scricchiolio (sale sulla prua). |
-| `pappo_munch` | 2,2 s | Masticazione golosa, deglutizione, risatina soddisfatta. |
-| `pappo_clap` | 0,8 s | Manine bagnate che applaudono. |
-| `pappo_jumpscare` | 2,2 s | Ruggito-urlo gorgogliante, fortissimo, gola enorme. |
-
-**Lulù** (axolotl-bambina): voce acuta, bolle, pianto infantile distorto.
-| id | durata | descrizione |
-|---|---|---|
-| `lulu_knock` | 1,3 s | "Toc toc toc" sullo scafo, attutito, sentito da dentro la barca. |
-| `lulu_giggle` | 1 s | Risatina gorgogliante. |
-| `lulu_whine` | 2 s | Lamento che sale (si sta offendendo). |
-| `lulu_cry_loop` | 3 s | Pianto disperato distorto, loop. |
-| `lulu_bubble` | 0,7 s | Bolla soffiata e scoppio. |
-| `lulu_rock` | 2 s | La barca dondola forte: legno che geme + acqua che sbatte. |
-| `lulu_sink` | 3,5 s | Acqua che entra a fiotti, legno che cede. **Stereo**. |
-| `lulu_jumpscare` | 2 s | Strillo acutissimo e bagnato. |
-
-**Cucù** (pesce-rana con l'esca luminosa): conta col verso di un orologio a cucù.
-| id | durata | descrizione |
-|---|---|---|
-| `cucu_call` | 0,9 s | "Cu-cù": due note discendenti (terza minore, ~700→590 Hz) come le canne di un orologio a cucù, ma umide e un po' stonate. |
-| `cucu_call_last` | 1,2 s | L'ultimo "cu-cù", più lento, più grave e distorto: sta arrivando. |
-| `cucu_board` | 1 s | Sale a bordo da poppa: schiaffo bagnato + scricchiolio. |
-| `cucu_step_1`…`_3` | 0,3 s | Passi bagnati di pinne sul legno. |
-| `cucu_sniff` | 0,8 s | Annusa. |
-| `cucu_lure` | 2 s | Ronzio elettrico fievole della sua lucina, loop. |
-| `cucu_sad` | 1,6 s | "Cu… cù" triste e calante, poi tuffo. |
-| `cucu_jumpscare` | 2,2 s | "CU-CÙ!" urlato, metallico e gorgogliante. |
+I versi di Gulpy, Molly e Hatch si specificano dopo aver fissato il loro design. Intenzioni di massima:
+- **Gulpy**: respiro umido e affamato, deglutizioni enormi, la mascella che si sgancia (schiocco osseo), il salvagente di gomma che cigola.
+- **Molly**: nocche lunghe che bussano sullo scafo, una voce di bambina distorta che chiama "guardami", il legno che geme mentre dondola la barca.
+- **Hatch**: una voce di bambino che conta fino a dieci (localizzata), passi bagnati a quattro zampe, il ronzio del giocattolo luminoso.
 
 ## Musica e stinger (stereo)
 

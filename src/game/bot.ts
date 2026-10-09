@@ -18,14 +18,14 @@ export interface BotSkill {
   /** ritardo nel percepire uno strattone */
   pullReaction: number;
   lampPolicy: 'greedy' | 'steady' | 'off';
-  /** a che cucù si nasconde */
+  /** a che hatch si nasconde */
   hideAtCount: number;
 }
 
 export const SKILLS: Record<string, BotSkill> = {
-  expert: { name: 'expert', reaction: [0.25, 0.6], turnSpeed: 420, reelHi: 0.72, reelLo: 0.3, pullReaction: 0.12, lampPolicy: 'greedy', hideAtCount: 3 },
-  average: { name: 'average', reaction: [0.5, 1.2], turnSpeed: 260, reelHi: 0.68, reelLo: 0.25, pullReaction: 0.3, lampPolicy: 'steady', hideAtCount: 3 },
-  sloppy: { name: 'sloppy', reaction: [0.9, 2.2], turnSpeed: 170, reelHi: 0.8, reelLo: 0.2, pullReaction: 0.55, lampPolicy: 'steady', hideAtCount: 4 },
+  expert: { name: 'expert', reaction: [0.25, 0.6], turnSpeed: 420, reelHi: 0.72, reelLo: 0.3, pullReaction: 0.12, lampPolicy: 'greedy', hideAtCount: 6 },
+  average: { name: 'average', reaction: [0.5, 1.2], turnSpeed: 260, reelHi: 0.68, reelLo: 0.25, pullReaction: 0.3, lampPolicy: 'steady', hideAtCount: 6 },
+  sloppy: { name: 'sloppy', reaction: [0.9, 2.2], turnSpeed: 170, reelHi: 0.8, reelLo: 0.2, pullReaction: 0.55, lampPolicy: 'steady', hideAtCount: 8 },
 };
 
 export class Bot {
@@ -66,17 +66,17 @@ export class Bot {
   step(dt: number): void {
     const s = this.sim;
     if (!s.playing) return;
-    const { pappo, lulu, cucu, fishing } = s;
+    const { gulpy, molly, hatch, fishing } = s;
     let wantReel = false;
 
-    const cucuThreat = this.noticed('cucu', cucu.state === 'counting' && cucu.count >= this.skill.hideAtCount) || cucu.state === 'boarding';
-    const cucuNear = cucu.state === 'counting' || cucu.state === 'boarding' || cucu.state === 'searching';
-    const pappoHungry = this.noticed('pappo', pappo.canBeFed);
-    const luluNeeds = this.noticed('lulu', lulu.state === 'peeking' || lulu.state === 'tantrum');
+    const hatchThreat = this.noticed('hatch', hatch.state === 'counting' && hatch.count >= this.skill.hideAtCount) || hatch.state === 'boarding';
+    const hatchNear = hatch.state === 'counting' || hatch.state === 'boarding' || hatch.state === 'searching';
+    const gulpyHungry = this.noticed('gulpy', gulpy.canBeFed);
+    const mollyNeeds = this.noticed('molly', molly.state === 'peeking' || molly.state === 'tantrum');
 
-    // sotto il telone: esce solo quando Cucù se n'è andato davvero
+    // sotto il telone: esce solo quando Hatch se n'è andato davvero
     if (s.hide === 'in') {
-      if (this.noticed('cucuGone', !cucuNear)) s.toggleHide();
+      if (this.noticed('hatchGone', !hatchNear)) s.toggleHide();
       this.finish(dt, false);
       return;
     }
@@ -85,9 +85,9 @@ export class Bot {
       return;
     }
 
-    if (cucuThreat || (cucuNear && cucu.state !== 'counting')) {
-      // prima sfama Pappo se è già lì e ci si riesce in fretta
-      if (pappoHungry && s.fish > 0 && cucu.state === 'counting' && cucu.count < 5) {
+    if (hatchThreat || (hatchNear && hatch.state !== 'counting')) {
+      // prima sfama Gulpy se è già lì e ci si riesce in fretta
+      if (gulpyHungry && s.fish > 0 && hatch.state === 'counting' && hatch.count < 9) {
         if (this.turnTo(YAW.bow, dt)) s.throwFish();
       } else {
         s.toggleHide();
@@ -96,11 +96,11 @@ export class Bot {
       return;
     }
 
-    if (luluNeeds) {
-      this.turnTo(lulu.yaw, dt);
-    } else if (pappoHungry && s.fish > 0 && fishing.phase !== 'reeling') {
+    if (mollyNeeds) {
+      this.turnTo(molly.yaw, dt);
+    } else if (gulpyHungry && s.fish > 0 && fishing.phase !== 'reeling') {
       if (this.turnTo(YAW.bow, dt)) s.throwFish();
-    } else if (pappoHungry && s.fish > 0 && pappo.state === 'demanding' && pappo.timer < 3) {
+    } else if (gulpyHungry && s.fish > 0 && gulpy.state === 'demanding' && gulpy.timer < 3) {
       if (this.turnTo(YAW.bow, dt)) s.throwFish();
     } else {
       // pesca
@@ -117,7 +117,7 @@ export class Bot {
     }
 
     // lampara
-    const anyone = pappo.present || lulu.present || cucu.present || lulu.state === 'knocking';
+    const anyone = gulpy.present || molly.present || hatch.present || molly.state === 'knocking';
     let lamp: LampLevel = 1;
     if (this.skill.lampPolicy === 'greedy') lamp = anyone ? 1 : 2;
     else if (this.skill.lampPolicy === 'off') lamp = 0;

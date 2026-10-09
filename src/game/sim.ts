@@ -1,7 +1,7 @@
 import { HOUR_SECONDS, LAMP, LORE, NIGHT_HOURS, VIEW, YAW, angleDiff, type LampLevel, type MonsterId, type NightConfig } from './config.ts';
 import type { GameEvent } from './events.ts';
 import { Fishing, type Catch } from './fishing.ts';
-import { Cucu, Lulu, Pappo, type WorldView } from './monsters.ts';
+import { Hatch, Molly, Gulpy, type WorldView } from './monsters.ts';
 import { Rng } from './rng.ts';
 
 export type Outcome = { kind: 'playing' } | { kind: 'won' } | { kind: 'dead'; killer: MonsterId | 'mother' };
@@ -28,9 +28,9 @@ export class NightSim {
   reelHeld = false;
   outcome: Outcome = { kind: 'playing' };
   readonly fishing: Fishing;
-  readonly pappo: Pappo;
-  readonly lulu: Lulu;
-  readonly cucu: Cucu;
+  readonly gulpy: Gulpy;
+  readonly molly: Molly;
+  readonly hatch: Hatch;
   readonly foundLore: Set<string>;
   readonly loreThisNight: string[] = [];
   private events: GameEvent[] = [];
@@ -46,9 +46,9 @@ export class NightSim {
     this.foundLore = new Set(foundLore);
     const emit = (e: GameEvent) => this.events.push(e);
     this.fishing = new Fishing(this.rng, emit);
-    this.pappo = new Pappo(cfg.pappo);
-    this.lulu = new Lulu(cfg.lulu);
-    this.cucu = new Cucu(cfg.cucu);
+    this.gulpy = new Gulpy(cfg.gulpy);
+    this.molly = new Molly(cfg.molly);
+    this.hatch = new Hatch(cfg.hatch);
     this.world = {
       time: 0,
       hour: 0,
@@ -98,7 +98,7 @@ export class NightSim {
 
   /** quanto dondola la barca (0..1), per la grafica e l'audio */
   get rocking(): number {
-    return this.lulu.rocking;
+    return this.molly.rocking;
   }
 
   facing(yaw: number, halfAngle: number): boolean {
@@ -136,7 +136,7 @@ export class NightSim {
       this.emit({ t: 'denied', reason: 'busy' });
       return false;
     }
-    if (!this.pappo.canBeFed) {
+    if (!this.gulpy.canBeFed) {
       this.emit({ t: 'denied', reason: 'noTarget' });
       return false;
     }
@@ -153,7 +153,7 @@ export class NightSim {
     this.fish--;
     this.fed++;
     this.emit({ t: 'throwFish' });
-    this.pappo.feed(this.world);
+    this.gulpy.feed(this.world);
     return true;
   }
 
@@ -221,12 +221,12 @@ export class NightSim {
     w.hidden = this.hidden;
     w.activity = this.activity;
 
-    this.pappo.update(dt, w);
-    this.lulu.update(dt, w);
-    this.cucu.update(dt, w, { hidden: this.hidden });
+    this.gulpy.update(dt, w);
+    this.molly.update(dt, w);
+    this.hatch.update(dt, w, { hidden: this.hidden });
 
     const killer: MonsterId | null =
-      this.cucu.state === 'attack' ? 'cucu' : this.lulu.state === 'attack' ? 'lulu' : this.pappo.state === 'attack' ? 'pappo' : null;
+      this.hatch.state === 'attack' ? 'hatch' : this.molly.state === 'attack' ? 'molly' : this.gulpy.state === 'attack' ? 'gulpy' : null;
     if (killer) {
       this.die(killer);
       return;
@@ -265,15 +265,15 @@ export class NightSim {
     return { species, lore: null, kg: this.rng.range(species.kg[0], species.kg[1]) };
   }
 
-  /** il Piccolo è "in scena" (per le regole di esclusione della regia) */
+  /** la creatura è "in scena" (per le regole di esclusione della regia) */
   active(who: MonsterId): boolean {
     switch (who) {
-      case 'pappo':
-        return this.pappo.present || this.pappo.state === 'leaving';
-      case 'lulu':
-        return this.lulu.state === 'knocking' || this.lulu.present;
-      case 'cucu':
-        return this.cucu.present;
+      case 'gulpy':
+        return this.gulpy.present || this.gulpy.state === 'leaving';
+      case 'molly':
+        return this.molly.state === 'knocking' || this.molly.present;
+      case 'hatch':
+        return this.hatch.present;
     }
   }
 

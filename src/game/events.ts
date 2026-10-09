@@ -20,9 +20,9 @@ export type GameEvent =
   | { t: 'unhidden' }
   | { t: 'throwFish' }
   | { t: 'denied'; reason: 'noFish' | 'noTarget' | 'busy' | 'notFacing' }
-  | { t: 'pappo'; e: 'rise' | 'gurgle' | 'climb' | 'demand' | 'fed' | 'fedEarly' | 'leave' | 'gone' | 'attack' }
-  | { t: 'lulu'; e: 'knock' | 'peek' | 'giggle' | 'whine' | 'tantrum' | 'calm' | 'leave' | 'gone' | 'attack'; side: Side }
-  | { t: 'cucu'; e: 'count' | 'board' | 'step' | 'sniff' | 'leave' | 'gone' | 'attack'; n?: number; last?: boolean }
+  | { t: 'gulpy'; e: 'rise' | 'gurgle' | 'climb' | 'demand' | 'fed' | 'fedEarly' | 'leave' | 'gone' | 'attack' }
+  | { t: 'molly'; e: 'knock' | 'peek' | 'giggle' | 'whine' | 'tantrum' | 'calm' | 'leave' | 'gone' | 'attack'; side: Side }
+  | { t: 'hatch'; e: 'count' | 'board' | 'step' | 'sniff' | 'leave' | 'gone' | 'attack'; n?: number; last?: boolean }
   | { t: 'dead'; killer: MonsterId | 'mother' }
   | { t: 'won' };
 

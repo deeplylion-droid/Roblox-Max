@@ -153,6 +153,7 @@ def flesh_material(name='Flesh', color=(0.42, 0.07, 0.08)):
 def place(obs, location, yaw_deg=0.0, pitch_deg=0.0, scale=1.0):
     """Sposta un gruppo di oggetti costruiti nell'origine locale (faccia verso −Y)."""
     from mathutils import Euler, Matrix
+    bpy.context.view_layer.update()   # matrix_world deve riflettere posizione/scala appena impostate
     M = Matrix.Translation(location) @ Euler((math.radians(pitch_deg), 0, math.radians(yaw_deg)), 'XYZ').to_matrix().to_4x4() @ Matrix.Scale(scale, 4)
     for o in obs:
         o.matrix_world = M @ o.matrix_world

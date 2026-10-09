@@ -304,26 +304,44 @@ def build_lamp_glow(center=(0.0, 3.85), radius=5.0):
 
 # ───────────────────────── costa ─────────────────────────
 
-SHORE = [  # (yaw, distanza della riva)
-    (-140, 4200), (-128, 2600), (-112, 1500), (-92, 1060), (-66, 780), (-46, 690), (-34, 660),
-    (-16, 640), (0, 625), (18, 650), (40, 730), (58, 900), (70, 1060), (78, 1150), (86, 1110),
-    (100, 1350), (116, 1900), (128, 2800), (140, 4400),
+SHORE = [  # (yaw, distanza della riva): la baia è chiusa, l'imboccatura è dietro a sinistra
+    (-180, 405), (-168, 412), (-158, 425), (-150, 470), (-143, 640), (-136, 1500), (-128, 4200),
+    (-116, 4600), (-106, 1900), (-94, 1080), (-66, 780), (-46, 690), (-34, 660), (-16, 640), (0, 625),
+    (18, 650), (40, 730), (58, 900), (70, 1060), (78, 1150), (86, 1110), (100, 1280), (114, 1040),
+    (128, 760), (142, 540), (155, 450), (168, 412), (180, 405),
 ]
+PARK_YAW = 180.0
+
+
+def wrap(yaw):
+    return (np.asarray(yaw, float) + 180.0) % 360.0 - 180.0
+
+
+def park_factor(yaw):
+    """1 sulla spiaggia di Splashland (alle spalle), 0 altrove."""
+    d = np.abs(wrap(np.asarray(yaw, float) - PARK_YAW))
+    return np.exp(-(d / 24.0) ** 2)
 
 
 def shore_radius(yaw):
+    yaw = wrap(yaw)
     ys = np.array([s[0] for s in SHORE], float)
     rs = np.array([s[1] for s in SHORE], float)
     r = np.interp(yaw, ys, np.log(rs))
-    return np.exp(r) * (1 + 0.035 * value_noise_1d(yaw * 6.0, 11, 4))
+    wig = 0.035 * value_noise_1d(yaw * 6.0, 11, 4) * (1 - 0.8 * park_factor(yaw))
+    return np.exp(r) * (1 + wig)
 
 
 def cliff_height(yaw):
-    h = 36 + 16 * value_noise_1d(yaw * 0.9, 21, 3)
+    yaw = wrap(yaw)
+    h = 36 + 16 * value_noise_1d(yaw * 1.0, 21, 3)
     # il paese sta su un pianoro più alto; il faro su una punta bassa
     h += 16 * np.exp(-((yaw - VILLAGE_YAW) / 10.0) ** 2)
     h -= 14 * np.exp(-((yaw - LIGHTHOUSE_YAW) / 6.0) ** 2)
-    return np.maximum(h, 8)
+    h = np.maximum(h, 8)
+    # spiaggia bassa di Splashland
+    pf = park_factor(yaw)
+    return h * (1 - pf) + 1.6 * pf
 
 
 def terrain_z(yaw, s):
@@ -331,7 +349,7 @@ def terrain_z(yaw, s):
     ch = cliff_height(yaw)
     sp = np.maximum(s, 0)
     cliff = ch * (1 - np.exp(-sp / 16.0)) + 3.0 * value_noise_1d(yaw * 9.0, 23, 2) * np.clip(sp / 20.0, 0, 1)
-    hmax = 150 + 75 * value_noise_1d(yaw * 0.7, 31, 2)
+    hmax = 150 + 75 * value_noise_1d(yaw * 1.0, 31, 2)
     hills = hmax * (1 - np.exp(-np.maximum(s - 30, 0) / 650.0))
     r = shore_radius(yaw) + s
     x, y = r * np.sin(np.radians(yaw)), r * np.cos(np.radians(yaw))
@@ -340,12 +358,16 @@ def terrain_z(yaw, s):
     # pianoro del paese: colline più basse e dolci
     plateau = np.exp(-((yaw - VILLAGE_YAW) / 10.0) ** 2) * np.exp(-((s - 140) / 160.0) ** 2)
     z = cliff + (hills + fade * ridges) * (1 - 0.7 * plateau)
+    # il parco: terreno piatto per i primi 250 m, poi colline basse
+    pf = park_factor(yaw)
+    flat = 1.6 + np.clip((s - 250) / 900.0, 0, 1) * 70 + np.clip((s - 250) / 900.0, 0, 1) * ridges * 0.6
+    z = z * (1 - pf) + flat * pf
     z = np.where(s < 0, -2.0 + np.minimum(s, 0) * 0.8, z)
     return z
 
 
 def build_coast():
-    yaws = np.arange(-150.0, 150.0001, 0.12)
+    yaws = np.arange(-180.0, 180.0, 0.12)
     ss = np.concatenate([[-60.0, -20.0, -4.0, 0.0], np.cumsum(np.full(6, 2.0)), 12 + np.geomspace(1, 2200, 80)])
     YW, S = np.meshgrid(yaws, ss, indexing='ij')
     R = shore_radius(YW) + S
@@ -354,13 +376,17 @@ def build_coast():
     Z = terrain_z(YW, S)
     # rugosità della scogliera: rientranze sulla parete
     Z += np.where((S > -1) & (S < 30), 2.5 * value_noise_2d(X, Y, 51, 7.0, 3), 0.0)
+    # niente terra nell'imboccatura della baia (la riva è oltre l'orizzonte)
+    far = shore_radius(YW) > 3000
+    Z = np.where(far, -30.0, Z)
     nY, nS = YW.shape
     verts = np.stack([X.ravel(), Y.ravel(), Z.ravel()], axis=1)
     faces = []
-    for i in range(nY - 1):
+    for i in range(nY):
+        i2 = (i + 1) % nY
         for j in range(nS - 1):
-            a = i * nS + j
-            faces.append((a, a + nS, a + nS + 1, a + 1))
+            a, b = i * nS + j, i2 * nS + j
+            faces.append((a, b, b + 1, a + 1))
     ob = mesh_from_arrays('Coast', verts, faces, smooth=True, col='env')
     ob.data.materials.append(coast_material())
     set_lightgroup(ob, 'ambient')
@@ -558,7 +584,7 @@ def build_lighthouse():
 
 def build_stacks():
     """Faraglioni dietro a sinistra."""
-    specs = [(-142.0, 330.0, 58.0, 17.0, 3), (-131.0, 430.0, 40.0, 13.0, 5), (-151.0, 400.0, 26.0, 10.0, 7)]
+    specs = [(-124.0, 390.0, 58.0, 17.0, 3), (-133.0, 470.0, 40.0, 13.0, 5), (-116.0, 520.0, 26.0, 10.0, 7)]
     m, g = material('Limestone')
     co = g.texcoord('Object')
     _, _, z = g.sep(co)

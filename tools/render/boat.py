@@ -461,7 +461,7 @@ def build_lampara(mats):
     shade.data.materials.append(mats['enamel_green'])
     obs.append(shade)
     wd = bpy.data.lights.new('WorkLight', 'POINT')
-    wd.energy = 34.0
+    wd.energy = 16.0
     wd.color = (1.0, 0.74, 0.48)
     wd.shadow_soft_size = 0.02
     wo = bpy.data.objects.new('WorkLight', wd)
@@ -703,18 +703,10 @@ def build_props(mats):
     for t in np.linspace(0, 1, 260):
         a = t * 2 * math.pi * 5.5
         r = 0.12 - 0.035 * (t * 5.5 % 1.0) * 0.4 - t * 0.02
-        coil.append((-0.18 + r * math.cos(a), 2.40 + r * math.sin(a), 0.965 + 0.016 * math.sin(t * 40) + t * 0.035))
+        coil.append((0.13 + r * math.cos(a), 2.55 + r * math.sin(a), 0.975 + 0.016 * math.sin(t * 40) + t * 0.035))
     rope = tube('CoilRope', coil, 0.011, n=8)
     rope.data.materials.append(mats['rope'])
     obs.append(rope)
-    # ancora arrugginita
-    anc = tube('Anchor', [(0.20, 2.30, 0.97), (0.20, 2.58, 0.99)], 0.018, n=8)
-    anc.data.materials.append(mats['rust'])
-    obs.append(anc)
-    for s in (-1, 1):
-        fl = tube(f'AnchorFluke{s}', [(0.20, 2.30, 0.97), (0.20 + s * 0.10, 2.26, 1.01), (0.20 + s * 0.13, 2.32, 1.03)], 0.012, n=8)
-        fl.data.materials.append(mats['rust'])
-        obs.append(fl)
     # tanica rossa e cassetta
     can = rbox('FuelCan', (0.20, 0.30, 0.26), (-0.32, -1.70, 0.03), rot=(0, 0, math.radians(12)), bevel=0.025)
     can.data.materials.append(mats['red_plastic'])

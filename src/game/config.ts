@@ -4,13 +4,13 @@
  */
 
 export type LampLevel = 0 | 1 | 2;
-export type MonsterId = 'pappo' | 'lulu' | 'cucu';
+export type MonsterId = 'gulpy' | 'molly' | 'hatch';
 export type Side = 'left' | 'right';
 
 export const HOUR_SECONDS = 75;
 export const NIGHT_HOURS = 6;
 
-/** Moltiplicatori della lampara: velocità di abboccata e attività dei Piccoli. */
+/** Moltiplicatori della lampara: velocità di abboccata e attività delle creature. */
 export const LAMP = {
   biteTime: [2.2, 1.0, 0.55] as const,
   activity: [0.6, 1.0, 1.6] as const,
@@ -23,8 +23,8 @@ export const YAW = {
   bucket: 13,
   tarp: -16,
   stern: 180,
-  luluLeft: -68,
-  luluRight: 68,
+  mollyLeft: -68,
+  mollyRight: 68,
 };
 
 export const VIEW = {
@@ -32,7 +32,7 @@ export const VIEW = {
   gazeHalfAngle: 30,
   /** per lanciare/recuperare bisogna essere rivolti verso la canna */
   rodHalfAngle: 55,
-  /** per lanciare un pesce a Pappo bisogna guardare verso prua */
+  /** per lanciare un pesce a Gulpy bisogna guardare verso prua */
   bowHalfAngle: 70,
 };
 
@@ -73,12 +73,12 @@ export interface LoreItem {
 }
 
 export const LORE: LoreItem[] = [
-  { id: 'pacifier', night: 1 },
+  { id: 'wristband', night: 1 },
   { id: 'clipping', night: 1 },
   { id: 'holycard', night: 1 },
 ];
 
-export interface PappoConfig {
+export interface GulpyConfig {
   firstAt: number;
   cooldown: [number, number];
   rise: number;
@@ -87,7 +87,7 @@ export interface PappoConfig {
   eat: number;
 }
 
-export interface LuluConfig {
+export interface MollyConfig {
   firstAt: number;
   cooldown: [number, number];
   knock: number;
@@ -96,7 +96,7 @@ export interface LuluConfig {
   tantrumMax: number;
 }
 
-export interface CucuConfig {
+export interface HatchConfig {
   firstAt: number;
   cooldown: [number, number];
   calls: number;
@@ -112,12 +112,12 @@ export interface NightConfig {
   /** cattura (1-based) che garantisce un frammento di lore */
   guaranteedLoreAt: number;
   loreChance: number;
-  /** regia: coppie di Piccoli che non possono essere attivi insieme */
+  /** regia: coppie di creature che non possono essere attivi insieme */
   exclusive: [MonsterId, MonsterId][];
   minGapBetweenStarts: number;
-  pappo: PappoConfig;
-  lulu: LuluConfig;
-  cucu: CucuConfig;
+  gulpy: GulpyConfig;
+  molly: MollyConfig;
+  hatch: HatchConfig;
   hideTime: number;
   unhideTime: number;
 }
@@ -132,13 +132,13 @@ export const NIGHTS: Record<number, NightConfig> = {
     guaranteedLoreAt: 4,
     loreChance: 0.08,
     exclusive: [
-      ['lulu', 'cucu'],
-      ['pappo', 'cucu'],
+      ['molly', 'hatch'],
+      ['gulpy', 'hatch'],
     ],
     minGapBetweenStarts: 6,
-    pappo: { firstAt: 1 * H + 6, cooldown: [75, 115], rise: 7, climb: 6, patience: 8, eat: 4.5 },
-    lulu: { firstAt: 2 * H + 8, cooldown: [48, 78], knock: 5, attention: 4.2, neglectMax: 8, tantrumMax: 6.5 },
-    cucu: { firstAt: 3 * H + 6, cooldown: [58, 88], calls: 5, callInterval: 2.2, search: [8, 10.5] },
+    gulpy: { firstAt: 1 * H + 6, cooldown: [75, 115], rise: 7, climb: 6, patience: 8, eat: 4.5 },
+    molly: { firstAt: 2 * H + 8, cooldown: [48, 78], knock: 5, attention: 4.2, neglectMax: 8, tantrumMax: 6.5 },
+    hatch: { firstAt: 3 * H + 6, cooldown: [58, 88], calls: 10, callInterval: 1.1, search: [8, 10.5] },
     hideTime: 0.7,
     unhideTime: 0.6,
   },

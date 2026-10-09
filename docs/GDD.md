@@ -1,20 +1,20 @@
 # LAMPARA — Game Design Document
 
-> *Raggiungi la quota prima delle sei. Sfama i Piccoli. Non farti trovare.*
+> *Raggiungi la quota prima delle sei. Dai da mangiare ai ragazzi. Non farti trovare.*
 
 Versione 0.1 — obiettivo del primo traguardo: **Notte 1 completa e rifinita** (vertical slice).
 
 ## 1. Il gioco in una frase
 
-Horror in prima persona a inquadratura fissa (alla *Five Nights at Freddy's*): sei il pescatore di turno sopra **il Pozzo**, la voragine al centro della baia di **Santa Brina**. Devi riempire il secchio con la **quota di pesci** entro le 6:00, mentre i **Piccoli del Fondo**, creature anfibie dall'aria tenera e dai denti sbagliati, salgono a bordo. Ognuno vuole qualcosa di diverso.
+Horror in prima persona a inquadratura fissa (alla *Five Nights at Freddy's*): sei il pescatore di turno sopra **il Pozzo**, la voragine al centro della baia di **Santa Brina**. Devi riempire il secchio con la **quota di pesci** entro le 6:00, mentre i figli della Madre, i bambini spariti nel 1997 a **Splashland**, il parco acquatico abbandonato alle tue spalle, salgono a bordo. Ognuno vuole qualcosa di diverso.
 
 ## 2. Pilastri
 
 1. **Lavorare mentre si ha paura.** In FNAF sopravvivi e basta; qui devi anche *produrre*. Ogni secondo passato a difenderti è un secondo in cui non peschi.
-2. **Il pesce è insieme obiettivo e moneta.** Lo stesso pesce che serve alla quota è quello che devi lanciare a Pappo per non farti mangiare.
-3. **La lampara è un'avidità regolabile.** Più luce = più pesci che abboccano, ma anche più Piccoli che salgono.
+2. **Il pesce è insieme obiettivo e moneta.** Lo stesso pesce che serve alla quota è quello che devi lanciare a Gulpy per non farti mangiare.
+3. **La lampara è un'avidità regolabile.** Più luce = più pesci che abboccano, ma anche più creature che salgono.
 4. **Tre minacce, tre direzioni, tre risposte.** Prua → *sfamare*. Fianchi → *guardare*. Poppa → *nascondersi*. Leggibile al primo sguardo, difficile quando si sovrappongono.
-5. **Coccoloso finché non apre la bocca.** Proporzioni da neonato, accessori da cameretta, pelle lucida e bagnata, occhi che riflettono la luce come quelli dei gatti.
+5. **Family friendly distorto.** Creature lunghe e sbagliate che portano ancora i colori allegri di un parco acquatico per bambini: salvagenti, braccioli, giocattoli luminosi, la mascotte sorridente.
 
 ## 3. Visuale e controlli
 
@@ -27,7 +27,7 @@ Horror in prima persona a inquadratura fissa (alla *Five Nights at Freddy's*): s
 | Ruotare lo sguardo | bordi dello schermo | `A` `D` / `←` `→` |
 | Voltarsi (prua ↔ poppa) | barra in basso | `S` / `↓` |
 | Lanciare / ferrare / recuperare la lenza | clic (tenere premuto) sulla canna | `Spazio` |
-| Lanciare un pesce a Pappo | clic sul secchio | `F` |
+| Lanciare un pesce a Gulpy | clic sul secchio | `F` |
 | Nascondersi sotto il telone / uscire | clic sul telone | `C` / `Ctrl` |
 | Lampara: abbassa / alza | rotella o clic sull'interruttore | `Q` / `E` |
 | Sonar a tutto schermo | barra in alto | `Tab` |
@@ -52,46 +52,48 @@ Specie (cosmetiche nella Notte 1): acciuga, sgombro, orata, spigola, triglia.
 
 ## 6. La lampara
 
-| Livello | Abboccate | Attività dei Piccoli | Visibilità |
+| Livello | Abboccate | Attività delle creature | Visibilità |
 |---|---|---|---|
-| 0 Spenta | ×0,45 (lentissime) | ×0,6 | solo luna: dei Piccoli vedi gli occhi |
+| 0 Spenta | ×0,45 (lentissime) | ×0,6 | solo luna: delle creature vedi solo gli occhi |
 | 1 Bassa | ×1 | ×1 | normale |
 | 2 Alta | ×1,8 | ×1,6 | piena, si vedono i pesci attirati sotto la superficie |
 
-## 7. I Piccoli del Fondo (Notte 1)
+## 7. Le creature (Notte 1)
 
-> **Bozza.** Nomi, specie, aspetto e carattere dei Piccoli sono ancora da decidere insieme. Restano fermi solo i tre ruoli di gioco: uno da sfamare, uno da fissare, uno da cui nascondersi.
+Sono i bambini spariti a **Splashland** nel 1997, presi e trasformati dalla Madre (vedi `LORE.md`). Non sono cuccioli e non sono carini: sono **allungati, magri, sproporzionati** (riferimento: SCP-096 "Shy Guy"), pelle grigio-pallida e bagnata, occhi bianchi senza pigmento, collo e arti troppo lunghi, dita palmate lunghissime, branchie sul collo. Il tocco "family friendly" c'è ma è distorto fino all'orrore, come il bavaglino di Chica in FNAF: ognuno porta ancora addosso qualcosa del parco. I nomi vengono da nomi inglesi di pesci, accorciati come diminutivi da bambino.
 
-### Pappo — prua — *SFAMARE*
-Rospo-neonato grosso e paffuto, bavaglino ricamato con un pesciolino, due dentini davanti e molti altri dietro.
-- **Sale** (occhi gialli e bolle davanti alla prua, gorgoglio affamato) → **si arrampica** (manine sul bordo di prua, *flop* bagnato) → **pretende** (seduto sulla prua a bocca aperta).
-- Gli lanci un pesce dal secchio → lo mangia felice, applaude e torna in acqua. Puoi anche lanciarglielo prima, mentre sale.
-- Se non riceve il pesce in tempo → **jumpscare**. Il telone non serve: Pappo sente l'odore.
+> Il design visivo si definisce insieme: prima le sagome per confrontare le proporzioni, poi la modellazione.
+
+### Gulpy — prua — *SFAMARE*
+Ispirato al pesce pellicano (*gulper eel*): tutto bocca su un corpo lunghissimo. Ha un salvagente giallo a paperella incastrato sul collo, che ormai stringe la carne.
+- **Sale** (si avvicina in superficie davanti alla prua, si sentono lo sciabordio e il suo verso affamato) → **si sporge** (le mani enormi sul bordo di prua, si piega sopra la barca) → **pretende** (la mascella si sgancia fino al petto, aspetta).
+- Gli lanci un pesce dal secchio → lo inghiotte e torna giù. Puoi lanciarglielo anche prima, mentre sale.
+- Se non riceve il pesce in tempo → **jumpscare**. Il telone non serve: Gulpy sente l'odore.
 - Lezione: tieni sempre almeno un pesce nel secchio.
 
-### Lulù — fianchi — *GUARDARE*
-Axolotl-bambina rosa pallido, branchie a ventaglio, occhi neri enormi, un ciuccio appeso al collo con un nastrino.
-- **Bussa** sullo scafo (*toc toc*) a sinistra o a destra → **spunta** dal bordo con le manine aggrappate.
-- Devi **guardarla** (tenerla al centro della visuale) finché non si sente vista abbastanza: ride, fa una bolla e si lascia scivolare in acqua.
-- Se la ignori si offende: piange e **dondola la barca**, sempre più forte (la visuale si inclina, entra acqua). Se continui a ignorarla **affonda la barca**.
+### Molly — fianchi — *FISSARE*
+Ispirata al barreleye (testa trasparente, gli occhi dentro che ruotano e ti seguono) e alla *mola*, il pesce luna. Porta i braccioli gonfiabili su braccia lunghe due metri. Da bambina gridava "Guardami!" dal trampolino.
+- **Bussa** sullo scafo a sinistra o a destra → **si alza** lungo la fiancata e piega il collo sopra il bordo, la faccia a mezzo metro dalla tua.
+- Devi **guardarla** (tenerla al centro della visuale) finché non è soddisfatta: allora si lascia scivolare in acqua.
+- Se la ignori si offende e **dondola la barca**, sempre più forte (la visuale si inclina, entra acqua). Se continui a ignorarla **trascina giù la barca**.
 
-### Cucù — poppa — *NASCONDERSI*
-Pesce-rana neonato che cammina sulle pinne, una lucina da esca in fronte (la usa per cercarti) e un berrettino rosso di lana col pon-pon.
-- Gioca a nascondino: **conta** con il verso di un orologio a cucù (*cu-cù… cu-cù…*), da dietro la barca.
-- Al quinto cucù **sale a bordo**. Devi già essere **sotto il telone**.
-- Sotto il telone vedi la sua lucina che fruga attraverso la tela e senti i passi bagnati. Se esci prima che se ne vada (cucù triste e tonfo in acqua) → **"Cucù! Trovato!"** → jumpscare.
+### Hatch — poppa — *NASCONDERSI*
+Ispirato alla rana pescatrice e all'*hatchetfish*: si muove a quattro zampe con arti lunghissimi, quasi un ragno. La sua esca è il giocattolo luminoso del negozio del parco, che gli pende dalla fronte: lo usa per cercarti.
+- Gioca a nascondino: **conta fino a dieci** ad alta voce, da dietro la barca ("…eight, nine, ten… ready or not, here I come!", localizzato).
+- Finita la conta **sale a bordo**. Devi già essere **sotto il telone**.
+- Sotto il telone vedi la luce del giocattolo che fruga attraverso la tela e senti i passi bagnati. Se esci prima che torni in acqua → jumpscare.
 
 ### Regia (director)
-- Prime apparizioni a orario fisso per insegnare le regole: Pappo verso l'01:00, Lulù verso le 02:00, Cucù verso le 03:00.
-- Dopo, la regia sceglie gli eventi in base al livello della lampara e a un budget di tensione. Nella Notte 1 non sovrappone mai la perquisizione di Cucù a Lulù sul bordo.
+- Prime apparizioni a orario fisso per insegnare le regole: Gulpy verso l'01:00, Molly verso le 02:00, Hatch verso le 03:00.
+- Dopo, la regia sceglie gli eventi in base al livello della lampara e a un budget di tensione. Nella Notte 1 Hatch non si sovrappone mai a Molly né a Gulpy.
 
 ## 8. Sonar
 
-Il sonar (lo schermo sulla console di poppa, o `Tab` per vederlo a tutto schermo con effetto CRT) mostra un cerchio con la barca al centro. Il fascio gira e *pinga*: puntini piccoli = pesci, ombre grandi = Piccoli che salgono dal fondo, con direzione e profondità. È la "telecamera" di LAMPARA: anticipa le minacce, ma mentre lo guardi non vedi la barca.
+Il sonar (lo schermo sulla console di poppa, o `Tab` per vederlo a tutto schermo con effetto CRT) mostra un cerchio con la barca al centro. Il fascio gira e *pinga*: puntini piccoli = pesci, ombre grandi = creature che salgono dal fondo, con direzione e profondità. È la "telecamera" di LAMPARA: anticipa le minacce, ma mentre lo guardi non vedi la barca.
 
 ## 9. Morte e sconfitta
 
-- Jumpscare (sequenza renderizzata + urlo), poi statica e **schermata di game over** dedicata a ogni Piccolo (es. il tuo berretto che galleggia mentre Lulù ci gioca).
+- Jumpscare (sequenza renderizzata + urlo), poi statica e **schermata di game over** dedicata a ogni creatura.
 - Quota mancata alle 6:00: l'acqua si fa liscia come uno specchio e sotto la barca si apre **un occhio**.
 
 ## 10. Flusso dei menu
@@ -105,15 +107,20 @@ Volume generale/musica/effetti, lingua (italiano, inglese), luminosità, schermo
 ## 12. Direzione artistica
 
 - **3D pre-renderizzato** (Blender/Cycles) con passi di luce separati, ricomposti in tempo reale: la lampara può tremolare, abbassarsi, spegnersi.
-- Palette: blu-petrolio della notte, ambra della lampara, verde-giallo e rosa degli occhi dei Piccoli.
-- Ambientazione mediterranea: gozzo di legno dipinto con l'occhio apotropaico a prua, faraglioni, paese arroccato con il campanile, faro con il fascio che gira, luna tra le nuvole, bonaccia e banchi di nebbia.
+- Palette: blu-petrolio della notte, ambra della lampara; i colori "allegri" sbiaditi di Splashland (giallo paperella, fucsia, turchese piscina) come unica nota stonata.
+- **Un orizzonte pieno di luoghi**, come l'ufficio di FNAF pieno di oggetti di scena:
+  - *davanti*: il paese col campanile, il relitto di un peschereccio con la prua fuori dall'acqua, una boa con la campana e la luce verde che lampeggia, il faro col fascio che gira;
+  - *a destra*: un albergo abbandonato sulla scogliera con una sola finestra accesa, un traliccio radio con la luce rossa;
+  - *alle spalle*: **Splashland** con la statua di Mama Marina, gli scivoli, l'insegna al neon che sfarfalla, le luci accese della Deep End e la ruota panoramica ferma sul pontile;
+  - *a sinistra*: i faraglioni all'imbocco della baia, un'edicola votiva su uno scoglio con un lume acceso, le gabbie di un allevamento ittico.
+- **Una barca piena di oggetti**: lanterna arrugginita, borraccia ammaccata, una bambola di legno seduta sul banco che ti guarda, una paperella di gomma del parco, un barattolo con un occhio che galleggia, occhialini da piscina appesi a un chiodo, un rosario di conchiglie sul palo della lampara, tacche incise sul banco a contare le notti, una campanella legata a poppa, una scatola di latta con mozziconi di candela, una statuina di Mama Marina sulla console.
 - Post-processing: bloom, grana della pellicola, vignettatura, leggera aberrazione cromatica.
 
 ## 13. Audio
 
 - Ambiente: sciabordio sullo scafo, legno che scricchiola, vento, campana delle ore, sirena lontana, ronzio della lampara.
 - Pesca: lancio, plop, campanellino, cricchetto del mulinello, tensione della lenza, schiocco, pesce nel secchio.
-- Ogni Piccolo ha una firma sonora riconoscibile e **spazializzata** (HRTF): si capisce da che lato arriva, meglio in cuffia.
+- Ogni creatura ha una firma sonora riconoscibile e **spazializzata** (HRTF): si capisce da che lato arriva, meglio in cuffia.
 - Musica: ninna nanna della Madre al carillon (menu), rintocchi e gabbiani (alba).
 
 ## 14. Piattaforme e tecnologia
@@ -125,7 +132,7 @@ TypeScript + WebGL2 (renderer proprio), interfaccia in HTML/CSS, Web Audio. Desk
 | Notte | Novità |
 |---|---|
 | 2 | Batteria: lampara e sonar consumano. |
-| 3 | **Bolla** (pesce palla): si gonfia se cambi luce mentre è vicino. |
-| 4 | **I Gemelli**: girini che tirano la lenza; abboccate finte. |
+| 3 | Nuova creatura (da definire insieme). |
+| 4 | Nuova creatura che tira la lenza: abboccate finte (da definire insieme). |
 | 5 | **La Madre**: il sonar mostra un'ombra enorme; immobilità totale. |
 | 6 | Notte extra con livelli di aggressività personalizzabili. |

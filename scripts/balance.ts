@@ -36,6 +36,6 @@ for (const skill of Object.values(SKILLS)) {
   const avgHour = deathHour.length ? (deathHour.reduce((a, b) => a + b, 0) / deathHour.length).toFixed(1) : '-';
   console.log(
     `${skill.name.padEnd(8)} vittorie ${pct(wins).padStart(6)} · morti ${JSON.stringify(deaths)} (ora media ${avgHour})` +
-      ` · pescati ${(caughtSum / games).toFixed(1)} · dati a Pappo ${(fedSum / games).toFixed(1)} · nel secchio ${(fishSum / games).toFixed(1)} · lore ${(loreSum / games).toFixed(2)}`,
+      ` · pescati ${(caughtSum / games).toFixed(1)} · dati a Gulpy ${(fedSum / games).toFixed(1)} · nel secchio ${(fishSum / games).toFixed(1)} · lore ${(loreSum / games).toFixed(2)}`,
   );
 }
