@@ -460,7 +460,7 @@ def jar():
     em = bpy.data.materials.get('JarEye') or eye_material('JarEye', iris=(0.25, 0.45, 0.35), iris_dark=(0.05, 0.12, 0.08),
                                                          pupil='round', pupil_size=0.3, shine=(0.6, 0.9, 0.6), shine_strength=0.6,
                                                          sclera=(0.70, 0.62, 0.52))
-    obs.append(eyeball('JarEyeball', (x + 0.006, y + 0.004, z + 0.058), 0.024, em, look=(0.15, -1.0, 0.35)))
+    obs.append(eyeball('JarEyeball', (x + 0.006, y + 0.004, z + 0.058), 0.024, em, look=(0.15, -1.0, 0.35), col='boat'))
     return obs
 
 

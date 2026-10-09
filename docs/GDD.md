@@ -95,7 +95,7 @@ Ispirato alla rana pescatrice e all'*hatchetfish*. Sagoma C: un bipede altissimo
 
 ## 8. Sonar
 
-Il sonar (un piccolo ecoscandaglio portatile appoggiato a poppa, o `Tab` per vederlo a tutto schermo con effetto CRT) mostra un cerchio con la barca al centro. Il fascio gira e *pinga*: puntini piccoli = pesci, ombre grandi = creature che salgono dal fondo, con direzione e profondità. Anticipa le minacce, ma mentre lo guardi non vedi la barca.
+Un piccolo ecoscandaglio portatile appoggiato sul ponte di poppa. È soprattutto **scenografico**: lo schermo verde col fascio che gira e i puntini dei pesci. Ha un solo compito di gioco: **avvisare quando sta per arrivare una creatura**, così non ti coglie di sorpresa mentre stai pescando (come si avvisa è da definire).
 
 ## 9. Morte e sconfitta
 

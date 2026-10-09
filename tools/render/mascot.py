@@ -141,7 +141,7 @@ def eye_material(name):
     return m
 
 
-def build(name, missing_eye, weathered, res):
+def build(name, missing_eye, weathered, res, col='env'):
     f = body_field(missing_eye)
     def rust(p):
         # colature di ruggine dall'orbita vuota (e un po' dall'altra)
@@ -158,7 +158,7 @@ def build(name, missing_eye, weathered, res):
         (lambda P: regions(P)[3]), (lambda P: regions(P)[4]), (lambda P: regions(P)[5]), (lambda P: regions(P)[6])
     ob = sdf_object(name, f, (-0.80, -0.50, -0.12), (0.80, 0.62, 1.30), res=res,
                     attrs={'belly': belly, 'cheek': cheek, 'mouth': mouth, 'fish': fish, 'hat': hat, 'band': band,
-                           'plinth': plinth, 'rust': rust}, col='env')
+                           'plinth': plinth, 'rust': rust}, col=col)
     ob.data.materials.append(paint_material(name + 'Paint', weathered))
     obs = [ob]
     em = eye_material('MarinaEye')
@@ -166,7 +166,7 @@ def build(name, missing_eye, weathered, res):
     for c, missing in ((EYE_L, False), (EYE_R, missing_eye)):
         if missing:
             continue
-        e = eyeball(name + 'Eye', tuple(c), EYE_RAD, em, look=(0.0, -1.0, 0.05), col='env')
+        e = eyeball(name + 'Eye', tuple(c), EYE_RAD, em, look=(0.0, -1.0, 0.05), col=col)
         obs.append(e)
     # ciglia da cartone animato
     lash_m = bpy.data.materials.get('MarinaLash')
@@ -181,7 +181,7 @@ def build(name, missing_eye, weathered, res):
             tip = base + np.array((side * 0.03 * math.cos(a), -0.012, 0.03 * math.sin(a) + 0.01), np.float32)
             lf = sdf.capsule(base, tip, 0.006)
             lo, hi = np.minimum(base, tip) - 0.01, np.maximum(base, tip) + 0.01
-            lo_ = sdf_object(name + f'Lash{k}', lf, lo, hi, res=0.0025, col='env')
+            lo_ = sdf_object(name + f'Lash{k}', lf, lo, hi, res=0.0025, col=col)
             lo_.data.materials.append(lash_m)
             obs.append(lo_)
     return obs
@@ -202,5 +202,5 @@ def build_statue(location, facing_yaw_deg, height=22.0):
 
 
 def build_figurine(location, facing_yaw_deg, height=0.12):
-    obs = build('MarinaFigurine', missing_eye=False, weathered=False, res=0.012)
+    obs = build('MarinaFigurine', missing_eye=False, weathered=False, res=0.012, col='boat')   # oggetto della barca, non del paesaggio
     return place(obs, location, facing_yaw_deg, height)
