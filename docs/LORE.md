@@ -68,3 +68,17 @@ Evento raro (Notte 1): **Sotto di te**, per un giro del sonar un'ombra grande qu
 
 ### I mostri non parlano
 Nessun dialogo dei mostri: solo versi. L'unica eccezione è la conta di Hatch (testo approvato qui sopra), che fa parte del gioco a nascondino.
+
+## Il binocolo — dettagli che si vedono solo così
+
+> ⚠️ **PROPOSTA DA APPROVARE** (scritta di notte): si toglie o si cambia tutto quello che non convince. Sono nei render dei luoghi del binocolo (`tools/render/binocolo.py`), troppo piccoli per vedersi a occhio nudo.
+
+| Luogo | Dettaglio | Perché è lì (solo per noi, mai spiegato nel gioco) |
+|---|---|---|
+| Ingresso di Splashland | Sotto l'insegna, uno **striscione nuovo e pulito**: «NIGHT SPLASH ★ TONIGHT ★». | Il parco è chiuso dal 1997, ma qualcuno ha appeso l'annuncio della Night Splash, come se stanotte riaprisse. |
+| Statua di Mama Marina | Nell'**orbita vuota** dell'occhio c'è una luce calda accesa, come un lumino dentro la testa. | Qualcuno (o qualcosa) sta dentro la statua. |
+| Ruota panoramica | Una cabina **accesa**; dentro, un **bambino seduto** che guarda la barca (solo una sagoma). | Uno dei bambini della Night Splash è rimasto sulla ruota. |
+| Albergo Miramare | Nell'unica finestra accesa, una **figura nera con la videocamera all'occhio**, puntata sulla baia; la lucina rossa del **REC** lampeggia. | Qualcuno filma la baia ogni notte. Lega col nastro VHS dei jumpscare: la tua morte viene registrata. |
+| Edicola votiva | Fra i lumini, **tre fotografie di bambini** in cornice, i volti sbiaditi fino al bianco. | I tre bambini spariti nell'agosto 1997. |
+| Relitto | Sulla tuga, a vernice bianca, le **tacche** di tante notti contate (63), come quelle sul banco della nostra barca. | Chi pescava qui prima di te contava le notti. Sono tante, e poi si sono fermate. |
+

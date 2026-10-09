@@ -30,8 +30,9 @@ Horror in prima persona a inquadratura fissa (alla *Five Nights at Freddy's*): s
 | Lampara: abbassa / alza | rotella o clic sull'interruttore | `Q` / `E` |
 | Sonar a tutto schermo | barra in alto | `Tab` |
 | Pausa | | `Esc` |
+| Binocolo (easter egg) | tieni premuto il tasto destro | `B`; rotella: zoom |
 
-- **Binocolo (da fare) — easter egg**: lo alzi con un tasto, la vista si stringe nei due cerchi e zooma forte sui luoghi dell'orizzonte, renderizzati a parte ad alta risoluzione. Mentre guardi nel binocolo non vedi la barca. Non serve a superare la notte: è un easter egg. Alcuni dettagli di lore si vedono solo così, e restano **criptici al massimo**.
+- **Binocolo — easter egg** (fatto, da approvare): lo alzi con `B` o tenendo premuto il tasto destro; la vista si stringe nei due cerchi e zooma forte (rotella: due livelli di zoom) sui luoghi dell'orizzonte, renderizzati a parte ad alta risoluzione (`tools/render/binocolo.py`: ingresso di Splashland, statua di Mama Marina, ruota panoramica, scivoli, albergo Miramare, edicola votiva, relitto, faro, paese). Le mani tremano appena. Mentre guardi nel binocolo non vedi la barca, e **Molly non si sente guardata**. Non si può alzare sotto il telone, col sonar aperto o con un pesce in canna. Non serve a superare la notte: è un easter egg. Alcuni dettagli di lore si vedono solo così, e restano **criptici al massimo** (proposta in `LORE.md`, «Il binocolo»).
 
 ## 4. Struttura della notte
 
@@ -56,6 +57,7 @@ Horror in prima persona a inquadratura fissa (alla *Five Nights at Freddy's*): s
 - Le specie diverse hanno anche un comportamento diverso al recupero (strattoni più o meno forti e frequenti).
 - Il Catalogo resta tra una partita e l'altra: è un obiettivo di collezione e un motivo per rigiocare le notti.
 - **Come lo facciamo**: prima la lista dei nomi (circa cento) da approvare, poi un primo gruppo di 5 pesci renderizzati, poi tutti gli altri.
+- **Stato** (notte del 9 ottobre, tutto da approvare): la lista completa è in `CATALOGO.md` (fonte: `src/game/catalog.ts`); i 5 prototipi, uno per famiglia (Sgombrato, Orrata, Salpa Sfasata, Trigliocchi, Barracruda), sono renderizzati con `tools/render/pesci.py` (immagini in `docs/concept/pesci/`). Nel gioco le specie abboccano già dalla lista secondo notte, lampara, ora e creature vicine; alla cattura compare la scheda del pesce (figura se c'è, nome, famiglia, rarità, peso, la riga del Catalogo, «Nuova specie» la prima volta); il Catalogo si consulta da **Extra → Catalogo** (con `?catalogo=tutto` si vedono tutte le voci).
 
 ## 6. La lampara
 
