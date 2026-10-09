@@ -108,6 +108,148 @@
    "space": "boat",
    "yaw": 10.4353
   },
+  "gulpy_pretende": {
+   "eyes": [
+    [
+     -1.9,
+     3.95,
+     -1.65
+    ],
+    [
+     -0.8421,
+     1.8877,
+     0.1435
+    ],
+    [
+     -0.9492,
+     1.8363,
+     0.1435
+    ]
+   ],
+   "passes": {
+    "ambient": {
+     "file": "gulpy_pretende_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "gulpy_pretende_lamp.webp",
+     "res": 1.0,
+     "scale": 0.32
+    },
+    "lantern": {
+     "file": "gulpy_pretende_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    1816,
+    61,
+    2336,
+    648
+   ],
+   "space": "boat",
+   "yaw": -25.5628
+  },
+  "gulpy_sale": {
+   "eyes": [
+    [
+     -1.8075,
+     5.9907,
+     0.1001
+    ],
+    [
+     -1.6934,
+     6.0239,
+     0.1001
+    ],
+    [
+     -2.2,
+     7.55,
+     -2.35
+    ]
+   ],
+   "passes": {
+    "ambient": {
+     "file": "gulpy_sale_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "gulpy_sale_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "gulpy_sale_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    1983,
+    291,
+    2111,
+    607
+   ],
+   "space": "world",
+   "yaw": -16.2312
+  },
+  "molly_destra": {
+   "passes": {
+    "ambient": {
+     "file": "molly_destra_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "molly_destra_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "molly_destra_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    1833,
+    390,
+    2246,
+    860
+   ],
+   "space": "boat",
+   "yaw": 76.3218
+  },
+  "molly_sinistra": {
+   "passes": {
+    "ambient": {
+     "file": "molly_sinistra_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "molly_sinistra_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "molly_sinistra_lantern.webp",
+     "res": 1.0,
+     "scale": 0.44
+    }
+   },
+   "rect": [
+    1874,
+    391,
+    2230,
+    835
+   ],
+   "space": "boat",
+   "yaw": -59.0864
+  },
   "rod0": {
    "passes": {
     "ambient": {

@@ -42,12 +42,18 @@ def below(q, down):
 
 # ───────────────────────── corpo ─────────────────────────
 
-def _elbow(sh, wr, side, L1, L2, out=(1.0, 0.0, 0.45)):
+# dove spingono i gomiti quando le mani si aggrappano (x in fuori, y indietro, z in su; locale)
+ELBOW_OUT = (0.8, 0.55, 0.3)
+SHOULDER = (0.29, -0.05, 2.22)
+
+
+def _elbow(sh, wr, side, L1, L2, out=None):
     """Gomito tra spalla e polso, spinto in fuori: rispetta più o meno le lunghezze di braccio e avambraccio."""
     d = float(np.linalg.norm(wr - sh))
     h = d / 2
     L = (L1 + L2) / 2
     b = math.sqrt(max(0.0, L * L - h * h))
+    out = ELBOW_OUT if out is None else out
     o = V(side * out[0], out[1], out[2])
     axis = unit(wr - sh)
     o = unit(o - (o @ axis) * axis)
@@ -85,7 +91,7 @@ def body_field(grip=None):
         spine.append(sdf.sphere(c + n * (0.18 - 0.05 * t), 0.036))
     arms = []
     for i, s in enumerate((-1, 1)):
-        sh_p = V(s * 0.29, -0.05, 2.22)
+        sh_p = V(s * SHOULDER[0], SHOULDER[1], SHOULDER[2])
         if grip is None:
             el, wr = V(s * 0.38, -0.22, 1.70), V(s * 0.24, -0.66, 1.18)
             mid = V(s * 0.34, -0.48, 1.36)
@@ -252,6 +258,17 @@ def build(grip=None, viewer=None, lo=None, hi=None):
     rb = 0.008 if FAST else 0.005
     rh = 0.003 if FAST else 0.0016
     obs = []
+    if grip is not None:
+        # il riquadro del corpo deve contenere anche i gomiti, spinti in fuori dalle mani aggrappate
+        lo = V(-0.62, -1.0, -0.02) if lo is None else V(*lo)
+        hi = V(0.62, 0.48, 2.72) if hi is None else V(*hi)
+        for i, sd in enumerate((-1, 1)):
+            sh = V(sd * SHOULDER[0], SHOULDER[1], SHOULDER[2])
+            wr = V(*grip[i])
+            el = _elbow(sh, wr, sd, 0.78, 0.82)
+            for p in (sh, el, wr):
+                lo = np.minimum(lo, p - 0.14)
+                hi = np.maximum(hi, p + 0.14)
     sk = skin.creature_skin('GulpySkin', base=(0.19, 0.205, 0.19), dark=(0.06, 0.07, 0.065), light=(0.33, 0.345, 0.32),
                             vein=(0.12, 0.13, 0.18), rough=0.68, sss=0.10, scale=1.3)
     # corpo e testa sono lo stesso campo, tagliato al salvagente (la cucitura resta sotto l'anello)

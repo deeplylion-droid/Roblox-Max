@@ -16,6 +16,8 @@ export interface LayerInfo {
   passes: Partial<Record<'ambient' | 'lamp' | 'lantern', PassInfo>>;
   data?: string;
   tip?: Vec3;
+  /** occhi delle creature (dall'occhio del pescatore): a lampara spenta brillano appena */
+  eyes?: Vec3[];
 }
 
 export interface Manifest {

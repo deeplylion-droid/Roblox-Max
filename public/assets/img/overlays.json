@@ -1,0 +1,13 @@
+{
+ "tarp": {
+  "aspect": 1.7778,
+  "base": {
+   "file": "tarp_base.webp",
+   "scale": 0.25
+  },
+  "glow": {
+   "file": "tarp_glow.webp",
+   "scale": 0.42
+  }
+ }
+}

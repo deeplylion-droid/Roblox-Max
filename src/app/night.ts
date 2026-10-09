@@ -6,7 +6,7 @@
  */
 import type { Vec3 } from '../engine/assets.ts';
 import { dirPos, type AudioEngine, type Voice } from '../engine/audio.ts';
-import type { LayerDraw, Overlay } from '../engine/renderer.ts';
+import type { LayerDraw, LightGlow, Overlay } from '../engine/renderer.ts';
 import { CHILD, RADIO_VOICE, speak, type Utterance } from '../engine/voice.ts';
 import { HOUR_SECONDS, NIGHTS, VIEW, YAW, type LampLevel, type MonsterId } from '../game/config.ts';
 import type { GameEvent } from '../game/events.ts';
@@ -61,8 +61,6 @@ const D2R = Math.PI / 180;
 
 // dove stanno le cose, dall'occhio del pescatore (coordinate dei render, metri)
 const RADIO_AT: Vec3 = [-0.3, -1.51, -0.655];
-const BOW_AT: Vec3 = [0.3, 3.4, -0.6];
-const GULPY_FAR: Vec3 = [0.35, 8.1, -0.4];
 const HATCH_AT: Vec3 = [0.35, -7.4, -0.6];
 const BELL_YAW = -40;
 
@@ -126,6 +124,9 @@ export class Night {
   private lastHourShown = -1;
   private heart = 0;
   private listeners: [EventTarget, string, EventListener][] = [];
+  /** dove si sente Gulpy: lontano mentre sale, aggrappato alla prua quando pretende (dai render) */
+  private gulpyFar: Vec3;
+  private bowAt: Vec3;
 
   constructor(private d: NightDeps) {
     this.S = STRINGS[d.lang];
@@ -143,6 +144,8 @@ export class Night {
     this.sonar.onWarn = () => d.sfx.sonarWarn();
     // Molly sta dove l'hanno messa i render: lo sguardo va verificato verso quelle direzioni
     const L = d.stage.man.layers;
+    this.gulpyFar = dirPos(L[POSE.gulpySale]?.yaw ?? -15, 7.5, -4);
+    this.bowAt = dirPos(L[POSE.gulpyPretende]?.yaw ?? -20, 2.8, 6);
     if (L[POSE.mollyRight]) YAW.mollyRight = L[POSE.mollyRight]!.yaw;
     if (L[POSE.mollyLeft]) YAW.mollyLeft = L[POSE.mollyLeft]!.yaw;
     const st = d.stage;
@@ -479,7 +482,7 @@ export class Night {
         break;
       case 'throwFish':
         a.play('fish_throw', { pos: [0.2, 1.8, -0.2] });
-        setTimeout(() => a.play('splash_big', { pos: BOW_AT, gain: 0.6 }), 450);
+        setTimeout(() => a.play('splash_big', { pos: this.bowAt, gain: 0.6 }), 450);
         break;
       case 'denied':
         if (e.reason === 'noFish') this.hud.toast(S.denied.noFish, '', 1.4);
@@ -488,36 +491,36 @@ export class Night {
       case 'gulpy':
         switch (e.e) {
           case 'rise':
-            a.play('splash_s3', { pos: GULPY_FAR, gain: 0.8 });
+            a.play('splash_s3', { pos: this.gulpyFar, gain: 0.8 });
             cap(S.captions.bowGurgle);
             break;
           case 'gurgle':
-            fx.gurgle(this.sim.gulpy.state === 'rising' ? GULPY_FAR : BOW_AT, this.sim.gulpy.state === 'demanding' ? 1.2 : 0.8);
+            fx.gurgle(this.sim.gulpy.state === 'rising' ? this.gulpyFar : this.bowAt, this.sim.gulpy.state === 'demanding' ? 1.2 : 0.8);
             break;
           case 'climb':
             // si rituffa e riemerge aggrappato alla prua: un tonfo, poi lo scafo che cede sotto il suo peso
             this.gulpyDive = 1;
-            a.play('splash_big', { pos: GULPY_FAR, gain: 0.6 });
+            a.play('splash_big', { pos: this.gulpyFar, gain: 0.6 });
             setTimeout(() => {
-              a.play('hull_thump', { pos: BOW_AT, gain: 1 });
-              a.play('creak_3', { pos: BOW_AT, gain: 0.9 });
+              a.play('hull_thump', { pos: this.bowAt, gain: 1 });
+              a.play('creak_3', { pos: this.bowAt, gain: 0.9 });
             }, 2200);
             cap(S.captions.bowClimb);
             break;
           case 'demand':
-            fx.gurgle(BOW_AT, 1.4);
+            fx.gurgle(this.bowAt, 1.4);
             cap(S.captions.bowDemand);
             break;
           case 'fed':
-            fx.chew(BOW_AT);
+            fx.chew(this.bowAt);
             cap(S.captions.bowEat);
             break;
           case 'fedEarly':
-            fx.chew(GULPY_FAR);
+            fx.chew(this.gulpyFar);
             cap(S.captions.bowEat);
             break;
           case 'leave':
-            a.play('splash_big', { pos: BOW_AT, gain: 0.8 });
+            a.play('splash_big', { pos: this.bowAt, gain: 0.8 });
             cap(S.captions.bowLeave);
             break;
           default:
@@ -629,7 +632,8 @@ export class Night {
   }
 
   private startJumpscare(killer: MonsterId): void {
-    const yaw = killer === 'gulpy' ? 4 : killer === 'molly' ? this.sim.molly.yaw : 180;
+    const gy = this.d.stage.man.layers[POSE.gulpyPretende]?.yaw ?? 0;
+    const yaw = killer === 'gulpy' ? gy : killer === 'molly' ? this.sim.molly.yaw : 180;
     this.js = { killer, t: 0, yaw };
     if (this.sonarOpen) this.toggleSonar(false);
     const reduce = this.d.options.reduceFlash;
@@ -734,11 +738,14 @@ export class Night {
     const layers: (string | LayerDraw)[] = ['world'];
     const has = (k: string) => !!man.layers[k];
     // creature nel mondo: emergono dal pelo dell'acqua (lo strato scende e si taglia al galleggiamento)
+    const t = this.d.stage.time;
     const rise = (key: string, opacity: number, r: number): LayerDraw | null => {
       const info = man.layers[key];
       if (!info || opacity < 0.002) return null;
       const h = info.rect[3] - info.rect[1];
-      return { key, opacity, shift: [0, (1 - r) * h], clipY: info.rect[3] - 3 };
+      // in acqua la creatura segue l'onda: sale e scende di un soffio
+      const bob = 1.6 * Math.sin(t * 0.9 + key.length) + 0.7 * Math.sin(t * 2.3);
+      return { key, opacity, shift: [0, (1 - r) * h + bob], clipY: info.rect[3] - 3 };
     };
     const gs = rise(POSE.gulpySale, v.gSale, v.gRise);
     if (gs) layers.push(gs);
@@ -808,17 +815,44 @@ export class Night {
       glowScale: tp.glow.scale,
       wBase: 0.35 + 0.65 * this.d.stage.lampWeight() / 1.7,
       wGlow: 1.2 * v.toy,
-      blob: [searchX, 0.62 + bob, 0.22, 0.02],
+      blob: [searchX, 0.74 + bob, 0.24, 0.015],
       aspect: tp.aspect,
       alpha: k,
       offset: [0, (1 - k) * 0.6],
     };
   }
 
+  /** Occhi delle creature in scena: col buio della lampara spenta restano solo loro (riflesso della luna). */
+  private eyeGlows(): { world: LightGlow[]; boat: LightGlow[] } {
+    const st = this.d.stage;
+    const dark = Math.max(0, 1 - st.lampShown * 1.4);
+    const out = { world: [] as LightGlow[], boat: [] as LightGlow[] };
+    if (dark <= 0.01) return out;
+    const v = this.v;
+    const shown: [string, number][] = [
+      [POSE.gulpySale, v.gSale * v.gRise],
+      [POSE.gulpyPretende, v.gPret],
+      [POSE.mollyRight, v.mR],
+      [POSE.mollyLeft, v.mL],
+      [POSE.hatchConta, v.hConta * v.hRise],
+    ];
+    for (const [key, k] of shown) {
+      const info = st.man.layers[key];
+      if (!info?.eyes || k < 0.05) continue;
+      const pulse = 0.85 + 0.15 * Math.sin(st.time * 1.7 + key.length);
+      for (const e of info.eyes) {
+        const g: LightGlow = { dir: norm(e), color: [0.55 * k * dark * pulse, 0.7 * k * dark * pulse, 0.62 * k * dark * pulse], radius: 0.0022 };
+        (info.space === 'world' ? out.world : out.boat).push(g);
+      }
+    }
+    return out;
+  }
+
   render(): void {
     const st = this.d.stage;
     const v = this.v;
     const js = this.js;
+    const eyes = this.eyeGlows();
     let flash = 0;
     let flashColor: [number, number, number] = [0.55, 0.02, 0.03];
     if (js && !this.d.options.reduceFlash) flash = Math.max(0, 0.55 - js.t * 2.5);
@@ -839,6 +873,8 @@ export class Night {
       flash,
       flashColor,
       fade: 1 - v.dark * 0.9,
+      glows: st.landscapeGlows(eyes.world),
+      boatGlows: eyes.boat,
     });
   }
 
@@ -963,6 +999,7 @@ export class Night {
       else if (sim.gulpy.canBeFed && sim.fish > 0) hint = sim.facing(YAW.bow, VIEW.bowHalfAngle) ? S.hints.throw : '';
       else if (f.phase === 'bite') hint = S.hints.hook;
       else if (f.phase === 'reeling') hint = S.hints.reel;
+      else if (sim.molly.present || sim.gulpy.present) hint = '';
       else if (f.phase === 'idle' && sim.facing(YAW.rod, VIEW.rodHalfAngle) && sim.landedCount < 2) hint = S.hints.cast;
       else if (sim.time < 25 && !sim.facing(YAW.rod, VIEW.rodHalfAngle)) hint = S.look;
     }

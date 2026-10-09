@@ -69,7 +69,7 @@ def canvas_material():
     # quanta luce passa: di più dove la trama è rada, di meno sulle macchie
     thin = g.mul(g.add(g.mul(wv, 0.5), 0.5), g.sub(1.0, g.mul(stains, 0.6)))
     trans = g.translucent(g.mix(thin, (0.0, 0.0, 0.0), (0.55, 0.52, 0.36)), normal=nrm)
-    g.output_material(g.mix_shader(0.42, surf, trans))
+    g.output_material(g.mix_shader(0.2, surf, trans))
     return m
 
 
@@ -86,12 +86,14 @@ def build_drape(name='TarpDrape', res=0.012):
             u = abs(float(x))
             c = _cross(u, float(y))
             z = FLOOR_Z + (ridge - FLOOR_Z) * c
-            # pieghe che scendono dal colmo verso i lati, più profonde dove la tela pende
+            # pieghe: grinze a spigolo che scendono dal colmo verso i lati (più marcate dove la tela pende)
             hang = c * (1 - c) * 4
-            fold = (0.022 * math.sin(y * 21 + ph[0] + 3 * math.sin(x * 4 + ph[1])) +
-                    0.011 * math.sin(y * 47 + x * 9 + ph[2]))
-            sag = 0.006 * math.sin(x * 31 + ph[3]) * math.sin(y * 17 + ph[4])
-            z += fold * (0.25 + hang) + sag
+            w1 = y * 26 + ph[0] + 1.2 * math.sin(x * 5 + ph[1])
+            w2 = y * 61 + x * 7 + ph[2]
+            crease = 0.014 * (1 - abs(math.sin(w1))) ** 3 - 0.006 + 0.004 * (1 - abs(math.sin(w2))) ** 4
+            wave = 0.008 * math.sin(y * 9 + ph[3] + 2 * math.sin(x * 3))
+            sag = 0.004 * math.sin(x * 31 + ph[4]) * math.sin(y * 17 + ph[5])
+            z += (crease + wave) * (0.35 + hang) + sag
             # la tela si allarga un po' quando scende (non è un telo rigido)
             xx = float(x) * (1 + 0.06 * (1 - c))
             verts.append((xx, float(y), max(FLOOR_Z, z)))

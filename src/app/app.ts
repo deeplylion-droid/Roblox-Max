@@ -146,6 +146,7 @@ export class App {
         onResume: () => this.resume(),
         onOptions: () => this.options(show),
         onMenu: () => {
+          removeEventListener('keydown', this.escResume);
           this.audio.resume();
           this.night?.destroy();
           this.night = null;
@@ -153,16 +154,19 @@ export class App {
         },
       });
     show();
-    const esc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && this.mode === 'paused') {
-        removeEventListener('keydown', esc);
-        this.resume();
-      }
-    };
-    setTimeout(() => addEventListener('keydown', esc), 0);
+    // Esc di nuovo riprende (registrato dopo questo evento, e tolto comunque alla ripresa)
+    setTimeout(() => addEventListener('keydown', this.escResume), 0);
   }
 
+  private escResume = (e: KeyboardEvent): void => {
+    if (e.key === 'Escape' && this.mode === 'paused') {
+      e.stopImmediatePropagation();
+      this.resume();
+    }
+  };
+
   private resume(): void {
+    removeEventListener('keydown', this.escResume);
     if (!this.night) return;
     this.screens.clear();
     this.audio.resume();

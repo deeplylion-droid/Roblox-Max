@@ -295,7 +295,11 @@ def job_creature(q):
         before = set(bpy.data.objects.keys())
         fn()
         new = [bpy.data.objects[n] for n in set(bpy.data.objects.keys()) - before]
-        render_sprite(q, key, [o for o in new if o.type == 'MESH'], space=space, sea=sea)
+        bpy.context.view_layer.update()
+        # dove sono gli occhi (dall'occhio del pescatore): a lampara spenta si vedono solo loro
+        eyes = [[round(float(o.matrix_world.translation[i] - EYE[i]), 4) for i in range(3)]
+                for o in new if o.type == 'MESH' and 'Eye' in o.name and not o.name.startswith(('Toy', 'Duck'))]
+        render_sprite(q, key, [o for o in new if o.type == 'MESH'], space=space, sea=sea, extra={'eyes': eyes})
         for o in new:
             o.hide_render = True
         bpy.context.view_layer.update()
@@ -322,9 +326,9 @@ def job_tarp(q):
     import telone
     from common import perspective_camera
     build_scene(fish=0, rod=False)
-    for n in ('Tarp', 'TarpRope'):
-        o = bpy.data.objects.get(n)
-        if o:
+    # il telone è sopra il pescatore; gli oggetti sul banco di prua finirebbero dentro la tela
+    for o in bpy.data.objects:
+        if o.name in ('Tarp', 'TarpRope') or o.name.startswith(('Doll', 'Flask', 'Tally')):
             o.hide_render = True
     # tutta la luce di fuori nel passo base; il passo 'lamp' resta per il giocattolo
     for o in bpy.data.objects:
@@ -332,7 +336,7 @@ def job_tarp(q):
             o.lightgroup = 'ambient'
     telone.build_drape()
     telone.toy_backlight()
-    perspective_camera(telone.EYE_HIDDEN, telone.LOOK_AT, lens=18.0)
+    perspective_camera(telone.EYE_HIDDEN, telone.LOOK_AT, lens=22.0)
     W, H = (1920, 1080) if q.name == 'final' else (1280, 720) if q.name == 'preview' else (854, 480)
     exr = os.path.join(CACHE, q.name, 'tarp.exr')
     t = time.time()
