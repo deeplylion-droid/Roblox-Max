@@ -111,6 +111,10 @@ def hatch_conta():
     M = LAST_M['hatch_conta'] = M_of(o, yaw=facing_yaw(o), pitch=8.0)
     obs = hatch.build(viewer=to_local(M, EYE))
     lights = [o for o in bpy.data.objects if o.type == 'LIGHT' and o.name.startswith('ToyLight')]
+    # di notte, a qualche metro, lo illumina solo la sua esca: più forte che in vetrina
+    for li in lights:
+        li.data.energy = 9.0
+        li.data.shadow_soft_size = 0.035
     return place(obs + lights, M)
 
 

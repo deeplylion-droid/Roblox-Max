@@ -81,6 +81,8 @@ def hatch_attack():
     M0 = sc.M_of(o, yaw=sc.facing_yaw(o), pitch=18.0)
     obs = hatch.build(viewer=sc.to_local(M0, EYE))
     lights = [ob for ob in bpy.data.objects if ob.type == 'LIGHT' and ob.name.startswith('ToyLight')]
+    for li in lights:
+        li.data.energy = 3.0
     obs = sc.place(obs + lights, M0)
     head = hatch.HEAD.pos
     M1 = _toward_eye(M0, head, 0.36, extra_pitch=24.0)
