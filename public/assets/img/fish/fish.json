@@ -1,0 +1,32 @@
+{
+ "barracruda": {
+  "file": "barracruda.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "bleeding"
+ },
+ "orrata": {
+  "file": "orrata.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "zombie"
+ },
+ "salpa_sfasata": {
+  "file": "salpa_sfasata.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "glitch"
+ },
+ "sgombrato": {
+  "file": "sgombrato.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "skeletal"
+ },
+ "trigliocchi": {
+  "file": "trigliocchi.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "corrupt"
+ }
+}
