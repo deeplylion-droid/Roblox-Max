@@ -37,6 +37,44 @@
      "scale": 2.4000000000000004
     }
    ]
+  },
+  "hatch": {
+   "aspect": 1.7778,
+   "fps": 10,
+   "frames": [
+    {
+     "file": "js_hatch_00.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_hatch_01.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_hatch_02.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_hatch_03.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_hatch_04.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_hatch_05.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_hatch_06.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_hatch_07.webp",
+     "scale": 0.25
+    }
+   ]
   }
  },
  "tarp": {
