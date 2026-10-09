@@ -130,6 +130,7 @@ Volume generale/musica/effetti, lingua (italiano, inglese), luminosità, schermo
 - **Una barca piena di oggetti**: lanterna arrugginita, borraccia ammaccata, una bambola di legno seduta sul banco che ti guarda, una paperella di gomma del parco, un barattolo con un occhio che galleggia, occhialini da piscina appesi a un chiodo, un rosario di conchiglie sul palo della lampara, tacche incise sul banco a contare le notti, una campanella legata a poppa, una scatola di latta con mozziconi di candela, una statuina di Mama Marina.
 - **Niente console**: è una barca a remi. Anche la radio e il sonar sono oggetti appoggiati in giro sulla struttura della barca, come tutto il resto.
 - **Secchio e telone sul banco di prua** (approvato): il secchio a destra con la borraccia accanto, il telone piegato a sinistra vicino alla bambola. Prima stavano sul pagliolo dietro il banco e dal posto del pescatore non si vedevano.
+- **Altri oggetti di scena** (richiesti), dove non danno fastidio alle creature e agli oggetti del gioco: un **salvagente** arancio a bande bianche appeso al fianco sinistro dietro al pescatore, una **cima sporca** arrotolata sul ponte di poppa, due **adesivi di Splashland** (il logo tondo sul secchio, quello di Mama Marina sulla paratia sotto la coperta di prua).
 - Post-processing: bloom, grana della pellicola, vignettatura, leggera aberrazione cromatica.
 
 ## 13. Audio

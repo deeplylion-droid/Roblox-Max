@@ -13,10 +13,11 @@ import os
 
 import bpy
 import numpy as np
+from mathutils import Euler, Matrix, Vector
 
 import mascot
 import sdf
-from common import CACHE, set_lightgroup, set_visibility
+from common import CACHE, link, set_lightgroup, set_visibility
 from creature import eye_material, eyeball, sdf_object
 from geo import catmull, cylinder, lathe, rbox, rect_profile, sphere, sweep, tube
 from nodes import material
@@ -581,9 +582,266 @@ def figurine():
     return mascot.build_figurine(FIGURINE_POS, 180.0, height=0.13)
 
 
+# ───────────────────────── salvagente, cima, adesivi ─────────────────────────
+
+LIFEBUOY_POS = (-0.765, -1.05, 0.48)   # appeso al fianco sinistro, dietro al pescatore (lontano da Molly e da Gulpy)
+ROPE_COIL_POS = (-0.26, -2.40, 0.595)  # cima arrotolata sul ponte di poppa, angolo sinistro
+STICKER_BULKHEAD = (-0.22, 2.098, 0.55)  # adesivo sulla paratia sotto la coperta di prua
+
+
+def lifebuoy():
+    """Salvagente anulare di sughero e tela, arancio con quattro bande bianche, la sagola tutt'intorno:
+    sbiadito, sporco di nafta e di alghe, appeso al fianco con un pezzo di cima."""
+    x, y, z = LIFEBUOY_POS
+    R, r = 0.245, 0.058
+    bpy.ops.mesh.primitive_torus_add(major_radius=R, minor_radius=r, major_segments=64, minor_segments=20, location=(0, 0, 0))
+    ob = bpy.context.object
+    ob.name = 'Lifebuoy'
+    link(ob, 'boat')
+    m = bpy.data.materials.get('LifebuoyPaint')
+    if m is None:
+        m, g = material('LifebuoyPaint')
+        co = g.texcoord('Object')
+        cx, cy, cz = g.sep(co)
+        ang = g.math('ARCTAN2', cy, cx)
+        # quattro bande bianche (larghe un ottavo di giro), bordi consumati
+        band = g.smoothstep(0.62, 0.70, g.math('COSINE', g.mul(ang, 4.0)))
+        wear = g.noise(co, scale=14.0, detail=6.0, rough=0.6)
+        band = g.mul(band, g.smoothstep(0.25, 0.45, wear.fac))
+        orange = g.mix(g.smoothstep(0.4, 0.7, wear.fac), (0.42, 0.075, 0.025), (0.62, 0.16, 0.05))
+        col = g.mix(band, orange, (0.62, 0.60, 0.53))
+        # nafta e alghe dal basso, graffi
+        dirt = g.smoothstep(0.55, 0.8, g.noise(co, scale=5.0, detail=5.0, rough=0.65).fac)
+        col = g.mix(g.mul(dirt, 0.7), col, (0.06, 0.07, 0.035))
+        grime = g.sub(1.0, g.smoothstep(-0.2, 0.0, cz))
+        col = g.mix(g.mul(grime, 0.35), col, (0.05, 0.08, 0.03))
+        scratches = g.smoothstep(0.92, 0.97, g.noise(g.mapping(co, scale=(1.0, 1.0, 9.0)), scale=40.0, detail=2.0).fac)
+        col = g.mix(scratches, col, (0.25, 0.22, 0.18))
+        nrm = g.bump(g.add(wear.fac, g.mul(scratches, 0.5)), strength=0.15, distance=0.002)
+        g.output_material(g.principled(color=col, rough=g.mixf(dirt, 0.62, 0.8), normal=nrm))
+    ob.data.materials.append(m)
+    bpy.ops.object.shade_smooth()
+    obs = [ob]
+    # sagola tutt'intorno, legata in quattro punti
+    pts = []
+    for k in range(97):
+        a = 2 * math.pi * k / 96
+        sag = 0.012 * (1 - abs(math.cos(2 * a))) ** 2
+        rr = R + r + 0.004 + sag
+        pts.append((rr * math.cos(a), rr * math.sin(a), 0.0))
+    line = tube('LifebuoyLine', pts, 0.0045, n=6, cap=False)
+    obs.append(line)
+    for k in range(4):
+        a = 2 * math.pi * k / 4 + math.pi / 4
+        c, s_ = math.cos(a), math.sin(a)
+        wrap = [((R + (r + 0.006) * math.cos(t)) * c, (R + (r + 0.006) * math.cos(t)) * s_, (r + 0.006) * math.sin(t))
+                for t in np.linspace(0, 2 * math.pi, 14)]
+        obs.append(tube(f'LifebuoyTie{k}', wrap, 0.0042, n=6, cap=False))
+    rope = dirty_rope_material()
+    for o in obs[1:]:
+        o.data.materials.append(rope)
+    # contro la murata: l'asse del salvagente segue la normale del fianco (che si apre verso l'alto)
+    tilt = math.radians(68.0)
+    rot = Euler((0.0, tilt, 0.0)).to_matrix().to_4x4()
+    M = Matrix.Translation((x, y, z)) @ rot
+    for o in obs:
+        o.matrix_world = M @ o.matrix_world
+    # pezzo di cima che lo tiene appeso al capodibanda
+    top = M @ Vector((0.0, 0.0, 0.0)) + (M.to_3x3() @ Vector((R + r, 0.0, 0.0)))
+    gun = (-0.975, y + 0.02, 0.745)
+    hang = tube('LifebuoyHang', [tuple(top), ((top[0] + gun[0]) / 2 + 0.02, y + 0.01, (top[2] + gun[2]) / 2 + 0.02), gun,
+                                 (gun[0] - 0.03, y + 0.03, gun[2] - 0.06)], 0.006, n=6)
+    hang.data.materials.append(rope)
+    obs.append(hang)
+    return obs
+
+
+def dirty_rope_material():
+    """Cima vecchia: fibra grigio-marrone, nera di nafta e verde di alghe a chiazze (niente righe regolari)."""
+    m = bpy.data.materials.get('DirtyRope')
+    if m:
+        return m
+    m, g = material('DirtyRope')
+    co = g.texcoord('Object')
+    fib = g.noise(g.mapping(co, scale=(1.0, 1.0, 1.0)), scale=160.0, detail=3.0, rough=0.6)
+    base = g.ramp(fib.fac, [(0.3, (0.16, 0.13, 0.09)), (0.7, (0.30, 0.25, 0.17))])
+    blot = g.noise(co, scale=6.0, detail=5.0, rough=0.6)
+    oil = g.smoothstep(0.55, 0.72, blot.fac)
+    algae = g.smoothstep(0.62, 0.78, g.noise(co, scale=11.0, detail=4.0).fac)
+    col = g.mix(oil, base, (0.035, 0.03, 0.025))
+    col = g.mix(g.mul(algae, 0.8), col, (0.06, 0.10, 0.035))
+    g.output_material(g.principled(color=col, rough=0.9, normal=g.bump(fib.fac, strength=0.5, distance=0.002)))
+    return m
+
+
+def rope_coil():
+    """Cima sporca buttata sul ponte di poppa: giri disordinati che si accavallano, il capo sfilacciato."""
+    x, y, z = ROPE_COIL_POS
+    rr = np.random.default_rng(31)
+    pts = []
+    loops = 6
+    for k in range(loops):
+        rad = rr.uniform(0.075, 0.115)
+        cx, cy = x + rr.uniform(-0.018, 0.018), y + rr.uniform(-0.018, 0.018)
+        tilt_x, tilt_y = rr.uniform(-0.25, 0.25), rr.uniform(-0.25, 0.25)
+        h0 = 0.010 + 0.012 * (k % 3)
+        a0 = rr.uniform(0, 2 * math.pi)
+        for i in range(48):
+            a = a0 + 2 * math.pi * i / 48
+            px = cx + rad * math.cos(a) * (1 + 0.08 * math.sin(3 * a + k))
+            py = cy + rad * math.sin(a) * (1 + 0.08 * math.cos(2 * a + k))
+            pz = z + max(0.0, h0 + 0.03 * (tilt_x * math.cos(a) + tilt_y * math.sin(a)))
+            pts.append((px, py, pz))
+    # il capo esce dalla matassa e striscia sul ponte
+    last = pts[-1]
+    tail = [(last[0] + 0.04, last[1] - 0.05, z + 0.022), (last[0] + 0.10, last[1] - 0.11, z + 0.012),
+            (last[0] + 0.17, last[1] - 0.13, z + 0.010), (last[0] + 0.23, last[1] - 0.11, z + 0.011)]
+    path = catmull(pts + tail, 3)
+    ob = tube('RopeCoil', path, 0.0105, n=8, cap=True)
+    ob.data.materials.append(dirty_rope_material())
+    # sfilacciatura del capo
+    end = path[-1]
+    obs = [ob]
+    for j in range(7):
+        ang = rr.uniform(-0.9, 0.9)
+        ln = rr.uniform(0.02, 0.045)
+        tip = (end[0] + ln * math.cos(ang), end[1] - ln * math.sin(ang) * 0.4 + rr.uniform(-0.01, 0.01), end[2] + rr.uniform(-0.003, 0.004))
+        f = tube(f'RopeFray{j}', [tuple(end), tip], 0.0016, n=4, cap=True)
+        f.data.materials.append(dirty_rope_material())
+        obs.append(f)
+    return obs
+
+
+def _sticker_texture(kind):
+    """Grafica degli adesivi del parco (stampata, sbiadita e graffiata), con l'alpha della fustella."""
+    from PIL import Image, ImageDraw, ImageFilter, ImageFont
+    path = os.path.join(CACHE, 'tex', f'sticker_{kind}.png')
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    fonts = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fonts')
+    rr = np.random.default_rng(41 if kind == 'logo' else 43)
+    if kind == 'logo':
+        W = H = 512
+        im = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+        d = ImageDraw.Draw(im)
+        d.ellipse((8, 8, W - 8, H - 8), fill=(250, 246, 232, 255))
+        d.ellipse((26, 26, W - 26, H - 26), fill=(32, 168, 176, 255))
+        # onda bianca e piscina
+        for k in range(3):
+            yy = 300 + k * 34
+            pts = [(30 + i * 8, yy + 16 * math.sin(i * 0.45 + k)) for i in range(57)]
+            d.line(pts, fill=(250, 246, 232, 255), width=12)
+        f = ImageFont.truetype(os.path.join(fonts, 'Limelight-Regular.ttf'), 74)
+        txt = 'SPLASHLAND'
+        tw = d.textlength(txt, font=f)
+        d.text(((W - tw) / 2 + 4, 170 + 4), txt, font=f, fill=(120, 20, 70, 255))
+        d.text(((W - tw) / 2, 170), txt, font=f, fill=(255, 92, 168, 255))
+        for _ in range(9):
+            sx, sy = int(rr.integers(80, 430)), int(rr.integers(70, 150))
+            d.regular_polygon((sx, sy, 7), 4, rotation=45, fill=(255, 236, 120, 255))
+    else:
+        W, H = 1024, 340
+        im = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+        d = ImageDraw.Draw(im)
+        d.rounded_rectangle((6, 6, W - 6, H - 6), radius=46, fill=(250, 210, 40, 255))
+        d.rounded_rectangle((22, 22, W - 22, H - 22), radius=36, outline=(30, 120, 170, 255), width=8)
+        # Mama Marina: balena-mamma a pinne aperte con tre pesciolini in grembo
+        cx, cy = 175, 180
+        d.ellipse((cx - 115, cy - 110, cx + 115, cy + 115), fill=(40, 140, 200, 255))
+        d.ellipse((cx - 70, cy - 10, cx + 70, cy + 100), fill=(240, 244, 236, 255))
+        d.polygon([(cx - 105, cy + 10), (cx - 175, cy - 40), (cx - 150, cy + 40)], fill=(40, 140, 200, 255))
+        d.polygon([(cx + 105, cy + 10), (cx + 175, cy - 40), (cx + 150, cy + 40)], fill=(40, 140, 200, 255))
+        for ex in (-40, 40):
+            d.ellipse((cx + ex - 16, cy - 60, cx + ex + 16, cy - 26), fill=(255, 255, 255, 255))
+            d.ellipse((cx + ex - 8, cy - 50, cx + ex + 8, cy - 34), fill=(20, 20, 30, 255))
+        d.arc((cx - 40, cy - 30, cx + 40, cy + 10), 20, 160, fill=(20, 20, 30, 255), width=6)
+        for fx in (-38, 0, 38):
+            d.ellipse((cx + fx - 16, cy + 40, cx + fx + 16, cy + 62), fill=(255, 130, 40, 255))
+            d.polygon([(cx + fx + 14, cy + 51), (cx + fx + 28, cy + 40), (cx + fx + 28, cy + 62)], fill=(255, 130, 40, 255))
+        f1 = ImageFont.truetype(os.path.join(fonts, 'Limelight-Regular.ttf'), 48)
+        f2 = ImageFont.truetype(os.path.join(fonts, 'Limelight-Regular.ttf'), 104)
+        d.text((330, 70), "MAMA MARINA'S", font=f1, fill=(30, 100, 150, 255))
+        d.text((322 + 5, 130 + 5), 'SPLASHLAND', font=f2, fill=(150, 30, 80, 255))
+        d.text((322, 130), 'SPLASHLAND', font=f2, fill=(240, 70, 140, 255))
+    # sole, sale e anni: colori sbiaditi, graffi, un angolo scrostato
+    px = np.asarray(im).astype(np.float32) / 255.0
+    rgb, a = px[..., :3], px[..., 3]
+    lum = rgb.mean(axis=2, keepdims=True)
+    rgb = lum + (rgb - lum) * 0.55
+    rgb = rgb * 0.82 + 0.10
+    h, w = a.shape
+    yy, xx = np.mgrid[0:h, 0:w]
+    grime = np.clip(np.sin(xx * 0.013 + 1.3) * np.sin(yy * 0.021) * 0.5 + 0.5, 0, 1)
+    rgb = rgb * (0.85 + 0.15 * grime[..., None])
+    for _ in range(26):
+        x0, y0 = int(rr.integers(0, w)), int(rr.integers(0, h))
+        ang = rr.uniform(0, math.pi)
+        ln = int(rr.integers(20, 160))
+        for t in range(ln):
+            sx = int(x0 + math.cos(ang) * t)
+            sy = int(y0 + math.sin(ang) * t)
+            if 0 <= sx < w and 0 <= sy < h:
+                rgb[sy, max(0, sx - 1):sx + 1] = rgb[sy, max(0, sx - 1):sx + 1] * 0.3 + 0.55
+    # angolo strappato: la carta bianca sotto la stampa, poi via del tutto
+    corner = (xx - (w - 1)) ** 2 + (yy - (h - 1)) ** 2 < (0.22 * min(w, h)) ** 2
+    torn = (xx - (w - 1)) ** 2 + (yy - (h - 1)) ** 2 < (0.15 * min(w, h)) ** 2
+    rgb[corner & ~torn] = [0.86, 0.84, 0.78]
+    a = np.where(torn, 0.0, a)
+    out = Image.fromarray((np.dstack([np.clip(rgb, 0, 1), a]) * 255).astype(np.uint8), 'RGBA')
+    out = out.filter(ImageFilter.GaussianBlur(0.6))
+    out.save(path)
+    return path, W / H
+
+
+def _sticker(name, kind, width, loc, normal, up=(0.0, 0.0, 1.0), wrap_to=None):
+    """Adesivo: un piano con la grafica e la fustella; se wrap_to, si adagia sulla superficie (secchio)."""
+    path, aspect = _sticker_texture(kind)
+    bpy.ops.mesh.primitive_grid_add(x_subdivisions=16, y_subdivisions=16, size=1.0, location=(0, 0, 0), calc_uvs=True)
+    ob = bpy.context.object
+    ob.name = name
+    link(ob, 'boat')
+    ob.scale = (width, width / aspect, 1.0)
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    n = Vector(normal).normalized()
+    u = Vector(up)
+    xaxis = u.cross(n).normalized()
+    yaxis = n.cross(xaxis).normalized()
+    R = Matrix((xaxis, yaxis, n)).transposed().to_4x4()
+    ob.matrix_world = Matrix.Translation(loc) @ R
+    if wrap_to is not None:
+        sw = ob.modifiers.new('Wrap', 'SHRINKWRAP')
+        sw.target = wrap_to
+        sw.wrap_method = 'NEAREST_SURFACEPOINT'
+        sw.offset = 0.0012
+    m, g = material(name + 'Mat')
+    uv = g.texcoord('UV')
+    c, alpha = g.image(path, uv, colorspace='sRGB')
+    surf = g.principled(color=c, rough=0.42, coat=0.35, coat_rough=0.3)
+    g.output_material(g.mix_shader(alpha, g.transparent(), surf))
+    ob.data.materials.append(m)
+    set_lightgroup(ob, 'ambient')
+    return ob
+
+
+def stickers():
+    """Due adesivi di Splashland: il logo tondo sul secchio (dalla parte del pescatore) e quello di
+    Mama Marina sulla paratia sotto la coperta di prua."""
+    obs = []
+    from boat import BUCKET_POS
+    bucket = bpy.data.objects.get('Bucket')
+    if bucket is not None:
+        bx, by, bz = BUCKET_POS
+        to_eye = Vector((0.0 - bx, -0.55 - by, 0.0)).normalized()
+        rad = 0.142
+        loc = (bx + to_eye.x * rad, by + to_eye.y * rad, bz + 0.15)
+        obs.append(_sticker('StickerBucket', 'logo', 0.10, loc, (to_eye.x, to_eye.y, 0.0), wrap_to=bucket))
+    obs.append(_sticker('StickerBulkhead', 'marina', 0.24, STICKER_BULKHEAD, (0.0, -1.0, 0.0)))
+    return obs
+
+
 def build_props():
     obs = []
-    for f in (lantern, flask, doll, duck, jar, goggles, rosary, tally_marks, stern_bell, candle_tin, figurine):
+    for f in (lantern, flask, doll, duck, jar, goggles, rosary, tally_marks, stern_bell, candle_tin, figurine,
+              lifebuoy, rope_coil, stickers):
         obs += f()
     for o in obs:
         if o.type == 'MESH' and o.lightgroup == '':
