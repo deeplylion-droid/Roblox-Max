@@ -4,7 +4,7 @@ Tutto l'audio è **sintetizzato da script** in `tools/audio/` (Python + numpy/sc
 
 Rigenerazione: `tools/.venv/bin/python tools/audio/generate.py [id...] [--spectro] [--jobs N]` (deterministico: seed fissi per id; `--spectro` scrive gli spettrogrammi di controllo in `tools/audio/cache/`).
 
-> **Stato (9 ottobre 2026): tutti i suoni sono stati rifatti e sono DA APPROVARE.** Nuovi: musica e stinger, interfaccia, tutti i versi delle creature (con i tre jumpscare), `sonar_warn`. Rifatti: mare, alba, telone, bordone, scricchiolii, schizzi, tonfi, lancio della lenza, plop, lenza in tensione, filo che si spezza, secchio, lancio del pesce, battito, sonar, statica. Gli altri (vento, lampara, statica radio, campane, sirena, campanellino, mulinello, pesce fuori dall'acqua, interruttore e tremolio della lampara, telone, radio) sono quelli di prima, con i ritocchi venuti dai modelli condivisi (gocce, schizzi e colpi d'onda meno "da cartone").
+> **Stato (9 ottobre 2026): tutti i suoni sono stati rifatti e sono DA APPROVARE.** Nuovi: musica e stinger, interfaccia, tutti i versi delle creature (con i tre jumpscare), `sonar_warn`. Rifatti: mare, alba, telone, bordone, scricchiolii, schizzi, tonfi, lancio della lenza, plop, lenza in tensione, filo che si spezza, secchio, lancio del pesce, battito, sonar, statica. Nella notte fra il 9 e il 10 ottobre ho rifatto anche gli ultimi rimasti: vento, lampara, statica radio, campane, sirena, campanellino, mulinello, pesce fuori dall'acqua, interruttore e tremolio della lampara, telone e radio. La lampara ora è coerente con il GDD (elettrica, a batteria): sibilo della lampada e ronzio del reattore, niente più valvola del gas.
 
 ## Organizzazione degli script
 
@@ -28,20 +28,20 @@ Rigenerazione: `tools/.venv/bin/python tools/audio/generate.py [id...] [--spectr
 | id | durata | descrizione |
 |---|---|---|
 | `amb_sea` | 32 s | Sciabordio contro uno scafo di legno, mare calmo: il mare respira con l'onda lunga (8 cicli nel loop). A ogni cresta l'acqua sbatte su un fianco e, poco dopo e più piano, sull'altro (l'onda passa sotto la barca); nel cavo quasi silenzio, gorgoglii fra le tavole, bollicine, raramente un piccolo schizzo. Letto d'acqua lontano basso, perché i colpi si stacchino. *Rifatto, da approvare.* |
-| `amb_wind` | 30 s | Vento notturno debole sul mare aperto, raffiche lente, quasi impercettibile. |
-| `amb_lamp` | 8 s | Sibilo di una lampada a pressione (petromax) + leggerissimo ronzio elettrico a 50 Hz con armoniche. |
+| `amb_wind` | 30 s | Vento notturno debole sul mare aperto: raffiche lente che arrivano da un lato e passano all'altro; con la raffica il soffio si schiarisce e l'acqua fruscia sotto; le cime e il palo della lampara cantano appena (toni eolici che salgono e scendono con l'aria); nelle raffiche più forti il bordo del telone sbatacchia piano e la cima tocca il palo. Quasi impercettibile. *Rifatto, da approvare.* |
+| `amb_lamp` | 20 s | La lampara accesa sul buttafuori: il sibilo sottile della lampada, che «frigge» appena a 100 Hz come le lampade a scarica; il ronzio del reattore (100 Hz e armoniche, un po' ruvido) che respira con la tensione della batteria; i tic del metallo caldo; due volte una falena che sbatte contro il vetro e riparte (aggiunta mia: si toglie se non piace). *Rifatto, da approvare.* |
 | `amb_drone` | 24 s | Bordone sub-basso inquietante (quarte sovrapposte, 30–80 Hz) con battimenti lenti; lontanissimi, due richiami di balena e due gemiti di lamiera del relitto del peschereccio che si piega sott'acqua; un soffio di pressione. Usato quando la tensione sale. *Rifatto (il relitto è nuovo), da approvare.* |
 | `amb_tarp` | 16 s | Sotto il telone: mare ovattato (passa-basso ~600 Hz) con i colpi d'onda nuovi, tela che si muove appena, respiro trattenuto molto basso. *Da approvare.* |
 | `amb_dawn` | 24 s | Alba: il mare si è calmato (colpetti radi e leggeri), la risacca sulla riva lontana, una brezza, i gabbiani che si chiamano dalla baia (ora si sentono). Livelli fissati sull'RMS di ogni strato. *Rifatto, da approvare.* |
-| `radio_static` | 6 s | Fruscio radio VHF con lievi crepitii. |
+| `radio_static` | 10 s | Il baracchino VHF aperto senza segnale: il fruscio dell'FM dal piccolo altoparlante, che a tratti sfarfalla (il segnale che va e viene); crepitii secchi di scariche lontane; debolissimo, il fischio di una portante alla deriva. *Rifatto, da approvare.* |
 
 ## Mondo e orologio (mono, tranne dove indicato)
 
 | id | durata | descrizione |
 |---|---|---|
-| `bell_toll` | 7 s | Un rintocco della campana di un campanile lontano (bronzo, parziali inarmoniche: hum, prime, tierce minore, quinta, nominale), coda lunga, filtrato dalla distanza. **Stereo**. |
-| `bell_dawn` | 9 s | Scampanio festoso di più campane (alba delle 6). **Stereo**. |
-| `foghorn` | 6 s | Sirena da nebbia lontanissima, due toni, riverbero di baia. **Stereo**. |
+| `bell_toll` | 8 s | Un rintocco del campanile del paese, dall'altra parte della baia: campana grave (Sol3), il colpo metallico del battaglio, le parziali che si spengono ognuna col suo tempo e l'hum che resta per ultimo; la distanza si mangia gli acuti, arrivano il riverbero del paese e l'eco dai faraglioni, l'aria fa ondeggiare appena il livello. **Stereo**. *Rifatto, da approvare.* |
+| `bell_dawn` | 9 s | Le sei: cinque campane a distesa (Do maggiore) che prendono slancio una dopo l'altra e si inseguono, la grande più lenta; il battaglio colpisce un lato e poi l'altro (due voci per campana); verso i 6,5 s le lasciano andare e resta la coda nella baia. **Stereo**. *Rifatto, da approvare.* |
+| `foghorn` | 7 s | Sirena da nebbia lontanissima, dal faro: diafono a due toni (alto, poi basso), la pressione che sale all'inizio di ogni fiato e alla fine il «grugnito» (il tono che crolla mentre l'aria finisce e il pistone sbatacchia); niente acuti, il livello che ondeggia nell'aria umida, riverbero della baia e due echi dalla costa. **Stereo**. *Rifatto, da approvare.* |
 | `creak_1`…`creak_4` | 0,65–1,45 s | Scricchiolii del legno della barca: attrito a strappi (il legno "prende" e "molla") con frequenza che vaga, tavole che risuonano, un po' di scafo sotto. 1 tavola del pagliolo, 2 gemito lungo del fasciame con un cigolio a metà, 3 "cre-eak" in due tempi, 4 scalmo e cima (più tonale). *Rifatti, da approvare.* |
 | `splash_s1`…`splash_s3` | 0,5–0,85 s | Piccoli schizzi: impatto a banda larga, spruzzo a strappi, la cavità che si richiude in un "plop" corto, bollicine, la pioggia di gocce (soprattutto ticchettii, poche "plink"). *Rifatti, da approvare.* |
 | `splash_big` | 1,6 s | Qualcosa di pesante che rientra: il tonfo grave della cavità che collassa, il getto che ricade in un secondo schizzo, la pioggia di gocce, una nuvola di bolle grosse che risale. *Rifatto, da approvare.* |
@@ -53,22 +53,22 @@ Rigenerazione: `tools/.venv/bin/python tools/audio/generate.py [id...] [--spectr
 |---|---|---|
 | `cast` | 1,1 s | Scatto dell'archetto, la frusta della canna (fruscio netto che segue la velocità della punta + fischio della vetta), poi il filo che corre via dalla bobina: sibilo fino che sfarfalla contro il primo anello e rallenta. *Rifatto, da approvare.* |
 | `plop` | 0,4 s | Il piombo con l'esca che entra in acqua: tic dell'impatto, un "plup" corto con poca salita di tono, due bollicine, qualche goccia. *Rifatto, da approvare.* |
-| `rod_bell_1`, `rod_bell_2` | 1,2 s | Campanellino d'ottone in punta alla canna che trilla per l'abboccata (scosse irregolari, 2–3 rintocchi ravvicinati). |
-| `reel_loop` | 0,48 s | Cricchetto del mulinello mentre si recupera, loop esatto (la velocità si regola col playbackRate). |
+| `rod_bell_1`, `rod_bell_2` | 1,2 s | Due campanellini d'ottone su una molletta in punta alla canna. Ogni strattone fa oscillare la vetta (circa 5 volte al secondo, sempre meno): il battaglio colpisce agli estremi dell'oscillazione, ribattuto all'inizio e poi sempre più piano; la molletta ticchetta. 1 due strattoni; 2 tre beccate leggere e poi lo strattone. *Rifatti, da approvare.* |
+| `reel_loop` | 0,48 s | Un giro di manovella, loop esatto (la velocità la regola il gioco col playbackRate): la mano accelera e rallenta nel giro e tutto la segue; il cricchetto dell'antiritorno scatta 12 volte, gli ingranaggi girano col loro fischio di denti, il filo si avvolge sulla bobina, il rullino dell'archetto cigola appena. *Rifatto, da approvare.* |
 | `line_tension` | 2 s | Lenza sotto sforzo, loop: la canna che si flette e scricchiola a strappi, la frizione del mulinello che slitta a scatti ("zzzt", raffiche di scatti metallici), il filo che taglia l'acqua (sibilo) e canta appena. *Rifatto, da approvare.* |
 | `line_snap` | 0,6 s | Il filo che cede: uno schiocco secco e brillante, il moncone che frusta l'aria e picchietta sugli anelli, la canna che torna su di scatto (fruscio grave e un colpetto nel mulinello); solo un'ombra di vibrazione smorzata (il nylon non "canta" come una corda). *Rifatto, da approvare.* |
-| `fish_out` | 1,2 s | Pesce che esce dall'acqua: schizzo + guizzi. |
+| `fish_out` | 1,2 s | Il pesce tirato fuori: la superficie che si rompe e il risucchio della cavità che si richiude, il pesce che si dibatte in aria, ogni colpo di coda lancia gocce che ricadono sul mare poco dopo, l'acqua che gli cola di dosso, il filo che sibila negli anelli. *Rifatto, da approvare.* |
 | `fish_bucket` | 0,95 s | Il pesce sul fondo di un secchio di lamiera zincata con un dito d'acqua: tonfo carnoso, la lamiera (modi fitti e inarmonici) smorzata dal corpo bagnato; poi i colpi di coda contro le pareti, più acuti e sempre più deboli; l'acqua che sciaguatta. *Rifatto, da approvare.* |
 | `fish_throw` | 0,7 s | Il lancio di un pesce a Gulpy: il pesce afferrato nel secchio (scivola bagnato, la coda tocca la lamiera), il braccio che lancia (fruscio), il pesce che vola perdendo gocce e sbattendo la coda. L'arrivo non c'è più (suonava nel punto del pescatore): lo fa il morso dentro `gulpy_eat`. *Rifatto, da approvare.* |
-| `lamp_switch` | 0,25 s | Interruttore/valvola della lampara. |
-| `lamp_flicker` | 0,6 s | Crepitio della lampara che tremola. |
-| `tarp_in` | 0,9 s | Ci si infila sotto un telone di tela cerata (fruscio pesante). |
-| `tarp_out` | 0,8 s | Si esce dal telone. |
+| `lamp_switch` | 0,3 s | Il commutatore della lampara: la manopola di bachelite che gira sulla camma (un tic) e scatta sulla tacca (un clac secco con la scatola che risuona), il contatto che sfrigola un attimo, il reattore che cambia ronzio. *Rifatto, da approvare.* |
+| `lamp_flicker` | 0,7 s | La lampara che tremola: la scarica s'interrompe e riprende a scatti (sibilo e ronzio cadono e tornano), a ogni ripresa il contatto crepita, nei cali il reattore ronza ruvido. *Rifatto, da approvare.* |
+| `tarp_in` | 1,1 s | Ci si infila sotto il telone di tela cerata: la mano che afferra la tela, il telone tirato sopra la testa (fruscio pesante, aria spostata), le ginocchia sulle tavole e il corpo che scivola sul pagliolo, il telone che ricade con un tonfo morbido e si assesta, già ovattato. *Rifatto, da approvare.* |
+| `tarp_out` | 0,9 s | Si esce dal telone: la tela spinta su di colpo, buttata indietro con un colpo d'aria, che ricade dietro sul banco; torna l'aria aperta. *Rifatto, da approvare.* |
 | `heartbeat` | 1 s, **loop** | Il battito sentito da dentro: "lub" grave e pieno, "dub" più corto e un po' più alto, il sangue che pulsa nelle orecchie. Ora è un loop vero (60 al minuto; il gioco lo accelera col playbackRate). *Rifatto, da approvare.* |
 | `sonar_ping` | 2,2 s | Ping dell'ecoscandaglio: tono che cala appena con il tic del trasduttore, coda d'acqua densa che ondeggia, eco dal fondo più scura e più grave, sotto il crepitio dei gamberetti. **Stereo**. *Rifatto, da approvare.* |
 | `sonar_blip` | 0,15 s | Bip di un contatto: il cicalino piezoelettrico (onda quasi quadra, risonanza acuta). *Rifatto, da approvare.* |
 | `sonar_warn` | 0,9 s | **Nuovo.** L'avviso quando sale qualcosa di grosso: due bip più gravi e sporchi (il secondo più basso), ognuno con un colpo sordo sotto. Lo usa `Sfx.sonarWarn()`. *Da approvare.* |
-| `radio_on` / `radio_off` | 0,4 s | Squelch VHF in apertura / chiusura. |
+| `radio_on` / `radio_off` | 0,45 / 0,4 s | Il baracchino: lo scatto del pulsante e lo squelch che si apre ('kshh') finché la portante aggancia e il fruscio crolla; in chiusura la coda dello squelch ('kshhht') che si chiude secca e lo scatto. Tutto dal piccolo altoparlante. *Rifatti, da approvare.* |
 | `static_burst` | 1,5 s | Il segnale che salta (dopo il jumpscare): schiocco elettrico, neve televisiva a strappi, ronzio a 50 Hz di un televisore che perde il quadro, fischi che strisciano come le righe di un nastro rovinato, il tubo che si spegne. **Stereo**. *Rifatto, da approvare.* |
 
 ## Voce radio (mono)

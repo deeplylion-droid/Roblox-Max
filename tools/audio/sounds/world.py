@@ -18,56 +18,117 @@ def bay_ir(rng, rt60=2.8, far=1.0):
 
 # ───────────────────────── campane ─────────────────────────
 
-@sound('bell_toll', 7.0, channels=2, category='sfx', gain=0.8, rms=-20.0)
+@sound('bell_toll', 8.0, channels=2, category='sfx', gain=0.8, rms=-20.0)
 def bell_toll(s, rng):
-    b = church_bell(rng, prime=262.0, dur=s.dur, t60=9.0, bright=0.85, beat=1.0, strike=0.6)
-    # la distanza: aria e tetti si mangiano gli acuti, il riverbero della baia prevale sul diretto
-    b = eq(lowpass(highpass(b, 90, 2), 2600, 2), 'highshelf', 1500, gain_db=-4.0)
-    return 0.75 * pan(b, -0.12) + 0.6 * convolve(b, bay_ir(rng))
+    """Un rintocco del campanile del paese, dall'altra parte della baia. Campana grave di bronzo (Sol3):
+    il colpo metallico del battaglio, poi le parziali che si spengono ognuna col suo tempo e l'hum che resta
+    per ultimo. La distanza (circa un chilometro e mezzo) si mangia gli acuti; arrivano il riverbero del
+    paese e l'eco dai faraglioni; la turbolenza dell'aria fa ondeggiare appena il livello."""
+    n = s.n
+    prime = 196.0
+    b = church_bell(rng, prime, dur=s.dur, t60=12.0, bright=0.8, beat=0.7, strike=0.4)
+    # il colpo del battaglio: un grappolo di parziali alte e un rumore metallico che muoiono subito
+    k = ns(0.14)
+    tt = tvec(k)
+    clang = 0.7 * bandpass(rng.standard_normal(k), 1100, 7000) * np.exp(-tt / 0.005)
+    for _ in range(10):
+        f = prime * rng.uniform(5.5, 15.0)
+        clang += rng.uniform(0.3, 1.0) * np.sin(TWO_PI * f * tt + rng.uniform(0, TWO_PI)) * \
+            np.exp(-6.9 * tt / rng.uniform(0.025, 0.11))
+    place(b, 0.3 * normalize(clang) * np.max(np.abs(b[:ns(0.5)])), 0.0)
+    # la distanza: aria, tetti e alberi tolgono gli acuti; un filo di riflesso sull'acqua (pettine leggero)
+    b = eq(lowpass(highpass(b, 70, 2), 2300, 2), 'highshelf', 1200, gain_db=-5.0)
+    d = ns(0.0023)
+    b = b + 0.3 * np.concatenate([np.zeros(d), b[:-d]])
+    # turbolenza: ±2 dB lenti
+    b = b * db_to_lin(1.8 * rand_curve(n, 0.6, rng))
+    return 0.65 * pan(b, -0.12) + 0.7 * convolve(b, bay_ir(rng, rt60=3.2, far=1.1))
+
+
+def _swing_strikes(rng, period, t_start, t_stop, ramp=1.3, fall=0.7):
+    """Colpi del battaglio di una campana suonata a distesa: due per oscillazione (un lato e l'altro).
+    All'inizio la campana prende slancio (colpi più deboli e un po' più radi), alla fine la si lascia andare."""
+    hits = []
+    t = t_start
+    side = 0
+    while t < t_stop:
+        u = (t - t_start) / ramp
+        v = (t_stop - t) / fall
+        a = min(1.0, 0.35 + 0.65 * u) * min(1.0, 0.25 + 0.75 * v)
+        hits.append((t, a * (1.0 if side == 0 else 0.82) * rng.uniform(0.9, 1.08), side))
+        stretch = 1.0 + 0.25 * max(0.0, 1.0 - u)
+        t += period / 2 * stretch * (1 + rng.normal(0, 0.025))
+        side ^= 1
+    return hits
 
 
 @sound('bell_dawn', 9.0, channels=2, category='sfx', gain=0.8, rms=-19.0)
 def bell_dawn(s, rng):
+    """Le sei: il campanile suona a festa. Cinque campane a distesa (Do maggiore) che prendono slancio una
+    dopo l'altra e si inseguono, la grande più lenta; ogni campana ha due "voci" (il battaglio colpisce
+    un lato e poi l'altro); verso i 6,5 s le lasciano andare e resta la coda nella baia."""
     n = s.n
     out = np.zeros((2, n))
-    # quattro campane in Do maggiore suonate "a distesa": ognuna oscilla col suo periodo e il
-    # battaglio colpisce un lato e poi l'altro (poliritmo festoso); si fermano verso i 6,5 s
-    bells = [(523.25, 0.45, -0.45, 1.02), (392.0, 0.6, 0.35, 1.24), (329.63, 0.75, -0.1, 1.46),
-             (261.63, 0.9, 0.55, 1.72)]
-    for i, (prime, lvl, p, period) in enumerate(bells):
-        ring = church_bell(rng, prime, dur=5.5, t60=7.5 * (261.63 / prime) ** 0.5, bright=0.95, beat=1.2,
-                           strike=0.7)
-        imp = np.zeros(n)
-        t = 0.0 if i == 0 else rng.uniform(0.15, 0.6)
-        side = 0
-        while t < 6.4:
-            imp[ns(t)] += (1.0 if side == 0 else 0.78) * rng.uniform(0.9, 1.1)
-            t += period / 2 * (1 + rng.normal(0, 0.03))
-            side ^= 1
-        out += pan(fftconvolve(imp, ring)[:n], p) * lvl
-    out = lowpass(highpass(out, 110, 2), 4500, 2)
-    return out + 0.45 * convolve(out.mean(axis=0), bay_ir(rng, 2.4))
+    bells = [  # prime (Hz), livello, posizione, periodo di oscillazione (s), attacco (s)
+        (659.26, 0.38, -0.5, 0.92, 0.0),
+        (523.25, 0.45, 0.3, 1.06, 0.35),
+        (392.00, 0.55, -0.15, 1.28, 0.7),
+        (329.63, 0.62, 0.55, 1.46, 1.0),
+        (261.63, 0.8, -0.3, 1.78, 1.25),
+    ]
+    for prime, lvl, p, period, t0 in bells:
+        T = 7.0 * (261.63 / prime) ** 0.5
+        voices = [church_bell(rng, prime, dur=5.0, t60=T, bright=0.95, beat=1.1, strike=0.8),
+                  church_bell(rng, prime * 1.0015, dur=5.0, t60=T, bright=0.8, beat=1.3, strike=0.6)]
+        imp = [np.zeros(n), np.zeros(n)]
+        for t, a, side in _swing_strikes(rng, period, t0 + rng.uniform(0, 0.15), 6.5 + rng.uniform(-0.2, 0.2)):
+            imp[side][ns(t)] += a
+        y = fftconvolve(imp[0], voices[0])[:n] + fftconvolve(imp[1], voices[1])[:n]
+        out += pan(y, p) * lvl
+    out = eq(lowpass(highpass(out, 100, 2), 4200, 2), 'highshelf', 1800, gain_db=-3.0)
+    out = out * db_to_lin(1.2 * rand_curve(n, 0.5, rng))
+    return out + 0.5 * convolve(out.mean(axis=0), bay_ir(rng, 2.6))
 
 
 # ───────────────────────── sirena da nebbia ─────────────────────────
 
-@sound('foghorn', 6.0, channels=2, category='sfx', gain=0.6, rms=-22.0)
+def _diaphone(rng, d, f, grunt=False, f_grunt=None):
+    """Un fiato di diafono: la pressione che sale (il tono si alza e si pulisce), il tono pieno e ruvido
+    del pistone a fessure, poi la fine; con grunt=True il "grugnito": il tono crolla e il pistone sbatacchia."""
+    m = ns(d + (0.55 if grunt else 0.0))
+    pts = [(0, f * 0.82), (0.16, f * 0.99), (0.3, f), (d - 0.05, f * 0.995)]
+    if grunt:
+        pts += [(d + 0.12, (f_grunt or f * 0.62) * 1.05), (d + 0.55, (f_grunt or f * 0.62) * 0.9)]
+    else:
+        pts += [(d, f * 0.97)]
+    f0 = curve(m, pts, 'log') * cents(3 * rand_curve(m, 4.0, rng))
+    # il pistone: onda ricca, quasi a dente di sega, con un po' di ruvidità
+    src = additive(f0, lambda k: 1.0 / k ** 0.85, n_harm=36)
+    src = src * (1 + 0.06 * rand_curve(m, 60.0, rng))
+    if grunt:
+        rat = 1 + 0.55 * np.sin(TWO_PI * phase_of(curve(m, [(0, 22.0), (m / SR, 16.0)]))) * \
+            curve(m, [(0, 0), (d, 0), (d + 0.08, 1), (d + 0.55, 0.6)])
+        src = src * rat
+    # la tromba: risonanze larghe
+    horn = resonate(src, 360, 2.2) + 0.85 * resonate(src, 720, 2.8) + 0.5 * resonate(src, 1180, 3.5) + 0.25 * src
+    env = curve(m, [(0, 0.12), (0.05, 0.35), (0.22, 1.0), (d - 0.15, 0.97)] +
+                ([(d + 0.1, 0.8), (d + 0.55, 0.0)] if grunt else [(d, 0.0)]))
+    return normalize(horn) * env
+
+
+@sound('foghorn', 7.0, channels=2, category='sfx', gain=0.6, rms=-22.0)
 def foghorn(s, rng):
+    """Una sirena da nebbia lontanissima, dal faro: diafono a due toni (alto, poi basso) che finisce col suo
+    "grugnito", il tono che crolla mentre l'aria finisce. Arriva da lontano: niente acuti, il livello che
+    ondeggia nell'aria umida, il riverbero della baia e due echi dalla costa."""
     n = s.n
     y = np.zeros(n)
-    # diafono a due toni (alto, poi basso) con il "grugnito" finale: il tono cala quando l'aria finisce
-    for t0, d, f, fend in [(0.0, 1.75, 168.0, 148.0), (1.9, 2.1, 126.0, 104.0)]:
-        m = ns(d)
-        f0 = curve(m, [(0, f * 0.96), (0.1, f), (d - 0.32, f), (d, fend)], 'log') * cents(4 * rand_curve(m, 5.0, rng))
-        src = additive(f0, lambda k: 1.0 / k ** 0.75, n_harm=30)
-        horn = resonate(src, 390, 2.5) + 0.8 * resonate(src, 780, 3.0) + 0.5 * resonate(src, 1250, 4.0) + 0.3 * src
-        env = curve(m, [(0, 0.15), (0.06, 1.0), (d - 0.35, 0.95), (d, 0)])
-        place(y, normalize(horn) * env, t0)
-    # lontanissima: passa-basso forte, l'aria turbolenta fa ondeggiare il livello
-    y = lowpass(y, 720, 2) * (1 + 0.22 * rand_curve(n, 1.2, rng))
-    ir = reverb_ir(3.6, rng, lo=1.3, hi=0.35, attack=0.03, sparse=0.5, lp=2500,
-                   early=[(0.55, 0.4, 0.6), (1.1, 0.25, -0.5), (1.7, 0.12, 0.2)])
-    return 0.55 * pan(y, 0.35) + 0.85 * convolve(y, ir)
+    place(y, _diaphone(rng, 1.6, 172.0), 0.0)
+    place(y, _diaphone(rng, 1.9, 129.0, grunt=True, f_grunt=84.0), 1.75)
+    y = lowpass(y, 650, 2) * db_to_lin(2.5 * rand_curve(n, 1.0, rng))
+    ir = reverb_ir(3.8, rng, lo=1.3, hi=0.35, attack=0.03, sparse=0.5, lp=2200,
+                   early=[(0.6, 0.38, 0.6), (1.15, 0.24, -0.5), (1.8, 0.12, 0.2)])
+    return 0.5 * pan(y, 0.35) + 0.9 * convolve(y, ir)
 
 
 # ───────────────────────── scricchiolii ─────────────────────────

@@ -61,49 +61,83 @@ def plop(s, rng):
     return y
 
 
+def _tick(rng, base=5200.0, t60=0.012):
+    """Tic metallico secco (la molletta d'acciaio, un fermo)."""
+    exc = np.zeros(ns(0.03))
+    exc[0], exc[1] = 1.0, -0.8
+    return normalize(modal(exc, base * np.array([1, 1.53, 2.21]) * rng.uniform(0.95, 1.05, 3), [t60, t60 * 0.7, t60 * 0.5],
+                           [1, 0.6, 0.35]))
+
+
 def _rod_bell(s, rng):
-    """Campanellino doppio d'ottone sulla punta: ogni scossa fa battere il battaglio 2-4 volte."""
-    n = s.n
+    """Due campanellini d'ottone su una molletta in punta alla canna. Ogni strattone del pesce fa oscillare la
+    vetta (5 volte al secondo circa, sempre meno): il battaglio colpisce agli estremi dell'oscillazione, forte e
+    ribattuto all'inizio, poi sempre più piano; i due campanellini non suonano mai insieme uguali; la molletta
+    ticchetta sulla vetta."""
+    n, dur = s.n, s.dur
     sa, sb = [], []
-    for t0, k in s.params['shakes']:
-        t = t0
-        a = rng.uniform(0.75, 1.0)
-        for i in range(k):
-            (sa if (i == 0 or rng.random() < 0.55) else sb).append((t, a))
-            t += rng.uniform(0.018, 0.055)
-            a *= rng.uniform(0.55, 0.85)
-    y = small_bell(rng, 2380.0, n, sa, t60=1.0) + 0.85 * small_bell(rng, 2960.0, n, sb, t60=0.9)
-    return highpass(y, 400, 2)
+    y_clip = np.zeros(n)
+    for t0, force in s.params['pulls']:
+        f_tip = rng.uniform(4.3, 5.5)
+        tau = rng.uniform(0.17, 0.28)
+        k = 0
+        while True:
+            th = t0 + (k + 0.5) / (2 * f_tip) + rng.normal(0, 0.004)
+            a = force * np.exp(-(th - t0) / tau)
+            if a < 0.07 or th > dur - 0.08:
+                break
+            nb = 1 + int(rng.random() < a) + int(rng.random() < a * 0.45)     # il battaglio rimbalza
+            tb = th
+            for j in range(nb):
+                first = (k % 2 == 0) == (j == 0)
+                (sa if first else sb).append((tb, a * 0.62 ** j * rng.uniform(0.85, 1.1)))
+                tb += rng.uniform(0.011, 0.028)
+            place(y_clip, 0.12 * a * _tick(rng), th + rng.uniform(-0.003, 0.003))
+            k += 1
+    y = small_bell(rng, 2380.0, n, sa, t60=1.1, beat=5.0) + 0.8 * small_bell(rng, 3020.0, n, sb, t60=0.95, beat=6.5)
+    return highpass(normalize(y) + y_clip, 400, 2)
 
 
 register('rod_bell_1', _rod_bell, 1.2, category='sfx', gain=0.8, rms=-18.0,
-         params={'shakes': [(0.0, 3), (0.2, 2), (0.47, 3)]})
+         params={'pulls': [(0.0, 1.0), (0.46, 0.75)]})
 register('rod_bell_2', _rod_bell, 1.2, category='sfx', gain=0.8, rms=-18.0,
-         params={'shakes': [(0.0, 4), (0.31, 3), (0.52, 1)]})
+         params={'pulls': [(0.0, 0.45), (0.15, 0.4), (0.29, 0.55), (0.52, 1.0)]})
 
 
 # ───────────────────────── recupero ─────────────────────────
 
 @sound('reel_loop', 0.48, loop=True, category='sfx', gain=0.6, rms=-20.0, max_gr=7.0, release=0.012)
 def reel_loop(s, rng):
-    n = s.n                                    # 23040 campioni: 12 scatti da 40 ms (un giro di manovella)
+    """Un giro di manovella del mulinello (loop esatto). La mano accelera e rallenta nel giro, e tutto la segue:
+    il cricchetto dell'antiritorno scatta 12 volte (più fitto dove la mano va veloce), gli ingranaggi girano con
+    il loro fischio di denti, il filo si avvolge sulla bobina, il rullino dell'archetto cigola appena una volta."""
+    n = s.n                                     # 23040 campioni
     t = tvec(n)
+    w = TWO_PI * t / s.dur
+    speed = 1 + 0.2 * np.sin(w + 0.6) + 0.05 * np.sin(2 * w + 1.3)
+    phi = np.cumsum(speed)
+    phi = (phi - phi[0]) / (phi[-1] - phi[0] + speed[0])          # 0 → 1 in un giro, periodico
     y = np.zeros(n)
-    hand = 1.0 + 0.2 * np.sin(TWO_PI * t / s.dur)
-    for i in range(12):
-        tt = i * 0.04
-        a = (1.0 if i % 2 == 0 else 0.84) * (0.9 + 0.1 * np.sin(TWO_PI * i / 12)) * rng.uniform(0.95, 1.05)
+    for k in range(12):
+        i = int(np.searchsorted(phi, k / 12))
+        a = (1.0 if k % 2 == 0 else 0.86) * rng.uniform(0.93, 1.05) * (0.75 + 0.25 * speed[min(i, n - 1)])
         exc = np.zeros(ns(0.05))
         exc[0], exc[1] = 1.0, -0.6
         pawl = modal(exc, np.array([2850, 4630, 7150, 9800]) * rng.uniform(0.98, 1.02, 4),
                      [0.012, 0.009, 0.006, 0.004], [1.0, 0.7, 0.45, 0.3])
-        body = modal(exc, [920, 1480], [0.02, 0.015], [1.0, 0.6])
-        place(y, a * (normalize(pawl) + 0.45 * normalize(body)), tt, wrap=True)
-    # ingranaggi: rumore pettinato alla frequenza dei denti (312,5 Hz → 150 cicli nel loop)
-    teeth = (0.5 + 0.5 * np.cos(TWO_PI * 312.5 * t)) ** 4
-    whir = spectral_noise(n, rng, lambda f: bw_bp(f, 900, 4500, 2)) * teeth
-    line = spectral_noise(n, rng, lambda f: bw_bp(f, 3000, 9000, 2))
-    return y + (0.07 * whir + 0.025 * line) * hand
+        body = modal(exc, [920, 1480, 2210], [0.024, 0.017, 0.011], [1.0, 0.6, 0.35])
+        place(y, a * (normalize(pawl) + 0.5 * normalize(body)), i / SR, wrap=True)
+    # ingranaggi: 150 denti al giro, fase intera → il fischio segue la velocità e il loop resta continuo
+    mesh = TWO_PI * 150 * phi
+    teeth = (0.5 + 0.5 * np.cos(mesh)) ** 4
+    whir = spectral_noise(n, rng, lambda f: bw_bp(f, 900, 4500, 2)) * teeth * speed
+    whine = (np.sin(mesh) + 0.35 * np.sin(2 * mesh + 0.7)) * speed
+    line = spectral_noise(n, rng, lambda f: bw_bp(f, 3000, 9000, 2)) * (0.85 + 0.15 * np.sin(TWO_PI * 2 * phi))
+    # il rullino: un cigolio corto a metà giro (attrito a strappi)
+    m = ns(0.06)
+    sq = stick_slip(m, rng, 2900.0, curve(m, [(0, 0), (0.01, 1), (0.06, 0)]), jitter=0.1, grain=0.0002)
+    place(y, 0.05 * normalize(bandpass(sq, 2000, 8000)), 0.22, wrap=True)
+    return y + 0.07 * whir + 0.007 * whine + 0.025 * line
 
 
 @sound('line_tension', 2.0, loop=True, category='sfx', gain=0.5, rms=-21.0, max_gr=6.0)
@@ -170,22 +204,28 @@ def _flap(rng, a=1.0):
 
 @sound('fish_out', 1.2, category='sfx', gain=0.7, rms=-18.0)
 def fish_out(s, rng):
+    """Il pesce tirato fuori: la superficie che si rompe con un risucchio (la cavità lasciata dal pesce che si
+    richiude), il pesce che si dibatte in aria e ogni colpo di coda che lancia una manciata di gocce che
+    ricadono sul mare poco dopo; l'acqua che gli cola di dosso; il filo che sibila negli anelli."""
     n = s.n
     y = np.zeros(n)
-    # la superficie che si rompe e il risucchio che si stacca
-    nr = ns(0.25)
-    r = bandpass(rng.standard_normal(nr), 300, 6000) * curve(nr, [(0, 0.3), (0.06, 1), (0.25, 0)])
-    y[:nr] += 0.7 * normalize(r)
-    place(y, bubble(320, xi=0.5, amp=0.6, decay_mult=0.5), 0.02)
-    # l'acqua che cola: gocce sempre più rade
-    for t in poisson_times(rng, lambda tt: 70 * np.exp(-tt / 0.3) + 4, 0.05, 1.1):
-        place(y, droplet(rng, amp=rng.uniform(0.05, 0.2)), t)
-    # guizzi
-    for i, t in enumerate([0.24, 0.36, 0.47, 0.6, 0.76]):
-        place(y, _flap(rng, 0.75 * 0.85 ** i), t + rng.uniform(-0.015, 0.015))
-    nt = ns(0.7)
-    tr = bandpass(rng.standard_normal(nt), 1200, 5000) * curve(nt, [(0, 0), (0.1, 1), (0.7, 0)])
-    place(y, 0.06 * normalize(tr), 0.1)
+    place(y, 0.75 * splash(rng, size=0.3, dur=0.6), 0.0)
+    place(y, bubble(300, xi=0.45, amp=0.5, decay_mult=0.6), 0.03)
+    m = ns(0.14)
+    fc = curve(m, [(0, 420), (0.14, 1000)], 'log')
+    slurp = tv_bandpass(rng.standard_normal(m), fc, fc * 0.35) * curve(m, [(0, 0), (0.015, 1), (0.14, 0)])
+    place(y, 0.18 * normalize(slurp), 0.05)
+    for i, t in enumerate([0.22, 0.33, 0.45, 0.6, 0.78]):
+        a = 0.8 * 0.85 ** i
+        tt = t + rng.uniform(-0.015, 0.015)
+        place(y, _flap(rng, a), tt)
+        for _ in range(int(rng.integers(5, 10))):
+            place(y, droplet(rng, amp=rng.uniform(0.04, 0.14) * a), tt + rng.uniform(0.2, 0.42))
+    for t in poisson_times(rng, lambda tt: 50 * np.exp(-tt / 0.35) + 3, 0.1, 1.15):
+        place(y, droplet(rng, amp=rng.uniform(0.03, 0.11)), t)
+    nt = ns(0.6)
+    tr = bandpass(rng.standard_normal(nt), 2500, 7000) * curve(nt, [(0, 0), (0.08, 1), (0.6, 0)])
+    place(y, 0.05 * normalize(tr), 0.05)
     return y
 
 
@@ -250,72 +290,107 @@ def fish_throw(s, rng):
 
 # ───────────────────────── lampara ─────────────────────────
 
-@sound('lamp_switch', 0.25, category='sfx', gain=0.6, rms=-19.0, max_gr=8.0, release=0.012)
+@sound('lamp_switch', 0.3, category='sfx', gain=0.6, rms=-19.0, max_gr=8.0, release=0.012)
 def lamp_switch(s, rng):
+    """Il commutatore della lampara: la manopola di bachelite che gira sulla camma (un tic) e scatta sulla
+    tacca (un clac secco con la scatola che risuona), il contatto che sfrigola un attimo, il reattore che
+    cambia ronzio."""
     n = s.n
     y = np.zeros(n)
-    # leva della valvola d'ottone: due scatti metallici (contatto e fermo)
-    for t, a, base in [(0.0, 1.0, 2900.0), (0.019, 0.7, 3400.0)]:
+    for t, a, base in [(0.0, 0.4, 3700.0), (0.026, 1.0, 2450.0)]:
         exc = np.zeros(ns(0.08))
-        exc[0], exc[1] = 1.0, -0.6
-        m = modal(exc, base * np.array([1, 1.62, 2.37, 3.13, 4.2]), [0.035, 0.025, 0.018, 0.012, 0.008],
-                  [1, 0.7, 0.5, 0.35, 0.2])
-        body = modal(exc, [1150, 1900], [0.02, 0.015], [1, 0.6])
-        place(y, a * (normalize(m) + 0.5 * normalize(body)), t)
-    # il gas che cambia flusso: breve soffio
-    nh = ns(0.2)
-    h = bandpass(rng.standard_normal(nh), 2000, 9000) * curve(nh, [(0, 0), (0.01, 1), (0.2, 0)])
-    place(y, 0.22 * normalize(h), 0.012)
+        exc[0], exc[1] = 1.0, -0.7
+        snap = modal(exc, base * np.array([1, 1.58, 2.31, 3.4]), [0.02, 0.014, 0.01, 0.007], [1, 0.6, 0.4, 0.25])
+        box = modal(exc, [760, 1330, 2050], [0.03, 0.02, 0.014], [1, 0.7, 0.4])
+        place(y, a * (normalize(snap) + 0.7 * normalize(box)), t)
+    k = ns(0.02)
+    arc = highpass(rng.standard_normal(k), 2500) * (rng.random(k) < 0.25) * np.linspace(1, 0, k)
+    place(y, 0.22 * normalize(arc), 0.029)
+    m = ns(0.26)
+    tt = tvec(m)
+    hum = np.sin(TWO_PI * 100 * tt) + 0.45 * np.sin(TWO_PI * 200 * tt + 1) + 0.3 * np.sin(TWO_PI * 300 * tt + 2)
+    hum = np.tanh(2.0 * hum) * curve(m, [(0, 0), (0.012, 1), (0.26, 0)])
+    place(y, 0.09 * normalize(hum), 0.032)
     return y
 
 
-@sound('lamp_flicker', 0.6, category='sfx', gain=0.6, rms=-19.0, max_gr=6.0)
+@sound('lamp_flicker', 0.7, category='sfx', gain=0.6, rms=-19.0, max_gr=6.0)
 def lamp_flicker(s, rng):
+    """La lampara che tremola: la scarica s'interrompe e riprende a scatti (il sibilo e il ronzio cadono e
+    tornano), a ogni ripresa il contatto crepita, e nei cali di tensione il reattore ronza ruvido."""
     n = s.n
     t = tvec(n)
-    # il soffio che sputacchia: buchi e picchi irregolari
-    hiss = bandpass(rng.standard_normal(n), 1000, 9000) + 0.4 * bandpass(rng.standard_normal(n), 120, 600)
-    gate = lowpass(0.3 + 0.7 * np.clip(hold_noise(n, 28.0, rng) * 0.5 + 0.5, 0, 1), 180.0, 2)
-    env = curve(n, [(0, 1), (0.45, 0.8), (0.6, 0)])
-    y = 0.45 * normalize(hiss) * gate * env
-    # scoppiettii secchi
-    for tc in poisson_times(rng, 40.0, 0.0, 0.5):
-        k = max(4, ns(rng.uniform(0.0003, 0.001)))
-        pop = highpass(rng.standard_normal(k + 64), 1500)[:k + 64] * np.exp(-np.arange(k + 64) / k)
-        place(y, 0.5 * pop * rng.lognormal(-1.0, 0.6), tc)
-    # sfrigolio elettrico: brevi raffiche di ronzio a 100 Hz
-    for t0, d in [(0.05, 0.06), (0.21, 0.04), (0.33, 0.09)]:
-        m = ns(d)
-        tt = tvec(m)
-        bz = np.tanh(4 * np.sin(TWO_PI * 100 * tt)) + 0.3 * np.sin(TWO_PI * 300 * tt + 1)
-        bz = bandpass(bz + 0.3 * rng.standard_normal(m), 100, 6000) * gate_env(m, 0, d - 0.006, 0.003, 0.006)
-        place(y, 0.25 * normalize(bz), t0)
+    gate = np.ones(n)
+    ons = []
+    tc = 0.03
+    while tc < 0.48:
+        off = rng.uniform(0.015, 0.06)
+        on = rng.uniform(0.025, 0.09)
+        gate[ns(tc):ns(tc + off)] = rng.uniform(0.0, 0.3)
+        ons.append(tc + off)
+        tc += off + on
+    gate = lowpass(gate, 250, 2)
+    ripple = np.abs(np.sin(TWO_PI * 50 * t))
+    hiss = bandpass(rng.standard_normal(n), 1500, 10000) * (0.7 + 0.3 * ripple)
+    hum = np.tanh(2 * (np.sin(TWO_PI * 100 * t) + 0.5 * np.sin(TWO_PI * 200 * t + 1) + 0.3 * np.sin(TWO_PI * 300 * t + 2)))
+    env = curve(n, [(0, 1), (0.5, 1), (0.7, 0)])
+    y = (0.4 * normalize(hiss) + 0.22 * hum) * gate * env
+    buzz = np.tanh(5 * np.sin(TWO_PI * 100 * t)) * np.clip(1 - gate, 0, 1) * env
+    y += 0.18 * bandpass(buzz, 100, 5000)
+    for to in ons:
+        for _ in range(int(rng.integers(2, 5))):
+            k = max(4, ns(rng.uniform(0.0002, 0.001)))
+            pop = highpass(rng.standard_normal(k + 64), 1500)[:k + 64] * np.exp(-np.arange(k + 64) / k)
+            place(y, 0.45 * pop * rng.lognormal(-0.8, 0.5), to + rng.uniform(0, 0.008))
     return y
 
 
 # ───────────────────────── telone ─────────────────────────
 
-@sound('tarp_in', 0.9, category='sfx', gain=0.7, rms=-18.0)
+@sound('tarp_in', 1.1, category='sfx', gain=0.7, rms=-18.0)
 def tarp_in(s, rng):
-    y = 0.8 * crinkle(rng, s.dur, [(0, 0.5), (0.1, 0.9), (0.35, 1.0), (0.55, 0.8), (0.62, 0.35), (0.9, 0)],
-                      density=1100, f_lo=500, f_hi=5500, res=1500, swish=0.55)
-    # il telone pesante che ricade sopra: 'fwump' d'aria spostata
+    """Ci si infila sotto il telone di tela cerata: la mano che afferra la tela (uno scricchiolio rigido), il
+    telone tirato su e sopra la testa (fruscio pesante e aria spostata), le ginocchia sulle tavole e il corpo
+    che scivola sul pagliolo, il telone che ricade sopra con un tonfo morbido e si assesta; alla fine i rumori
+    sono già ovattati, perché sei sotto."""
+    n = s.n
+    y = np.zeros(n)
+    place(y, 0.5 * crinkle(rng, 0.12, [(0, 1.0), (0.05, 0.8), (0.12, 0)], density=1800, f_lo=700, f_hi=6000, res=1700,
+                           swish=0.2), 0.0)
+    place(y, 0.9 * crinkle(rng, 0.55, [(0, 0.3), (0.12, 1.0), (0.32, 0.9), (0.45, 0.4), (0.55, 0)], density=1200,
+                           f_lo=450, f_hi=5500, res=1400, swish=0.6), 0.06)
+    sw, _ = _whoosh(rng, 0.4, [(0, 0.1), (0.18, 1.0), (0.4, 0)], 150, 900, 0.9)
+    place(y, 0.35 * sw, 0.08)
+    place(y, 0.3 * knock(rng, 0.01, base=110, t60=0.1, dur=0.3), 0.2)
+    place(y, 0.22 * knock(rng, 0.008, base=125, t60=0.09, dur=0.3), 0.31)
+    m = ns(0.3)
+    slide = stick_slip(m, rng, curve(m, [(0, 40), (0.3, 25)]), curve(m, [(0, 0), (0.05, 1), (0.3, 0)]), jitter=0.2,
+                       grain=0.002)
+    place(y, 0.3 * normalize(bandpass(slide, 150, 2500)), 0.33)
     nf = ns(0.35)
-    flap = lowpass(rng.standard_normal(nf), 300, 2) * exp_env(nf, 0.22, attack=0.025)
-    place(y, 0.6 * normalize(flap), 0.5)
-    place(y, 0.3 * knock(rng, 0.01, base=110, t60=0.1, dur=0.3), 0.12)        # ginocchia sul legno
+    flap = lowpass(rng.standard_normal(nf), 280, 2) * exp_env(nf, 0.22, attack=0.02)
+    place(y, 0.6 * normalize(flap), 0.62)
+    settle = crinkle(rng, 0.42, [(0, 0.8), (0.1, 0.4), (0.42, 0)], density=500, f_lo=400, f_hi=4000, res=1200, swish=0.3)
+    place(y, 0.35 * lowpass(settle, 2200, 2), 0.66)
     return y
 
 
-@sound('tarp_out', 0.8, category='sfx', gain=0.7, rms=-18.0)
+@sound('tarp_out', 0.9, category='sfx', gain=0.7, rms=-18.0)
 def tarp_out(s, rng):
-    y = 0.8 * crinkle(rng, s.dur, [(0, 1.0), (0.08, 1.0), (0.25, 0.6), (0.45, 0.25), (0.8, 0)],
-                      density=1100, f_lo=500, f_hi=5500, res=1500, swish=0.55)
-    sw, _ = _whoosh(rng, 0.25, [(0, 0.4), (0.08, 1.0), (0.25, 0)], 200, 1200, 0.9)
-    place(y, 0.5 * sw, 0.0)
+    """Si esce dal telone: la tela spinta su di colpo (scricchiolio forte), buttata indietro con un colpo
+    d'aria, che ricade dietro sul banco; l'aria aperta torna, più chiara."""
+    n = s.n
+    y = 0.85 * crinkle(rng, s.dur, [(0, 1.0), (0.08, 1.0), (0.25, 0.6), (0.45, 0.25), (0.9, 0)], density=1200,
+                       f_lo=450, f_hi=5500, res=1500, swish=0.55)
+    sw, _ = _whoosh(rng, 0.32, [(0, 0.3), (0.1, 1.0), (0.32, 0)], 180, 1300, 0.9)
+    place(y, 0.5 * sw, 0.02)
     nf = ns(0.3)
-    flap = lowpass(rng.standard_normal(nf), 350, 2) * exp_env(nf, 0.18, attack=0.012)
-    place(y, 0.55 * normalize(flap), 0.12)
+    flap = lowpass(rng.standard_normal(nf), 350, 2) * exp_env(nf, 0.16, attack=0.01)
+    place(y, 0.55 * normalize(flap), 0.3)
+    place(y, 0.15 * knock(rng, 0.004, base=140, t60=0.08, dur=0.25), 0.33)
+    na = ns(0.55)
+    air = bandpass(rng.standard_normal(na), 1500, 7000) * curve(na, [(0, 0), (0.25, 1), (0.55, 0)])
+    place(y, 0.05 * normalize(air), 0.35)
     return y
 
 
@@ -413,31 +488,45 @@ def _radio_noise(rng, n):
     return normalize(eq(nz, 'peak', 2000, 1.0, 3.0))
 
 
-@sound('radio_on', 0.4, category='sfx', gain=0.5, rms=-19.0)
+def _speaker(x):
+    """Il piccolo altoparlante del baracchino: niente bassi, il cono che risuona, un filo di distorsione."""
+    y = eq(highpass(x, 260, 2), 'peak', 750, 1.2, 3.0)
+    return lowpass(np.tanh(1.4 * y) / np.tanh(1.4), 4300, 2)
+
+
+def _knob(rng, base=1800.0, a=0.5):
+    exc = np.zeros(ns(0.03))
+    exc[0], exc[1] = 1.0, -0.5
+    return a * normalize(modal(exc, base * np.array([1, 1.72, 2.6]) * rng.uniform(0.97, 1.03, 3), [0.012, 0.008, 0.005],
+                               [1, 0.6, 0.3]))
+
+
+@sound('radio_on', 0.45, category='sfx', gain=0.5, rms=-19.0)
 def radio_on(s, rng):
+    """Il baracchino si apre: lo scatto del pulsante, lo squelch che si apre di colpo ('kshh'), poi la portante
+    che aggancia: il fruscio crolla con un piccolo tonfo nel cono e resta un filo di ronzio."""
     n = s.n
     y = np.zeros(n)
-    exc = np.zeros(ns(0.03))
-    exc[0] = 1.0
-    y[:len(exc)] += 0.5 * normalize(modal(exc, [1800, 3100, 4700], [0.012, 0.008, 0.005]))   # scatto del relè
-    # lo squelch si apre: soffio forte che si quieta quando la portante aggancia
-    env = curve(n, [(0, 0), (0.003, 1), (0.08, 0.9), (0.13, 0.12), (0.36, 0.08), (0.4, 0)])
-    y += 0.8 * _radio_noise(rng, n) * env
-    m = ns(0.05)
-    chirp = np.sin(TWO_PI * phase_of(curve(m, [(0, 1250), (0.05, 900)], 'log'))) * gate_env(m, 0, 0.04, 0.005, 0.01)
-    place(y, 0.12 * chirp, 0.085)
-    return y
+    place(y, _knob(rng, 1800.0, 0.5), 0.0)
+    env = curve(n, [(0, 0), (0.004, 1), (0.08, 0.9), (0.12, 0.1), (0.4, 0.06), (0.45, 0)])
+    y += 0.8 * _radio_noise(rng, n) * env * (1 + 0.2 * rand_curve(n, 25.0, rng))
+    m = ns(0.06)
+    thump = np.sin(TWO_PI * phase_of(curve(m, [(0, 180), (0.06, 90)], 'log'))) * curve(m, [(0, 0), (0.005, 1), (0.06, 0)])
+    place(y, 0.1 * thump, 0.105)
+    tt = tvec(n)
+    carrier = (np.sin(TWO_PI * 100 * tt) + 0.3 * np.sin(TWO_PI * 300 * tt)) * curve(n, [(0, 0), (0.11, 0), (0.15, 1), (0.45, 0.8)])
+    y += 0.012 * carrier
+    return _speaker(y)
 
 
 @sound('radio_off', 0.4, category='sfx', gain=0.5, rms=-19.0)
 def radio_off(s, rng):
+    """La trasmissione finisce: la coda dello squelch ('kshhht'), che si chiude secca, e lo scatto del pulsante."""
     n = s.n
-    # coda di squelch: 'kshhh', poi la chiusura secca con lo scatto
-    env = curve(n, [(0, 0.4), (0.01, 1.0), (0.21, 0.95), (0.232, 0.0), (0.4, 0.0)])
-    y = 0.85 * _radio_noise(rng, n) * env * (1 + 0.15 * rand_curve(n, 30.0, rng))
-    exc = np.zeros(ns(0.03))
-    exc[0] = 1.0
-    place(y, 0.45 * normalize(modal(exc, [1700, 2900, 4400], [0.012, 0.008, 0.005])), 0.232)
+    env = curve(n, [(0, 0.35), (0.008, 1.0), (0.2, 0.95), (0.225, 0.0), (0.4, 0.0)])
+    y = 0.85 * _radio_noise(rng, n) * env * (1 + 0.2 * rand_curve(n, 30.0, rng))
+    y = _speaker(y)
+    place(y, _knob(rng, 1650.0, 0.45), 0.228)
     return y
 
 

@@ -17,7 +17,7 @@
   },
   "amb_lamp": {
     "file": "amb_lamp.ogg",
-    "duration": 8.0,
+    "duration": 20.0,
     "loop": true,
     "channels": 2,
     "gain": 0.45,
@@ -57,7 +57,7 @@
   },
   "bell_toll": {
     "file": "bell_toll.ogg",
-    "duration": 7.0,
+    "duration": 8.0,
     "loop": false,
     "channels": 2,
     "gain": 0.8,
@@ -129,7 +129,7 @@
   },
   "foghorn": {
     "file": "foghorn.ogg",
-    "duration": 6.0,
+    "duration": 7.0,
     "loop": false,
     "channels": 2,
     "gain": 0.6,
@@ -369,7 +369,7 @@
   },
   "lamp_flicker": {
     "file": "lamp_flicker.ogg",
-    "duration": 0.6,
+    "duration": 0.7,
     "loop": false,
     "channels": 1,
     "gain": 0.6,
@@ -377,7 +377,7 @@
   },
   "lamp_switch": {
     "file": "lamp_switch.ogg",
-    "duration": 0.25,
+    "duration": 0.3,
     "loop": false,
     "channels": 1,
     "gain": 0.6,
@@ -545,7 +545,7 @@
   },
   "radio_on": {
     "file": "radio_on.ogg",
-    "duration": 0.4,
+    "duration": 0.45,
     "loop": false,
     "channels": 1,
     "gain": 0.5,
@@ -553,7 +553,7 @@
   },
   "radio_static": {
     "file": "radio_static.ogg",
-    "duration": 6.0,
+    "duration": 10.0,
     "loop": true,
     "channels": 2,
     "gain": 0.35,
@@ -649,7 +649,7 @@
   },
   "tarp_in": {
     "file": "tarp_in.ogg",
-    "duration": 0.9,
+    "duration": 1.1,
     "loop": false,
     "channels": 1,
     "gain": 0.7,
@@ -657,7 +657,7 @@
   },
   "tarp_out": {
     "file": "tarp_out.ogg",
-    "duration": 0.8,
+    "duration": 0.9,
     "loop": false,
     "channels": 1,
     "gain": 0.7,

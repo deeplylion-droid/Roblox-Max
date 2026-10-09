@@ -76,32 +76,99 @@ def amb_sea(s, rng):
 
 # ───────────────────────── vento ─────────────────────────
 
+def _circ(fn, x, *arrs, pad=1.5):
+    """Come circular(), ma con dei parametri per campione (tagli, centri di banda) che girano insieme al segnale."""
+    n = x.shape[-1]
+    p = min(ns(pad), n)
+    tile = lambda a: np.concatenate([a[..., n - p:], a, a[..., :p]], axis=-1)
+    return fn(tile(x), *[tile(a) for a in arrs])[..., p:p + n]
+
+
 @sound('amb_wind', 30.0, loop=True, channels=2, category='amb', gain=0.5, rms=-30.0)
 def amb_wind(s, rng):
-    out = wind_layer(s.n, rng, gust_rate=0.11, low=0.5, mid=0.33, high=0.1, whistle=0.018, whistle_f=760)
+    """Vento notturno debole sul mare aperto. Raffiche lente che arrivano da un lato e passano all'altro;
+    con la raffica il soffio si schiarisce e l'acqua fruscia sotto; le cime e il palo della lampara cantano
+    appena (toni eolici che salgono e scendono con la velocità dell'aria); nelle raffiche più forti il bordo
+    del telone sbatacchia piano e la cima tocca il palo."""
+    n, dur = s.n, s.dur
+    swell = rand_curve(n, 0.035, rng)
+    gust = rand_curve(n, 0.11, rng)
+    G = np.clip(0.48 + 0.2 * swell + 0.3 * gust, 0.06, 1.25)
+    lag = ns(0.4)
+    out = np.zeros((2, n))
+    for c, g in enumerate((G, np.roll(G, lag))):
+        # il soffio: rumore rosa che si schiarisce con la raffica
+        base = spectral_noise(n, rng, lambda f: bw_bp(f, 35, 7000, 2), exponent=1.1)
+        body = _circ(lambda z, fc: tv_lowpass(z, fc, 0.6), base, 320 + 2100 * g ** 1.7)
+        # l'acqua che fruscia sotto la raffica (increspature), con un tremolio veloce
+        spray = spectral_noise(n, rng, lambda f: bw_bp(f, 1800, 9000, 2)) * \
+            np.clip(g - 0.35, 0, None) ** 2.2 * (1 + 0.35 * rand_curve(n, 9.0, rng))
+        y = 0.9 * body * g ** 0.9 + 0.5 * spray
+        # toni eolici: cima da 8 mm, sartia da 5 mm, lenza sottile (f = 0,2·U/d), solo quando "agganciano"
+        for f_ref, amt, q_bw in ((180.0, 0.05, 6.0), (290.0, 0.035, 8.0), (2600.0, 0.012, 60.0)):
+            fc = f_ref * (0.55 + 0.55 * g) * cents(15 * rand_curve(n, 0.3, rng))
+            lock = np.clip(rand_curve(n, 0.15, rng) * 0.8 + (g - 0.55) * 2.0, 0, None) ** 1.5
+            tone = _circ(lambda z, f: tv_bandpass(z, f, q_bw), rng.standard_normal(n), fc)
+            y += amt * normalize(tone) * lock
+        out[c] = y
+    # il bordo del telone e la cima sul palo, solo nelle raffiche forti (eventi circolari)
+    t = tvec(n)
+    strong = np.clip(G - 0.8, 0, None)
+    for tc in poisson_times(rng, lambda tt: 1.6 * np.interp(tt, t, strong) / 0.45, 0.0, dur):
+        k = ns(rng.uniform(0.05, 0.11))
+        flap = lowpass(rng.standard_normal(k), rng.uniform(500, 900), 2) * exp_env(k, k / SR * 0.8, attack=0.004)
+        place(out, pan(0.18 * normalize(flap) * rng.uniform(0.5, 1.0), rng.uniform(-0.3, 0.3)), tc, wrap=True)
+    for tc in poisson_times(rng, lambda tt: 0.5 * np.interp(tt, t, strong) / 0.45, 0.0, dur):
+        place(out, pan(0.05 * knock(rng, 0.0008, base=420, t60=0.04, dur=0.12), 0.1), tc, wrap=True)
     return circular(lambda x: highpass(x, 30, 2), out)
 
 
-# ───────────────────────── lampada a pressione ─────────────────────────
+# ───────────────────────── lampara ─────────────────────────
 
-@sound('amb_lamp', 8.0, loop=True, channels=2, category='amb', gain=0.45, rms=-29.0)
+@sound('amb_lamp', 20.0, loop=True, channels=2, category='amb', gain=0.45, rms=-29.0)
 def amb_lamp(s, rng):
-    n = s.n
+    """La lampara accesa sul buttafuori, sopra la tua testa. Il sibilo sottile della lampada, che "frigge"
+    appena a 100 Hz come tutte le lampade a scarica; il ronzio del reattore (100 Hz e armoniche, un po'
+    ruvido) che respira con la tensione della batteria; i tic del metallo caldo della campana; due volte
+    una falena che sbatte contro il vetro e riparte."""
+    n, dur = s.n, s.dur
     t = tvec(n)
+    breathe = 1.0 + 0.05 * rand_curve(n, 0.25, rng) + 0.02 * rand_curve(n, 3.0, rng)
+    ripple = np.abs(np.sin(TWO_PI * 50.0 * t))           # la scarica pulsa a 100 Hz (1000 cicli nel loop)
     out = np.zeros((2, n))
-    # il getto di vapore nel reticella: soffio stabile con leggero tremolio della fiamma
-    flick = 1.0 + 0.06 * rand_curve(n, 3.0, rng) + 0.03 * rand_curve(n, 11.0, rng)
     for c in range(2):
-        hiss = spectral_noise(n, rng, lambda f: bw_bp(f, 1100, 9500, 2) * peak_shape(f, 3300, 1.2, 1.8))
-        mid = spectral_noise(n, rng, lambda f: bw_bp(f, 400, 1500, 2))
-        roar = spectral_noise(n, rng, lambda f: bw_bp(f, 70, 400, 2), exponent=1.0)
-        out[c] = 0.30 * hiss * flick + 0.09 * mid * flick + 0.13 * roar * flick ** 2
-    # ronzio elettrico: 50 Hz con armoniche, 100 Hz dominante (magnetostrizione del trasformatore)
+        hiss = spectral_noise(n, rng, lambda f: bw_bp(f, 1500, 11000, 2) * peak_shape(f, 4300, 1.4, 1.9))
+        fry = hiss * (0.72 + 0.28 * ripple)
+        air = spectral_noise(n, rng, lambda f: bw_bp(f, 300, 1400, 2))
+        out[c] = (0.30 * fry + 0.05 * air) * breathe
+    # il reattore: 100 Hz con armoniche, saturato appena (lamierini che vibrano)
     hum = np.zeros(n)
-    for k, a in [(1, 0.35), (2, 1.0), (3, 0.3), (4, 0.45), (5, 0.12), (6, 0.22), (8, 0.08), (10, 0.05), (12, 0.03)]:
-        hum += a * np.sin(TWO_PI * 50.0 * k * t + rng.uniform(0, TWO_PI))
-    hum *= 1.0 + 0.05 * np.sin(TWO_PI * 0.25 * t)
-    out += 0.022 * hum
+    for k, a in [(1, 1.0), (2, 0.42), (3, 0.3), (4, 0.16), (5, 0.1), (6, 0.08), (8, 0.04), (10, 0.025)]:
+        hum += a * np.sin(TWO_PI * 100.0 * k * t + rng.uniform(0, TWO_PI))
+    hum = np.tanh(1.6 * hum / np.max(np.abs(hum))) * breathe
+    out += 0.035 * hum
+    # tic del metallo caldo
+    for tc in poisson_times(rng, 0.35, 0.0, dur):
+        exc = np.zeros(ns(0.06))
+        exc[0] = 1.0
+        tick = modal(exc, rng.uniform(2600, 5200) * np.array([1, 1.71, 2.6]), [0.03, 0.02, 0.012], [1, 0.5, 0.3])
+        place(out, pan(0.02 * normalize(tick) * rng.uniform(0.4, 1.0), rng.uniform(-0.3, 0.3)), tc, wrap=True)
+    # la falena: ali a ~35 battiti al secondo, qualche colpetto sul vetro, poi via
+    for t0 in (rng.uniform(3.0, 6.0), rng.uniform(12.0, 16.0)):
+        d = rng.uniform(1.0, 1.6)
+        m = ns(d)
+        tt = tvec(m)
+        wing = 0.5 + 0.5 * np.sin(TWO_PI * phase_of(rng.uniform(32, 40) * (1 + 0.08 * rand_curve(m, 3.0, rng))))
+        flut = bandpass(rng.standard_normal(m), 250, 2600) * wing ** 3 * curve(m, [(0, 0), (0.15, 1), (d - 0.3, 0.8), (d, 0)])
+        y = 0.05 * normalize(flut)
+        tap_t = 0.2 + np.cumsum(rng.uniform(0.07, 0.3, int(rng.integers(2, 5))))
+        for tp in tap_t[tap_t < d - 0.1]:
+            exc = np.zeros(ns(0.04))
+            exc[0], exc[1] = 1.0, -0.7
+            glass = modal(exc, rng.uniform(2200, 3000) * np.array([1, 2.3, 3.9]), [0.018, 0.012, 0.008], [1, 0.6, 0.35])
+            place(y, 0.035 * normalize(glass) * rng.uniform(0.5, 1.0), tp)
+        p0 = rng.uniform(-0.4, 0.4)
+        place(out, pan(y, p0), t0, wrap=True)
     return out
 
 
@@ -229,22 +296,35 @@ def amb_dawn(s, rng):
 
 # ───────────────────────── statica radio ─────────────────────────
 
-@sound('radio_static', 6.0, loop=True, channels=2, category='amb', gain=0.35, rms=-27.0)
+@sound('radio_static', 10.0, loop=True, channels=2, category='amb', gain=0.35, rms=-27.0)
 def radio_static(s, rng):
+    """Il baracchino VHF aperto senza segnale: il fruscio dell'FM (rumore bianco nella banda della radio,
+    attraverso il piccolo altoparlante), che a tratti sfarfalla quando il segnale va e viene; ogni tanto un
+    crepitio secco (scariche lontane) e, debolissimo, il fischio di una portante che va alla deriva."""
     n, dur = s.n, s.dur
-    base = spectral_noise(n, rng, lambda f: bw_bp(f, 250, 4500, 3) * peak_shape(f, 2400, 1.0, 1.4))
-    flutter = 1.0 + 0.15 * rand_curve(n, 2.0, rng) + 0.07 * rand_curve(n, 15.0, rng)
-    hiss = base * flutter
-    crack = np.zeros(n)
-    times = list(poisson_times(rng, 7.0, 0.0, dur))
-    for _ in range(5):        # qualche grappolo di crepitii
+    t = tvec(n)
+    hiss = spectral_noise(n, rng, lambda f: bw_bp(f, 280, 3600, 3) * peak_shape(f, 2300, 1.0, 1.3))
+    # sfarfallio (multipath): tratti in cui il fruscio pulsa a 8-14 Hz
+    flick_amt = np.clip(rand_curve(n, 0.25, rng) - 0.4, 0, None) * 0.9
+    flick = 1.0 - flick_amt * (0.5 + 0.5 * np.sin(TWO_PI * phase_of(periodic_freq(11.0 + 3.0 * rand_curve(n, 0.5, rng)))))
+    y = 0.3 * hiss * flick * (1 + 0.08 * rand_curve(n, 2.0, rng))
+    # crepitii: singoli e a grappoli, con l'altoparlante che risuona
+    times = list(poisson_times(rng, 1.4, 0.0, dur))
+    for _ in range(3):
         c0 = rng.uniform(0, dur)
-        times += list(c0 + np.cumsum(rng.exponential(0.012, int(rng.integers(3, 9)))))
+        times += list(c0 + np.cumsum(rng.exponential(0.015, int(rng.integers(3, 8)))))
+    crack = np.zeros(n)
     for tc in times:
-        k = max(4, ns(rng.uniform(0.0003, 0.002)))
+        k = max(4, ns(rng.uniform(0.0002, 0.0015)))
         imp = rng.standard_normal(k) * np.exp(-np.arange(k) / (k / 4.0))
-        place(crack, imp * rng.lognormal(0, 0.7), tc, wrap=True)
-    crack = circular(lambda x: bandpass(x, 300, 5000), crack)
-    y = 0.25 * hiss + 0.35 * crack
-    side = spectral_noise(n, rng, lambda f: bw_bp(f, 300, 4000, 2))
+        place(crack, imp * rng.lognormal(-0.3, 0.7), tc % dur, wrap=True)
+    crack = circular(lambda x: resonate(x, 720, 1.6) + 0.6 * bandpass(x, 400, 4500), crack)
+    y = y + 0.45 * crack
+    # la portante lontana: un fischio debolissimo che vaga (cicli interi nel loop)
+    fw = periodic_freq(1350.0 * cents(120 * rand_curve(n, 0.08, rng)))
+    het = np.sin(TWO_PI * phase_of(fw)) * np.clip(rand_curve(n, 0.1, rng) - 0.3, 0, None)
+    y = y + 0.012 * het
+    # altoparlante piccolo: niente bassi, un po' di cono
+    y = circular(lambda x: lowpass(eq(highpass(x, 260, 2), 'peak', 750, 1.2, 3.0), 4600, 2), y)
+    side = spectral_noise(n, rng, lambda f: bw_bp(f, 300, 3500, 2))
     return np.stack([y + 0.02 * side, y - 0.02 * side])
