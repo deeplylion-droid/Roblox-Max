@@ -73,7 +73,7 @@ Sono i bambini spariti a **Splashland** nel 1997, presi e trasformati dalla Madr
 > - **Molly**: sagoma C «Dita», testa B «Luna».
 > - **Hatch**: sagoma C «Spilungone», testa A «Pescatrice».
 >
-> Le tavole dei dettagli sono bozze: i modelli definitivi devono avere molto più dettaglio nelle forme e nelle texture, e una pelle opaca, non lucida.
+> Le tavole dei dettagli sono bozze: i modelli definitivi devono avere molto più dettaglio nelle forme e nelle texture. La pelle sotto è opaca, ma **tutti i mostri hanno sopra uno strato di melma e un effetto bagnato**: chiazze lucide, colature, bava che gocciola, fili tra le dita e tra i denti.
 
 ### Gulpy — prua — *SFAMARE*
 Ispirato al pesce pellicano (*gulper eel*): tutto bocca su un corpo lunghissimo. Sagoma C: un gigante curvo in piedi nell'acqua fino alla vita, con la testa che pende davanti al petto e un braccio lunghissimo teso verso la barca. Testa B «Cerniera»: cranio allungato da quasi-uomo, occhi piccoli e infossati, la mascella sganciata che pende fino al petto, denti ad ago. Ha un salvagente giallo a paperella incastrato sul collo, che ormai stringe la carne.
