@@ -670,8 +670,9 @@ export class Night {
   }
 
   private startJumpscare(killer: MonsterId): void {
-    const gy = this.d.stage.man.layers[POSE.gulpyPretende]?.yaw ?? 0;
-    const yaw = killer === 'gulpy' ? gy : killer === 'molly' ? this.sim.molly.yaw : 180;
+    // la camera si gira dove la creatura parte (la posa di gioco da cui partono i fotogrammi)
+    const L = this.d.stage.man.layers;
+    const yaw = killer === 'gulpy' ? (L[POSE.gulpyPretende]?.yaw ?? 0) : killer === 'molly' ? this.sim.molly.yaw : (L[POSE.hatchConta]?.yaw ?? 180);
     this.js = { killer, t: 0, yaw };
     if (this.sonarOpen) this.toggleSonar(false);
     const reduce = this.d.options.reduceFlash;
