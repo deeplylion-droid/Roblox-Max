@@ -157,7 +157,7 @@ export class Night {
   private binoUp = false;
   private bino = 0;
   private binoFov = 9;
-  private binoPitch = 1;
+  private binoPitch = 2.5;
   private turnArmed = true;
   private reelByMouse = false;
   private hoverTarget: Target = null;
@@ -346,9 +346,24 @@ export class Night {
         this.toggleSonar();
         break;
       case 'b':
-        this.binoUp = !this.binoUp && this.canBino();
+        this.raiseBino(!this.binoUp);
         break;
     }
+  }
+
+  /** Alza o abbassa il binocolo; alzandolo lo sguardo va all'altezza del luogo più vicino. */
+  private raiseBino(up: boolean): void {
+    if (up && !this.canBino()) return;
+    if (up && !this.binoUp) {
+      const yaw = this.d.stage.view.yaw;
+      let best: { d: number; pitch: number } | null = null;
+      for (const p of this.d.assets.binocular.places) {
+        const d = Math.abs(((p.yaw - yaw + 540) % 360) - 180);
+        if (d < 14 && (!best || d < best.d)) best = { d, pitch: p.pitch };
+      }
+      this.binoPitch = best ? best.pitch : 2.5;
+    }
+    this.binoUp = up;
   }
 
   /** Il binocolo si alza solo fuori dal telone, col sonar chiuso e senza un pesce in canna. */
@@ -358,7 +373,7 @@ export class Night {
 
   private mouseDown(e: MouseEvent): void {
     if (e.button === 2) {
-      if (!this.paused && this.canBino()) this.binoUp = true;
+      if (!this.paused) this.raiseBino(true);
       return;
     }
     if (this.paused || this.finished || this.js || e.button !== 0) return;
@@ -991,9 +1006,14 @@ export class Night {
     const places = this.bino > 0
       ? B.places.filter((p) => Math.abs(((p.yaw - st.view.yaw + 540) % 360) - 180) < p.hfov / 2 + st.view.hfov * 0.75 + 2).map((p) => p.place)
       : [];
-    const worldGlows = [...eyes.world];
+    // gli aloni delle luci lontane sono pensati per la vista normale: col binocolo si stringono
+    let glows = st.landscapeGlows(eyes.world);
+    if (be > 0) {
+      const k = 1 - be * (1 - Math.min(1, (st.view.hfov / 90) * 1.6));
+      glows = glows.map((g) => ({ ...g, radius: g.radius * k, color: [g.color[0] * (1 - 0.35 * be), g.color[1] * (1 - 0.35 * be), g.color[2] * (1 - 0.35 * be)] }));
+    }
     if (this.bino > 0 && B.rec && Math.floor(st.time / 0.6) % 2 === 0) {
-      worldGlows.push({ dir: norm(B.rec), color: [2.4 * be, 0.05 * be, 0.04 * be], radius: 0.0011 });
+      glows.push({ dir: norm(B.rec), color: [2.4 * be, 0.05 * be, 0.04 * be], radius: 0.0011 });
     }
     this.hud.root.style.opacity = String(1 - 0.8 * be);
     st.frame({
@@ -1009,7 +1029,7 @@ export class Night {
       flashColor,
       glitch,
       fade: 1 - v.dark * 0.9,
-      glows: st.landscapeGlows(worldGlows),
+      glows,
       boatGlows: binoOn ? [] : eyes.boat,
     });
   }
