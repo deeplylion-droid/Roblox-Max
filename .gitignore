@@ -1,4 +1,12 @@
-build/*.rbxl
-*.rbxlx.lock
+node_modules/
+dist/
+release/
+.vite/
+*.log
 .DS_Store
-sourcemap.json
+# cache della pipeline di render (EXR grezzi, venv di Blender)
+tools/.venv/
+tools/render/cache/
+tools/audio/cache/
+__pycache__/
+*.blend1

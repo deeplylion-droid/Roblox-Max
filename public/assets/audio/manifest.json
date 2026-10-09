@@ -1,0 +1,314 @@
+{
+  "amb_dawn": {
+    "file": "amb_dawn.ogg",
+    "duration": 24.0,
+    "loop": true,
+    "channels": 2,
+    "gain": 0.8,
+    "category": "amb"
+  },
+  "amb_drone": {
+    "file": "amb_drone.ogg",
+    "duration": 24.0,
+    "loop": true,
+    "channels": 2,
+    "gain": 0.7,
+    "category": "amb"
+  },
+  "amb_lamp": {
+    "file": "amb_lamp.ogg",
+    "duration": 8.0,
+    "loop": true,
+    "channels": 2,
+    "gain": 0.45,
+    "category": "amb"
+  },
+  "amb_sea": {
+    "file": "amb_sea.ogg",
+    "duration": 32.0,
+    "loop": true,
+    "channels": 2,
+    "gain": 0.85,
+    "category": "amb"
+  },
+  "amb_tarp": {
+    "file": "amb_tarp.ogg",
+    "duration": 16.0,
+    "loop": true,
+    "channels": 2,
+    "gain": 0.8,
+    "category": "amb"
+  },
+  "amb_wind": {
+    "file": "amb_wind.ogg",
+    "duration": 30.0,
+    "loop": true,
+    "channels": 2,
+    "gain": 0.5,
+    "category": "amb"
+  },
+  "bell_dawn": {
+    "file": "bell_dawn.ogg",
+    "duration": 9.0,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.8,
+    "category": "sfx"
+  },
+  "bell_toll": {
+    "file": "bell_toll.ogg",
+    "duration": 7.0,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.8,
+    "category": "sfx"
+  },
+  "cast": {
+    "file": "cast.ogg",
+    "duration": 1.1,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.7,
+    "category": "sfx"
+  },
+  "creak_1": {
+    "file": "creak_1.ogg",
+    "duration": 0.6,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.6,
+    "category": "sfx"
+  },
+  "creak_2": {
+    "file": "creak_2.ogg",
+    "duration": 1.4,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.6,
+    "category": "sfx"
+  },
+  "creak_3": {
+    "file": "creak_3.ogg",
+    "duration": 0.95,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.6,
+    "category": "sfx"
+  },
+  "creak_4": {
+    "file": "creak_4.ogg",
+    "duration": 1.1,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.6,
+    "category": "sfx"
+  },
+  "fish_bucket": {
+    "file": "fish_bucket.ogg",
+    "duration": 0.9,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.75,
+    "category": "sfx"
+  },
+  "fish_out": {
+    "file": "fish_out.ogg",
+    "duration": 1.2,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.7,
+    "category": "sfx"
+  },
+  "fish_throw": {
+    "file": "fish_throw.ogg",
+    "duration": 0.8,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.7,
+    "category": "sfx"
+  },
+  "foghorn": {
+    "file": "foghorn.ogg",
+    "duration": 6.0,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.6,
+    "category": "sfx"
+  },
+  "heartbeat": {
+    "file": "heartbeat.ogg",
+    "duration": 1.0,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.8,
+    "category": "sfx"
+  },
+  "hull_thump": {
+    "file": "hull_thump.ogg",
+    "duration": 0.6,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.9,
+    "category": "sfx"
+  },
+  "lamp_flicker": {
+    "file": "lamp_flicker.ogg",
+    "duration": 0.6,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.6,
+    "category": "sfx"
+  },
+  "lamp_switch": {
+    "file": "lamp_switch.ogg",
+    "duration": 0.25,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.6,
+    "category": "sfx"
+  },
+  "line_snap": {
+    "file": "line_snap.ogg",
+    "duration": 0.6,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.8,
+    "category": "sfx"
+  },
+  "line_tension": {
+    "file": "line_tension.ogg",
+    "duration": 2.0,
+    "loop": true,
+    "channels": 1,
+    "gain": 0.5,
+    "category": "sfx"
+  },
+  "plop": {
+    "file": "plop.ogg",
+    "duration": 0.4,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.7,
+    "category": "sfx"
+  },
+  "radio_off": {
+    "file": "radio_off.ogg",
+    "duration": 0.4,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.5,
+    "category": "sfx"
+  },
+  "radio_on": {
+    "file": "radio_on.ogg",
+    "duration": 0.4,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.5,
+    "category": "sfx"
+  },
+  "radio_static": {
+    "file": "radio_static.ogg",
+    "duration": 6.0,
+    "loop": true,
+    "channels": 2,
+    "gain": 0.35,
+    "category": "amb"
+  },
+  "reel_loop": {
+    "file": "reel_loop.ogg",
+    "duration": 0.48,
+    "loop": true,
+    "channels": 1,
+    "gain": 0.6,
+    "category": "sfx"
+  },
+  "rod_bell_1": {
+    "file": "rod_bell_1.ogg",
+    "duration": 1.2,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.8,
+    "category": "sfx"
+  },
+  "rod_bell_2": {
+    "file": "rod_bell_2.ogg",
+    "duration": 1.2,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.8,
+    "category": "sfx"
+  },
+  "sonar_blip": {
+    "file": "sonar_blip.ogg",
+    "duration": 0.15,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.5,
+    "category": "sfx"
+  },
+  "sonar_ping": {
+    "file": "sonar_ping.ogg",
+    "duration": 2.2,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.5,
+    "category": "sfx"
+  },
+  "splash_big": {
+    "file": "splash_big.ogg",
+    "duration": 1.5,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.85,
+    "category": "sfx"
+  },
+  "splash_s1": {
+    "file": "splash_s1.ogg",
+    "duration": 0.45,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.6,
+    "category": "sfx"
+  },
+  "splash_s2": {
+    "file": "splash_s2.ogg",
+    "duration": 0.6,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.6,
+    "category": "sfx"
+  },
+  "splash_s3": {
+    "file": "splash_s3.ogg",
+    "duration": 0.8,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.6,
+    "category": "sfx"
+  },
+  "static_burst": {
+    "file": "static_burst.ogg",
+    "duration": 1.5,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.7,
+    "category": "sfx"
+  },
+  "tarp_in": {
+    "file": "tarp_in.ogg",
+    "duration": 0.9,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.7,
+    "category": "sfx"
+  },
+  "tarp_out": {
+    "file": "tarp_out.ogg",
+    "duration": 0.8,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.7,
+    "category": "sfx"
+  }
+}

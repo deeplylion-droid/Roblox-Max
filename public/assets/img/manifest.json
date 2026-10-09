@@ -1,0 +1,238 @@
+{
+ "layers": {
+  "boat": {
+   "passes": {
+    "ambient": {
+     "file": "boat_ambient.webp",
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "boat_lamp.webp",
+     "scale": 0.84
+    }
+   },
+   "rect": [
+    0,
+    0,
+    2048,
+    535
+   ],
+   "space": "boat",
+   "yaw": 0.0
+  },
+  "fish2": {
+   "passes": {
+    "ambient": {
+     "file": "fish2_ambient.webp",
+     "scale": 1.0
+    },
+    "lamp": {
+     "file": "fish2_lamp.webp",
+     "scale": 1.0
+    }
+   },
+   "rect": [
+    997,
+    340,
+    1047,
+    402
+   ],
+   "space": "boat",
+   "yaw": 10.2014
+  },
+  "fish5": {
+   "passes": {
+    "ambient": {
+     "file": "fish5_ambient.webp",
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "fish5_lamp.webp",
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    995,
+    336,
+    1050,
+    402
+   ],
+   "space": "boat",
+   "yaw": 10.585
+  },
+  "fish9": {
+   "passes": {
+    "ambient": {
+     "file": "fish9_ambient.webp",
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "fish9_lamp.webp",
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    992,
+    319,
+    1060,
+    402
+   ],
+   "space": "boat",
+   "yaw": 10.4989
+  },
+  "rod0": {
+   "passes": {
+    "ambient": {
+     "file": "rod0_ambient.webp",
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "rod0_lamp.webp",
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    987,
+    148,
+    1104,
+    418
+   ],
+   "space": "boat",
+   "tip": [
+    2.02,
+    3.5,
+    0.55
+   ],
+   "yaw": 34.2177
+  },
+  "rod1": {
+   "passes": {
+    "ambient": {
+     "file": "rod1_ambient.webp",
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "rod1_lamp.webp",
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    988,
+    165,
+    1103,
+    418
+   ],
+   "space": "boat",
+   "tip": [
+    2.02,
+    3.45,
+    0.33
+   ],
+   "yaw": 34.3876
+  },
+  "rod2": {
+   "passes": {
+    "ambient": {
+     "file": "rod2_ambient.webp",
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "rod2_lamp.webp",
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    989,
+    200,
+    1102,
+    418
+   ],
+   "space": "boat",
+   "tip": [
+    2.02,
+    3.4,
+    -0.25
+   ],
+   "yaw": 34.5601
+  },
+  "world": {
+   "data": "world_data.webp",
+   "passes": {
+    "ambient": {
+     "file": "world_ambient.webp",
+     "scale": 0.36
+    },
+    "lamp": {
+     "file": "world_lamp.webp",
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    0,
+    0,
+    2048,
+    535
+   ],
+   "space": "world",
+   "yaw": 0.0
+  }
+ },
+ "pano": {
+  "height": 535,
+  "latMax": 36.0,
+  "latMin": -58.0,
+  "width": 2048
+ },
+ "points": {
+  "bucket": [
+   0.4,
+   2.17,
+   -1.34
+  ],
+  "eye": [
+   0.0,
+   -0.55,
+   1.25
+  ],
+  "lamp": [
+   0.0,
+   4.17,
+   0.55
+  ],
+  "lighthouseYaw": 78.0,
+  "moonElev": 19.0,
+  "moonYaw": 28.0,
+  "rodTip": [
+   2.02,
+   3.5,
+   0.61
+  ],
+  "sonarScreen": [
+   [
+    0.46,
+    -1.3506,
+    -0.3357
+   ],
+   [
+    0.26,
+    -1.3506,
+    -0.3357
+   ],
+   [
+    0.26,
+    -1.3714,
+    -0.4843
+   ],
+   [
+    0.46,
+    -1.3714,
+    -0.4843
+   ]
+  ],
+  "tarp": [
+   -0.44,
+   2.07,
+   -1.34
+  ]
+ }
+}

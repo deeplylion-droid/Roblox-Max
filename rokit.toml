@@ -1,4 +1,0 @@
-# Strumenti consigliati (installa con `rokit install`)
-[tools]
-rojo = "rojo-rbx/rojo@7.4.4"
-luau-lsp = "JohnnyMorganz/luau-lsp@1.36.0"
