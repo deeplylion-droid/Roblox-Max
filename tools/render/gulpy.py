@@ -58,8 +58,8 @@ def body_field():
         z = 1.56 + i * 0.072
         w = 0.17 - 0.004 * i
         pts = [V(-w, 0.02, z + 0.02), V(-w * 0.75, -0.13, z - 0.005), V(-0.045, -0.205, z - 0.04), V(0.045, -0.205, z - 0.04), V(w * 0.75, -0.13, z - 0.005), V(w, 0.02, z + 0.02)]
-        ribs.append(hair_clump(pts, 0.012, 0.011))
-    sternum = chain([V(0, -0.215, 1.62), V(0, -0.215, 2.12)], [0.016, 0.02], k=0.01)
+        ribs.append(hair_clump(pts, 0.010, 0.0095))
+    sternum = chain([V(0, -0.205, 1.64), V(0, -0.21, 2.12)], [0.011, 0.014], k=0.01)
     spine = []
     sp = [V(0, 0.17, 1.55), V(0, 0.05, 2.05), V(0, -0.15, 2.42), V(0, -0.30, 2.52)]
     for i in range(9):
@@ -239,6 +239,12 @@ def build():
     for s in (-1, 1):
         e = HEAD.pt((s * 0.044, -0.105, 0.0))
         obs.append(eyeball(f'GulpyEye{s}', tuple(map(float, e)), 0.0168, skin.cloudy_eye(), look=tuple(map(float, unit(VIEWER - e)))))
+    # fondo della bocca scuro: dalla bocca spalancata non si deve vedere attraverso
+    th = HEAD.field(sdf.union(sdf.ellipsoid(V(0, -0.05, -0.27), (0.06, 0.045, 0.14)), sdf.ellipsoid(V(0, -0.075, -0.40), (0.05, 0.04, 0.03)), k=0.03))
+    c0 = HEAD.pt((0, -0.05, -0.30))
+    thr = sdf_object('GulpyThroat', th, c0 - 0.25, c0 + 0.25, res=0.004 if FAST else 0.002, banded=True)
+    thr.data.materials.append(mat_simple('GulpyThroatFlesh', (0.035, 0.008, 0.01), rough=0.3, coat=0.9, coat_rough=0.05))
+    obs.append(thr)
     tp = teeth_pairs()
     tf = sdf.union(*[sdf.round_cone(b, t, r, r * 0.15) for b, t, r in tp])
     pts = np.array([p for b, t, _ in tp for p in (b, t)], F)
