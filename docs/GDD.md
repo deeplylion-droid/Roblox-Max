@@ -107,6 +107,7 @@ Un piccolo ecoscandaglio portatile appoggiato sul ponte di poppa. È soprattutto
 ## 9. Morte e sconfitta
 
 - Jumpscare (sequenza renderizzata + urlo), poi statica e **schermata di game over** dedicata a ogni creatura.
+- Jumpscare (approvati): ogni creatura parte dalla sua posa di gioco e si lancia sul pescatore (8 fotogrammi a 10 al secondo, poi resta addosso finché lo schermo si spegne). Sopra, in **post-produzione nel motore**: camera a mano (sobbalzo all'impatto, scossa rapida e forte che si calma ma non si ferma, rollio, un colpo di zoom a ogni fotogramma, una lenta spinta in avanti) e un **nastro VHS rovinato leggero** (strappi orizzontali, onda del nastro, colori sbavati, disturbo del cambio testine in basso, neve, tratti bianchi). Con *riduci flash e scosse* la scossa scende al 35% e il glitch al 40%. Anteprime in `docs/concept/jumpscare/`.
 - Quota mancata alle 6:00: la Madre resta affamata e si prende un altro bambino (la scena è da definire insieme).
 
 ## 10. Flusso dei menu

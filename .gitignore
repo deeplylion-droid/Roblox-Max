@@ -10,6 +10,3 @@ tools/render/cache/
 tools/audio/cache/
 __pycache__/
 *.blend1
-
-# fotogrammi dei jumpscare mentre si renderizzano (si aggiungono tutti insieme a fine render)
-public/assets/img/js_*.webp
