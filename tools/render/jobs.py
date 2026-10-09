@@ -225,8 +225,9 @@ def job_boat(q):
     write_globals(q.pano_width)
 
 
-def render_sprite(q, key, objs, space='boat', margin=12, holdout_boat=True, samples=None, extra=None):
-    """Rende visibili alla camera solo objs; la barca fa da maschera (holdout) se richiesto."""
+def render_sprite(q, key, objs, space='boat', margin=12, holdout_boat=True, samples=None, extra=None, sea=False):
+    """Rende visibili alla camera solo objs; la barca fa da maschera (holdout) se richiesto.
+    sea=True: anche il mare fa da maschera (creature immerse, pure negli strati legati alla barca)."""
     boat_objs = renderable(coll_objects('boat'))
     env_objs = renderable(coll_objects('env'))
     keep = set(o.name for o in objs)
@@ -240,11 +241,11 @@ def render_sprite(q, key, objs, space='boat', margin=12, holdout_boat=True, samp
             o.is_holdout = True
         else:
             o.visible_camera = False
-    if space == 'world':
-        sea = bpy.data.objects.get('Sea')
-        if sea:
-            sea.visible_camera = True
-            sea.is_holdout = True
+    if space == 'world' or sea:
+        sea_ob = bpy.data.objects.get('Sea')
+        if sea_ob:
+            sea_ob.visible_camera = True
+            sea_ob.is_holdout = True
     pts = dense_points(objs)
     yc = float(np.mean([yaw_of(p) for p in pts]))
     cam = bpy.context.scene.camera
@@ -277,6 +278,25 @@ def job_props(q):
         render_sprite(q, key, obs, extra={'tip': [round(float(tip[i] - EYE[i]), 4) for i in range(3)]})
         for o in obs:
             o.hide_render = True
+
+
+def job_creature(q):
+    """Le creature nelle pose di gioco, come strati del panorama (vedi scena_creature.py).
+    Variabile d'ambiente POSES=chiave1,chiave2 per renderne solo alcune."""
+    import scena_creature
+    build_scene(fish=0, rod=False)
+    panorama_camera()
+    only = [k for k in os.environ.get('POSES', '').split(',') if k]
+    for key, (fn, space, sea) in scena_creature.POSES.items():
+        if only and key not in only:
+            continue
+        before = set(bpy.data.objects.keys())
+        fn()
+        new = [bpy.data.objects[n] for n in set(bpy.data.objects.keys()) - before]
+        render_sprite(q, key, [o for o in new if o.type == 'MESH'], space=space, sea=sea)
+        for o in new:
+            o.hide_render = True
+        bpy.context.view_layer.update()
 
 
 def job_reencode(q):
@@ -331,7 +351,7 @@ def preview_composite(out_png, yaw=0.0, pitch=-12.0, lamp=1.0, ambient=1.0, extr
     post.save_png(post.tonemap(view, exposure), out_png)
 
 
-JOBS = {'world': job_world, 'boat': job_boat, 'props': job_props, 'reencode': job_reencode}
+JOBS = {'world': job_world, 'boat': job_boat, 'props': job_props, 'creature': job_creature, 'reencode': job_reencode}
 
 
 def main():

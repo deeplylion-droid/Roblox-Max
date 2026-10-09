@@ -178,7 +178,9 @@ def slime_bits():
 
 # ───────────────────────── costruzione ─────────────────────────
 
-def build():
+def build(viewer=None):
+    """viewer: dove guardano gli occhi (coordinate locali)."""
+    vw = VIEWER if viewer is None else V(*viewer)
     rb = 0.008 if FAST else 0.004
     rh = 0.0028 if FAST else 0.0013
     obs = []
@@ -198,7 +200,7 @@ def build():
     obs += [body, head]
     for s in (-1, 1):
         e = HEAD.pt((s * 0.075, -0.104, 0.085))
-        obs.append(eyeball(f'HatchEye{s}', tuple(map(float, e)), 0.012, skin.cloudy_eye(), look=tuple(map(float, unit(VIEWER - e)))))
+        obs.append(eyeball(f'HatchEye{s}', tuple(map(float, e)), 0.012, skin.cloudy_eye(), look=tuple(map(float, unit(vw - e)))))
     te = sdf_object('HatchTeeth', teeth(), HEAD.pos - 0.3, HEAD.pos + 0.3, res=0.0009, banded=True)
     te.data.materials.append(needle_teeth())
     obs.append(te)

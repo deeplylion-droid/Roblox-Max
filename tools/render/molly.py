@@ -226,7 +226,10 @@ def armband(c, axis):
 
 # ───────────────────────── costruzione ─────────────────────────
 
-def build(res_head=None, res_hands=None):
+def build(res_head=None, res_hands=None, viewer=None, head_turn=0.0):
+    """viewer: dove guardano gli occhi (coordinate locali); head_turn: gradi di rotazione della testa
+    attorno all'asse verticale, verso il pescatore (le mani restano aggrappate al bordo)."""
+    vw = VIEWER if viewer is None else V(*viewer)
     rh = res_head or (0.004 if FAST else 0.0015)
     rn = res_hands or (0.003 if FAST else 0.0011)
     obs = []
@@ -235,7 +238,7 @@ def build(res_head=None, res_hands=None):
     head = sdf_object('MollyHead', head_field(), V(-0.29, 0.03, 0.70), V(0.29, 0.33, 1.33), res=rh, attrs=head_attrs(), banded=True)
     head.data.materials.append(skin_m)
     from creature import eyeball
-    looks = [unit(VIEWER - EYES[0]), unit(VIEWER - EYES[1] + V(0.35, 0.0, -0.25))]   # un occhio ti guarda, l'altro scivola via
+    looks = [unit(vw - EYES[0]), unit(vw - EYES[1] + V(0.35, 0.0, -0.25))]   # un occhio ti guarda, l'altro scivola via
     head_obs = [head]
     for i, (e, r) in enumerate(zip(EYES, EYE_RS)):
         head_obs.append(eyeball(f'MollyEye{i}', tuple(map(float, e)), r, skin.cloudy_eye(), look=tuple(map(float, looks[i]))))
@@ -254,7 +257,7 @@ def build(res_head=None, res_hands=None):
     bb = sdf_object('MollyBobbles', balls, V(-0.2, 0.1, 1.2), V(0.2, 0.25, 1.32), res=0.0012)
     bb.data.materials.append(vinyl('BobblePink', (0.92, 0.30, 0.52), stain=(0.30, 0.28, 0.22)))
     head_obs.append(bb)
-    tilt_group(head_obs, C, TILT)
+    tilt_group(head_obs, C, TILT, turn=head_turn)
     obs += head_obs
     for name, fld, lo, hi in slime_bits():
         sl = sdf_object(name, fld, lo, hi, res=0.0015 if FAST else 0.0008, banded=True)
@@ -320,11 +323,13 @@ def slime_bits():
     return out
 
 
-def tilt_group(obs, pivot, deg):
-    """Piega la testa di lato (rotazione attorno all'asse di vista, dal centro della faccia)."""
+def tilt_group(obs, pivot, deg, turn=0.0):
+    """Piega la testa di lato (rotazione attorno all'asse di vista, dal centro della faccia) e la gira
+    di 'turn' gradi attorno alla verticale."""
     from mathutils import Matrix
     bpy.context.view_layer.update()
-    M = Matrix.Translation(tuple(map(float, pivot))) @ Matrix.Rotation(math.radians(deg), 4, 'Y') @ Matrix.Translation(tuple(map(float, -pivot)))
+    M = (Matrix.Translation(tuple(map(float, pivot))) @ Matrix.Rotation(math.radians(turn), 4, 'Z')
+         @ Matrix.Rotation(math.radians(deg), 4, 'Y') @ Matrix.Translation(tuple(map(float, -pivot))))
     for o in obs:
         o.matrix_world = M @ o.matrix_world
 

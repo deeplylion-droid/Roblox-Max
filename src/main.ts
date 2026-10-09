@@ -17,7 +17,12 @@ function norm(v: Vec3): Vec3 {
 async function boot(): Promise<void> {
   const man = await loadManifest();
   const r = new Renderer(canvas, man);
-  const keys = ['world', 'boat', 'rod0', 'fish5'].filter((k) => man.layers[k]);
+  // ?extra=chiave1,chiave2: strati in più (es. le pose delle creature); quelli nel mondo vanno prima della barca
+  const params0 = new URLSearchParams(location.search);
+  const extra = (params0.get('extra') ?? '').split(',').filter((k) => k && man.layers[k]);
+  const worldExtra = extra.filter((k) => man.layers[k]!.space === 'world');
+  const boatExtra = extra.filter((k) => man.layers[k]!.space !== 'world');
+  const keys = ['world', ...worldExtra, 'boat', 'rod0', 'fish5', ...boatExtra].filter((k) => man.layers[k]);
   for (const k of keys) r.addLayer(await loadLayer(r.gl, man, k));
   const view = new View();
   const params = new URLSearchParams(location.search);

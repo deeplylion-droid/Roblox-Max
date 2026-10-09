@@ -42,7 +42,21 @@ def below(q, down):
 
 # ───────────────────────── corpo ─────────────────────────
 
-def body_field():
+def _elbow(sh, wr, side, L1, L2, out=(1.0, 0.0, 0.45)):
+    """Gomito tra spalla e polso, spinto in fuori: rispetta più o meno le lunghezze di braccio e avambraccio."""
+    d = float(np.linalg.norm(wr - sh))
+    h = d / 2
+    L = (L1 + L2) / 2
+    b = math.sqrt(max(0.0, L * L - h * h))
+    o = V(side * out[0], out[1], out[2])
+    axis = unit(wr - sh)
+    o = unit(o - (o @ axis) * axis)
+    return (sh + wr) / 2 + o * b
+
+
+def body_field(grip=None):
+    """grip: None (braccia che pendono) oppure (polso sinistro, polso destro) in coordinate locali:
+    le mani afferrano il bordo e le dita si piegano verso l'interno della barca."""
     back = chain([V(0, 0.24, -0.20), V(0, 0.22, 0.95), V(0, 0.17, 1.55), V(0, 0.05, 2.05), V(0, -0.15, 2.42), V(0, -0.30, 2.52)], [0.17, 0.16, 0.18, 0.19, 0.17, 0.125], k=0.06)
     chest = sdf.ellipsoid(V(0, -0.07, 1.80), (0.185, 0.14, 0.34))
     belly = sdf.ellipsoid(V(0, 0.02, 1.25), (0.15, 0.12, 0.25))
@@ -70,16 +84,28 @@ def body_field():
         n = unit(V(0, 1.0 - 0.9 * t, 0.25 + 1.2 * t))
         spine.append(sdf.sphere(c + n * (0.18 - 0.05 * t), 0.036))
     arms = []
-    for s in (-1, 1):
-        sh_p, el, wr = V(s * 0.29, -0.05, 2.22), V(s * 0.38, -0.22, 1.70), V(s * 0.24, -0.66, 1.18)
+    for i, s in enumerate((-1, 1)):
+        sh_p = V(s * 0.29, -0.05, 2.22)
+        if grip is None:
+            el, wr = V(s * 0.38, -0.22, 1.70), V(s * 0.24, -0.66, 1.18)
+            mid = V(s * 0.34, -0.48, 1.36)
+        else:
+            wr = V(*grip[i])
+            el = _elbow(sh_p, wr, s, 0.78, 0.82)
+            mid = (el + wr) / 2
         arms.append(chain([sh_p, el], [0.058, 0.042], k=0.02))
-        arms.append(chain([el, V(s * 0.34, -0.48, 1.36), wr], [0.042, 0.036, 0.028], k=0.02))
+        arms.append(chain([el, mid, wr], [0.042, 0.036, 0.028], k=0.02))
         arms.append(sdf.ellipsoid(el + V(s * 0.012, 0.012, 0), (0.042, 0.042, 0.048)))      # gomito ossuto
         arms.append(sdf.sphere(wr + V(s * 0.015, 0.0, 0.01), 0.024))
         for j, (dx, L) in enumerate(((-0.042, 0.85), (-0.014, 1.0), (0.014, 0.97), (0.042, 0.8))):
-            k1 = wr + V(s * 0.55 * dx, -0.10, -0.035)
-            k2 = k1 + V(s * dx * 0.6, -0.12 * L, -0.10 * L)
-            k3 = k2 + V(s * dx * 0.3, -0.06 * L, -0.11 * L)
+            if grip is None:
+                k1 = wr + V(s * 0.55 * dx, -0.10, -0.035)
+                k2 = k1 + V(s * dx * 0.6, -0.12 * L, -0.10 * L)
+                k3 = k2 + V(s * dx * 0.3, -0.06 * L, -0.11 * L)
+            else:                                   # dita che scavalcano il bordo e scendono dentro la barca
+                k1 = wr + V(dx * 1.2, -0.11, -0.005)
+                k2 = k1 + V(dx * 0.5, -0.07, -0.10 * L)
+                k3 = k2 + V(dx * 0.2, 0.025, -0.10 * L)
             arms.append(hair_clump([wr, k1, k2, k3], 0.019, 0.008))
             arms.append(sdf.sphere(k1, 0.0165))
             arms.append(sdf.sphere(k2, 0.0125))
@@ -219,7 +245,10 @@ def duck_ring():
 
 # ───────────────────────── costruzione ─────────────────────────
 
-def build():
+def build(grip=None, viewer=None, lo=None, hi=None):
+    """grip: polsi (locali) se si aggrappa al bordo; viewer: dove guardano gli occhi (locale).
+    lo/hi: box del corpo (si allarga quando le braccia si allungano verso la barca)."""
+    viewer = VIEWER if viewer is None else V(*viewer)
     rb = 0.008 if FAST else 0.005
     rh = 0.003 if FAST else 0.0016
     obs = []
@@ -227,10 +256,11 @@ def build():
                             vein=(0.12, 0.13, 0.18), rough=0.68, sss=0.10, scale=1.3)
     # corpo e testa sono lo stesso campo, tagliato al salvagente (la cucitura resta sotto l'anello)
     head_w = HEAD.field(head_local())
-    full = sdf.union(body_field(), head_w, k=0.035)
+    full = sdf.union(body_field(grip), head_w, k=0.035)
     head_zone = sdf.intersect(above(RING_C, RING_AXIS), sdf.sphere(HEAD.pos, 0.55))
     head_zone2 = sdf.intersect(above(RING_C - RING_AXIS * 0.01, RING_AXIS), sdf.sphere(HEAD.pos, 0.56))
-    body = sdf_object('GulpyBody', sdf.subtract(full, head_zone), V(-0.62, -1.0, -0.02), V(0.62, 0.48, 2.72), res=rb, banded=True)
+    body = sdf_object('GulpyBody', sdf.subtract(full, head_zone), lo if lo is not None else V(-0.62, -1.0, -0.02),
+                      hi if hi is not None else V(0.62, 0.48, 2.72), res=rb, banded=True)
     body.data.materials.append(sk)
     head = sdf_object('GulpyHead', sdf.intersect(full, head_zone2), V(-0.14, -1.12, 1.45), V(0.14, -0.58, 2.40), res=rh,
                       attrs=head_attrs(), banded=True)
@@ -238,7 +268,7 @@ def build():
     obs += [body, head]
     for s in (-1, 1):
         e = HEAD.pt((s * 0.044, -0.105, 0.0))
-        obs.append(eyeball(f'GulpyEye{s}', tuple(map(float, e)), 0.0168, skin.cloudy_eye(), look=tuple(map(float, unit(VIEWER - e)))))
+        obs.append(eyeball(f'GulpyEye{s}', tuple(map(float, e)), 0.0168, skin.cloudy_eye(), look=tuple(map(float, unit(viewer - e)))))
     # fondo della bocca scuro: dalla bocca spalancata non si deve vedere attraverso
     th = HEAD.field(sdf.union(sdf.ellipsoid(V(0, -0.05, -0.27), (0.06, 0.045, 0.14)), sdf.ellipsoid(V(0, -0.075, -0.40), (0.05, 0.04, 0.03)), k=0.03))
     c0 = HEAD.pt((0, -0.05, -0.30))
