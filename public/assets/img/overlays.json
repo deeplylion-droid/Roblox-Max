@@ -1,4 +1,44 @@
 {
+ "jumpscares": {
+  "gulpy": {
+   "aspect": 1.7778,
+   "fps": 10,
+   "frames": [
+    {
+     "file": "js_gulpy_00.webp",
+     "scale": 2.4000000000000004
+    },
+    {
+     "file": "js_gulpy_01.webp",
+     "scale": 2.4000000000000004
+    },
+    {
+     "file": "js_gulpy_02.webp",
+     "scale": 2.6
+    },
+    {
+     "file": "js_gulpy_03.webp",
+     "scale": 1.5
+    },
+    {
+     "file": "js_gulpy_04.webp",
+     "scale": 2.4000000000000004
+    },
+    {
+     "file": "js_gulpy_05.webp",
+     "scale": 2.4000000000000004
+    },
+    {
+     "file": "js_gulpy_06.webp",
+     "scale": 2.4000000000000004
+    },
+    {
+     "file": "js_gulpy_07.webp",
+     "scale": 2.4000000000000004
+    }
+   ]
+  }
+ },
  "tarp": {
   "aspect": 1.7778,
   "base": {
