@@ -216,16 +216,18 @@ def build_sea(boat_calm_radius=3.2):
     far = np.clip(1.0 - (R - 120.0) / 380.0, 0.0, 1.0)
     Z = Z * near * far
     verts = np.stack([X.ravel(), Y.ravel(), Z.ravel()], axis=1)
+    # dentro lo scafo non c'è acqua: si tolgono le facce nell'impronta della barca alla linea di galleggiamento
+    t = np.clip(verts[:, 1] / 2.8, -1, 1)
+    hb = np.where(t > 0, (1 - np.abs(t) ** 2.0) ** 0.62, (1 - np.abs(t) ** 2.3) ** 0.55) * 0.70
+    inside = (np.abs(verts[:, 0]) < hb - 0.02) & (np.abs(verts[:, 1]) < 2.7)
     faces = []
     idx = lambda i, j: i * nt + (j % nt)
     for i in range(nr - 1):
         for j in range(nt):
-            faces.append((idx(i, j), idx(i, j + 1), idx(i + 1, j + 1), idx(i + 1, j)))
-    # tappo centrale
-    center = len(verts)
-    verts = np.vstack([verts, [[0, 0, 0]]])
-    for j in range(nt):
-        faces.append((center, idx(0, j + 1), idx(0, j)))
+            f = (idx(i, j), idx(i, j + 1), idx(i + 1, j + 1), idx(i + 1, j))
+            if inside[f[0]] and inside[f[1]] and inside[f[2]] and inside[f[3]]:
+                continue
+            faces.append(f)
     ob = mesh_from_arrays('Sea', verts, faces, smooth=True, col='env')
     ob.pass_index = IDX_WATER
     ob.data.materials.append(water_material())

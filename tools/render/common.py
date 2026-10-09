@@ -8,7 +8,7 @@ Convenzioni di scena (metri):
     riga 0 = latitudine LAT_MAX (verificato con tools/render/calib.py).
 
 Ogni render scrive un EXR multilayer con i passi:
-  ambient, lamp      → light group (lineari, denoisati separatamente con OIDN)
+  ambient, lamp, lantern → light group (lineari, denoisati separatamente con OIDN)
   alpha, mist, index → dati (canali 'alpha.V', 'mist.V', 'index.V')
 """
 from __future__ import annotations
@@ -29,7 +29,7 @@ EYE = (0.0, -0.55, 1.25)          # occhio del pescatore seduto sul banco
 LAT_MIN, LAT_MAX = -58.0, 36.0    # gradi coperti dal panorama in verticale
 PANO_W_FINAL = 8192
 
-LIGHTGROUPS = ('ambient', 'lamp')
+LIGHTGROUPS = ('ambient', 'lamp', 'lantern')
 
 # indici oggetto per le maschere (pass IndexOB)
 IDX_WATER = 1

@@ -129,15 +129,24 @@ def encode_layer(key, exr, space, width, rect=None, yaw_center=0.0, with_alpha=F
     alpha = p.get('alpha') if with_alpha else None
     entry = {'space': space, 'yaw': yaw_center, 'rect': list(rect) if rect else [0, 0, W, H], 'passes': {}}
     total = 0
-    for g in ('ambient', 'lamp'):
+    for g in ('ambient', 'lamp', 'lantern'):
         if g not in p:
             continue
         lin = p[g][..., :3]
-        scale = post.pick_scale(lin / np.maximum(alpha[..., None], 1e-4) if alpha is not None else lin, alpha)
-        img = post.encode_light_pass(lin, scale, alpha)
+        if float(lin.max()) < 1e-4:
+            continue                      # nessun contributo di questa luce nello strato
+        a_ = alpha
+        res = 1.0
+        if g == 'lantern' and rect is None:
+            # luce morbida: basta metà risoluzione per gli strati a panorama intero
+            lin = lin.reshape(lin.shape[0] // 2, 2, lin.shape[1] // 2, 2, 3).mean(axis=(1, 3)) if lin.shape[0] % 2 == 0 and lin.shape[1] % 2 == 0 else lin[::2, ::2]
+            a_ = None if alpha is None else alpha[: lin.shape[0] * 2: 2, : lin.shape[1] * 2: 2]
+            res = 0.5
+        scale = post.pick_scale(lin / np.maximum(a_[..., None], 1e-4) if a_ is not None else lin, a_)
+        img = post.encode_light_pass(lin, scale, a_)
         fn = f'{key}_{g}.webp'
         total += post.save_webp(img, os.path.join(OUT_IMG, fn), quality=quality)
-        entry['passes'][g] = {'file': fn, 'scale': scale}
+        entry['passes'][g] = {'file': fn, 'scale': scale, 'res': res}
     if data:
         mist = np.clip(p['mist'], 0, 1)
         idx = p['index']
