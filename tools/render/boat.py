@@ -638,7 +638,8 @@ def build_tarp(mats):
         c.z += fold if c.z > z + 0.05 else 0.0
         c.x += 0.01 * math.sin(c.z * 40)
     bpy.ops.object.shade_smooth()
-    ob.data.materials.append(mats['canvas'])
+    import telone
+    ob.data.materials.append(telone.canvas_material())   # la stessa tela cerata che si vede da sotto
     ob.rotation_euler = (0, 0, math.radians(8))
     set_lightgroup(ob, 'ambient')
     # cima che lo lega, di traverso sul fagotto
