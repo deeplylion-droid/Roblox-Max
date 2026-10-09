@@ -584,9 +584,9 @@ def figurine():
 
 # ───────────────────────── salvagente, cima, adesivi ─────────────────────────
 
-LIFEBUOY_POS = (-0.765, -1.05, 0.48)   # appeso al fianco sinistro, dietro al pescatore (lontano da Molly e da Gulpy)
+LIFEBUOY_POS = (-0.78, -1.05, 0.55)    # appeso al fianco sinistro, dietro al pescatore (lontano da Molly e da Gulpy)
 ROPE_COIL_POS = (-0.26, -2.40, 0.595)  # cima arrotolata sul ponte di poppa, angolo sinistro
-STICKER_BULKHEAD = (-0.22, 2.098, 0.55)  # adesivo sulla paratia sotto la coperta di prua
+STICKER_BULKHEAD = (-0.22, 2.126, 0.55)  # adesivo sulla paratia sotto la coperta di prua
 
 
 def lifebuoy():
@@ -840,8 +840,9 @@ def stickers():
 
 def build_props():
     obs = []
+    import attrezzi
     for f in (lantern, flask, doll, duck, jar, goggles, rosary, tally_marks, stern_bell, candle_tin, figurine,
-              lifebuoy, rope_coil, stickers):
+              lifebuoy, rope_coil, stickers, attrezzi.collezione, attrezzi.baracchino, attrezzi.reti):
         obs += f()
     for o in obs:
         if o.type == 'MESH' and o.lightgroup == '':

@@ -131,6 +131,7 @@ Volume generale/musica/effetti, lingua (italiano, inglese), luminosità, schermo
 - **Niente console**: è una barca a remi. Anche la radio e il sonar sono oggetti appoggiati in giro sulla struttura della barca, come tutto il resto.
 - **Secchio e telone sul banco di prua** (approvato): il secchio a destra con la borraccia accanto, il telone piegato a sinistra vicino alla bambola. Prima stavano sul pagliolo dietro il banco e dal posto del pescatore non si vedevano.
 - **Altri oggetti di scena** (richiesti), dove non danno fastidio alle creature e agli oggetti del gioco: un **salvagente** arancio a bande bianche appeso al fianco sinistro dietro al pescatore, una **cima sporca** arrotolata sul ponte di poppa, due **adesivi di Splashland** (il logo tondo sul secchio, quello di Mama Marina sulla paratia sotto la coperta di prua).
+  Poi (richiesti, la barca era ancora troppo vuota): una **collezione di galleggianti e ami** su una tavola appesa al fianco destro dietro al pescatore (galleggianti tondi, a penna, di sughero, una boccia di vetro nella sua rete, ami arrugginiti, un cucchiaino, piombi), un **baracchino CB** fissato alla paratia di prua con il microfono a spirale e l'antenna a stilo sul bordo destro, e le **reti**: un mucchio buttato sul pagliolo a prua e una rete gettata sul bordo destro. Tutto di scena.
 - Post-processing: bloom, grana della pellicola, vignettatura, leggera aberrazione cromatica.
 
 ## 13. Audio

@@ -106,9 +106,9 @@ def molly(side):
 
 def hatch_conta():
     import hatch
-    # vicino alla poppa e alto fuori dall'acqua: quando ti volti spunta da dietro lo specchio di poppa
-    o = (0.25, -5.6, -0.9)
-    M = LAST_M['hatch_conta'] = M_of(o, yaw=facing_yaw(o), pitch=8.0)
+    # appena dietro la poppa, altissimo, piegato sulla barca: l'esca gli penzola sopra il ponte di poppa
+    o = (0.10, -3.45, -1.05)
+    M = LAST_M['hatch_conta'] = M_of(o, yaw=facing_yaw(o), pitch=14.0)
     obs = hatch.build(viewer=to_local(M, EYE))
     lights = [o for o in bpy.data.objects if o.type == 'LIGHT' and o.name.startswith('ToyLight')]
     # di notte, a qualche metro, lo illumina solo la sua esca: più forte che in vetrina
