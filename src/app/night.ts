@@ -6,7 +6,7 @@
  */
 import type { Vec3 } from '../engine/assets.ts';
 import { dirPos, type AudioEngine, type Voice } from '../engine/audio.ts';
-import type { LayerDraw, LightGlow, Overlay } from '../engine/renderer.ts';
+import type { BinoPlace, LayerDraw, LightGlow, Overlay } from '../engine/renderer.ts';
 import { CHILD, RADIO_VOICE, speak, type Utterance } from '../engine/voice.ts';
 import { HOUR_SECONDS, NIGHTS, VIEW, YAW, type LampLevel, type MonsterId } from '../game/config.ts';
 import type { GameEvent } from '../game/events.ts';
@@ -31,6 +31,8 @@ export interface NightAssets {
   jumpscares: Partial<Record<MonsterId, { frames: OverlayTex[]; fps: number; aspect: number }>>;
   /** ritratti dei pesci del Catalogo già renderizzati: id → URL dell'immagine */
   fish: Record<string, string>;
+  /** i luoghi dell'orizzonte per il binocolo, e dove sta la luce rossa della videocamera */
+  binocular: { places: { key: string; yaw: number; pitch: number; hfov: number; place: BinoPlace }[]; rec: Vec3 | null };
 }
 
 export interface NightStats {
@@ -151,6 +153,11 @@ export class Night {
   private held = new Set<string>();
   private mouse = { x: 0.5, y: 0.5, inside: false, down: false };
   private sonarOpen = false;
+  /** binocolo: alzato (desiderato), quanto è alzato (0..1), campo dello zoom, inclinazione dello sguardo */
+  private binoUp = false;
+  private bino = 0;
+  private binoFov = 9;
+  private binoPitch = 1;
   private turnArmed = true;
   private reelByMouse = false;
   private hoverTarget: Target = null;
@@ -268,7 +275,12 @@ export class Night {
       this.mouse.inside = false;
     });
     this.on(c, 'mousedown', (e) => this.mouseDown(e as MouseEvent));
-    this.on(window, 'mouseup', () => {
+    this.on(c, 'contextmenu', (e) => e.preventDefault());
+    this.on(window, 'mouseup', (e) => {
+      if ((e as MouseEvent).button === 2) {
+        this.binoUp = false;
+        return;
+      }
       this.mouse.down = false;
       if (this.reelByMouse) {
         this.reelByMouse = false;
@@ -278,6 +290,11 @@ export class Night {
     this.on(c, 'wheel', (e) => {
       const w = e as WheelEvent;
       if (this.paused || this.js) return;
+      // col binocolo la rotella cambia lo zoom
+      if (this.bino > 0.5) {
+        this.binoFov = w.deltaY < 0 ? 4.5 : 9;
+        return;
+      }
       this.setLamp(this.sim.lamp + (w.deltaY < 0 ? 1 : -1));
     });
     this.on(this.hud.turnEl, 'mouseenter', () => {
@@ -327,11 +344,24 @@ export class Night {
       case 'tab':
         this.toggleSonar();
         break;
+      case 'b':
+        this.binoUp = !this.binoUp && this.canBino();
+        break;
     }
   }
 
+  /** Il binocolo si alza solo fuori dal telone, col sonar chiuso e senza un pesce in canna. */
+  private canBino(): boolean {
+    return !this.js && !this.finished && this.sim.hide === 'out' && !this.sonarOpen && this.sim.fishing.phase !== 'reeling';
+  }
+
   private mouseDown(e: MouseEvent): void {
+    if (e.button === 2) {
+      if (!this.paused && this.canBino()) this.binoUp = true;
+      return;
+    }
     if (this.paused || this.finished || this.js || e.button !== 0) return;
+    if (this.bino > 0.5) return;
     this.mouse.down = true;
     if (this.sim.hide !== 'out') {
       // sotto il telone il clic serve solo a uscire
@@ -417,9 +447,32 @@ export class Night {
       }
       if (this.held.has('a') || this.held.has('arrowleft')) spin = -1;
       if (this.held.has('d') || this.held.has('arrowright')) spin = 1;
-      view.targetYaw += spin * 150 * this.d.options.sensitivity * dt;
+      // col binocolo si gira piano, in proporzione allo zoom; su e giù coi bordi alto e basso
+      const zoomK = this.bino > 0 ? view.hfov / 90 : 1;
+      view.targetYaw += spin * 150 * this.d.options.sensitivity * dt * zoomK;
+      if (this.bino > 0.5 && this.mouse.inside) {
+        const my = this.mouse.y;
+        let tilt = 0;
+        if (my < edge) tilt = ((edge - my) / edge) ** 1.5;
+        else if (my > 1 - edge) tilt = -(((my - (1 - edge)) / edge) ** 1.5);
+        if (this.held.has('w') || this.held.has('arrowup')) tilt = 1;
+        this.binoPitch = Math.max(-8, Math.min(12, this.binoPitch + tilt * 30 * zoomK * dt));
+      }
     }
-    sim.setView(view.yaw, this.sonarOpen);
+    if (!this.canBino()) this.binoUp = false;
+    this.bino = approach(this.bino, this.binoUp ? 1 : 0, 7, dt);
+    if (this.bino < 0.001) this.bino = 0;
+    if (!this.js) {
+      const e = smooth01(this.bino);
+      view.hfov = 90 + (this.binoFov - 90) * e;
+      view.pitch = -12 + (this.binoPitch + 12) * e;
+      // le mani che reggono il binocolo: un tremolio lento e il respiro
+      const t = this.d.stage.time;
+      view.swayYaw = e * (0.10 * Math.sin(t * 0.9) + 0.05 * Math.sin(t * 2.3 + 1.0) + 0.03 * Math.sin(t * 5.1));
+      view.swayPitch = e * (0.08 * Math.sin(t * 0.7 + 2.0) + 0.04 * Math.sin(t * 1.9));
+    }
+    // mentre guardi nel binocolo non vedi la barca: Molly non si sente guardata
+    sim.setView(view.yaw, this.sonarOpen || this.bino > 0.5);
     if (!this.finished) sim.update(dt);
     for (const e of sim.drainEvents()) this.handle(e);
 
@@ -694,6 +747,9 @@ export class Night {
     const L = this.d.stage.man.layers;
     const yaw = killer === 'gulpy' ? (L[POSE.gulpyPretende]?.yaw ?? 0) : killer === 'molly' ? this.sim.molly.yaw : (L[POSE.hatchConta]?.yaw ?? 180);
     this.js = { killer, t: 0, yaw };
+    this.binoUp = false;
+    this.bino = 0;
+    this.d.stage.view.swayYaw = this.d.stage.view.swayPitch = 0;
     if (this.sonarOpen) this.toggleSonar(false);
     const reduce = this.d.options.reduceFlash;
     this.d.sfx.scream(1, killer === 'molly' ? 1.35 : killer === 'hatch' ? 0.85 : 0.7);
@@ -928,11 +984,27 @@ export class Night {
       const spike = hash1(Math.floor(js.t * 7) + 3) > 0.72 ? 0.35 : 0;
       glitch = Math.min(1, 0.3 + 0.55 * Math.exp(-js.t * 4) + spike) * (this.d.options.reduceFlash ? 0.4 : 1);
     }
+    // binocolo: solo il mondo (niente barca), i luoghi ad alta risoluzione, la luce rossa della videocamera
+    const binoOn = this.bino > 0.5;
+    const be = smooth01(this.bino);
+    const man = st.man;
+    let layers = this.layerDraws();
+    if (binoOn) layers = layers.filter((d) => man.layers[typeof d === 'string' ? d : d.key]?.space === 'world');
+    const B = this.d.assets.binocular;
+    const places = this.bino > 0
+      ? B.places.filter((p) => Math.abs(((p.yaw - st.view.yaw + 540) % 360) - 180) < p.hfov / 2 + st.view.hfov * 0.75 + 2).map((p) => p.place)
+      : [];
+    const worldGlows = [...eyes.world];
+    if (this.bino > 0 && B.rec && Math.floor(st.time / 0.6) % 2 === 0) {
+      worldGlows.push({ dir: norm(B.rec), color: [2.4 * be, 0.05 * be, 0.04 * be], radius: 0.0011 });
+    }
+    this.hud.root.style.opacity = String(1 - 0.8 * be);
     st.frame({
-      layers: this.layerDraws(),
+      layers,
+      bino: this.bino > 0 ? { amount: be, places } : null,
       overlay: this.overlay(),
-      line: this.sim.hide === 'out' ? this.line() : null,
-      sonar: this.sonar.canvas,
+      line: this.sim.hide === 'out' && !binoOn ? this.line() : null,
+      sonar: binoOn ? null : this.sonar.canvas,
       sonarGain: 0.9 + 0.2 * Math.sin(st.time * 2.3),
       ambient: 1 + v.dawn * 1.6,
       exposure: st.brightness + dawnExposure * 0.5 - (js && js.t > 1.4 ? (js.t - 1.4) * 6 : 0),
@@ -940,8 +1012,8 @@ export class Night {
       flashColor,
       glitch,
       fade: 1 - v.dark * 0.9,
-      glows: st.landscapeGlows(eyes.world),
-      boatGlows: eyes.boat,
+      glows: st.landscapeGlows(worldGlows),
+      boatGlows: binoOn ? [] : eyes.boat,
     });
   }
 

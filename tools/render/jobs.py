@@ -356,6 +356,12 @@ def job_jumpscare(q):
         jumpscare.run(q, w, post, OVERLAYS, build_scene, coll_objects, renderable)
 
 
+def job_binocolo(q):
+    """I luoghi dell'orizzonte per il binocolo (vedi binocolo.py). LUOGHI=ingresso,statua,... per sceglierli."""
+    import binocolo
+    binocolo.run(q, post, OVERLAYS, build_scene, coll_objects)
+
+
 def job_reencode(q):
     """Ricodifica tutti gli strati del manifest dagli EXR in cache (senza rifare i render)."""
     with open(MANIFEST) as f:
@@ -408,7 +414,7 @@ def preview_composite(out_png, yaw=0.0, pitch=-12.0, lamp=1.0, ambient=1.0, extr
     post.save_png(post.tonemap(view, exposure), out_png)
 
 
-JOBS = {'world': job_world, 'boat': job_boat, 'props': job_props, 'creature': job_creature, 'reencode': job_reencode, 'tarp': job_tarp, 'jumpscare': job_jumpscare}
+JOBS = {'world': job_world, 'boat': job_boat, 'props': job_props, 'creature': job_creature, 'reencode': job_reencode, 'tarp': job_tarp, 'jumpscare': job_jumpscare, 'binocolo': job_binocolo}
 
 
 def main():

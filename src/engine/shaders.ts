@@ -102,6 +102,46 @@ void main() {
 }`;
 
 /**
+ * Binocolo: un luogo dell'orizzonte renderizzato a parte (camera prospettica dall'occhio) disegnato sopra
+ * al panorama, con la stessa nebbia del mondo; i bordi sfumano nel panorama. Alfa della texture = nebbia.
+ */
+export const PERSP_FS = /* glsl */ `#version 300 es
+precision highp float;
+in vec2 vUv;
+out vec4 frag;
+${RAY}
+uniform sampler2D uTex;
+uniform float uScale;
+uniform mat3 uCam;       // spazio del mondo → spazio della camera del luogo (x destra, y avanti, z su)
+uniform vec2 uCamTan;    // tan dei mezzi campi della camera del luogo
+uniform float uW;        // intensità dell'ambiente
+uniform float uAmount;   // quanto è alzato il binocolo
+uniform vec3 uFogColor;
+uniform float uFogDensity;
+
+vec3 dec(vec4 t, float s) { vec3 c = t.rgb * t.rgb; return c * c * s; }
+
+void main() {
+  vec3 d = viewRay(vUv);
+  vec3 c = uCam * d;
+  if (c.y <= 0.0) discard;
+  vec2 q = vec2(c.x, c.z) / (c.y * uCamTan);
+  float m = max(abs(q.x), abs(q.y));
+  if (m >= 1.0) discard;
+  vec2 uv = vec2(0.5 + q.x * 0.5, 0.5 - q.y * 0.5);
+  vec4 t = texture(uTex, uv);
+  vec3 col = dec(t, uScale) * uW;
+  float mist = t.a;
+  float sky = step(0.995, mist);
+  float fog = 1.0 - exp(-mist * mist * 2500.0 * uFogDensity);
+  float lat = atan(d.z, length(d.xy));
+  fog = mix(fog, exp(-abs(lat) * 22.0) * 0.35, sky);
+  col = mix(col, uFogColor, clamp(fog, 0.0, 0.92));
+  float a = smoothstep(1.0, 0.82, m) * uAmount;
+  frag = vec4(col * a, a);
+}`;
+
+/**
  * Immagine a tutto schermo dentro la scena (prima di bloom e grana): la vista da sotto il telone,
  * i fotogrammi dei jumpscare. Passo base + passo "bagliore" modulato da una luce che si muove.
  */
@@ -301,6 +341,7 @@ ${NOISE}
 uniform sampler2D uHdr, uBloom;
 uniform float uExposure, uBloomAmt, uTime, uGrain, uVignette, uAberration, uFade, uFlash;
 uniform float uGlitch;   // 0..1: nastro VHS rovinato (jumpscare)
+uniform float uBino;     // 0..1: binocolo alzato (i due cerchi)
 uniform vec3 uFlashColor;
 uniform vec2 uRes;
 
@@ -394,6 +435,13 @@ void main() {
     // banda di disturbo che scorre verso l'alto
     float band = fract(uv.y * 0.6 - uTime * 0.45);
     col += vec3(0.045) * k * smoothstep(0.86, 1.0, band) * (0.5 + 0.5 * hash12(vec2(row, fr + 9.0)));
+  }
+  if (uBino > 0.0) {
+    // i due cerchi del binocolo, con il bordo morbido e un filo di aberrazione
+    vec2 bp = (uv - 0.5) * vec2(uRes.x / uRes.y, 1.0);
+    float dc = min(length(bp - vec2(-0.21, 0.0)), length(bp + vec2(-0.21, 0.0)));
+    float lens = 1.0 - smoothstep(0.405, 0.43, dc);
+    col *= mix(1.0, lens * (1.0 - 0.35 * smoothstep(0.25, 0.42, dc)), uBino);
   }
   col = mix(col, uFlashColor, uFlash);
   col *= uFade;

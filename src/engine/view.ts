@@ -7,14 +7,14 @@ export type Mat3 = Float32Array; // colonna-maggiore, come vuole WebGL
 
 const D2R = Math.PI / 180;
 
-function rotZ(deg: number): number[] {
+export function rotZ(deg: number): number[] {
   // ruotare lo sguardo a destra di +yaw: il vettore avanti (0,1,0) va verso +x
   const a = -deg * D2R;
   const c = Math.cos(a), s = Math.sin(a);
   return [c, s, 0, -s, c, 0, 0, 0, 1];
 }
 
-function rotX(deg: number): number[] {
+export function rotX(deg: number): number[] {
   // pitch positivo = guardare in su: (0,1,0) va verso +z
   const a = deg * D2R;
   const c = Math.cos(a), s = Math.sin(a);
@@ -66,6 +66,9 @@ export class View {
   swell = 1;
   shake = 0;
   private shakeSeed = 0;
+  /** piccolo tremolio delle mani (gradi), per il binocolo */
+  swayYaw = 0;
+  swayPitch = 0;
   /** matrici risultanti */
   boatRot: number[] = rotZ(0);
   worldRot: number[] = rotZ(0);
@@ -98,7 +101,7 @@ export class View {
     this.shake = Math.max(0, this.shake - dt * 2.2);
     const breath = 0.18 * Math.sin(t * 1.25);
     // spazio barca: solo lo sguardo del pescatore
-    this.boatRot = mul(rotZ(this.yaw + shx), mul(rotX(this.pitch + breath + shy), rotY(shx * 0.3)));
+    this.boatRot = mul(rotZ(this.yaw + shx + this.swayYaw), mul(rotX(this.pitch + breath + shy + this.swayPitch), rotY(shx * 0.3)));
     // spazio mondo: la barca rolla/beccheggia rispetto all'orizzonte
     const boatMotion = mul(rotY(roll), rotX(pitch + heave));
     this.motion = boatMotion;

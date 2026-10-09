@@ -3,7 +3,7 @@
  * atmosfera (faro, luci), schermo del sonar, lenza, bloom e composizione finale.
  */
 import { FULLSCREEN_VS, FullscreenTri, Program, Target, createGL, hdrSupported, textureFromCanvas, type GL } from './gl.ts';
-import { ATMOS_FS, BRIGHT_FS, DOWN_FS, FINAL_FS, LAYER_FS, LINE_FS, LINE_VS, OVERLAY_FS, SCREEN_FS, UP_FS } from './shaders.ts';
+import { ATMOS_FS, BRIGHT_FS, DOWN_FS, FINAL_FS, LAYER_FS, LINE_FS, LINE_VS, OVERLAY_FS, PERSP_FS, SCREEN_FS, UP_FS } from './shaders.ts';
 import type { LoadedLayer, Manifest, Vec3 } from './assets.ts';
 import type { View } from './view.ts';
 
@@ -46,6 +46,16 @@ export interface Overlay {
   flipX?: boolean;
 }
 
+/** Un luogo dell'orizzonte renderizzato per il binocolo (camera prospettica dall'occhio). */
+export interface BinoPlace {
+  tex: WebGLTexture;
+  scale: number;
+  /** spazio del mondo → spazio della camera del luogo (3×3 colonna-maggiore) */
+  cam: number[];
+  /** tan dei mezzi campi orizzontale e verticale */
+  tan: [number, number];
+}
+
 export interface FrameParams {
   time: number;
   /** intensità dei passi di luce */
@@ -58,6 +68,8 @@ export interface FrameParams {
   flashColor: Vec3;
   /** nastro VHS rovinato, 0..1 (jumpscare) */
   glitch?: number;
+  /** binocolo alzato: quanto (0..1) e i luoghi ad alta risoluzione da disegnare sopra al mondo */
+  bino?: { amount: number; places: BinoPlace[] } | null;
   beamAngle: number;
   /** bagliori lontani (spazio mondo), coperti dalla barca */
   glows: LightGlow[];
@@ -84,6 +96,7 @@ export class Renderer {
   private pUp: Program;
   private pFinal: Program;
   private pOverlay: Program;
+  private pPersp: Program;
   private hdr!: Target;
   private bloom: Target[] = [];
   private w = 0;
@@ -111,6 +124,7 @@ export class Renderer {
     this.pUp = new Program(gl, FULLSCREEN_VS, UP_FS, 'up');
     this.pFinal = new Program(gl, FULLSCREEN_VS, FINAL_FS, 'final');
     this.pOverlay = new Program(gl, FULLSCREEN_VS, OVERLAY_FS, 'overlay');
+    this.pPersp = new Program(gl, FULLSCREEN_VS, PERSP_FS, 'persp');
     this.lineVao = gl.createVertexArray()!;
     this.lineBuf = gl.createBuffer()!;
     gl.bindVertexArray(this.lineVao);
@@ -202,6 +216,10 @@ export class Renderer {
         .tex('uLant', 2, l.lantern)
         .tex('uData', 3, l.data);
       this.tri.draw();
+      if (key === 'world' && f.bino && f.bino.amount > 0.001 && f.bino.places.length) {
+        this.drawPersp(view, f);
+        this.pLayer.use();
+      }
     }
     if (!atmosDone) this.drawAtmos(view, f);
     if (f.boatGlows?.length) this.drawGlows(view, f.boatGlows);
@@ -237,6 +255,22 @@ export class Renderer {
       .v4('uLightCol', cols);
     this.tri.draw();
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+  }
+
+  /** I luoghi del binocolo sopra al panorama del mondo (con la stessa nebbia). */
+  private drawPersp(view: View, f: FrameParams): void {
+    const b = f.bino!;
+    const pp = this.pPersp.use();
+    pp.m3('uRot', new Float32Array(view.worldRot))
+      .f2('uTan', view.tanX, view.tanY)
+      .f1('uW', f.ambient)
+      .f1('uAmount', b.amount)
+      .f3('uFogColor', 0.006, 0.010, 0.017)
+      .f1('uFogDensity', 1 / 3200);
+    for (const pl of b.places) {
+      pp.m3('uCam', new Float32Array(pl.cam)).f2('uCamTan', pl.tan[0], pl.tan[1]).f1('uScale', pl.scale).tex('uTex', 0, pl.tex);
+      this.tri.draw();
+    }
   }
 
   /** Solo bagliori, nello spazio della barca (occhi a bordo, il giocattolo di Hatch). */
@@ -386,6 +420,7 @@ export class Renderer {
       .f1('uFade', f.fade)
       .f1('uFlash', f.flash)
       .f1('uGlitch', f.glitch ?? 0)
+      .f1('uBino', f.bino?.amount ?? 0)
       .f3('uFlashColor', ...f.flashColor)
       .f2('uRes', this.canvas.width, this.canvas.height);
     this.tri.draw();

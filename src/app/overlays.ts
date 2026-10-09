@@ -5,6 +5,7 @@
  */
 import { ASSET_BASE } from '../engine/assets.ts';
 import { textureFromCanvas, textureFromImage, type GL } from '../engine/gl.ts';
+import { mul, rotX, rotZ, transpose } from '../engine/view.ts';
 import type { MonsterId } from '../game/config.ts';
 import type { NightAssets, OverlayTex } from './night.ts';
 
@@ -16,6 +17,7 @@ interface PassFile {
 interface OverlayManifest {
   tarp?: { base: PassFile; glow: PassFile; aspect: number };
   jumpscares?: Partial<Record<MonsterId, { frames: PassFile[]; fps: number; aspect: number }>>;
+  binocular?: { places: (PassFile & { key: string; yaw: number; pitch: number; hfov: number; aspect: number })[]; rec?: [number, number, number] };
 }
 
 async function tex(gl: GL, p: PassFile): Promise<OverlayTex> {
@@ -83,7 +85,19 @@ export async function loadNightAssets(gl: GL): Promise<NightAssets> {
   } catch {
     // niente overlay renderizzati: si usano i segnaposto
   }
-  const out: NightAssets = { tarp: null, jumpscares: {}, fish: {} };
+  const out: NightAssets = { tarp: null, jumpscares: {}, fish: {}, binocular: { places: [], rec: null } };
+  for (const pl of man.binocular?.places ?? []) {
+    try {
+      const t = await tex(gl, pl);
+      // camera del luogo: yaw (a destra) poi pitch (in su), come lo sguardo; la trasposta porta il mondo nella camera
+      const R = mul(rotZ(pl.yaw), rotX(pl.pitch));
+      const tx = Math.tan((pl.hfov / 2) * (Math.PI / 180));
+      out.binocular.places.push({ key: pl.key, yaw: pl.yaw, pitch: pl.pitch, hfov: pl.hfov, place: { tex: t.tex, scale: t.scale, cam: transpose(R), tan: [tx, tx / pl.aspect] } });
+    } catch (e) {
+      console.warn(e);
+    }
+  }
+  if (man.binocular?.rec) out.binocular.rec = man.binocular.rec;
   try {
     const r = await fetch(ASSET_BASE + 'img/fish/fish.json');
     if (r.ok) {
