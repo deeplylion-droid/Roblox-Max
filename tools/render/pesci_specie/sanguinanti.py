@@ -470,7 +470,7 @@ def _geo_serrasangue(c):
         e1, e2 = _telaio(n0)
         b = math.radians(verso)
         u1 = (math.cos(b) * e1 + math.sin(b) * e2).astype(F)        # verso la gobba della mezzaluna
-        ra, prof = R * 0.62, 0.0085
+        ra, prof = R * 0.8, 0.0095
         ca = p0 + n0 * (ra - prof)
         cb = ca - u1 * ra * 0.62 + n0 * 0.002
 
@@ -481,7 +481,7 @@ def _geo_serrasangue(c):
         u2 = np.cross(n0, u1).astype(F)
         for j in range(9):
             phi = math.radians(-80 + 160 * j / 8)
-            q = p0 + R * 0.56 * (math.cos(phi) * u1 + math.sin(phi) * u2)
+            q = p0 + R * 0.72 * (math.cos(phi) * u1 + math.sin(phi) * u2)
             p, n = _pelle_tz(c, float(q[0]), float(q[2]), -1)
             A.append(p + n * 0.002)
             B.append(p - n * rng.uniform(0.007, 0.01))
@@ -544,12 +544,12 @@ def _geo_squartotta(c):
     due punte come un colpo di lama; sta sopra la pettorale lunga."""
     P = c.P
     s = _Scavi(P)
-    a, b, mezza = np.array((0.47, 0.18), F), np.array((0.63, -0.055), F), 0.026
+    a, b, mezza = np.array((0.47, 0.18), F), np.array((0.63, -0.055), F), 0.028
     ab = b - a
 
     def g(p):
         # la lastra è inclinata come lo sguardo della camera (yaw del ritratto): attraverso il taglio si vede il fondo
-        q = np.stack([p[:, 0] - 0.04 * p[:, 1], p[:, 2]], axis=1)
+        q = np.stack([p[:, 0] + 0.12 * p[:, 1], p[:, 2]], axis=1)
         tt = np.clip(((q - a) @ ab) / float(ab @ ab), 0, 1)
         d = np.linalg.norm(q - (a + tt[:, None] * ab), axis=1)
         return (d - mezza * (0.3 + 0.7 * np.clip(np.sin(np.pi * tt), 0, 1) ** 0.5)).astype(F)
@@ -880,11 +880,13 @@ def _rabbiglio(c):
     R = P.sdf.rot_matrix('y', -ang)
     cerniera = np.array((sh.mouth_t, 0.0, sh.mouth_z1), F)
     giallo = P.materiale('IncisiviConiglio', (0.9, 0.84, 0.66), rough=0.2, coat=0.8, sss=0.2)
-    for k, (jaw, lungo) in enumerate((('su', 0.026), ('giu', 0.014))):
+    for k, (jaw, lungo) in enumerate((('su', 0.032), ('giu', 0.016))):
         for s in (-1, 1):
             zl = float(body.mouth_line(np.array([0.004], F))[0])
-            c0 = np.array((0.0015, s * 0.0058, zl - lungo * 0.36 if jaw == 'su' else zl + lungo * 0.3), F)
-            f0 = P.sdf.box(c0, (0.0026, 0.0052, lungo * 0.5), rounding=0.0018)
+            c0 = np.array((-0.0012, s * 0.0038, zl - lungo * 0.38 if jaw == 'su' else zl + lungo * 0.3), F)
+            f0 = P.sdf.box(c0, (0.0024, 0.0034, lungo * 0.5), rounding=0.0014)
+            # gli incisivi di sopra sporgono in avanti, come quelli di un coniglio
+            f0 = P.sdf.rotate(f0, P.sdf.rot_matrix('y', 16.0 if jaw == 'su' else -8.0), center=(0.004, 0.0, zl))
             if jaw == 'giu':
                 f0 = P.sdf.rotate(f0, R, center=cerniera)
                 c0 = (c0 - cerniera) @ R.T + cerniera
@@ -1450,17 +1452,17 @@ SPECIE['pesce_violento'] = Specie(
                               (0.35, 0.112), (0.38, 0.078), (0.41, 0.072), (0.45, 0.082), (0.49, 0.078), (0.52, 0.05), (0.55, 0.0),
                               (1.0, 0.0)],
                     spessore=[(0, 0.003), (0.1, 0.008), (0.25, 0.012), (0.4, 0.01), (0.52, 0.004), (1.0, 0.001)]),
-        fins=[Fin('dorsal', 0.6, 0.68, DORSALE_SQUALO, 0.1, 24, carnosa=True, spessore=0.006),
-              Fin('dorsal', 0.78, 0.86, DORSALE_SQUALO, 0.09, 24, carnosa=True, spessore=0.005),
-              Fin('caudal', 1.0, 1.0, coda_eterocerca(lobo=1.0, alzata=1.1, lobo_basso=0.45, basso=0.8), 0.2, 40,
+        fins=[Fin('dorsal', 0.6, 0.69, DORSALE_SQUALO, 0.14, 24, carnosa=True, spessore=0.006),
+              Fin('dorsal', 0.79, 0.88, DORSALE_SQUALO, 0.125, 24, carnosa=True, spessore=0.005),
+              Fin('caudal', 1.0, 1.0, coda_eterocerca(lobo=1.0, alzata=1.2, lobo_basso=0.5, basso=0.9), 0.25, 40,
                   carnosa=True, spessore=0.006)]),
-    aspetto=Look(back=(0.15, 0.11, 0.065), flank=(0.19, 0.145, 0.09), belly=(0.82, 0.8, 0.74), fin=(0.13, 0.1, 0.06),
+    aspetto=Look(back=(0.15, 0.11, 0.065), flank=(0.19, 0.145, 0.09), belly=(0.82, 0.8, 0.74), fin=(0.065, 0.045, 0.028),
                  iris=(0.6, 0.55, 0.35), iris_dark=(0.12, 0.1, 0.05), metal=0.0, irid=0.0, squame=0.0, linea_laterale=0.0,
                  lucido=0.35, ruvido=0.5,
                  disegni=[Disegno('marmo', colore=(0.08, 0.06, 0.035), forza=0.55, scala=60, r=0.35),
                           Disegno('macchie', colore=(0.5, 0.42, 0.3), forza=0.45, scala=70, r=0.12, seme=4)]),
     campo=_campo_violino, extra=_violino,
-    ritratto=Ritratto(yaw=4.0, pitch=0.0, roll=-30.0),
+    ritratto=Ritratto(yaw=4.0, pitch=0.0, roll=-42.0),
     famiglia='bleeding', piano='razza',
     opzioni=dict(ferite=[], bocca=0))
 
