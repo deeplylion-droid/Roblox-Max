@@ -55,6 +55,8 @@ const IT = {
     hatch: '«Chi c’è c’è, chi non c’è non c’è.» Ti ha trovato.',
     // notte 2: approvati il 10 ottobre (accorciati e più criptici, come chiesto)
     robin: 'Robin ha svuotato il secchio. Poi te.',
+    // notte 3 (da approvare): da bambino spegneva le candeline degli altri alle feste
+    archie: 'Archie ha spento la tua candelina.',
     mother: 'Alle sei il secchio non era pieno. Stanotte la Madre si prenderà un altro bambino.',
     // notte 2 (approvato il 10 ottobre): la batteria è morta e la ninna nanna è finita prima delle sei
     lullaby: 'La canzone è finita prima dell’alba.',
@@ -225,6 +227,7 @@ const EN: typeof IT = {
     molly: 'Molly only wanted you to watch her.',
     hatch: '"Ready or not, here I come." He found you.',
     robin: 'Robin emptied the bucket. Then you.',
+    archie: 'Archie blew out your candle.',
     mother: 'At six the bucket wasn’t full. Tonight the Mother will take another child.',
     lullaby: 'The song ended before dawn.',
   },

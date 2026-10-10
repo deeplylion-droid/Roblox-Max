@@ -19,11 +19,12 @@ export type GameEvent =
   | { t: 'unhideStart' }
   | { t: 'unhidden' }
   | { t: 'throwFish' }
-  | { t: 'denied'; reason: 'noFish' | 'noTarget' | 'busy' | 'notFacing' | 'dark' }
+  | { t: 'denied'; reason: 'noFish' | 'noTarget' | 'busy' | 'notFacing' | 'dark' | 'broken' }
   | { t: 'gulpy'; e: 'rise' | 'gurgle' | 'climb' | 'demand' | 'fed' | 'fedEarly' | 'leave' | 'gone' | 'attack' }
   | { t: 'molly'; e: 'knock' | 'peek' | 'giggle' | 'whine' | 'tantrum' | 'calm' | 'leave' | 'gone' | 'attack'; side: Side }
   | { t: 'hatch'; e: 'count' | 'board' | 'step' | 'sniff' | 'leave' | 'gone' | 'attack'; n?: number; last?: boolean }
   | { t: 'robin'; e: 'climb' | 'reach' | 'rattle' | 'steal' | 'scared' | 'gone' | 'attack' }
+  | { t: 'archie'; e: 'rise' | 'inhale' | 'relight' | 'wait' | 'blow' | 'dive' | 'gone' | 'attack' }
   | { t: 'battery'; e: 'low' | 'dead' }
   | { t: 'lullaby'; e: 'start' | 'end' }
   | { t: 'dead'; killer: MonsterId | 'mother' }

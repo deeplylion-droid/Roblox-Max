@@ -4,7 +4,7 @@
  */
 
 export type LampLevel = 0 | 1 | 2;
-export type MonsterId = 'gulpy' | 'molly' | 'hatch' | 'robin';
+export type MonsterId = 'gulpy' | 'molly' | 'hatch' | 'robin' | 'archie';
 export type Side = 'left' | 'right';
 
 export const HOUR_SECONDS = 75;
@@ -28,6 +28,9 @@ export const YAW = {
   mollyRight: 68,
   /** Robin, steso sul bordo di sinistra verso prua, con le mani nel secchio (notte 2) */
   robin: -38,
+  /** Archie, il collo dritto fuori dall'acqua davanti alla prua, la testa piegata sulla lampara (notte 3; provvisorio
+   *  finché non c'è la posa renderizzata) */
+  archie: 12,
 };
 
 export const VIEW = {
@@ -119,6 +122,21 @@ export interface RobinConfig {
   scare: number;
 }
 
+export interface ArchieConfig {
+  firstAt: number;
+  cooldown: [number, number];
+  /** secondi per salire dall'acqua (dopo l'avviso del sonar) */
+  rise: number;
+  /** il risucchio: secondi per spegnere la lampara prima che soffi */
+  inhale: number;
+  /** se la riaccendi mentre aspetta al buio, riprende fiato più in fretta: secondi */
+  relight: number;
+  /** quanto aspetta al buio prima di rituffarsi */
+  dark: number;
+  /** secondi per rituffarsi */
+  dive: number;
+}
+
 /** La batteria della lampara e del sonar (dalla notte 2). Carica da 1 a 0. */
 export interface BatteryConfig {
   /** consumo al secondo per livello della lampara (spenta, bassa, alta) */
@@ -152,6 +170,8 @@ export interface NightConfig {
   /** dalla notte 2 */
   robin?: RobinConfig;
   battery?: BatteryConfig;
+  /** dalla notte 3 */
+  archie?: ArchieConfig;
   hideTime: number;
   unhideTime: number;
 }
@@ -205,6 +225,35 @@ export const NIGHTS: Record<number, NightConfig> = {
     molly: { firstAt: 1.3 * H, cooldown: [40, 64], knock: 4.5, attention: 4.2, neglectMax: 7.5, tantrumMax: 6 },
     hatch: { firstAt: 2.3 * H, cooldown: [48, 74], calls: 10, callInterval: 1.05, search: [8, 10.5] },
     robin: { firstAt: 0.9 * H, cooldown: [70, 110], climb: 3.5, stealEvery: 3, scare: 2.5 },
+    battery: { drain: [0, 1 / 700, 1 / 320], sonar: 1 / 1100, low: 0.15, lullaby: 64 },
+    hideTime: 0.7,
+    unhideTime: 0.6,
+  },
+  // Notte 3: arriva Archie, il serpente di mare che soffia sulla lampara (docs/NOTTI_E_MOSTRI.md): quando prende
+  // fiato la lampara va spenta, e tenuta spenta finché non si rituffa. Robin e Archie mai insieme: vogliono il
+  // contrario dalla luce. Dalla terza notte la tolleranza allo strappo è quella normale (FISHING.snapGrace).
+  // Quota 11. Giocatori simulati (npm run sim -- 3 300): esperto 100%, medio 71%, maldestro 50% (la seconda notte
+  // 100/81/58): un passo più dura. Il maldestro muore ad Archie quando riaccende troppo presto e non rispegne in
+  // tempo; impara un po' a ogni volta (bot.ts). Da approvare con la notte
+  3: {
+    night: 3,
+    quota: 11,
+    hourlyRamp: 0.13,
+    biteMul: 0.33,
+    guaranteedLoreAt: 3,
+    loreChance: 0.08,
+    exclusive: [
+      ['gulpy', 'hatch'],
+      ['robin', 'hatch'],
+      ['robin', 'molly'],
+      ['archie', 'robin'],
+    ],
+    minGapBetweenStarts: 5,
+    gulpy: { firstAt: 0.9 * H, cooldown: [66, 100], rise: 6.5, climb: 5.5, patience: 7.5, eat: 4.5 },
+    molly: { firstAt: 1.5 * H, cooldown: [42, 66], knock: 4.5, attention: 4.2, neglectMax: 7.5, tantrumMax: 6 },
+    hatch: { firstAt: 2.4 * H, cooldown: [50, 76], calls: 10, callInterval: 1.05, search: [8, 10.5] },
+    robin: { firstAt: 1.7 * H, cooldown: [85, 130], climb: 3.5, stealEvery: 3, scare: 2.5 },
+    archie: { firstAt: 0.55 * H, cooldown: [60, 95], rise: 3, inhale: 4.5, relight: 2.2, dark: 7, dive: 2 },
     battery: { drain: [0, 1 / 700, 1 / 320], sonar: 1 / 1100, low: 0.15, lullaby: 64 },
     hideTime: 0.7,
     unhideTime: 0.6,

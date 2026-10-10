@@ -20,12 +20,14 @@ export interface BotSkill {
   lampPolicy: 'greedy' | 'steady' | 'off';
   /** a che hatch si nasconde */
   hideAtCount: number;
+  /** quanto resta al buio con Archie che aspetta, rispetto a quanto serve (sotto 1 riaccende troppo presto) */
+  archiePatience: number;
 }
 
 export const SKILLS: Record<string, BotSkill> = {
-  expert: { name: 'expert', reaction: [0.25, 0.6], turnSpeed: 420, reelHi: 0.72, reelLo: 0.3, pullReaction: 0.12, lampPolicy: 'greedy', hideAtCount: 6 },
-  average: { name: 'average', reaction: [0.5, 1.2], turnSpeed: 260, reelHi: 0.68, reelLo: 0.25, pullReaction: 0.3, lampPolicy: 'steady', hideAtCount: 6 },
-  sloppy: { name: 'sloppy', reaction: [0.9, 2.2], turnSpeed: 170, reelHi: 0.8, reelLo: 0.2, pullReaction: 0.55, lampPolicy: 'steady', hideAtCount: 8 },
+  expert: { name: 'expert', reaction: [0.25, 0.6], turnSpeed: 420, reelHi: 0.72, reelLo: 0.3, pullReaction: 0.12, lampPolicy: 'greedy', hideAtCount: 6, archiePatience: 1.15 },
+  average: { name: 'average', reaction: [0.5, 1.2], turnSpeed: 260, reelHi: 0.68, reelLo: 0.25, pullReaction: 0.3, lampPolicy: 'steady', hideAtCount: 6, archiePatience: 1.0 },
+  sloppy: { name: 'sloppy', reaction: [0.9, 2.2], turnSpeed: 170, reelHi: 0.8, reelLo: 0.2, pullReaction: 0.55, lampPolicy: 'steady', hideAtCount: 8, archiePatience: 0.8 },
 };
 
 export class Bot {
@@ -75,6 +77,10 @@ export class Bot {
     const mollyNeeds = this.noticed('molly', molly.state === 'peeking' || molly.state === 'tantrum');
     const robinThere = this.noticed('robin', !!s.robin?.present);
 
+    // Archie prende fiato: si spegne la lampara qualunque cosa si stia facendo (anche sotto il telone)
+    const archieDark = this.archieDark(dt);
+    if (archieDark && !s.blackout && !s.lampBroken) s.setLamp(0);
+
     // sotto il telone: esce solo quando Hatch se n'è andato davvero
     if (s.hide === 'in') {
       if (this.noticed('hatchGone', !hatchNear)) s.toggleHide();
@@ -123,16 +129,40 @@ export class Bot {
     }
 
     // lampara (al buio non c'è niente da fare: la batteria è morta)
-    if (!s.blackout) {
+    if (!s.blackout && !s.lampBroken) {
       const anyone = gulpy.present || molly.present || hatch.present || molly.state === 'knocking';
       let lamp: LampLevel = 1;
       if (scaring) lamp = 2;
       else if (this.skill.lampPolicy === 'greedy') lamp = anyone || !this.canAffordHigh() ? 1 : 2;
       else if (this.skill.lampPolicy === 'off') lamp = 0;
+      // Archie: restare al buio finché non si rituffa (chi ha poca pazienza riaccende prima)
+      if (archieDark) lamp = 0;
       s.setLamp(lamp);
     }
     this.finish(dt, wantReel);
   }
+
+  /** Archie: spenta quando lo si sente prendere fiato (col tempo di reazione), e per il tempo che serve mentre aspetta. */
+  private archieDark(dt: number): boolean {
+    const a = this.sim.archie;
+    if (!a) return false;
+    // chi ha riacceso troppo presto e l'ha sentito riprendere fiato, la volta dopo aspetta di più
+    if (a.state === 'inhaling' && this.archieSeen === 'waiting') this.archieRelights++;
+    if (a.state === 'away' || a.state === 'dormant') this.archieRelights = 0;
+    this.archieSeen = a.state;
+    const inhaling = this.noticed('archie', a.state === 'inhaling');
+    if (a.state === 'waiting') {
+      this.archieWait += dt;
+      const cfg = this.sim.cfg.archie!;
+      return this.archieWait < cfg.dark * (this.skill.archiePatience + 0.35 * this.archieRelights);
+    }
+    this.archieWait = 0;
+    return inhaling;
+  }
+
+  private archieWait = 0;
+  private archieSeen = '';
+  private archieRelights = 0;
 
   /** Con la batteria, la lampara alta solo se resta carica per tenerla bassa fino alle sei (più un margine per Robin). */
   private canAffordHigh(): boolean {

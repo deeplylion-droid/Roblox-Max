@@ -1,4 +1,4 @@
-import { LAMP, angleDiff, VIEW, YAW, type HatchConfig, type LampLevel, type MollyConfig, type MonsterId, type GulpyConfig, type RobinConfig, type Side } from './config.ts';
+import { LAMP, angleDiff, VIEW, YAW, type ArchieConfig, type HatchConfig, type LampLevel, type MollyConfig, type MonsterId, type GulpyConfig, type RobinConfig, type Side } from './config.ts';
 import type { GameEvent } from './events.ts';
 import type { Rng } from './rng.ts';
 
@@ -520,5 +520,110 @@ export class Robin {
       this.lit = Math.max(0, this.lit - dt * 0.5);
     }
     return false;
+  }
+}
+
+// ───────────────────────── Archie: la lampara, va spenta ─────────────────────────
+
+export type ArchieState = 'dormant' | 'away' | 'rising' | 'inhaling' | 'waiting' | 'diving' | 'blowing' | 'attack';
+
+/**
+ * Archie sale dall'acqua davanti alla prua, il collo dritto, la testa piegata sulla lampara, e prende fiato nella
+ * trombetta (il risucchio lungo): se alla fine la lampara è ancora accesa soffia, il vetro esplode e nel buio ti è
+ * addosso. Se l'hai spenta aspetta al buio per dark secondi e si rituffa; se la riaccendi prima, riprende fiato più in
+ * fretta (relight). Non serve guardarlo: conta solo la luce.
+ */
+export class Archie {
+  state: ArchieState = 'dormant';
+  timer: number;
+
+  constructor(private cfg: ArchieConfig) {
+    this.timer = cfg.firstAt;
+  }
+
+  get present(): boolean {
+    return this.state === 'rising' || this.state === 'inhaling' || this.state === 'waiting' || this.state === 'blowing';
+  }
+
+  /** 0..1 del risucchio in corso (per la grafica e l'audio: la trombetta si arrotola, il fischio sale) */
+  get breath(): number {
+    if (this.state !== 'inhaling') return this.state === 'blowing' ? 1 : 0;
+    return 1 - this.timer / this.inhaleTime;
+  }
+
+  private inhaleTime = 1;
+
+  update(dt: number, w: WorldView): void {
+    this.timer -= dt;
+    switch (this.state) {
+      case 'dormant':
+      case 'away':
+        if (this.timer <= 0) {
+          if (w.mayStart('archie')) {
+            w.started('archie');
+            w.emit({ t: 'archie', e: 'rise' });
+            this.state = 'rising';
+            this.timer = this.cfg.rise;
+          } else {
+            this.timer = w.rng.range(3, 6);
+          }
+        }
+        break;
+      case 'rising':
+        if (this.timer <= 0) this.inhale(w, this.cfg.inhale, 'inhale');
+        break;
+      case 'inhaling':
+        if (this.timer <= 0) {
+          if (w.lamp > 0) {
+            // soffia: il vetro della lampara esplode (la simulazione la spegne), e un attimo dopo è addosso
+            w.emit({ t: 'archie', e: 'blow' });
+            this.state = 'blowing';
+            this.timer = 0.9;
+          } else {
+            w.emit({ t: 'archie', e: 'wait' });
+            this.state = 'waiting';
+            this.timer = this.cfg.dark;
+          }
+        }
+        break;
+      case 'waiting':
+        if (w.lamp > 0) this.inhale(w, this.cfg.relight, 'relight');
+        else if (this.timer <= 0) {
+          w.emit({ t: 'archie', e: 'dive' });
+          this.state = 'diving';
+          this.timer = this.cfg.dive;
+        }
+        break;
+      case 'diving':
+        if (this.timer <= 0) {
+          w.emit({ t: 'archie', e: 'gone' });
+          this.state = 'away';
+          this.timer = cooldown(w, this.cfg.cooldown);
+        }
+        break;
+      case 'blowing':
+        if (this.timer <= 0) {
+          this.state = 'attack';
+          w.emit({ t: 'archie', e: 'attack' });
+        }
+        break;
+      case 'attack':
+        break;
+    }
+  }
+
+  /** Canta la Madre: si rituffa (se non ha già soffiato). */
+  retreat(w: WorldView): void {
+    if (this.state !== 'rising' && this.state !== 'inhaling' && this.state !== 'waiting') return;
+    w.emit({ t: 'archie', e: 'dive' });
+    this.state = 'diving';
+    this.timer = this.cfg.dive;
+  }
+
+  private inhale(w: WorldView, time: number, e: 'inhale' | 'relight'): void {
+    w.emit({ t: 'archie', e });
+    this.state = 'inhaling';
+    this.timer = time;
+    this.inhaleTime = time;
   }
 }

@@ -310,6 +310,95 @@ describe('Notte 2', () => {
 });
 
 
+// ───────────────────────── notte 3: Archie ─────────────────────────
+
+const N3 = NIGHTS[3]!;
+
+/** notte 3 con il solo Archie (dal secondo archieAt) */
+function quiet3(archieAt = 10): NightConfig {
+  const far = 1e9;
+  return {
+    ...N3,
+    gulpy: { ...N3.gulpy, firstAt: far },
+    molly: { ...N3.molly, firstAt: far },
+    hatch: { ...N3.hatch, firstAt: far },
+    robin: { ...N3.robin!, firstAt: far },
+    archie: { ...N3.archie!, firstAt: archieAt },
+  };
+}
+
+describe('Notte 3', () => {
+  const a = N3.archie!;
+
+  it('le prime due notti non hanno Archie', () => {
+    expect(new NightSim(quiet(), 1).archie).toBeNull();
+    expect(new NightSim(quiet2(), 1).archie).toBeNull();
+  });
+
+  it('se alla fine del risucchio la lampara è accesa, Archie soffia: il vetro esplode e ti è addosso', () => {
+    const sim = new NightSim(quiet3(), 1);
+    sim.setView(YAW.rod, false);
+    const ev = run(sim, 10 + a.rise + a.inhale + 0.3);
+    expect(ev.some((e) => e.t === 'archie' && e.e === 'blow')).toBe(true);
+    expect(sim.lamp).toBe(0);
+    expect(sim.lampBroken).toBe(true);
+    // col vetro rotto la lampara non si riaccende
+    sim.setLamp(1);
+    expect(sim.lamp).toBe(0);
+    run(sim, 1.2);
+    expect(sim.outcome).toEqual({ kind: 'dead', killer: 'archie' });
+  });
+
+  it('spenta in tempo, Archie aspetta al buio e si rituffa', () => {
+    const sim = new NightSim(quiet3(), 2);
+    run(sim, 10 + a.rise + a.inhale * 0.6);
+    expect(sim.archie!.state).toBe('inhaling');
+    sim.setLamp(0);
+    const ev = run(sim, a.inhale * 0.4 + a.dark + a.dive + 0.5);
+    expect(ev.some((e) => e.t === 'archie' && e.e === 'wait')).toBe(true);
+    expect(ev.some((e) => e.t === 'archie' && e.e === 'gone')).toBe(true);
+    expect(sim.playing).toBe(true);
+    expect(sim.lampBroken).toBe(false);
+    sim.setLamp(1);
+    expect(sim.lamp).toBe(1);
+  });
+
+  it('riaccesa troppo presto, riprende fiato più in fretta: si salva solo rispegnendo', () => {
+    const sim = new NightSim(quiet3(), 3);
+    run(sim, 10 + a.rise + 0.5);
+    sim.setLamp(0);
+    run(sim, a.inhale + a.dark * 0.5);
+    expect(sim.archie!.state).toBe('waiting');
+    sim.setLamp(1);
+    const ev = run(sim, a.relight * 0.5);
+    expect(ev.some((e) => e.t === 'archie' && e.e === 'relight')).toBe(true);
+    sim.setLamp(0);
+    run(sim, a.relight + a.dark + a.dive + 0.5);
+    expect(sim.playing).toBe(true);
+    expect(sim.archie!.state).toBe('away');
+  });
+
+  it('quando canta la Madre si rituffa anche Archie', () => {
+    const sim = new NightSim(quiet3(), 4);
+    run(sim, 10 + a.rise + 0.5);
+    expect(sim.archie!.state).toBe('inhaling');
+    sim.battery = 1e-6;
+    const ev = run(sim, a.dive + 0.5);
+    expect(ev.some((e) => e.t === 'archie' && e.e === 'dive')).toBe(true);
+    expect(sim.archie!.present).toBe(false);
+  });
+
+  it('un bot esperto supera quasi sempre la terza notte', () => {
+    let wins = 0;
+    for (let seed = 1; seed <= 30; seed++) {
+      const sim = playNight(new NightSim(N3, seed), SKILLS.expert!, seed);
+      if (sim.outcome.kind === 'won') wins++;
+    }
+    expect(wins).toBeGreaterThanOrEqual(26);
+  });
+});
+
+
 describe('Pesca', () => {
   const fish = () => ({ species: { id: 'prova', weight: 1, strength: 1, kg: [1, 2] as [number, number] }, lore: null, kg: 1 });
   const hooked = () => {

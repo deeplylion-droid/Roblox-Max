@@ -1,7 +1,7 @@
 import { FISHING, HOUR_SECONDS, LAMP, LORE, NIGHT_HOURS, VIEW, YAW, angleDiff, type LampLevel, type MonsterId, type NightConfig } from './config.ts';
 import type { GameEvent } from './events.ts';
 import { Fishing, type Catch } from './fishing.ts';
-import { Hatch, Molly, Gulpy, Robin, SONAR_WARN, type WorldView } from './monsters.ts';
+import { Archie, Hatch, Molly, Gulpy, Robin, SONAR_WARN, type WorldView } from './monsters.ts';
 import { Rng } from './rng.ts';
 
 export type Outcome = { kind: 'playing' } | { kind: 'won' } | { kind: 'dead'; killer: MonsterId | 'mother'; cause?: 'lullaby' };
@@ -33,6 +33,10 @@ export class NightSim {
   readonly hatch: Hatch;
   /** dalla notte 2 */
   readonly robin: Robin | null;
+  /** dalla notte 3 */
+  readonly archie: Archie | null;
+  /** Archie ha soffiato con la lampara accesa: il vetro è esploso, non si riaccende più */
+  lampBroken = false;
   /** carica della batteria, da 1 a 0 (solo se la notte ce l'ha) */
   battery = 1;
   /** la batteria è morta: lampara e sonar spenti, sale la ninna nanna */
@@ -60,6 +64,7 @@ export class NightSim {
     this.molly = new Molly(cfg.molly);
     this.hatch = new Hatch(cfg.hatch);
     this.robin = cfg.robin ? new Robin(cfg.robin) : null;
+    this.archie = cfg.archie ? new Archie(cfg.archie) : null;
     this.world = {
       time: 0,
       hour: 0,
@@ -194,6 +199,10 @@ export class NightSim {
       this.emit({ t: 'denied', reason: 'dark' });
       return;
     }
+    if (this.lampBroken) {
+      this.emit({ t: 'denied', reason: 'broken' });
+      return;
+    }
     this.lamp = level;
     this.emit({ t: 'lamp', level });
   }
@@ -259,6 +268,15 @@ export class NightSim {
         this.fish--;
       },
     });
+    this.archie?.update(dt, w);
+    if (this.archie?.state === 'blowing' && !this.lampBroken) {
+      // il soffio di Archie: il vetro della lampara esplode, buio
+      this.lampBroken = true;
+      if (this.lamp !== 0) {
+        this.lamp = 0;
+        this.emit({ t: 'lamp', level: 0 });
+      }
+    }
 
     const killer: MonsterId | null =
       this.hatch.state === 'attack'
@@ -269,7 +287,9 @@ export class NightSim {
             ? 'gulpy'
             : this.robin?.state === 'attack'
               ? 'robin'
-              : null;
+              : this.archie?.state === 'attack'
+                ? 'archie'
+                : null;
     if (killer) {
       this.die(killer);
       return;
@@ -309,6 +329,7 @@ export class NightSim {
       this.molly.retreat();
       this.hatch.retreat(w);
       this.robin?.retreat(w);
+      this.archie?.retreat(w);
     }
   }
 
@@ -356,6 +377,7 @@ export class NightSim {
     if (waiting(this.molly.state)) add('molly', this.molly.yaw, this.molly.timer);
     if (waiting(this.hatch.state)) add('hatch', YAW.stern, this.hatch.timer);
     if (this.robin && waiting(this.robin.state)) add('robin', YAW.robin, this.robin.timer);
+    if (this.archie && waiting(this.archie.state)) add('archie', YAW.archie, this.archie.timer);
     return out;
   }
 
@@ -370,6 +392,8 @@ export class NightSim {
         return this.hatch.present;
       case 'robin':
         return this.robin?.present ?? false;
+      case 'archie':
+        return (this.archie?.present ?? false) || this.archie?.state === 'diving';
     }
   }
 
