@@ -330,3 +330,96 @@ def gradient_normals(field, pts, eps):
         g[:, k] = field(pts + d) - field(pts - d)
     g /= np.linalg.norm(g, axis=1, keepdims=True) + 1e-12
     return g
+
+
+# ───────────────────────── cerniera (mascelle che si muovono) ─────────────────────────
+
+def hinge_profile(j0, j1, f0, f1, soft=None):
+    """Profilo per Hinge: 1 sugli angoli [j0, j1] (la mascella, che ruota tutta), 0 fuori da [f0, f1] (fermo),
+    in mezzo la carne che si stira o si comprime. Transizioni lisce (soft=None) oppure lineari con i capi
+    arrotondati (soft = frazione della fascia smussata a ogni capo): la pendenza costante permette di chiudere
+    quasi del tutto una bocca senza che la mappa si ripieghi."""
+    def ramp(t):
+        t = min(max(t, 0.0), 1.0)
+        if soft is None:
+            return t * t * (3 - 2 * t)
+        m = 1.0 / (1.0 - soft)                 # pendenza al centro (la rampa va comunque da 0 a 1)
+        if t < soft:
+            return m * t * t / (2 * soft)
+        if t > 1 - soft:
+            return 1 - m * (1 - t) ** 2 / (2 * soft)
+        return m * (t - soft / 2)
+
+    def w(a):
+        if a <= f0 or a >= f1:
+            return 0.0
+        if a < j0:
+            return ramp((a - f0) / (j0 - f0))
+        if a > j1:
+            return ramp((f1 - a) / (f1 - j1))
+        return 1.0
+    return w
+
+
+class Hinge:
+    """Una mascella che ruota attorno a una cerniera (l'asse X per 'pivot', nel sistema locale della testa:
+    faccia verso −Y, alto +Z) e deforma con continuità la carne attorno.
+
+    φ è l'angolo attorno all'asse, dalla verticale in giù (0°) verso il davanti −Y (90°); ±180° è in su.
+    Il punto che a riposo sta a φ ruota di delta·w(φ) gradi (w = hinge_profile: 1 la mascella, 0 il resto):
+    delta > 0 porta la mascella verso φ crescenti (in avanti e in su se pende sotto la cerniera).
+    La mappa è a tratti lineare in φ su nodi fitti, quindi si inverte esattamente (np.interp)."""
+
+    def __init__(self, pivot, delta, profile, step=0.5):
+        self.c = _v(pivot)
+        self.delta = float(delta)
+        k = np.linspace(-180.0, 180.0, int(round(360.0 / step)) + 1)   # tutto il giro (là in su il profilo è 0)
+        self.kr = k                                                    # nodi a riposo
+        self.kd = k + self.delta * np.array([profile(a) for a in k])  # e dove finiscono
+        slope = np.diff(self.kd) / np.diff(self.kr)
+        if slope.min() < 0.02:
+            raise ValueError(f'cerniera: la carne si ripiega (pendenza minima {slope.min():.3f}): fascia troppo stretta')
+        self.inv_slope = 1.0 / slope                                   # dφ_riposo / dφ_deformato, per tratto
+
+    def _polar(self, q):
+        y, z = q[:, 1] - self.c[1], q[:, 2] - self.c[2]
+        return np.hypot(y, z), np.degrees(np.arctan2(-y, -z))
+
+    def _at(self, q, r, phi):
+        out = np.array(q, F, copy=True)
+        a = np.radians(phi)
+        out[:, 1] = self.c[1] - r * np.sin(a)
+        out[:, 2] = self.c[2] - r * np.cos(a)
+        return out
+
+    def rest(self, q):
+        """Punti deformati → dove stavano a riposo; e il fattore (≤ 1) che riporta il campo deformato a non
+        crescere più in fretta della distanza (dove la carne si comprime la mappa inversa la stira)."""
+        r, phi = self._polar(q)
+        i = np.clip(np.searchsorted(self.kd, phi) - 1, 0, len(self.inv_slope) - 1)
+        s = 1.0 / np.maximum(self.inv_slope[i], 1.0)
+        return self._at(q, r, np.interp(phi, self.kd, self.kr)), s.astype(F)
+
+    def field(self, f):
+        """Il campo f (a riposo) con la mascella ruotata."""
+        def g(p):
+            q, s = self.rest(p)
+            return f(q) * s
+        return g
+
+    def point(self, q):
+        """Punti a riposo → deformati (per i pezzi fatti di punti: denti, fili di bava, gocce)."""
+        q = np.atleast_2d(_v(q))
+        r, phi = self._polar(q)
+        return self._at(q, r, np.interp(phi, self.kr, self.kd))
+
+    def turn(self, q):
+        """Di quanti gradi ruota la carne nel punto a riposo q."""
+        r, phi = self._polar(np.atleast_2d(_v(q)))
+        return np.interp(phi, self.kr, self.kd) - phi
+
+    def rotate(self, q, deg):
+        """Ruota rigidamente i punti q di deg gradi attorno alla cerniera (stessa convenzione di φ)."""
+        q = np.atleast_2d(_v(q))
+        r, phi = self._polar(q)
+        return self._at(q, r, phi + deg)

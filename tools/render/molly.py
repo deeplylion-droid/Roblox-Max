@@ -38,6 +38,9 @@ EYE_R = 0.046
 TILT = 11.0                                 # la testa piegata di lato, come una bambina curiosa
 MOUTH = V(0, 0.083, 0.862)
 VIEWER = V(0.16, -0.92, 1.30)               # il pescatore (per lo sguardo)
+# di quanto scende il piano che taglia la palpebra di sopra (in raggi dell'occhio) quando l'occhio è chiuso del
+# tutto: a 0,32 copre il terzo alto dell'occhio, a 0,32 − 1,41 il suo bordo arriva sul cuscinetto di sotto
+LID_DROP = 1.41
 
 
 def below(q, down):
@@ -47,7 +50,9 @@ def below(q, down):
 
 # ───────────────────────── testa ─────────────────────────
 
-def head_field():
+def head_field(palpebre=(0.0, 0.0)):
+    """palpebre: per ogni occhio (EYES) quanto è chiuso, da 0 (com'è) a 1 (chiuso: la palpebra di sopra, spessa,
+    scende fino a quella di sotto)."""
     disc = sdf.union(sdf.ellipsoid(C, (0.23, 0.058, 0.26)), torus_axis(C, (0, 1, 0), 0.205, 0.038), k=0.035)
     back = sdf.ellipsoid(C + V(0, 0.045, 0.0), (0.19, 0.06, 0.22))
     brows = sdf.union(*[ellipsoid_rot(V(s * 0.103, 0.114, 1.123), (0.062, 0.02, 0.019), sdf.rot_matrix('y', s * 14)) for s in (-1, 1)])
@@ -60,9 +65,10 @@ def head_field():
     f = sdf.subtract(f, sdf.union(*[sdf.sphere(e, r + 0.0008) for e, r in zip(EYES, EYE_RS)]), k=0.003)
     # palpebre spesse: la superiore cade su un terzo dell'occhio, l'inferiore è un cuscinetto gonfio
     lids = []
-    for e, r in zip(EYES, EYE_RS):
+    for e, r, c in zip(EYES, EYE_RS, palpebre):
         shell = sdf.subtract(sdf.sphere(e, r + 0.009), sdf.sphere(e, r + 0.0006))
-        lids.append(sdf.intersect(shell, above(e + V(0, 0, 0.32 * r), (0, 0.35, 1)), k=0.003))
+        top = 0.32 if not c else 0.32 - LID_DROP * c
+        lids.append(sdf.intersect(shell, above(e + V(0, 0, top * r), (0, 0.35, 1)), k=0.003))
         lids.append(sdf.intersect(shell, below(e - V(0, 0, 0.60 * r), (0, 0.30, -1)), k=0.003))
     f = sdf.union(f, *lids, k=0.004)
     # parassiti sul bordo (piccoli bitorzoli chiari)
@@ -226,16 +232,18 @@ def armband(c, axis):
 
 # ───────────────────────── costruzione ─────────────────────────
 
-def build(res_head=None, res_hands=None, viewer=None, head_turn=0.0):
+def build(res_head=None, res_hands=None, viewer=None, head_turn=0.0, palpebre=(0.0, 0.0)):
     """viewer: dove guardano gli occhi (coordinate locali); head_turn: gradi di rotazione della testa
-    attorno all'asse verticale, verso il pescatore (le mani restano aggrappate al bordo)."""
+    attorno all'asse verticale, verso il pescatore (le mani restano aggrappate al bordo).
+    palpebre: (occhio 0, occhio 1), quanto è chiuso ciascun occhio da 0 (com'è) a 1 (chiuso). L'occhio 0 (EYES[0],
+    a sinistra guardandola) è quello che ti fissa, l'1 (più grande e più basso) quello che scivola via."""
     vw = VIEWER if viewer is None else V(*viewer)
     rh = res_head or (0.004 if FAST else 0.0015)
     rn = res_hands or (0.003 if FAST else 0.0011)
     obs = []
     skin_m = skin.creature_skin('MollySkin', base=(0.205, 0.215, 0.215), dark=(0.065, 0.07, 0.075), light=(0.36, 0.375, 0.37),
                                 vein=(0.13, 0.15, 0.19), rough=0.66, sss=0.10)
-    head = sdf_object('MollyHead', head_field(), V(-0.29, 0.03, 0.70), V(0.29, 0.33, 1.33), res=rh, attrs=head_attrs(), banded=True)
+    head = sdf_object('MollyHead', head_field(palpebre), V(-0.29, 0.03, 0.70), V(0.29, 0.33, 1.33), res=rh, attrs=head_attrs(), banded=True)
     head.data.materials.append(skin_m)
     from creature import eyeball
     looks = [unit(vw - EYES[0]), unit(vw - EYES[1] + V(0.35, 0.0, -0.25))]   # un occhio ti guarda, l'altro scivola via

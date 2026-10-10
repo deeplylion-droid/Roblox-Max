@@ -34,6 +34,8 @@ RING_C = V(0, -0.635, 2.355)               # salvagente: centro e asse (lungo il
 RING_AXIS = unit((0, -0.22, -0.22))
 HEAD = Frame((0, -0.905, 1.985), pitch=32)  # sistema locale della testa
 VIEWER = V(-0.6, -3.6, 1.25)               # il pescatore, dalla barca
+# la cerniera della mascella (sistema locale della testa): dove i rami della mandibola salgono alle tempie
+JAW_PIVOT = (0.0, -0.01, -0.06)
 
 
 def below(q, down):
@@ -148,6 +150,16 @@ def body_field(grip=None, with_arms=True):
 
 # ───────────────────────── testa (sistema locale) ─────────────────────────
 
+def jaw_hinge(deg):
+    """La mascella ruotata di deg gradi attorno alla cerniera (deg > 0 la apre di più, verso il petto; deg < 0 la
+    chiude), o None a riposo. Ruotano rigidi la mandibola, il mento e i denti di sotto (a riposo tra −8° e 24° dalla
+    verticale sotto la cerniera); le membrane ai lati e la gola si stirano fino al mascellare (46°) e, dietro, fino al
+    fondo del cranio (−40°)."""
+    if not deg:
+        return None
+    return sdf.Hinge(JAW_PIVOT, -deg, sdf.hinge_profile(-8.0, 24.0, -40.0, 46.0))
+
+
 def head_local():
     cran = sdf.ellipsoid(V(0, 0.01, 0.03), (0.10, 0.11, 0.12))
     crest = sdf.ellipsoid(V(0, 0.02, 0.135), (0.012, 0.08, 0.025))
@@ -181,11 +193,12 @@ def head_local():
     return head
 
 
-def head_attrs():
+def head_attrs(jaw=None):
     R, c = HEAD.R, HEAD.pos
 
     def loc(p):
-        return (p - c) @ R
+        q = (p - c) @ R
+        return q if jaw is None else jaw.rest(q)[0]      # i colori seguono la carne della mascella
 
     def mouth(p):
         q = loc(p)
@@ -205,7 +218,7 @@ def head_attrs():
     return {'mouth': mouth, 'slime': slime, 'scar': scar}
 
 
-def teeth_pairs():
+def teeth_pairs(jaw=None):
     rng = np.random.default_rng(9)
     pairs = []
     for i in range(13):
@@ -215,24 +228,35 @@ def teeth_pairs():
         x = t * 0.105
         y = -0.142 + abs(t) * 0.05
         L = rng.uniform(0.028, 0.05) * (1 - 0.5 * abs(t))
-        pairs.append((HEAD.pt((x, y, -0.142)), HEAD.pt((x * 0.92, y + 0.006, -0.142 - L)), 0.0055))
+        up = ((x, y, -0.142), (x * 0.92, y + 0.006, -0.142 - L))
         L2 = rng.uniform(0.025, 0.045) * (1 - 0.5 * abs(t))
-        pairs.append((HEAD.pt((x, y + 0.006, -0.388)), HEAD.pt((x * 0.92, y + 0.012, -0.388 + L2)), 0.005))
+        dn = ((x, y + 0.006, -0.388), (x * 0.92, y + 0.012, -0.388 + L2))
+        if jaw is not None:                            # ogni dente gira rigido con la carne in cui è piantato
+            up, dn = (jaw.rotate(d, float(jaw.turn(d[0])[0])) for d in (up, dn))
+        pairs.append((HEAD.pt(up[0]), HEAD.pt(up[1]), 0.0055))
+        pairs.append((HEAD.pt(dn[0]), HEAD.pt(dn[1]), 0.005))
     return pairs
 
 
-def slime_bits():
-    """Melma vera: fili di bava tra i denti e la mascella, gocce dal mento e dai denti, gocce dal salvagente."""
+def slime_bits(jaw=None):
+    """Melma vera: fili di bava tra i denti e la mascella, gocce dal mento e dai denti, gocce dal salvagente.
+    jaw (jaw_hinge): i fili e le gocce del mento seguono la mascella."""
     rng = np.random.default_rng(23)
     mouth = []
     for x, sag in ((-0.035, 0.02), (-0.012, 0.035), (0.012, 0.03), (0.034, 0.018), (0.0, 0.05)):
         a = HEAD.pt((x, -0.135, -0.165))
         b = HEAD.pt((x * 0.85, -0.14, -0.375))
-        mouth.append(skin.strand(a, b, sag, 0.0016))
+        r = 0.0016
+        if jaw is not None:
+            b1 = HEAD.pt(jaw.point((x * 0.85, -0.14, -0.375))[0])
+            sag, r = skin.strand_follow(a, b, b1, sag, r)
+            b = b1
+        mouth.append(skin.strand(a, b, sag, r))
     for x in (-0.03, 0.0, 0.028):
         mouth.append(skin.drip(HEAD.pt((x, -0.15, -0.205)), rng.uniform(0.015, 0.03), 0.0018, 0.0035))
     for x, L in ((-0.02, 0.06), (0.008, 0.035), (0.03, 0.05)):
-        mouth.append(skin.drip(HEAD.pt((x, -0.155, -0.47)), L, 0.003, 0.0055))
+        chin = (x, -0.155, -0.47) if jaw is None else jaw.point((x, -0.155, -0.47))[0]
+        mouth.append(skin.drip(HEAD.pt(chin), L, 0.003, 0.0055))
     pts = np.array([HEAD.pt(q) for q in ((-0.1, -0.2, -0.1), (0.1, -0.05, -0.62))], F)
     out = [('GulpySlimeMouth', sdf.union(*mouth), pts.min(0) - 0.08, pts.max(0) + 0.08)]
     up = unit(V(0, -1, 1) - (V(0, -1, 1) @ RING_AXIS) * RING_AXIS)
@@ -267,10 +291,13 @@ def duck_ring():
 
 # ───────────────────────── costruzione ─────────────────────────
 
-def build(grip=None, viewer=None, lo=None, hi=None):
+def build(grip=None, viewer=None, lo=None, hi=None, mascella=0.0):
     """grip: polsi (locali) se si aggrappa al bordo; viewer: dove guardano gli occhi (locale).
-    lo/hi: box del corpo (si allarga quando le braccia si allungano verso la barca)."""
+    lo/hi: box del corpo (si allarga quando le braccia si allungano verso la barca).
+    mascella: gradi di rotazione della mascella attorno alla sua cerniera (> 0 la apre di più, < 0 la chiude);
+    i denti, la gola e la bava la seguono. Il corpo resta quello di sempre: cambiano solo i pezzi della testa."""
     viewer = VIEWER if viewer is None else V(*viewer)
+    jaw = jaw_hinge(mascella)
     rb = 0.008 if FAST else 0.005
     rh = 0.003 if FAST else 0.0016
     obs = []
@@ -288,36 +315,40 @@ def build(grip=None, viewer=None, lo=None, hi=None):
     sk = skin.creature_skin('GulpySkin', base=(0.19, 0.205, 0.19), dark=(0.06, 0.07, 0.065), light=(0.33, 0.345, 0.32),
                             vein=(0.12, 0.13, 0.18), rough=0.68, sss=0.10, scale=1.3)
     # corpo e testa sono lo stesso campo, tagliato al salvagente (la cucitura resta sotto l'anello)
-    head_w = HEAD.field(head_local())
+    hl = head_local()
+    head_w = HEAD.field(hl)
     # tronco e testa sono lo stesso campo, tagliato al salvagente; le braccia si uniscono dopo il taglio,
     # così una mano che passa davanti alla faccia non viene tagliata via con la testa
-    full = sdf.union(body_field(grip, with_arms=False), head_w, k=0.035)
+    trunk_f = body_field(grip, with_arms=False)
+    full = sdf.union(trunk_f, head_w, k=0.035)
     head_zone = sdf.intersect(above(RING_C, RING_AXIS), sdf.sphere(HEAD.pos, 0.55))
     head_zone2 = sdf.intersect(above(RING_C - RING_AXIS * 0.01, RING_AXIS), sdf.sphere(HEAD.pos, 0.56))
     trunk = sdf.union(sdf.subtract(full, head_zone), arms_field(grip), k=0.045)
     body = sdf_object('GulpyBody', trunk, lo if lo is not None else V(-0.62, -1.0, -0.02),
                       hi if hi is not None else V(0.62, 0.48, 2.72), res=rb, banded=True)
     body.data.materials.append(sk)
-    head = sdf_object('GulpyHead', sdf.intersect(full, head_zone2), V(-0.14, -1.12, 1.45), V(0.14, -0.58, 2.40), res=rh,
-                      attrs=head_attrs(), banded=True)
+    full_h = full if jaw is None else sdf.union(trunk_f, HEAD.field(jaw.field(hl)), k=0.035)
+    head = sdf_object('GulpyHead', sdf.intersect(full_h, head_zone2), V(-0.14, -1.12, 1.45), V(0.14, -0.58, 2.40), res=rh,
+                      attrs=head_attrs(jaw), banded=True)
     head.data.materials.append(sk)
     obs += [body, head]
     for s in (-1, 1):
         e = HEAD.pt((s * 0.044, -0.105, 0.0))
         obs.append(eyeball(f'GulpyEye{s}', tuple(map(float, e)), 0.0168, skin.cloudy_eye(), look=tuple(map(float, unit(viewer - e)))))
     # fondo della bocca scuro: dalla bocca spalancata non si deve vedere attraverso
-    th = HEAD.field(sdf.union(sdf.ellipsoid(V(0, -0.05, -0.27), (0.06, 0.045, 0.14)), sdf.ellipsoid(V(0, -0.075, -0.40), (0.05, 0.04, 0.03)), k=0.03))
+    th_l = sdf.union(sdf.ellipsoid(V(0, -0.05, -0.27), (0.06, 0.045, 0.14)), sdf.ellipsoid(V(0, -0.075, -0.40), (0.05, 0.04, 0.03)), k=0.03)
+    th = HEAD.field(th_l if jaw is None else jaw.field(th_l))
     c0 = HEAD.pt((0, -0.05, -0.30))
     thr = sdf_object('GulpyThroat', th, c0 - 0.25, c0 + 0.25, res=0.004 if FAST else 0.002, banded=True)
     thr.data.materials.append(mat_simple('GulpyThroatFlesh', (0.035, 0.008, 0.01), rough=0.3, coat=0.9, coat_rough=0.05))
     obs.append(thr)
-    tp = teeth_pairs()
+    tp = teeth_pairs(jaw)
     tf = sdf.union(*[sdf.round_cone(b, t, r, r * 0.15) for b, t, r in tp])
     pts = np.array([p for b, t, _ in tp for p in (b, t)], F)
     te = sdf_object('GulpyTeeth', tf, pts.min(0) - 0.02, pts.max(0) + 0.02, res=0.0011)
     te.data.materials.append(needle_teeth())
     obs.append(te)
-    for name, fld, lo, hi in slime_bits():
+    for name, fld, lo, hi in slime_bits(jaw):
         sl = sdf_object(name, fld, lo, hi, res=0.0016 if FAST else 0.0009, banded=True)
         sl.data.materials.append(skin.slime_material())
         obs.append(sl)

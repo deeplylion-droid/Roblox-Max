@@ -1,4 +1,10 @@
 {
+ "ago_dosso": {
+  "file": "ago_dosso.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "skeletal"
+ },
  "alaccia_registrata_sopra": {
   "file": "alaccia_registrata_sopra.webp",
   "w": 1600,
@@ -10,6 +16,12 @@
   "w": 1600,
   "h": 800,
   "family": "glitch"
+ },
+ "aquila_dosso": {
+  "file": "aquila_dosso.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "skeletal"
  },
  "balestra_sfocata": {
   "file": "balestra_sfocata.webp",
@@ -35,6 +47,24 @@
   "h": 800,
   "family": "glitch"
  },
+ "cavalluccio_dosso": {
+  "file": "cavalluccio_dosso.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "skeletal"
+ },
+ "ceca_ossuta": {
+  "file": "ceca_ossuta.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "skeletal"
+ },
+ "cefamorto": {
+  "file": "cefamorto.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "zombie"
+ },
  "cheppia_senza_audio": {
   "file": "cheppia_senza_audio.webp",
   "w": 1600,
@@ -47,17 +77,41 @@
   "h": 800,
   "family": "glitch"
  },
+ "corvina_becchina": {
+  "file": "corvina_becchina.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "zombie"
+ },
  "donzella_saturata": {
   "file": "donzella_saturata.webp",
   "w": 1600,
   "h": 800,
   "family": "glitch"
  },
+ "flauto_dossa": {
+  "file": "flauto_dossa.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "skeletal"
+ },
+ "gattomorto": {
+  "file": "gattomorto.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "zombie"
+ },
  "lampuga_fuori_traccia": {
   "file": "lampuga_fuori_traccia.webp",
   "w": 1600,
   "h": 800,
   "family": "glitch"
+ },
+ "lanternossa": {
+  "file": "lanternossa.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "skeletal"
  },
  "lanzardo_riavvolto": {
   "file": "lanzardo_riavvolto.webp",
@@ -77,11 +131,23 @@
   "h": 800,
   "family": "glitch"
  },
+ "lucertossa": {
+  "file": "lucertossa.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "skeletal"
+ },
  "menola_neve": {
   "file": "menola_neve.webp",
   "w": 1600,
   "h": 800,
   "family": "glitch"
+ },
+ "nasello_senza_naso": {
+  "file": "nasello_senza_naso.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "zombie"
  },
  "occhialone_veloce": {
   "file": "occhialone_veloce.webp",
@@ -89,11 +155,23 @@
   "h": 800,
   "family": "glitch"
  },
+ "occhiata_vuota": {
+  "file": "occhiata_vuota.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "skeletal"
+ },
  "orrata": {
   "file": "orrata.webp",
   "w": 1600,
   "h": 800,
   "family": "zombie"
+ },
+ "ossaguglia": {
+  "file": "ossaguglia.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "skeletal"
  },
  "ossiuga": {
   "file": "ossiuga.webp",
@@ -107,11 +185,23 @@
   "h": 800,
   "family": "glitch"
  },
+ "palombra": {
+  "file": "palombra.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "zombie"
+ },
  "pappagallo_in_loop": {
   "file": "pappagallo_in_loop.webp",
   "w": 1600,
   "h": 800,
   "family": "glitch"
+ },
+ "pastinaca_putrida": {
+  "file": "pastinaca_putrida.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "zombie"
  },
  "pesce_volante_in_pausa": {
   "file": "pesce_volante_in_pausa.webp",
@@ -137,8 +227,44 @@
   "h": 800,
   "family": "glitch"
  },
+ "san_pietrificato": {
+  "file": "san_pietrificato.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "skeletal"
+ },
+ "sarcofago": {
+  "file": "sarcofago.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "zombie"
+ },
+ "sciabola_spolpata": {
+  "file": "sciabola_spolpata.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "skeletal"
+ },
+ "sega_dossa": {
+  "file": "sega_dossa.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "skeletal"
+ },
  "sgombrato": {
   "file": "sgombrato.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "skeletal"
+ },
+ "sogliombra": {
+  "file": "sogliombra.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "zombie"
+ },
+ "spadossa": {
+  "file": "spadossa.webp",
   "w": 1600,
   "h": 800,
   "family": "skeletal"
@@ -148,6 +274,18 @@
   "w": 1600,
   "h": 800,
   "family": "skeletal"
+ },
+ "suro_sfatto": {
+  "file": "suro_sfatto.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "zombie"
+ },
+ "tordo_torbido": {
+  "file": "tordo_torbido.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "zombie"
  },
  "torpedine_statica": {
   "file": "torpedine_statica.webp",
@@ -166,6 +304,12 @@
   "w": 1600,
   "h": 800,
   "family": "corrupt"
+ },
+ "trombetta_dosso": {
+  "file": "trombetta_dosso.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "skeletal"
  },
  "zerossa": {
   "file": "zerossa.webp",

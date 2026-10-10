@@ -49,6 +49,16 @@ COLORE = sys.argv[sys.argv.index('--colore') + 1] if '--colore' in sys.argv else
 HEAD = Frame((0, -0.60, 2.56), pitch=12)
 LURE = HEAD.pt((0, -0.345, 0.06))          # il pesciolino luminoso
 VIEWER = V(-0.5, -2.6, 1.25)
+# la cerniera della mascella (sistema locale della testa), in basso dietro la testa: chiudendosi la mascella sale
+# quasi dritta, col mento e le frange. Vista da lì la bocca sta tra 90° (il labbro di sotto) e 112° (quello di
+# sopra) dalla verticale: per chiuderla la mascella ruota di JAW_SHUT gradi e la carne in mezzo (la bocca, gli
+# angoli delle guance) si schiaccia fino a una fessura
+JAW_PIVOT = (0.0, 0.13, -0.09)
+JAW_SHUT = 18.0
+# quanto i denti di sotto si inclinano rispetto a quanto ruota la mascella (1: rigidi con lei). Come nella rana
+# pescatrice si ripiegano verso l'interno mentre la bocca si chiude: a bocca chiusa restano dentro, con le punte tra
+# le labbra (dritti farebbero una palizzata davanti alla faccia, rigidi si pianterebbero nel labbro di sopra)
+TEETH_TILT = 2.5
 
 
 # ───────────────────────── corpo ─────────────────────────
@@ -97,6 +107,13 @@ def body_field():
 
 # ───────────────────────── testa (sistema locale) ─────────────────────────
 
+def jaw_hinge(bocca):
+    """La mascella per una bocca aperta 'bocca' (1 com'è, 0 chiusa: resta una fessura), o None se è com'è."""
+    if bocca == 1.0:
+        return None
+    return sdf.Hinge(JAW_PIVOT, (1.0 - bocca) * JAW_SHUT, sdf.hinge_profile(0.0, 90.0, -60.0, 112.0, soft=0.05))
+
+
 def head_local():
     head = sdf.union(sdf.ellipsoid(V(0, 0, 0), (0.17, 0.165, 0.125)), sdf.ellipsoid(V(0, -0.055, -0.078), (0.162, 0.148, 0.072)), k=0.04)
     sockets = sdf.union(*[sdf.sphere(V(s * 0.075, -0.098, 0.080), 0.019) for s in (-1, 1)])
@@ -124,16 +141,20 @@ def head_local():
     return head
 
 
-def head_attrs():
+def head_attrs(jaw=None):
     R, c = HEAD.R, HEAD.pos
 
-    def mouth(p):
+    def loc(p):
         q = (p - c) @ R
+        return q if jaw is None else jaw.rest(q)[0]      # i colori seguono la carne della mascella
+
+    def mouth(p):
+        q = loc(p)
         inner = np.clip(1.0 - np.linalg.norm((q - V(0, -0.10, -0.032)) / V(0.14, 0.11, 0.05), axis=1), 0, 1)
         return np.clip(inner * 2.5, 0, 1)
 
     def slime(p):
-        q = (p - c) @ R
+        q = loc(p)
         return np.clip(1.0 - np.linalg.norm((q - V(0, -0.15, -0.032)) / V(0.17, 0.10, 0.08), axis=1), 0, 1)
 
     def scar(p):
@@ -142,8 +163,17 @@ def head_attrs():
     return {'mouth': mouth, 'slime': slime, 'scar': scar}
 
 
-def teeth():
-    """Due file di denti di vetro, lunghi e storti, piegati verso l'interno della bocca."""
+def _follow(jaw, pts, tilt=1.0):
+    """I punti di un dente seguono la carne in cui è piantato (la base): spostati con lei e ruotati di 'tilt'
+    volte quanto ruota lei."""
+    t = float(jaw.turn(pts[0])[0])
+    q = jaw.rotate(pts, t * tilt)
+    return list(q - q[0] + jaw.point(pts[0])[0])
+
+
+def teeth(jaw=None):
+    """Due file di denti di vetro, lunghi e storti, piegati verso l'interno della bocca.
+    jaw (jaw_hinge): i denti seguono la mascella (quelli di sotto inclinati di TEETH_TILT volte la sua rotazione)."""
     rng = np.random.default_rng(12)
     out = []
     for row, (zu, zl, Ls, rad) in enumerate(((0.012, -0.076, (0.04, 0.075), 0.0062), (0.0, -0.064, (0.022, 0.04), 0.0045))):
@@ -153,11 +183,17 @@ def teeth():
             yu = -0.165 * math.sqrt(max(0.05, 1 - (x / 0.17) ** 2 - (zu / 0.125) ** 2)) + 0.012 + 0.02 * row
             L = rng.uniform(*Ls)
             b = V(x, yu, zu)
-            out.append(hair_clump([HEAD.pt(b), HEAD.pt(b + V(x * 0.03, 0.004, -L * 0.55)), HEAD.pt(b + V(x * 0.06, 0.03, -L))], rad, 0.0007))
+            pts = [b, b + V(x * 0.03, 0.004, -L * 0.55), b + V(x * 0.06, 0.03, -L)]
+            if jaw is not None:
+                pts = _follow(jaw, pts)
+            out.append(hair_clump([HEAD.pt(q) for q in pts], rad, 0.0007))
             yl = -0.055 - 0.148 * math.sqrt(max(0.05, 1 - (x / 0.162) ** 2 - ((zl + 0.078) / 0.072) ** 2)) + 0.012 + 0.02 * row
             L2 = rng.uniform(*Ls) * 1.15
             b = V(x, yl, zl)
-            out.append(hair_clump([HEAD.pt(b), HEAD.pt(b + V(x * 0.03, -0.004, L2 * 0.55)), HEAD.pt(b + V(x * 0.06, 0.03, L2))], rad * 1.1, 0.0008))
+            pts = [b, b + V(x * 0.03, -0.004, L2 * 0.55), b + V(x * 0.06, 0.03, L2)]
+            if jaw is not None:
+                pts = _follow(jaw, pts, TEETH_TILT)
+            out.append(hair_clump([HEAD.pt(q) for q in pts], rad * 1.1, 0.0008))
     return sdf.union(*out)
 
 
@@ -176,16 +212,24 @@ def lure():
     return stalk, toy, seam, ring, eyes
 
 
-def slime_bits():
-    """Melma vera: bava tra i denti di sopra e di sotto, gocce dalle frange della mascella e dal pesciolino."""
+def slime_bits(jaw=None):
+    """Melma vera: bava tra i denti di sopra e di sotto, gocce dalle frange della mascella e dal pesciolino.
+    jaw (jaw_hinge): i fili e le gocce delle frange seguono la mascella."""
     rng = np.random.default_rng(29)
     parts = []
     for x, sag in ((-0.09, 0.012), (-0.045, 0.02), (0.0, 0.03), (0.05, 0.018), (0.095, 0.01)):
         yu = -0.165 * math.sqrt(max(0.05, 1 - (x / 0.17) ** 2)) + 0.02
-        parts.append(skin.strand(HEAD.pt((x, yu, 0.0)), HEAD.pt((x * 0.95, yu - 0.01, -0.07)), sag, 0.0015))
+        a, b, r = HEAD.pt((x, yu, 0.0)), HEAD.pt((x * 0.95, yu - 0.01, -0.07)), 0.0015
+        if jaw is not None:
+            b1 = HEAD.pt(jaw.point((x * 0.95, yu - 0.01, -0.07))[0])
+            sag, r = skin.strand_follow(a, b, b1, sag, r)
+            b = b1
+        parts.append(skin.strand(a, b, sag, r))
     for i in range(6):
         a = -1.0 + 2.0 * i / 5
         base = V(0.152 * math.sin(a), -0.055 - 0.135 * math.cos(a), -0.15)
+        if jaw is not None:
+            base = jaw.point(base)[0]
         parts.append(skin.drip(HEAD.pt(base), rng.uniform(0.015, 0.05), 0.0022, 0.0042))
     parts.append(skin.drip(LURE + V(0, 0, -0.034), 0.018, 0.0016, 0.003))
     pts = np.array([HEAD.pt(q) for q in ((-0.2, -0.25, -0.25), (0.2, 0.05, 0.05))] + [LURE], F)
@@ -194,31 +238,37 @@ def slime_bits():
 
 # ───────────────────────── costruzione ─────────────────────────
 
-def build(viewer=None):
-    """viewer: dove guardano gli occhi (coordinate locali)."""
+def build(viewer=None, bocca=1.0):
+    """viewer: dove guardano gli occhi (coordinate locali).
+    bocca: quanto è aperta la bocca, da 1 (com'è) a 0 (chiusa, resta una fessura): la mascella sale ruotando attorno
+    alla cerniera dietro la testa e i denti di vetro la seguono. Il corpo resta quello di sempre."""
     vw = VIEWER if viewer is None else V(*viewer)
+    jaw = jaw_hinge(bocca)
     rb = 0.008 if FAST else 0.004
     rh = 0.0028 if FAST else 0.0013
     obs = []
     pal = PALETTES[COLORE]
     sk = skin.creature_skin(f'HatchSkin_{COLORE}', base=pal['base'], dark=pal['dark'], light=pal['light'], vein=pal['vein'],
                             rough=0.66, sss=0.08, scale=1.1, slime_tint=pal['slime_tint'])
-    head_w = HEAD.field(head_local())
-    full = sdf.union(body_field(), head_w, k=0.03)
+    hl = head_local()
+    head_w = HEAD.field(hl)
+    body_f = body_field()
+    full = sdf.union(body_f, head_w, k=0.03)
     # cucitura nel collo, dietro la testa
     cut_c = V(0, -0.47, 2.56)
     plane_body = above(cut_c, (0, 1, 0))
     plane_head = above(cut_c + V(0, 0.01, 0), (0, -1, 0))
     body = sdf_object('HatchBody', sdf.intersect(full, plane_body), V(-0.42, -0.55, -0.02), V(0.42, 0.25, 2.72), res=rb, banded=True)
     body.data.materials.append(sk)
-    head = sdf_object('HatchHead', sdf.intersect(full, plane_head), V(-0.24, -0.86, 2.30), V(0.24, -0.45, 2.80), res=rh,
-                      attrs=head_attrs(), banded=True)
+    full_h = full if jaw is None else sdf.union(body_f, HEAD.field(jaw.field(hl)), k=0.03)
+    head = sdf_object('HatchHead', sdf.intersect(full_h, plane_head), V(-0.24, -0.86, 2.30), V(0.24, -0.45, 2.80), res=rh,
+                      attrs=head_attrs(jaw), banded=True)
     head.data.materials.append(sk)
     obs += [body, head]
     for s in (-1, 1):
         e = HEAD.pt((s * 0.075, -0.104, 0.085))
         obs.append(eyeball(f'HatchEye{s}', tuple(map(float, e)), 0.012, skin.cloudy_eye(), look=tuple(map(float, unit(vw - e)))))
-    te = sdf_object('HatchTeeth', teeth(), HEAD.pos - 0.3, HEAD.pos + 0.3, res=0.0009, banded=True)
+    te = sdf_object('HatchTeeth', teeth(jaw), HEAD.pos - 0.3, HEAD.pos + 0.3, res=0.0009, banded=True)
     te.data.materials.append(needle_teeth())
     obs.append(te)
     stalk, toy, seam, ring, eyes = lure()
@@ -239,7 +289,7 @@ def build(viewer=None):
     ey.data.materials.append(mat_simple('ToyEyePaint', (0.02, 0.02, 0.03), rough=0.2))
     obs.append(ey)
     point_light('ToyLight', tuple(map(float, p)), 1.2, (0.30, 1.0, 0.82), radius=0.02)
-    for name, fld, lo, hi in slime_bits():
+    for name, fld, lo, hi in slime_bits(jaw):
         sl = sdf_object(name, fld, lo, hi, res=0.0016 if FAST else 0.0009, banded=True)
         sl.data.materials.append(skin.slime_material())
         obs.append(sl)

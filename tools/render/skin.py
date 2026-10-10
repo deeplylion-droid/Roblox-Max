@@ -8,6 +8,8 @@ Pelle e dettagli fini delle creature (modelli definitivi).
 """
 from __future__ import annotations
 
+import math
+
 import numpy as np
 
 import sdf
@@ -125,6 +127,18 @@ def strand(a, b, sag, r=0.0016, n=6):
         rr = r * (0.55 + 0.45 * abs(2 * t - 1))       # più sottile al centro
         parts.append(sdf.round_cone(pts[i], pts[i + 1], rr, r * (0.55 + 0.45 * abs(2 * (i + 1) / n - 1))))
     return sdf.union(*parts)
+
+
+def strand_follow(a, b0, b1, sag, r=0.0016):
+    """Un filo di bava tra a e b0 il cui capo b0 si sposta in b1 (una mascella che si muove). La bava è elastica:
+    se la bocca si apre il filo si tende (la pancia cala col cubo dell'allungamento) e si assottiglia, se si chiude
+    si affloscia (al massimo del 30%, e mai più di metà della distanza tra i capi, così non fa il cappio).
+    Restituisce (pancia, raggio) per strand(a, b1, ...)."""
+    d0 = float(np.linalg.norm(np.asarray(b0, F) - np.asarray(a, F)))
+    d1 = float(np.linalg.norm(np.asarray(b1, F) - np.asarray(a, F)))
+    k = d0 / max(d1, 1e-4)
+    s1 = min(sag * k ** 3, sag * 1.3, max(sag, 0.5 * d1 + 0.003) if k > 1 else sag)
+    return s1, r * min(1.0, math.sqrt(k))
 
 
 def cloudy_eye(name='CloudyEye', sclera=(0.66, 0.64, 0.57), iris=(0.40, 0.47, 0.47), pupil_col=(0.22, 0.24, 0.25),
