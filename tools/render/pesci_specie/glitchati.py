@@ -227,6 +227,47 @@ SPECIE['lanzardo_riavvolto'] = Specie(
 # Il labride piccolo e slanciato del maschio: muso appuntito con la boccuccia, la dorsale lunga e bassa con le
 # prime spine lunghe a bandierina, la coda tronca; dorso verde, la fascia arancione a zig-zag lungo il fianco
 # (strisce con onda) e sotto la riga azzurra, la macchia nera dietro la pettorale, il ventre bianco.
+# Il glitch: «colori troppo accesi, come le cassette dei cartoni animati consumate… ti lascia l'arcobaleno sulle
+# mani» → saturazione esagerata (opzioni) e i colori che sbavano verso destra oltre la sagoma, girando in un
+# arcobaleno (ritocco), come la crominanza di una cassetta consumata.
+def _sbavata(img, c):
+    """ritocco: la crominanza (I, Q) si allunga a destra e sfuma; fuori dalla sagoma la sbavatura gira la tinta
+    a ogni passo e lascia la scia d'arcobaleno; dentro resta la luce di prima con i colori sbavati."""
+    H, W = img.shape[:2]
+    a = img[..., 3]
+    yiq = img[..., :3] @ _YIQ.T
+    L = max(4, int(W * 0.045))
+    pesi = np.exp(-np.arange(L + 1) / (L * 0.35)).astype(np.float32)
+    acc_a = np.zeros_like(a)
+    acc_y = np.zeros_like(a)
+    acc_iq = np.zeros(a.shape + (2,), np.float32)
+    acc_arc = np.zeros(a.shape + (2,), np.float32)
+    for i, p in enumerate(pesi):
+        sa = _sposta(a[..., None], i, 0)[..., 0] * p
+        acc_a += sa
+        acc_y += _sposta(yiq[..., :1], i, 0)[..., 0] * sa
+        iq = _sposta(yiq[..., 1:], i, 0)
+        acc_iq += iq * sa[..., None]
+        # la scia d'arcobaleno: la stessa crominanza, ma girata di più a ogni passo e più accesa
+        acc_arc += _gira_tinta(iq * 1.6, 330.0 * i / L) * sa[..., None]
+    tot = np.maximum(acc_a, 1e-5)
+    a_s = acc_a / pesi.sum()
+    iq_s = acc_iq / tot[..., None]
+    arc = acc_arc / tot[..., None]
+    y_s = acc_y / tot
+    out = img.copy()
+    # dentro: la luce di prima, la crominanza sbavata
+    dentro = np.concatenate([yiq[..., :1], iq_s * 0.8 + yiq[..., 1:] * 0.35], axis=2) @ _RGB.T
+    out[..., :3] = img[..., :3] * (1 - a[..., None]) + dentro * a[..., None]
+    # fuori (dove la sbavatura supera la sagoma): l'arcobaleno, mezzo trasparente
+    fuori = np.clip(a_s - a, 0, 1) * 0.75
+    scia = np.concatenate([y_s[..., None] * 0.9 + 0.08, arc], axis=2) @ _RGB.T
+    nuovo_a = a + fuori * (1 - a)
+    out[..., :3] = (out[..., :3] * a[..., None] + scia * fuori[..., None] * (1 - a[..., None])) / np.maximum(nuovo_a, 1e-5)[..., None]
+    out[..., 3] = nuovo_a
+    return out
+
+
 SPECIE['donzella_saturata'] = Specie(
     forma=Shape(
         top=[(0, -0.008), (0.02, 0.01), (0.05, 0.03), (0.1, 0.052), (0.18, 0.07), (0.3, 0.078), (0.45, 0.074), (0.6, 0.062),
