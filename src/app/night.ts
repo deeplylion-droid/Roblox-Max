@@ -6,9 +6,9 @@
  */
 import type { Vec3 } from '../engine/assets.ts';
 import { dirPos, type AudioEngine, type Voice } from '../engine/audio.ts';
-import type { BinoPlace, LayerDraw, LightGlow, Overlay } from '../engine/renderer.ts';
+import type { BinoPlace, LayerDraw, LightGlow, Overlay, Stroke } from '../engine/renderer.ts';
 import { CHILD, RADIO_VOICE, speak, type Utterance } from '../engine/voice.ts';
-import { HOUR_SECONDS, NIGHTS, VIEW, YAW, type LampLevel, type MonsterId } from '../game/config.ts';
+import { FISHING, HOUR_SECONDS, NIGHTS, VIEW, YAW, type LampLevel, type MonsterId } from '../game/config.ts';
 import type { GameEvent } from '../game/events.ts';
 import { NightSim } from '../game/sim.ts';
 import { FISH_BY_ID } from '../game/catalog.ts';
@@ -76,6 +76,21 @@ const GAUGE_LIGHT = 0.6;
 /** dove si sente Robin: steso sul bordo di sinistra verso prua, le zampe nel secchio */
 const ROBIN_AT: Vec3 = dirPos(YAW.robin, 1.3, -22);
 const HATCH_AT: Vec3 = [0.35, -7.4, -0.6];
+/** il pelo dell'acqua sotto l'occhio */
+const WATER_Z = -1.25;
+/** dove cade il galleggiante: davanti alla canna, verso il largo (radianti di yaw dall'occhio) */
+const FLOAT_YAW = 40 * D2R;
+/** distanza del galleggiante dall'occhio (metri): in attesa, e a fine recupero (lì è appena dietro il bordo) */
+const FLOAT_FAR = 12;
+const FLOAT_NEAR = 4;
+/** quanto sale il galleggiante sopra la linea dritta, a metà volo (metri) */
+const CAST_ARC = 1.8;
+/** il galleggiante ha la luce chimica, come nella pesca di notte */
+const FLOAT_LIGHT: Vec3 = [1.5, 0.42, 0.12];
+/** il lancio (FISHING.castTime): la canna si carica fino a CAST_LOAD, poi la frustata (sul picco del fruscio del
+ *  suono 'cast') fino a CAST_WHIP, poi il galleggiante vola fino al tonfo */
+const CAST_LOAD = 0.12;
+const CAST_WHIP = 0.24;
 const BELL_YAW = -40;
 
 /** Pose renderizzate nella scena (vedi tools/render/scena_creature.py). */
@@ -186,6 +201,16 @@ export class Night {
   private gulpyDive = 0;
   private js: { killer: MonsterId; t: number; yaw: number; scream: Voice | null } | null = null;
   private lineSway = 0;
+  /** secondi dal lancio e dal tonfo del galleggiante (−1: niente da animare) */
+  private castT = -1;
+  private plopT = -1;
+  private splashSeed = 0;
+  /** cerchi sull'acqua attorno al galleggiante: età (s), centro, grandezza */
+  private rings: { t: number; at: Vec3; size: number }[] = [];
+  /** il galleggiante dell'ultimo fotogramma, e cosa gli succede quando la lenza torna su: recuperata a vuoto,
+   *  sollevata col pesce, o persa col filo spezzato */
+  private lastFloat: Vec3 | null = null;
+  private retrieve: { t: number; from: Vec3; kind: 'reel' | 'lift' | 'lost' } | null = null;
   // audio
   private loops: Record<string, Voice | null> = {};
   private radio: { t: number; next: number; utt: Utterance | null; hiss: Voice | null } | null = null;
@@ -523,8 +548,9 @@ export class Night {
       view.pitch = -12 + (this.binoPitch + 12) * e;
       // le mani che reggono il binocolo: un tremolio lento e il respiro
       const t = this.d.stage.time;
-      view.swayYaw = e * (0.10 * Math.sin(t * 0.9) + 0.05 * Math.sin(t * 2.3 + 1.0) + 0.03 * Math.sin(t * 5.1));
-      view.swayPitch = e * (0.08 * Math.sin(t * 0.7 + 2.0) + 0.04 * Math.sin(t * 1.9));
+      const kick = this.castKick();
+      view.swayYaw = e * (0.10 * Math.sin(t * 0.9) + 0.05 * Math.sin(t * 2.3 + 1.0) + 0.03 * Math.sin(t * 5.1)) + kick[0];
+      view.swayPitch = e * (0.08 * Math.sin(t * 0.7 + 2.0) + 0.04 * Math.sin(t * 1.9)) + kick[1];
       view.steady = 0.75 * e;
     }
     // mentre guardi nel binocolo non vedi la barca: Molly non si sente guardata
@@ -572,15 +598,24 @@ export class Night {
         break;
       case 'cast':
         a.play('cast', { pos: [1.2, 2.0, 0.2] });
+        this.castT = 0;
         break;
       case 'plop':
-        a.play('plop', { pos: [2.6, 6.0, -1.25], gain: 0.8 });
+        a.play('plop', { pos: this.floatPos(), gain: 0.8 });
+        this.plopT = 0;
+        this.splashSeed = Math.random() * 1000;
+        this.ripple(1, 0);
+        this.ripple(0.7, -0.2);
+        this.ripple(0.45, -0.45);
         break;
       case 'bite':
         a.play(Math.random() < 0.5 ? 'rod_bell_1' : 'rod_bell_2', { pos: this.d.stage.man.points.rodTip });
+        this.ripple(0.6, 0);
         break;
       case 'baitStolen':
-        a.play('splash_s1', { pos: [2.6, 6.0, -1.25], gain: 0.5 });
+        a.play('splash_s1', { pos: this.floatPos(), gain: 0.5 });
+        this.ripple(0.8, 0);
+        this.retrieveFloat('reel');
         this.hud.toast(S.baitStolen, '', 1.8);
         break;
       case 'hooked':
@@ -588,21 +623,26 @@ export class Night {
         this.loops.tension = a.play('line_tension', { loop: true, gain: 0, pos: [1.6, 2.6, 0.1] });
         break;
       case 'fishPull':
-        a.play(['splash_s1', 'splash_s2', 'splash_s3'][Math.floor(Math.random() * 3)]!, { pos: [2.9, 6.5, -1.25], gain: 0.7 });
+        a.play(['splash_s1', 'splash_s2', 'splash_s3'][Math.floor(Math.random() * 3)]!, { pos: this.floatPos(), gain: 0.7 });
         this.lineSway = (Math.random() < 0.5 ? -1 : 1) * (0.4 + Math.random() * 0.4);
+        this.ripple(0.9, 0);
         break;
       case 'lineSnap':
         a.play('line_snap', { pos: this.d.stage.man.points.rodTip });
+        this.retrieveFloat('lost');
         this.hud.toast(S.lineSnap, '', 1.8);
         this.stopReel();
         break;
       case 'fishEscaped':
-        a.play('splash_s2', { pos: [2.6, 6.0, -1.25], gain: 0.5 });
+        a.play('splash_s2', { pos: this.floatPos(), gain: 0.5 });
+        this.ripple(1, 0);
+        this.retrieveFloat('reel');
         this.hud.toast(S.escaped, '', 1.8);
         this.stopReel();
         break;
       case 'landed': {
         this.stopReel();
+        this.retrieveFloat('lift');
         a.play('fish_out', { pos: [1.2, 2.0, -0.4] });
         if (e.lore) {
           const lt = LORE_TEXT[this.d.lang][e.lore];
@@ -949,6 +989,19 @@ export class Night {
 
     this.updateBattery(dt);
 
+    // la lenza: il lancio, il tonfo, i cerchi sull'acqua
+    if (this.castT >= 0) this.castT = this.castT > 4 ? -1 : this.castT + dt;
+    if (this.plopT >= 0) this.plopT = this.plopT > 4 ? -1 : this.plopT + dt;
+    this.lineSway *= Math.exp(-0.9 * dt);
+    for (const r of this.rings) r.t += dt;
+    this.rings = this.rings.filter((r) => r.t < 2.6);
+    const fp = sim.fishing.phase;
+    if (sim.fishing.lineOut) this.lastFloat = this.floatPos();
+    if (this.retrieve) {
+      this.retrieve.t += dt;
+      if (fp !== 'rebait' && fp !== 'landing') this.retrieve = null;
+    }
+
     // telone: la tela scende sulla testa
     v.tarp = sim.hideAmount;
     const searching = h.state === 'searching' || (h.state === 'leaving' && sim.hidden);
@@ -1065,9 +1118,7 @@ export class Night {
       // il voltmetro retroilluminato (lo stesso strato col quadrante acceso, dissolto sopra)
       if (has('battery_lit') && this.gaugeGlow > 0.002) layers.push({ key: 'battery_lit', opacity: this.gaugeGlow * GAUGE_LIGHT });
     }
-    // canna: dritta, piegata all'abboccata, piegatissima in recupero
-    const bend = sim.fishing.bend;
-    layers.push(bend >= 1.4 ? 'rod2' : bend >= 0.5 ? 'rod1' : 'rod0');
+    layers.push(this.rodKey());
     const n = sim.fish;
     if (n > 0) layers.push(n <= 3 ? 'fish2' : n <= 6 ? 'fish5' : 'fish9');
     layers.push(...aboard);
@@ -1111,27 +1162,212 @@ export class Night {
     return sh[i % n]! * (1 - t) + sh[(i + 1) % n]! * t;
   }
 
-  /** Lenza dalla punta della canna all'acqua. */
-  private line(): { points: Vec3[]; alpha: number } | null {
+  /** La canna da disegnare: dritta, piegata all'abboccata, piegatissima in recupero; nella frustata del lancio flette. */
+  private rodKey(): string {
     const f = this.sim.fishing;
-    if (!f.lineOut) return null;
-    const man = this.d.stage.man;
     const bend = f.bend;
-    const rodKey = bend >= 1.4 ? 'rod2' : bend >= 0.5 ? 'rod1' : 'rod0';
-    const tip = man.layers[rodKey]?.tip ?? man.points.rodTip;
-    this.lineSway *= 0.985;
-    const reeling = f.phase === 'reeling';
-    const dist = reeling ? 6.5 - 3.5 * f.progress : 6.5;
-    const t = this.d.stage.time;
-    const sway = this.lineSway + 0.08 * Math.sin(t * 0.7) + (reeling && f.pulling ? 0.06 * Math.sin(t * 23) : 0);
-    const water: Vec3 = [tip[0] + 0.5 + sway, tip[1] + dist, -1.25];
-    const sag = reeling ? 0.04 + 0.1 * (1 - Math.min(1, f.tension * 2)) : 0.55;
-    const pts: Vec3[] = [];
-    for (let i = 0; i <= 14; i++) {
-      const s = i / 14;
-      pts.push([tip[0] + (water[0] - tip[0]) * s, tip[1] + (water[1] - tip[1]) * s, tip[2] + (water[2] - tip[2]) * s - sag * 4 * s * (1 - s)]);
+    const whip = f.phase === 'casting' && this.castT >= CAST_LOAD + 0.03 && this.castT < CAST_WHIP + 0.06;
+    return bend >= 1.4 ? 'rod2' : bend >= 0.5 || whip ? 'rod1' : 'rod0';
+  }
+
+  /** La frustata del lancio nella vista (gradi di yaw e pitch): caricando si alza un poco, col colpo scatta giù. */
+  private castKick(): [number, number] {
+    const ct = this.castT;
+    if (ct < 0 || ct > 0.9 || this.sim.fishing.phase !== 'casting') return [0, 0];
+    const calm = this.d.options.reduceFlash ? 0.5 : 1;
+    let p: number, y: number;
+    if (ct < CAST_LOAD) {
+      const k = smooth01(ct / CAST_LOAD);
+      p = 1.1 * k;
+      y = -0.4 * k;
+    } else if (ct < CAST_WHIP) {
+      const k = smooth01((ct - CAST_LOAD) / (CAST_WHIP - CAST_LOAD));
+      p = 1.1 - 2.3 * k;
+      y = -0.4 + k;
+    } else {
+      const k = 1 - smooth01((ct - CAST_WHIP) / (0.9 - CAST_WHIP));
+      p = -1.2 * k;
+      y = 0.6 * k;
     }
-    return { points: pts, alpha: 0.85 };
+    return [y * calm, p * calm];
+  }
+
+  /** Un punto del pelo dell'acqua davanti alla canna, a `dist` metri dall'occhio, spostato di lato di `side`. */
+  private waterAt(dist: number, side: number): Vec3 {
+    const c = Math.cos(FLOAT_YAW), s = Math.sin(FLOAT_YAW);
+    return [dist * s + side * c, dist * c - side * s, WATER_Z];
+  }
+
+  /** Il galleggiante in acqua (dall'occhio, spazio della barca): più vicino mentre recuperi, con l'onda e gli
+   *  strattoni del pesce. */
+  private floatPos(): Vec3 {
+    const f = this.sim.fishing;
+    const t = this.d.stage.time;
+    const reeling = f.phase === 'reeling';
+    const dist = reeling ? FLOAT_FAR + (FLOAT_NEAR - FLOAT_FAR) * f.progress : FLOAT_FAR;
+    const side = this.lineSway + 0.12 * Math.sin(t * 0.7) + (reeling && f.pulling ? 0.06 * Math.sin(t * 23) : 0);
+    const p = this.waterAt(dist, side);
+    p[2] += 0.035 * Math.sin(t * 1.9) + 0.02 * Math.sin(t * 3.1 + 1);
+    return p;
+  }
+
+  /** Un cerchio che si allarga attorno al galleggiante (grandezza 0..1), che parte fra `delay` secondi se negativo. */
+  private ripple(size: number, delay: number): void {
+    const at = this.floatPos();
+    at[2] = WATER_Z;
+    this.rings.push({ t: delay, at, size });
+  }
+
+  /** La lenza torna su (il galleggiante parte da dov'era nell'ultimo fotogramma). */
+  private retrieveFloat(kind: 'reel' | 'lift' | 'lost'): void {
+    const from = this.lastFloat ?? this.waterAt(FLOAT_FAR, 0);
+    this.retrieve = { t: 0, from: [from[0], from[1], from[2]], kind };
+  }
+
+  /** Di quanti gradi un punto (dall'occhio, spazio della barca) sta sopra il bordo della barca. */
+  private aboveRail(p: Vec3): number {
+    const yaw = Math.atan2(p[0], p[1]) / D2R;
+    const el = Math.atan2(p[2], Math.hypot(p[0], p[1])) / D2R;
+    return el - (this.sheerAt(yaw) ?? -90);
+  }
+
+  /** Lenza, galleggiante con la sua luce, schizzi e cerchi sull'acqua. Il lancio: il galleggiante appeso alla
+   *  punta oscilla indietro mentre la canna si carica, la frustata lo strappa via, vola in arco e cade col tonfo;
+   *  poi il filo si posa. Quello che sta dietro il bordo della barca non si vede. */
+  private tackle(): { line: Stroke | null; strokes: Stroke[]; glows: LightGlow[] } {
+    const out = { line: null as Stroke | null, strokes: [] as Stroke[], glows: [] as LightGlow[] };
+    const f = this.sim.fishing;
+    const man = this.d.stage.man;
+    const t = this.d.stage.time;
+    const tip = man.layers[this.rodKey()]?.tip ?? man.points.rodTip;
+    const hang: Vec3 = [tip[0], tip[1], tip[2] - 0.42];
+    let end: Vec3 | null = null;
+    let sag = 0;
+    let light = 1;
+    if (f.phase === 'casting' && this.castT >= 0) {
+      const ct = this.castT;
+      if (ct < CAST_WHIP) {
+        const k = ct < CAST_LOAD ? smooth01(ct / CAST_LOAD) : 1 - smooth01((ct - CAST_LOAD) / (CAST_WHIP - CAST_LOAD));
+        end = [hang[0] - 0.05 * k, hang[1] - 0.32 * k, hang[2] + 0.18 * k];
+      } else {
+        // il volo rallenta verso l'arrivo (il filo che corre via frena il galleggiante); dietro, una scia della sua luce
+        const u = Math.min(1, (ct - CAST_WHIP) / (FISHING.castTime - CAST_WHIP));
+        const land = this.waterAt(FLOAT_FAR, this.lineSway);
+        const fly = (u: number): Vec3 => {
+          const s = 1 - (1 - Math.max(0, u)) ** 1.8;
+          return [hang[0] + (land[0] - hang[0]) * s, hang[1] + (land[1] - hang[1]) * s, hang[2] + (land[2] - hang[2]) * s + CAST_ARC * 4 * s * (1 - s)];
+        };
+        end = fly(u);
+        sag = 0.06 * u;
+        const trail: Vec3[] = [];
+        for (let i = 0; i <= 6; i++) trail.push(fly(u - 0.1 * (1 - i / 6)));
+        const c = FLOAT_LIGHT;
+        out.strokes.push({ points: trail.reverse(), alpha: 0.5 * (1 - u * 0.6), color: [c[0] * 0.5, c[1] * 0.5, c[2] * 0.5], width: 1.6 });
+      }
+    } else if (f.lineOut) {
+      end = this.floatPos();
+      const reeling = f.phase === 'reeling';
+      // appena caduto, il filo si posa piano sull'acqua
+      const settle = this.plopT >= 0 ? smooth01(this.plopT / 0.7) : 1;
+      sag = reeling ? 0.04 + 0.1 * (1 - Math.min(1, f.tension * 2)) : 0.06 + 0.49 * settle;
+      if (f.phase === 'bite') {
+        // abbocca: il galleggiante va sotto e torna su, la luce si spegne nell'acqua
+        const dip = Math.max(0, 0.5 * Math.sin(t * 9) + 0.5 * Math.sin(t * 4.3 + 1));
+        end[2] -= 0.12 * dip;
+        light = 1 - 0.85 * dip;
+      } else if (reeling) {
+        // trascinato dal pesce, mezzo sommerso
+        light = 0.5 + 0.2 * Math.sin(t * 13);
+      }
+    } else if (this.retrieve) {
+      const r = this.retrieve;
+      if (r.kind === 'lost') {
+        // filo spezzato: dalla punta pende un pezzo di lenza; il galleggiante resta in acqua, va alla deriva e la
+        // sua luce si spegne
+        const sw = 0.06 * Math.sin(t * 2.1);
+        out.line = { points: [tip, [tip[0] + sw, tip[1] + 0.08, tip[2] - 0.3], [tip[0] + 1.6 * sw, tip[1] + 0.14, tip[2] - 0.62]], alpha: 0.7 };
+        const k = Math.max(0, 1 - r.t / 2.5);
+        const drift: Vec3 = [r.from[0] + 0.15 * r.t, r.from[1] + 0.25 * r.t, WATER_Z + 0.03 * Math.sin(t * 1.9)];
+        if (k > 0.01 && this.aboveRail(drift) > 0) {
+          const c = FLOAT_LIGHT;
+          out.glows.push({ dir: norm(drift), color: [c[0] * k, c[1] * k, c[2] * k], radius: 0.0017 });
+        }
+      } else {
+        // recuperata a vuoto (veloce, radente) o sollevata col pesce: il galleggiante torna alla punta e ci resta appeso
+        const dur = r.kind === 'lift' ? FISHING.landTime * 0.8 : 0.55;
+        const u = smooth01(r.t / dur);
+        const arc = (r.kind === 'lift' ? 0.7 : 0.25) * 4 * u * (1 - u);
+        end = [r.from[0] + (hang[0] - r.from[0]) * u, r.from[1] + (hang[1] - r.from[1]) * u, r.from[2] + (hang[2] - r.from[2]) * u + arc];
+      }
+    } else if (f.phase === 'idle') {
+      // pronto per il lancio: pende dalla punta e dondola
+      end = [hang[0] + 0.03 * Math.sin(t * 1.3), hang[1] + 0.04 * Math.sin(t * 0.9 + 1), hang[2]];
+    }
+    if (end) {
+      const pts: Vec3[] = [];
+      for (let i = 0; i <= 18; i++) {
+        const s = i / 18;
+        // il filo lento pende e, dove tocca l'acqua, ci si stende sopra fino al galleggiante
+        const z = tip[2] + (end[2] - tip[2]) * s - sag * 4 * s * (1 - s);
+        pts.push([tip[0] + (end[0] - tip[0]) * s, tip[1] + (end[1] - tip[1]) * s, Math.max(z, Math.min(WATER_Z, end[2]))]);
+      }
+      // la lenza sta fuori dalla barca: sotto il bordo la copre lo scafo
+      const shown: Vec3[] = [];
+      let prev: { p: Vec3; d: number } | null = null;
+      for (const p of pts) {
+        const d = this.aboveRail(p);
+        if (d >= 0) {
+          shown.push(p);
+          prev = { p, d };
+          continue;
+        }
+        if (prev) {
+          const k = prev.d / (prev.d - d);
+          shown.push([prev.p[0] + (p[0] - prev.p[0]) * k, prev.p[1] + (p[1] - prev.p[1]) * k, prev.p[2] + (p[2] - prev.p[2]) * k]);
+        }
+        break;
+      }
+      if (shown.length >= 2) out.line = { points: shown, alpha: 0.85 };
+      if (shown.length === pts.length && light > 0.01) {
+        const c = FLOAT_LIGHT;
+        out.glows.push({ dir: norm(end), color: [c[0] * light, c[1] * light, c[2] * light], radius: 0.0017 });
+      }
+    }
+    // il tonfo: un lampo bianco nello schizzo e qualche goccia che ricade
+    const pt = this.plopT;
+    if (pt >= 0 && pt < 0.6 && f.lineOut) {
+      const at = this.waterAt(FLOAT_FAR, this.lineSway);
+      if (this.aboveRail(at) > 0) {
+        if (pt < 0.25) {
+          const k = 0.7 * (1 - pt / 0.25);
+          out.glows.push({ dir: norm(at), color: [0.8 * k, 0.9 * k, 1.0 * k], radius: 0.0035 });
+        }
+        for (let i = 0; i < 7; i++) {
+          const a = hash1(this.splashSeed + i * 7.1) * Math.PI * 2;
+          const vh = 0.35 + 0.5 * hash1(this.splashSeed + i * 3.3);
+          const vz = 1.5 + 1.1 * hash1(this.splashSeed + i * 5.9);
+          const z = vz * pt - 4.9 * pt * pt;
+          if (z <= 0) continue;
+          const k = 0.9 * (1 - pt / 0.6);
+          const d: Vec3 = [at[0] + Math.cos(a) * vh * pt, at[1] + Math.sin(a) * vh * pt, at[2] + z];
+          out.glows.push({ dir: norm(d), color: [0.55 * k, 0.6 * k, 0.68 * k], radius: 0.0009 });
+        }
+      }
+    }
+    // i cerchi sull'acqua: si allargano e svaniscono (schiacciati dalla prospettiva radente)
+    for (const r of this.rings) {
+      if (r.t <= 0 || this.aboveRail(r.at) < 0.2) continue;
+      const rad = r.size * (0.06 + 1.1 * (1 - Math.exp(-r.t * 1.8)));
+      const alpha = 0.5 * r.size * Math.exp(-r.t * 1.3) * Math.min(1, r.t * 10);
+      if (alpha < 0.01) continue;
+      const pts: Vec3[] = [];
+      for (let i = 0; i <= 28; i++) {
+        const a = (i / 28) * Math.PI * 2;
+        pts.push([r.at[0] + Math.cos(a) * rad, r.at[1] + Math.sin(a) * rad, WATER_Z]);
+      }
+      out.strokes.push({ points: pts, alpha, color: [0.5, 0.58, 0.66], width: 1.1, even: true });
+    }
+    return out;
   }
 
   private overlay(): Overlay | null {
@@ -1229,6 +1465,8 @@ export class Night {
     // binocolo: solo il mondo (niente barca), i luoghi ad alta risoluzione, la luce rossa della videocamera
     const binoOn = this.bino > 0.5;
     const be = smooth01(this.bino);
+    // la lenza e il galleggiante: non sotto il telone, non nel binocolo
+    const tk = this.sim.hide === 'out' && !binoOn ? this.tackle() : null;
     const man = st.man;
     let layers = this.layerDraws();
     if (binoOn) layers = layers.filter((d) => man.layers[typeof d === 'string' ? d : d.key]?.space === 'world');
@@ -1250,7 +1488,8 @@ export class Night {
       layers,
       bino: this.bino > 0 ? { amount: be, places } : null,
       overlay: this.overlay(),
-      line: this.sim.hide === 'out' && !binoOn ? this.line() : null,
+      line: tk?.line ?? null,
+      strokes: tk?.strokes,
       // a batteria morta lo schermo del sonar è nero
       sonar: binoOn || this.sim.blackout ? null : this.sonar.canvas,
       gauge: this.sim.cfg.battery && !binoOn ? { angle: this.needleAngle(), alpha: 1 } : null,
@@ -1262,7 +1501,7 @@ export class Night {
       glitch,
       fade: 1 - v.dark * 0.9,
       glows,
-      boatGlows: binoOn ? [] : eyes.boat,
+      boatGlows: binoOn ? [] : tk ? [...eyes.boat, ...tk.glows] : eyes.boat,
     });
   }
 

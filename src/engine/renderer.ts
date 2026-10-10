@@ -30,6 +30,18 @@ export interface LayerDraw {
   part?: 'back' | 'front';
 }
 
+/** Polilinea 3D (spazio barca) disegnata come nastro sottile: la lenza, i cerchi sull'acqua. */
+export interface Stroke {
+  points: Vec3[];
+  alpha: number;
+  /** colore lineare; senza, quello della lenza */
+  color?: Vec3;
+  /** mezzo spessore in pixel (1,4 se manca) */
+  width?: number;
+  /** stessa intensità lungo tutto il tratto (la lenza invece sfuma verso l'acqua) */
+  even?: boolean;
+}
+
 /** Immagine a tutto schermo dentro la scena (vista dal telone, jumpscare). */
 export interface Overlay {
   base: WebGLTexture;
@@ -91,7 +103,9 @@ export interface FrameParams {
   sonarGain: number;
   /** l'ago del voltmetro sullo strato della batteria (radianti, 0 = in alto) */
   gauge?: { angle: number; alpha: number } | null;
-  line: { points: Vec3[]; alpha: number } | null;
+  line: Stroke | null;
+  /** altri tratti sottili, sotto la lenza (i cerchi del galleggiante sull'acqua) */
+  strokes?: Stroke[];
 }
 
 export class Renderer {
@@ -239,6 +253,7 @@ export class Renderer {
     if (f.boatGlows?.length) this.drawGlows(view, f.boatGlows);
     if (f.sonar) this.drawScreen(view, f);
     if (f.gauge) this.drawGauge(view, f.gauge);
+    for (const s of f.strokes ?? []) this.drawLine(view, s);
     if (f.line) this.drawLine(view, f.line);
     if (f.overlay && f.overlay.alpha > 0.001) this.drawOverlay(f.overlay);
     gl.disable(gl.BLEND);
@@ -381,8 +396,8 @@ export class Renderer {
     this.tri.draw();
   }
 
-  /** Lenza: polilinea 3D (spazio barca) proiettata e disegnata come nastro sottile. */
-  private drawLine(view: View, line: { points: Vec3[]; alpha: number }): void {
+  /** Lenza (e altri tratti): polilinea 3D (spazio barca) proiettata e disegnata come nastro sottile. */
+  private drawLine(view: View, line: Stroke): void {
     const gl = this.gl;
     const pts2: [number, number][] = [];
     for (const p of line.points) {
@@ -390,8 +405,9 @@ export class Renderer {
       if (s) pts2.push([s[0] * 2 - 1, s[1] * 2 - 1]);
     }
     if (pts2.length < 2) return;
-    const px = 1.4 / this.w; // mezzo spessore in clip (~1.4 px)
-    const py = 1.4 / this.h;
+    const half = line.width ?? 1.4;
+    const px = half / this.w; // mezzo spessore in clip
+    const py = half / this.h;
     const data: number[] = [];
     for (let i = 0; i < pts2.length; i++) {
       const a = pts2[Math.max(0, i - 1)]!, b = pts2[Math.min(pts2.length - 1, i + 1)]!;
@@ -400,14 +416,15 @@ export class Renderer {
       dx /= l;
       dy /= l;
       const nx = -dy * this.h * px, ny = dx * this.w * py;
-      const fade = line.alpha * (0.35 + 0.65 * (1 - i / (pts2.length - 1)));
+      const fade = line.even ? line.alpha : line.alpha * (0.35 + 0.65 * (1 - i / (pts2.length - 1)));
       const p = pts2[i]!;
       data.push(p[0] + nx, p[1] + ny, fade, p[0] - nx, p[1] - ny, fade);
     }
     gl.bindVertexArray(this.lineVao);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.lineBuf);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.DYNAMIC_DRAW);
-    this.pLine.use().f3('uColor', 0.55, 0.52, 0.45);
+    const c = line.color ?? [0.55, 0.52, 0.45];
+    this.pLine.use().f3('uColor', c[0], c[1], c[2]);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, data.length / 3);
     gl.bindVertexArray(null);
   }
