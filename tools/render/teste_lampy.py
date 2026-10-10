@@ -163,13 +163,15 @@ def fishing_line():
 
 def lampy_skin():
     """Pelle viola-magenta lucida di melma: più scura sul dorso, rosata sul ventre e dentro la ventosa.
-    Il blu è più forte del rosso, così sotto la luce calda della lampara resta viola e non vira al marrone."""
+    La lampara pesa il rosso circa il doppio del blu: perché la pelle resti viola-magenta (e non viri al
+    lampone, troppo vicino al rosso corallo di Robin) il blu dell'albedo è circa il doppio del rosso, e il
+    verde quasi zero, così la tinta resta piena anche dove la luce è poca."""
     m = bpy.data.materials.get('LampySkinMat')
     if m:
         return m
-    return skin_material('LampySkinMat', base=(0.13, 0.016, 0.17), dark=(0.035, 0.004, 0.06), belly=(0.40, 0.085, 0.26),
-                         accent=(0.45, 0.15, 0.40), rough=0.42, coat=0.6, sss=0.22, sss_radius=(1.0, 0.25, 0.7),
-                         spots_scale=4.5, spots_amount=0.75, bump_scale=55.0, bump=0.4, mouth=(0.60, 0.17, 0.26), irid=0.12)
+    return skin_material('LampySkinMat', base=(0.10, 0.008, 0.235), dark=(0.028, 0.002, 0.075), belly=(0.36, 0.04, 0.52),
+                         accent=(0.40, 0.10, 0.45), rough=0.40, coat=0.6, sss=0.22, sss_radius=(0.8, 0.2, 1.0),
+                         spots_scale=4.5, spots_amount=0.75, bump_scale=55.0, bump=0.4, mouth=(0.66, 0.12, 0.30), irid=0.12)
 
 
 # ───────────────────────── corpo: l'arco della sanguisuga ─────────────────────────
