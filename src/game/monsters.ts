@@ -1,4 +1,4 @@
-import { LAMP, angleDiff, VIEW, YAW, type HatchConfig, type LampLevel, type MollyConfig, type MonsterId, type GulpyConfig, type Side } from './config.ts';
+import { LAMP, angleDiff, VIEW, YAW, type HatchConfig, type LampLevel, type MollyConfig, type MonsterId, type GulpyConfig, type RobinConfig, type Side } from './config.ts';
 import type { GameEvent } from './events.ts';
 import type { Rng } from './rng.ts';
 
@@ -378,4 +378,117 @@ export class Hatch {
 
 export function lampActivity(lamp: LampLevel): number {
   return LAMP.activity[lamp];
+}
+
+// ───────────────────────── Robin: il secchio, si scaccia con la luce ─────────────────────────
+
+export type RobinState = 'dormant' | 'away' | 'climbing' | 'stealing' | 'fleeing' | 'attack';
+
+/** Il secchio dei pesci, come lo vede Robin. */
+export interface Bucket {
+  fish: number;
+  take(): void;
+}
+
+/**
+ * Robin sale sul bordo di sinistra verso prua e allunga le mani nel secchio: ogni stealEvery secondi
+ * porta via un pesce, e se il secchio è vuoto prende te. Si scaccia guardandolo in faccia con la
+ * lampara al massimo per scare secondi (anche mentre sale).
+ */
+export class Robin {
+  state: RobinState = 'dormant';
+  timer: number;
+  /** secondi di luce in faccia accumulati (calano piano se la luce va via) */
+  lit = 0;
+  /** pesci portati via in questa visita */
+  stolen = 0;
+  private rattleTimer = 0;
+
+  constructor(private cfg: RobinConfig) {
+    this.timer = cfg.firstAt;
+  }
+
+  get present(): boolean {
+    return this.state === 'climbing' || this.state === 'stealing';
+  }
+
+  /** 0..1: quanto manca a scacciarlo (per la grafica: si ritrae nella luce) */
+  get fear(): number {
+    return Math.min(1, this.lit / this.cfg.scare);
+  }
+
+  update(dt: number, w: WorldView, bucket: Bucket): void {
+    this.timer -= dt;
+    switch (this.state) {
+      case 'dormant':
+      case 'away':
+        if (this.timer <= 0) {
+          if (w.mayStart('robin')) {
+            w.started('robin');
+            w.emit({ t: 'robin', e: 'climb' });
+            this.state = 'climbing';
+            this.timer = this.cfg.climb;
+            this.lit = 0;
+            this.stolen = 0;
+          } else {
+            this.timer = w.rng.range(3, 6);
+          }
+        }
+        break;
+      case 'climbing':
+        if (this.light(dt, w)) break;
+        if (this.timer <= 0) {
+          w.emit({ t: 'robin', e: 'reach' });
+          this.state = 'stealing';
+          this.timer = this.cfg.stealEvery;
+          this.rattleTimer = 0;
+        }
+        break;
+      case 'stealing':
+        if (this.light(dt, w)) break;
+        this.rattleTimer -= dt;
+        if (this.rattleTimer <= 0) {
+          w.emit({ t: 'robin', e: 'rattle' });
+          this.rattleTimer = w.rng.range(0.9, 1.5);
+        }
+        if (this.timer <= 0) {
+          if (bucket.fish > 0) {
+            bucket.take();
+            this.stolen++;
+            w.emit({ t: 'robin', e: 'steal' });
+            this.timer = this.cfg.stealEvery;
+          } else {
+            this.state = 'attack';
+            w.emit({ t: 'robin', e: 'attack' });
+          }
+        }
+        break;
+      case 'fleeing':
+        if (this.timer <= 0) {
+          w.emit({ t: 'robin', e: 'gone' });
+          this.state = 'away';
+          this.timer = cooldown(w, this.cfg.cooldown);
+        }
+        break;
+      case 'attack':
+        break;
+    }
+  }
+
+  /** La lampara al massimo in faccia: se è durata abbastanza scappa (vero = è scappato). */
+  private light(dt: number, w: WorldView): boolean {
+    const inFace = w.lamp === 2 && !w.hidden && !w.sonarOpen && Math.abs(angleDiff(w.viewYaw, YAW.robin)) <= VIEW.robinHalfAngle;
+    if (inFace) {
+      this.lit += dt;
+      if (this.lit >= this.cfg.scare) {
+        w.emit({ t: 'robin', e: 'scared' });
+        this.state = 'fleeing';
+        this.timer = 1.6;
+        return true;
+      }
+    } else {
+      this.lit = Math.max(0, this.lit - dt * 0.5);
+    }
+    return false;
+  }
 }

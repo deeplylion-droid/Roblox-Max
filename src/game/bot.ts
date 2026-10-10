@@ -1,4 +1,4 @@
-import { YAW, angleDiff, type LampLevel } from './config.ts';
+import { HOUR_SECONDS, NIGHT_HOURS, YAW, angleDiff, type LampLevel } from './config.ts';
 import { Rng } from './rng.ts';
 import type { NightSim } from './sim.ts';
 
@@ -73,6 +73,7 @@ export class Bot {
     const hatchNear = hatch.state === 'counting' || hatch.state === 'boarding' || hatch.state === 'searching';
     const gulpyHungry = this.noticed('gulpy', gulpy.canBeFed);
     const mollyNeeds = this.noticed('molly', molly.state === 'peeking' || molly.state === 'tantrum');
+    const robinThere = this.noticed('robin', !!s.robin?.present);
 
     // sotto il telone: esce solo quando Hatch se n'è andato davvero
     if (s.hide === 'in') {
@@ -96,8 +97,13 @@ export class Bot {
       return;
     }
 
+    let scaring = false;
     if (mollyNeeds) {
       this.turnTo(molly.yaw, dt);
+    } else if (robinThere && !(gulpyHungry && s.fish > 0 && gulpy.state === 'demanding' && gulpy.timer < 2.5)) {
+      // Robin nel secchio: girarsi e sparargli in faccia la lampara al massimo
+      this.turnTo(YAW.robin, dt);
+      scaring = true;
     } else if (gulpyHungry && s.fish > 0 && fishing.phase !== 'reeling') {
       if (this.turnTo(YAW.bow, dt)) s.throwFish();
     } else if (gulpyHungry && s.fish > 0 && gulpy.state === 'demanding' && gulpy.timer < 3) {
@@ -116,13 +122,24 @@ export class Bot {
       if (fishing.phase !== 'bite') this.seen.delete('bite');
     }
 
-    // lampara
-    const anyone = gulpy.present || molly.present || hatch.present || molly.state === 'knocking';
-    let lamp: LampLevel = 1;
-    if (this.skill.lampPolicy === 'greedy') lamp = anyone ? 1 : 2;
-    else if (this.skill.lampPolicy === 'off') lamp = 0;
-    s.setLamp(lamp);
+    // lampara (al buio non c'è niente da fare: la batteria è morta)
+    if (!s.blackout) {
+      const anyone = gulpy.present || molly.present || hatch.present || molly.state === 'knocking';
+      let lamp: LampLevel = 1;
+      if (scaring) lamp = 2;
+      else if (this.skill.lampPolicy === 'greedy') lamp = anyone || !this.canAffordHigh() ? 1 : 2;
+      else if (this.skill.lampPolicy === 'off') lamp = 0;
+      s.setLamp(lamp);
+    }
     this.finish(dt, wantReel);
+  }
+
+  /** Con la batteria, la lampara alta solo se resta carica per tenerla bassa fino alle sei (più un margine per Robin). */
+  private canAffordHigh(): boolean {
+    const b = this.sim.cfg.battery;
+    if (!b) return true;
+    const left = HOUR_SECONDS * NIGHT_HOURS - this.sim.time;
+    return this.sim.battery > b.drain[1] * left * 1.05 + 0.06;
   }
 
   private finish(_dt: number, reel: boolean): void {

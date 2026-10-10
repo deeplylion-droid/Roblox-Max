@@ -84,7 +84,7 @@ export class Fishing {
     this.pulling = false;
   }
 
-  update(dt: number, o: { lamp: LampLevel; reelHeld: boolean; facingRod: boolean; busy: boolean }): Catch | null {
+  update(dt: number, o: { lamp: LampLevel; reelHeld: boolean; facingRod: boolean; busy: boolean; biteMul?: number }): Catch | null {
     switch (this.phase) {
       case 'idle':
         return null;
@@ -93,7 +93,7 @@ export class Fishing {
         if (this.timer <= 0) {
           this.phase = 'waiting';
           const [a, b] = FISHING.biteWait;
-          this.timer = this.rng.range(a, b) * LAMP.biteTime[o.lamp];
+          this.timer = this.rng.range(a, b) * LAMP.biteTime[o.lamp] * (o.biteMul ?? 1);
           this.emit({ t: 'plop' });
         }
         return null;

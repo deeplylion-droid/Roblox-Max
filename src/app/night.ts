@@ -43,7 +43,7 @@ export interface NightStats {
   time: number;
 }
 
-export type NightEnd = { kind: 'won'; stats: NightStats } | { kind: 'dead'; killer: MonsterId | 'mother'; stats: NightStats };
+export type NightEnd = { kind: 'won'; stats: NightStats } | { kind: 'dead'; killer: MonsterId | 'mother'; cause?: 'lullaby'; stats: NightStats };
 
 export interface NightDeps {
   stage: Stage;
@@ -723,7 +723,8 @@ export class Night {
         this.sim.setReelHeld(false);
         this.stopReel();
         if (e.killer === 'mother') {
-          this.endResult = { kind: 'dead', killer: 'mother', stats: this.stats() };
+          const o = this.sim.outcome;
+          this.endResult = { kind: 'dead', killer: 'mother', cause: o.kind === 'dead' ? o.cause : undefined, stats: this.stats() };
           this.endTimer = 4.5;
           // le campane della festa, ovattate, e sotto la Madre che si sveglia
           a.play('bell_dawn', { pos: dirPos(BELL_YAW, 5, 4), gain: 0.35, lowpass: 900 });

@@ -1,10 +1,10 @@
 import { HOUR_SECONDS, LAMP, LORE, NIGHT_HOURS, VIEW, YAW, angleDiff, type LampLevel, type MonsterId, type NightConfig } from './config.ts';
 import type { GameEvent } from './events.ts';
 import { Fishing, type Catch } from './fishing.ts';
-import { Hatch, Molly, Gulpy, SONAR_WARN, type WorldView } from './monsters.ts';
+import { Hatch, Molly, Gulpy, Robin, SONAR_WARN, type WorldView } from './monsters.ts';
 import { Rng } from './rng.ts';
 
-export type Outcome = { kind: 'playing' } | { kind: 'won' } | { kind: 'dead'; killer: MonsterId | 'mother' };
+export type Outcome = { kind: 'playing' } | { kind: 'won' } | { kind: 'dead'; killer: MonsterId | 'mother'; cause?: 'lullaby' };
 export type HideState = 'out' | 'goingIn' | 'in' | 'goingOut';
 
 /**
@@ -31,6 +31,15 @@ export class NightSim {
   readonly gulpy: Gulpy;
   readonly molly: Molly;
   readonly hatch: Hatch;
+  /** dalla notte 2 */
+  readonly robin: Robin | null;
+  /** carica della batteria, da 1 a 0 (solo se la notte ce l'ha) */
+  battery = 1;
+  /** la batteria è morta: lampara e sonar spenti, sale la ninna nanna */
+  blackout = false;
+  /** secondi che restano alla ninna nanna della Madre dopo il buio */
+  lullaby = 0;
+  private batteryLowSaid = false;
   readonly foundLore: Set<string>;
   readonly loreThisNight: string[] = [];
   private events: GameEvent[] = [];
@@ -49,6 +58,7 @@ export class NightSim {
     this.gulpy = new Gulpy(cfg.gulpy);
     this.molly = new Molly(cfg.molly);
     this.hatch = new Hatch(cfg.hatch);
+    this.robin = cfg.robin ? new Robin(cfg.robin) : null;
     this.world = {
       time: 0,
       hour: 0,
@@ -109,7 +119,8 @@ export class NightSim {
 
   setView(yaw: number, sonarOpen: boolean): void {
     this.viewYaw = yaw;
-    this.sonarOpen = sonarOpen;
+    // al buio anche il sonar è spento
+    this.sonarOpen = sonarOpen && !this.blackout;
   }
 
   setReelHeld(held: boolean): void {
@@ -178,6 +189,10 @@ export class NightSim {
 
   setLamp(level: LampLevel): void {
     if (!this.playing || level === this.lamp) return;
+    if (this.blackout) {
+      this.emit({ t: 'denied', reason: 'dark' });
+      return;
+    }
     this.lamp = level;
     this.emit({ t: 'lamp', level });
   }
@@ -203,6 +218,19 @@ export class NightSim {
       return;
     }
 
+    // batteria: la lampara e il sonar consumano; quando muore sale la ninna nanna della Madre
+    if (this.cfg.battery) {
+      if (!this.blackout) this.drainBattery(dt, this.cfg.battery);
+      else {
+        this.lullaby -= dt;
+        if (this.lullaby <= 0) {
+          this.emit({ t: 'lullaby', e: 'end' });
+          this.die('mother', 'lullaby');
+          return;
+        }
+      }
+    }
+
     // telone
     if (this.hide === 'goingIn' || this.hide === 'goingOut') {
       this.hideTimer -= dt;
@@ -224,9 +252,23 @@ export class NightSim {
     this.gulpy.update(dt, w);
     this.molly.update(dt, w);
     this.hatch.update(dt, w, { hidden: this.hidden });
+    this.robin?.update(dt, w, {
+      fish: this.fish,
+      take: () => {
+        this.fish--;
+      },
+    });
 
     const killer: MonsterId | null =
-      this.hatch.state === 'attack' ? 'hatch' : this.molly.state === 'attack' ? 'molly' : this.gulpy.state === 'attack' ? 'gulpy' : null;
+      this.hatch.state === 'attack'
+        ? 'hatch'
+        : this.molly.state === 'attack'
+          ? 'molly'
+          : this.gulpy.state === 'attack'
+            ? 'gulpy'
+            : this.robin?.state === 'attack'
+              ? 'robin'
+              : null;
     if (killer) {
       this.die(killer);
       return;
@@ -237,8 +279,29 @@ export class NightSim {
       reelHeld: this.reelHeld,
       facingRod: this.facing(YAW.rod, VIEW.rodHalfAngle) && !this.sonarOpen,
       busy: this.hide !== 'out',
+      biteMul: this.cfg.biteMul,
     });
     if (landed) this.land(landed);
+  }
+
+  private drainBattery(dt: number, b: NonNullable<NightConfig['battery']>): void {
+    this.battery -= dt * (b.drain[this.lamp] + (this.sonarOpen ? b.sonar : 0));
+    if (!this.batteryLowSaid && this.battery < b.low) {
+      this.batteryLowSaid = true;
+      this.emit({ t: 'battery', e: 'low' });
+    }
+    if (this.battery <= 0) {
+      this.battery = 0;
+      this.blackout = true;
+      this.sonarOpen = false;
+      if (this.lamp !== 0) {
+        this.lamp = 0;
+        this.emit({ t: 'lamp', level: 0 });
+      }
+      this.emit({ t: 'battery', e: 'dead' });
+      this.lullaby = b.lullaby;
+      this.emit({ t: 'lullaby', e: 'start' });
+    }
   }
 
   private land(c: Catch): void {
@@ -284,6 +347,7 @@ export class NightSim {
     if (waiting(this.gulpy.state)) add('gulpy', YAW.bow, this.gulpy.timer);
     if (waiting(this.molly.state)) add('molly', this.molly.yaw, this.molly.timer);
     if (waiting(this.hatch.state)) add('hatch', YAW.stern, this.hatch.timer);
+    if (this.robin && waiting(this.robin.state)) add('robin', YAW.robin, this.robin.timer);
     return out;
   }
 
@@ -296,6 +360,8 @@ export class NightSim {
         return this.molly.state === 'knocking' || this.molly.present;
       case 'hatch':
         return this.hatch.present;
+      case 'robin':
+        return this.robin?.present ?? false;
     }
   }
 
@@ -310,8 +376,8 @@ export class NightSim {
     return true;
   }
 
-  private die(killer: MonsterId | 'mother'): void {
-    this.outcome = { kind: 'dead', killer };
+  private die(killer: MonsterId | 'mother', cause?: 'lullaby'): void {
+    this.outcome = cause ? { kind: 'dead', killer, cause } : { kind: 'dead', killer };
     this.emit({ t: 'dead', killer });
   }
 

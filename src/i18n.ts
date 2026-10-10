@@ -49,7 +49,11 @@ const IT = {
     gulpy: 'Gulpy aveva fame. Il secchio era vuoto.',
     molly: 'Molly voleva solo che la guardassi.',
     hatch: '«Chi c’è c’è, chi non c’è non c’è.» Ti ha trovato.',
+    // ⚠️ da approvare (notte 2)
+    robin: 'Robin ha svuotato il secchio. Poi ha preso anche te.',
     mother: 'Alle sei il secchio non era pieno. Stanotte la Madre si prenderà un altro bambino.',
+    // ⚠️ da approvare (notte 2): la batteria è morta e la ninna nanna è finita prima delle sei
+    lullaby: 'La lampara si è spenta e la canzone è finita prima dell’alba. La Madre è salita a prenderti.',
   },
   retry: 'Riprova',
   menu: 'Menu principale',
@@ -201,7 +205,9 @@ const EN: typeof IT = {
     gulpy: 'Gulpy was hungry. The bucket was empty.',
     molly: 'Molly only wanted you to watch her.',
     hatch: '"Ready or not, here I come." He found you.',
+    robin: 'Robin emptied the bucket. Then he took you too.',
     mother: 'At six the bucket wasn’t full. Tonight the Mother will take another child.',
+    lullaby: 'The lamp went dark and the song ended before dawn. The Mother came up for you.',
   },
   retry: 'Try again',
   menu: 'Main menu',

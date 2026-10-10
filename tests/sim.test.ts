@@ -197,3 +197,93 @@ describe('NightSim', () => {
     expect(wins).toBeGreaterThanOrEqual(34);
   });
 });
+
+// ───────────────────────── notte 2: Robin e la batteria ─────────────────────────
+
+const N2 = NIGHTS[2]!;
+
+/** notte 2 senza i mostri della prima notte (Robin solo se richiesto) */
+function quiet2(robinAt = 1e9): NightConfig {
+  const far = 1e9;
+  return {
+    ...N2,
+    gulpy: { ...N2.gulpy, firstAt: far },
+    molly: { ...N2.molly, firstAt: far },
+    hatch: { ...N2.hatch, firstAt: far },
+    robin: { ...N2.robin!, firstAt: robinAt },
+  };
+}
+
+describe('Notte 2', () => {
+  it('la prima notte non ha né Robin né batteria', () => {
+    const sim = new NightSim(quiet(), 1);
+    sim.setLamp(2);
+    run(sim, 200);
+    expect(sim.robin).toBeNull();
+    expect(sim.battery).toBe(1);
+    expect(sim.blackout).toBe(false);
+  });
+
+  it('la lampara consuma la batteria; al buio sale la ninna nanna e, se finisce prima delle sei, la Madre', () => {
+    const sim = new NightSim(quiet2(), 2);
+    sim.setLamp(2);
+    const b = N2.battery!;
+    const ev = run(sim, 1 / b.drain[2] + 1);
+    expect(ev.some((e) => e.t === 'battery' && e.e === 'low')).toBe(true);
+    expect(ev.some((e) => e.t === 'battery' && e.e === 'dead')).toBe(true);
+    expect(sim.blackout).toBe(true);
+    expect(sim.lamp).toBe(0);
+    // al buio la lampara non si riaccende e il sonar non si apre
+    sim.setLamp(2);
+    sim.setView(0, true);
+    expect(sim.lamp).toBe(0);
+    expect(sim.sonarOpen).toBe(false);
+    const ev2 = run(sim, b.lullaby + 1);
+    expect(ev2.some((e) => e.t === 'lullaby' && e.e === 'end')).toBe(true);
+    expect(sim.outcome).toEqual({ kind: 'dead', killer: 'mother', cause: 'lullaby' });
+  });
+
+  it('con la lampara bassa la batteria arriva alle sei', () => {
+    const sim = new NightSim(quiet2(), 3);
+    sim.fish = N2.quota;
+    run(sim, HOUR_SECONDS * 6 + 1);
+    expect(sim.blackout).toBe(false);
+    expect(sim.outcome).toEqual({ kind: 'won' });
+  });
+
+  it('Robin porta via un pesce alla volta e, col secchio vuoto, prende te', () => {
+    const r = N2.robin!;
+    const sim = new NightSim(quiet2(10), 4);
+    sim.fish = 2;
+    sim.setView(YAW.rod, false);
+    const ev = run(sim, 10 + r.climb + r.stealEvery * 3 + 1);
+    expect(ev.filter((e) => e.t === 'robin' && e.e === 'steal').length).toBe(2);
+    expect(sim.fish).toBe(0);
+    expect(sim.outcome).toEqual({ kind: 'dead', killer: 'robin' });
+  });
+
+  it('la lampara al massimo in faccia scaccia Robin; guardare la canna non basta', () => {
+    const r = N2.robin!;
+    const sim = new NightSim(quiet2(10), 5);
+    sim.fish = 3;
+    sim.setLamp(2);
+    sim.setView(YAW.rod, false);
+    run(sim, 10 + r.climb + 0.5);
+    expect(sim.robin!.state).toBe('stealing');
+    sim.setView(YAW.robin, false);
+    const ev = run(sim, r.scare + 0.2);
+    expect(ev.some((e) => e.t === 'robin' && e.e === 'scared')).toBe(true);
+    expect(sim.fish).toBe(3);
+    expect(sim.playing).toBe(true);
+  });
+
+  it('un bot esperto supera quasi sempre la seconda notte', () => {
+    let wins = 0;
+    for (let seed = 1; seed <= 30; seed++) {
+      const sim = playNight(new NightSim(N2, seed), SKILLS.expert!, seed);
+      if (sim.outcome.kind === 'won') wins++;
+    }
+    expect(wins).toBeGreaterThanOrEqual(26);
+  });
+});
+

@@ -6,6 +6,7 @@
  * sintetizzato al volo di prima. I versi sono DA APPROVARE (vedi docs/AUDIO.md).
  */
 import type { Vec3 } from '../engine/assets.ts';
+import type { MonsterId } from '../game/config.ts';
 import type { AudioEngine, PlayOpts, Voice } from '../engine/audio.ts';
 import { CHILD, speak, type VoiceProfile } from '../engine/voice.ts';
 
@@ -256,10 +257,11 @@ export class Sfx {
 
   /** L'urlo del jumpscare di ciascuna creatura (in faccia, non spazializzato); la voce serve a troncarlo
    *  quando il segnale salta. */
-  jumpscare(who: Creature): Voice | null {
+  jumpscare(who: Creature | MonsterId): Voice | null {
     this.stopLoops();
     const v = this.audio.play(`js_${who}`);
-    if (!v) this.synthScream(1, who === 'molly' ? 1.35 : who === 'hatch' ? 0.85 : 0.7);
+    // senza il file (i mostri nuovi, finché non hanno il loro urlo) un urlo sintetizzato al volo
+    if (!v) this.synthScream(1, who === 'molly' ? 1.35 : who === 'hatch' ? 0.85 : who === 'robin' ? 1.1 : 0.7);
     return v;
   }
 

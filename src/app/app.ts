@@ -222,7 +222,7 @@ export class App {
       if (r.kind === 'dead' && r.killer !== 'mother') this.audio.play('mus_gameover', { gain: 0.9 });
       this.screens.results({
         won: r.kind === 'won',
-        text: r.kind === 'won' ? S.quotaMet : S.deaths[r.killer as MonsterId | 'mother'],
+        text: r.kind === 'won' ? S.quotaMet : r.cause === 'lullaby' ? S.deaths.lullaby : S.deaths[r.killer as MonsterId | 'mother'],
         caught: r.stats.caught,
         fed: r.stats.fed,
         lore: r.stats.lore.length,
