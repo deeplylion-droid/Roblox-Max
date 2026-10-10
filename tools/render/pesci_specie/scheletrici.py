@@ -350,7 +350,7 @@ def _mat_vetro(c, nome, tinta, alfa=0.08, bordo=0.45, fascia=None, argento=(0.86
         v0, v1 = fascia
         fa = g.mul(g.smoothstep(v0 - 0.05, v0 + 0.02, v), g.smoothstep(v1 + 0.05, v1 - 0.02, v))
         col = g.mix(fa, tinta, argento)
-        a = g.mx(a, g.mul(fa, 0.95))
+        a = g.mx(a, g.mul(fa, 0.82))
         metal = g.mul(fa, 0.4)
         rough = g.mixf(fa, 0.12, 0.28)
         velo = g.mul(fa, 300.0)              # il velo iridescente dell'argento dei pesci
@@ -591,25 +591,32 @@ SPECIE['bogossa'] = Specie(
 # Piccolo e slanciato, il muso a punta con la bocca protrattile, la dorsale lunga, la coda forcuta; da vivo la
 # macchia scura sul fianco sopra la pettorale. Da scheletro: «pulito come se l'avessero mangiato con calma, un
 # boccone alla volta» → ossa pulitissime e chiare (niente pelle, niente peduncolo, le ossa senza sporco) e i
-# segni regolari dei morsi: archi tondi tolti uno dopo l'altro al bordo del ventre e sopra la coda.
+# segni regolari dei morsi, tutti uguali: due mezzelune nella dorsale e una nell'anale (nella sagoma delle
+# pinne, dove i raggi sono fitti e l'arco si legge), una fila lungo le costole del ventre, una sulla nuca.
 _MORSO = 0.046          # il raggio dei morsi dello zerro: tutti uguali, un boccone alla volta
 
 
 def _morsi_zerossa(body):
-    """I morsi dello zerro, (x, z, raggio) sul fianco: quattro in fila lungo il ventre, uno sopra la coda."""
+    """I morsi dello zerro sulle ossa, (x, z, raggio) sul fianco: quattro in fila lungo il ventre."""
     R = _MORSO
-    m = [(x, float(body.bot(np.array([x], F))[0]) + R * 0.12, R) for x in (0.3, 0.375, 0.45, 0.525)]
-    return m + [(0.86, float(body.top(np.array([0.86], F))[0]) + R * 0.2, R * 0.85)]
+    return [(x, float(body.bot(np.array([x], F))[0]) + R * 0.15, R) for x in (0.3, 0.375, 0.45, 0.525)]
 
 
 def _morso_nuca(c, f):
     """campo: un morso tondo e netto dalla nuca del cranio (un cilindro di traverso, come i morsi della lisca)."""
-    x = _x_cranio(c) - 0.02
-    z = float(c.body.top(np.array([x], F))[0]) + _MORSO * 0.25
+    x, R = 0.165, _MORSO * 0.68
+    z = float(c.body.top(np.array([x], F))[0]) + R * 0.3
 
     def g(p):
-        return np.maximum(f(p), -(np.sqrt((p[:, 0] - x) ** 2 + (p[:, 2] - z) ** 2) - _MORSO * 0.8)).astype(F)
+        return np.maximum(f(p), -(np.sqrt((p[:, 0] - x) ** 2 + (p[:, 2] - z) ** 2) - R)).astype(F)
     return g
+
+
+def _mezzaluna(f0, f1, alta, fondo, n=7):
+    """La sagoma di un morso nel bordo di una pinna (lungo, fuori): un arco da (f0, alta) a (f1, alta) che
+    scende fino a `fondo` in mezzo."""
+    fm, r = (f0 + f1) / 2, (f1 - f0) / 2
+    return [(fm + r * math.cos(a), fondo + (alta - fondo) * (1 - math.sin(a))) for a in np.linspace(math.pi, 0, n)]
 
 
 def _extra_zerossa(c):
@@ -630,9 +637,10 @@ SPECIE['zerossa'] = Specie(
              (0.76, -0.046), (0.9, -0.029), (1, -0.022)],
         w=[(0, 0.004), (0.05, 0.02), (0.15, 0.033), (0.35, 0.037), (0.6, 0.03), (0.85, 0.016), (1, 0.01)],
         eye_t=0.09, eye_z=0.016, eye_r=0.024, mouth_t=0.07, mouth_z0=-0.01, mouth_z1=-0.024, gill_t=0.23,
-        fins=[Fin('dorsal', 0.3, 0.76, [(0, 0), (0.06, 0.9), (0.22, 1.0), (0.45, 0.75), (0.55, 0.62), (0.7, 0.7), (0.9, 0.6),
-                                        (1, 0.06)], 0.08, 26, spiny=True),
-              Fin('anal', 0.58, 0.77, [(0, 0), (0.1, 0.8), (0.5, 0.6), (0.9, 0.5), (1, 0.05)], 0.05, 14),
+        fins=[Fin('dorsal', 0.3, 0.76, [(0, 0), (0.06, 0.9), (0.14, 1.0)] + _mezzaluna(0.18, 0.4, 0.95, 0.3)
+                  + _mezzaluna(0.5, 0.72, 0.72, 0.22) + [(0.8, 0.68), (0.9, 0.6), (1, 0.06)], 0.08, 34, spiny=True),
+              Fin('anal', 0.58, 0.77, [(0, 0), (0.1, 0.8)] + _mezzaluna(0.22, 0.7, 0.68, 0.18) + [(0.85, 0.52), (1, 0.05)],
+                  0.05, 18),
               Fin('caudal', 1.0, 1.0, coda_forcuta(1.6, 0.28), 0.22, 18),
               Fin('pectoral', 0.24, 0.25, PETTORALE, 0.09, 10),
               Fin('pelvic', 0.3, 0.31, PELVICA, 0.055, 6, spiny=True)]),
@@ -665,8 +673,8 @@ SPECIE['occhiata_vuota'] = Specie(
     aspetto=Look(back=(0.2, 0.23, 0.25), flank=(0.48, 0.51, 0.53), belly=(0.72, 0.72, 0.7), fin=(0.18, 0.2, 0.22),
                  iris=(0.7, 0.66, 0.5), metal=0.5, irid=0.3,
                  disegni=[Disegno('strisce', colore=(0.18, 0.2, 0.22), forza=0.35, v0=-0.5, v1=0.7, n=8, larghezza=0.025),
-                          Disegno('ocello', colore=(0.008, 0.008, 0.01), colore2=(0.93, 0.92, 0.88), u=0.935, v=0.02,
-                                  r=0.03, allungamento=1.25)]),
+                          Disegno('ocello', colore=(0.006, 0.006, 0.008), colore2=(0.95, 0.94, 0.9), u=0.935, v=0.0,
+                                  r=0.035, allungamento=1.2)]),
     famiglia='skeletal', piano='fusiforme', opzioni=dict(occhi=False, peduncolo=0.86))
 
 
@@ -744,8 +752,8 @@ def _extra_ago(c):
              (xf - 0.013, -0.006, zc - 0.065), (xf - 0.004, -0.004, zc - 0.1), (xf + 0.014, -0.003, zc - 0.118)]
     filo = _Ossa()
     pts = _curva(c, corto + lungo, 60)
-    filo.spezzata(pts, 0.0016, 0.0016, passo=0.004)
-    filo.nodo(pts[-1], 0.0027)
+    filo.spezzata(pts, 0.0019, 0.0019, passo=0.004)
+    filo.nodo(pts[-1], 0.003)
     rosso = c.P.materiale('FiloRosso', (0.5, 0.02, 0.025), rough=0.55, coat=0.2, sss=0.1)
     c.obs.append(filo.oggetto(c, 'Filo', rosso, res=0.0005))
 

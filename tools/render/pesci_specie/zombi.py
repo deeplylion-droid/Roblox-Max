@@ -1721,7 +1721,7 @@ def _chimera_piange(c):
             return np.maximum(d, fuori).astype(F32)
         c.obs.append(P.oggetto_sdf(f'Palpebre{k}', palpebre, ec - r * 1.4, ec + r * 1.4, pelle, res=_res(c, 0.0004, 0.0006)))
     # le lacrime grigie, dall'occhio sinistro (quello verso la camera) fin sotto il mento
-    grigio = P.materiale('LacrimeGrigie', (0.11, 0.11, 0.105), rough=0.08, coat=1.0, sss=0.2)
+    grigio = P.materiale('LacrimeGrigie', (0.13, 0.13, 0.125), rough=0.08, coat=1.0, sss=0.2)
     ec, r, _ = b.occhi_lista()[0]
     for k, (dt, fino) in enumerate(((-0.008, 1.0), (0.012, 0.75))):
         t0 = float(ec[0]) + dt
@@ -1736,12 +1736,13 @@ def _chimera_piange(c):
             p, n = b.superficie(t, v, -1)
             pts.append(p + n * 0.0016)
         for j in range(11):
+            # la colatura s'ingrossa scendendo, a grumi
             A.append(pts[j])
             B.append(pts[j + 1])
-            R1.append(0.0028 + 0.0012 * (j % 4 == 2))
-            R2.append(0.0028 + 0.0012 * ((j + 1) % 4 == 2))
+            R1.append(0.0034 + 0.0003 * j + 0.0014 * (j % 4 == 2))
+            R2.append(0.0034 + 0.0003 * (j + 1) + 0.0014 * ((j + 1) % 4 == 2))
         fs, lo, hi = P.campo_coni(A, B, R1, R2)
-        goccia = P.drip(pts[-1], 0.006 + 0.004 * k, r0=0.0026, r1=0.0042, dir=(0.1, -0.15, -1.0))
+        goccia = P.drip(pts[-1], 0.008 + 0.005 * k, r0=0.0036, r1=0.0058, dir=(0.1, -0.15, -1.0))
         c.obs.append(P.oggetto_sdf(f'Lacrima{k}', lambda q, fs=fs, goccia=goccia: np.minimum(fs(q), goccia(q)).astype(F32),
                                    lo - 0.03, hi + 0.03, grigio, res=0.0005))
 
@@ -1781,14 +1782,17 @@ SPECIE['chimera_bianca'] = Specie(
 _CAPOMORTO_PROF = 0.009     # quanto sono profonde le fessure aperte
 
 
-_CAPOMORTO_APERTE = (1.0, 0.7, 1.15, 0.85, 1.05, 0.65)     # quanto è spalancata ogni fessura (marce, non in fila)
+# ogni fessura marcisce a modo suo: (quanto è spalancata, quanto è lunga, quanto è storta)
+_CAPOMORTO_MARCE = ((1.0, 1.0, 0.0), (0.7, 0.86, 0.012), (1.2, 1.05, -0.008), (0.85, 0.78, 0.016), (1.1, 0.95, -0.012),
+                    (0.65, 0.82, 0.006))
 
 
 def _fessure_capomorto(c):
-    """Le sei fessure come in Body.field: (t, mezza altezza in v, quanto è aperta); x = t − 0.01·v, centrate su
-    v = −0.08."""
+    """Le sei fessure come in Body.field (x = t − 0.01·v, centrate su v = −0.08), ognuna marcita a modo suo:
+    (t, mezza altezza in v, quanto è aperta, quanto pende)."""
     sh = c.forma
-    return [(sh.gill_t + i * sh.passo_branchie, 0.62 - 0.03 * i, _CAPOMORTO_APERTE[i]) for i in range(sh.n_branchie)]
+    return [(sh.gill_t + i * sh.passo_branchie, (0.62 - 0.03 * i) * lunga, aperta, storta)
+            for i, (aperta, lunga, storta) in enumerate(_CAPOMORTO_MARCE[:sh.n_branchie])]
 
 
 def _campo_capomorto(c, f):
@@ -1807,12 +1811,12 @@ def _campo_capomorto(c, f):
         zc, h, _ = b.section(np.clip(q[:, 0], 0, 1))
         v = (q[:, 2] - zc) / h
         sy = b.surface_y(q[:, 0], q[:, 2])
-        nz = n3(q, scale=0.005, octaves=2)
+        nz = n3(q, scale=0.0035, octaves=3)
         dd = d[m]
-        for xi, alt, aperta in fes:
+        for xi, alt, aperta, storta in fes:
             u = (v + 0.08) / alt
-            larg = 0.0042 * aperta * np.sqrt(np.clip(1 - u * u, 0, 1)) + 0.0012 * nz
-            slot = np.maximum(np.abs(q[:, 0] - (xi - 0.01 * v)) - larg, (np.abs(v + 0.08) - alt) * h)
+            larg = 0.0042 * aperta * np.sqrt(np.clip(1 - u * u, 0, 1)) + 0.0016 * nz
+            slot = np.maximum(np.abs(q[:, 0] - (xi - (0.01 + storta) * v)) - larg, (np.abs(v + 0.08) - alt) * h)
             slot = np.maximum(slot, (sy - _CAPOMORTO_PROF) - np.abs(q[:, 1]))
             dd = sdf.smax(dd, -slot, 0.0012)
         d = d.copy()
@@ -1822,11 +1826,30 @@ def _campo_capomorto(c, f):
 
 
 def _capomorto(c):
-    """Gli occhi verdi e velati, e la carne rossa in fondo alle fessure (le lamelle)."""
+    """Gli occhi verdi e velati, la carne rossa in fondo alle fessure (le lamelle) e l'alone scuro del marcio
+    attorno alle fessure."""
     P, b = c.P, c.body
     _occhi(c, _mat_occhio(c, 'OcchioVerdeMorto', sclera=(0.2, 0.32, 0.22), sclera2=(0.3, 0.44, 0.3), iride=(0.3, 0.6, 0.36),
                           pupilla=(0.35, 0.5, 0.4), iride_r=0.8, pupilla_r=0.4, velo=0.5, velo_col=(0.62, 0.72, 0.62)))
     fes = _fessure_capomorto(c)
+    n3 = P.sdf.Noise3(240)
+
+    def alone(q):
+        """Un anello attorno a ogni fessura: 0 dentro (non la deve coprire), 1 appena fuori dal bordo, sfuma in
+        1 cm, a chiazze."""
+        x = q[:, 0]
+        zc, h, _ = b.section(np.clip(x, 0, 1))
+        v = (q[:, 2] - zc) / h
+        out = np.zeros(len(q), F32)
+        for xi, alt, aperta, storta in fes:
+            u = (v + 0.08) / alt
+            dx = np.abs(x - (xi - (0.01 + storta) * v)) - 0.0042 * aperta * np.sqrt(np.clip(1 - u * u, 0, 1))
+            bordo = np.maximum(dx, (np.abs(v + 0.08) - alt) * h)
+            out = np.maximum(out, np.clip((bordo - 0.0022) / 0.001, 0, 1) * np.clip(1.0 - bordo / 0.011, 0, 1))
+        return (out * np.clip(0.6 + n3(q, scale=0.006, octaves=2), 0, 1)).astype(F32)
+    marcio = _mat_grumi(c, 'MarcioBranchie', chiaro=(0.12, 0.1, 0.07), scuro=(0.035, 0.03, 0.02), scala=90.0, rough=0.4,
+                        coat=0.7, rilievo=0.4)
+    c.obs.append(_crosta(c, 'AloneBranchie', marcio, 0.0009, alone, res=_res(c, 0.0006, 0.001)))
 
     def lamelle(q):
         x = q[:, 0]
@@ -1834,14 +1857,14 @@ def _capomorto(c):
         v = (q[:, 2] - zc) / h
         sy = b.surface_y(x, q[:, 2])
         d = np.full(len(q), 10.0, F32)
-        for xi, alt, aperta in fes:
-            s = np.maximum(np.abs(x - (xi - 0.01 * v)) - 0.0062 * aperta, (np.abs(v + 0.08) - alt * 0.96) * h)
+        for xi, alt, aperta, storta in fes:
+            s = np.maximum(np.abs(x - (xi - (0.01 + storta) * v)) - 0.0064 * aperta, (np.abs(v + 0.08) - alt * 0.96) * h)
             s = np.maximum(s, np.abs(np.abs(q[:, 1]) - (sy - _CAPOMORTO_PROF * 0.8)) - 0.0016 - 0.0007 * np.sin(q[:, 2] * 900.0))
             d = np.minimum(d, s)
         return d.astype(F32)
     lo, hi = b.bounds(pad=0.004, solo_corpo=True)
     lo[0], hi[0] = fes[0][0] - 0.03, fes[-1][0] + 0.03
-    c.obs.append(P.oggetto_sdf('Lamelle', lamelle, lo, hi, P.flesh_material('BranchieRosse', color=(0.27, 0.035, 0.035)),
+    c.obs.append(P.oggetto_sdf('Lamelle', lamelle, lo, hi, P.flesh_material('BranchieRosse', color=(0.2, 0.028, 0.028)),
                                res=_res(c, 0.0006, 0.001)))
 
 

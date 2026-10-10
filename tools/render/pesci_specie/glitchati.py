@@ -287,7 +287,8 @@ def _sbavata(img, c):
     fuori = np.clip((a_s - a) * 1.5, 0, 0.92)
     scia = np.concatenate([y_s[..., None] * 0.8 + 0.12, arc], axis=2) @ _RGB.T
     nuovo_a = a + fuori * (1 - a)
-    out[..., :3] = (out[..., :3] * a[..., None] + scia * fuori[..., None] * (1 - a[..., None])) / np.maximum(nuovo_a, 1e-5)[..., None]
+    somma = out[..., :3] * a[..., None] + scia * fuori[..., None] * (1 - a[..., None])
+    out[..., :3] = somma / np.maximum(nuovo_a, 1e-5)[..., None]
     out[..., 3] = nuovo_a
     return out
 
@@ -850,7 +851,8 @@ def _scintille(img, c):
     luce = core[..., None] * np.array((0.85, 0.95, 1.0), np.float32) + alone[..., None] * np.array((0.25, 0.55, 1.0), np.float32)
     a = np.clip(np.maximum(core, alone * 0.75), 0, 1)
     nuova = a + out[..., 3] * (1 - a)
-    out[..., :3] = (np.clip(luce, 0, 1) * a[..., None] + out[..., :3] * out[..., 3:4] * (1 - a[..., None])) / np.maximum(nuova, 1e-5)[..., None]
+    somma = np.clip(luce, 0, 1) * a[..., None] + out[..., :3] * out[..., 3:4] * (1 - a[..., None])
+    out[..., :3] = somma / np.maximum(nuova, 1e-5)[..., None]
     out[..., 3] = nuova
     return out
 
@@ -947,7 +949,8 @@ SPECIE['anguilla_smagnetizzata'] = Specie(
 # grandi (il reticolo); la femmina: grigio sul dorso, rosso vivo sui fianchi e sulla testa, la macchia scura
 # all'attacco della pettorale e la macchia gialla in alto sul peduncolo.
 # Il glitch: «ripete sempre gli stessi tre secondi… apre la bocca, la chiude» → due pose sovrapposte: il
-# ritocco rende una seconda volta il pesce con la bocca aperta (e il becco che si apre) e la mette sopra.
+# ritocco rende una seconda volta il pesce con la bocca aperta (e il becco che si apre); la testa a bocca aperta
+# spunta sotto quella chiusa, e attorno alla bocca le due pose si alternano a strisce (il nastro inceppato).
 def _becco_pappagallo(c):
     """Il becco: due placche di dente bianco-verdino sopra e sotto il taglio della bocca; quella di sotto si chiama
     BeccoPappagallo1 (il ritocco la gira con la mascella)."""
@@ -963,7 +966,8 @@ def _becco_pappagallo(c):
 def _in_loop(img, c):
     """ritocco: la seconda posa. Si costruisce un altro corpo con la mascella abbassata (stessa posa e stessa
     inquadratura del primo, che si nasconde), la placca di sotto del becco gira con lei attorno alla cerniera, si
-    rende di nuovo, si glitcha come la prima e la si mette sopra, mezza trasparente e appena spostata."""
+    rende di nuovo (il render del pappagallo costa il doppio) e si glitcha come la prima; la sua testa va sotto la
+    prima, un poco in basso e indietro, e attorno alla bocca le due pose si alternano a strisce."""
     import os
 
     from mathutils import Matrix, Vector
@@ -990,8 +994,6 @@ def _in_loop(img, c):
     seconda = np.asarray(Image.open(percorso).convert('RGBA'), np.float32) / 255.0
     os.remove(percorso)
     seconda = P.glitch_post(seconda, **{k: v for k, v in c.specie.opzioni.items() if k != 'elementi'})
-    # le due pose insieme: la seconda velata sopra la prima, appena spostata e più fredda; e attorno alla bocca
-    # strisce orizzontali alternate dell'una e dell'altra, come il nastro inceppato fra due fotogrammi
     (bx,), (by,) = _proietta(c, [(0.02, 0.0, c.forma.mouth_z1)])
     ex, ey, _ = _occhio_img(c)
     # la testa della seconda posa (a bocca aperta), staccata un poco in basso e indietro, velata e più fredda: si
@@ -1100,10 +1102,10 @@ SPECIE['leccia_senza_segnale'] = Specie(
 # con i puntini e il bordo azzurri, aperte di lato; corpo bruno-rossiccio puntinato, coda appena forcuta.
 # Il glitch: «non sta mai tutta nell'inquadratura: un pezzo esce sempre dal bordo. Il pezzo che manca, nel
 # secchio, si muove» → l'inquadratura più grande del fotogramma lo fa uscire a destra e in alto (Ritratto), e
-# vicino al bordo l'immagine si strappa a fette, come se il pezzo di fuori tirasse (ritocco).
+# vicino al bordo destro, dove esce la coda, l'immagine si strappa a fette come se il pezzo di fuori si
+# muovesse (ritocco).
 def _fuori_quadro(img, c):
-    """ritocco: nell'ultimo quinto a destra e nel primo ottavo in alto (dove il pesce esce) le fasce scorrono di
-    lato, sempre di più verso il bordo."""
+    """ritocco: nell'ultimo quinto a destra (dove esce la coda) una fascia su due scorre di lato."""
     rng = np.random.default_rng(162)
     H, W = img.shape[:2]
     out = img.copy()
@@ -1217,9 +1219,7 @@ def _festa_di_compleanno(img, c):
     H, W = img.shape[:2]
     x0, x1, y0, y1 = _sagoma(img)
     cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
-    S = 2
-    tela = Image.new('RGB', (W * S, H * S), (0, 0, 0))
-    d = ImageDraw.Draw(tela)
+    S = 2                                   # disegnata al doppio e rimpicciolita: bordi morbidi
     # la stanza: buio caldo, più chiaro attorno alla torta
     yy, xx = np.mgrid[0:H * S, 0:W * S].astype(np.float32)
     tx, ty = (cx - W * 0.04) * S, (cy + H * 0.06) * S
@@ -1263,7 +1263,8 @@ def _festa_di_compleanno(img, c):
     d.ellipse([fx - fr * 0.78, fy - fr, fx + fr * 0.78, fy + fr], fill=(196, 140, 110))
     d.chord([fx - fr * 0.85, fy - fr * 1.15, fx + fr * 0.85, fy + fr * 0.4], 180, 360, fill=(50, 32, 20))
     for sx in (-1, 1):
-        d.ellipse([fx + sx * fr * 0.32 - fr * 0.1, fy - fr * 0.05, fx + sx * fr * 0.32 + fr * 0.1, fy + fr * 0.15], fill=(25, 15, 12))
+        ox = fx + sx * fr * 0.32
+        d.ellipse([ox - fr * 0.1, fy - fr * 0.05, ox + fr * 0.1, fy + fr * 0.15], fill=(25, 15, 12))
     d.ellipse([fx - fr * 0.22, fy + fr * 0.42, fx + fr * 0.22, fy + fr * 0.62], fill=(110, 40, 40))
     # la data della videocamera
     try:

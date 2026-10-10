@@ -157,6 +157,16 @@ class _Scavi:
         """La carne viva sui vertici: 1 sulle pareti dei pezzi tolti, che sfuma in `bordo` sulla pelle attorno."""
         return np.clip(1.0 - self.g(V) / bordo, 0.0, 1.0)
 
+    def fondo(self, c, da=0.003, scala=0.008):
+        """Il fondo delle ferite profonde, più scuro: per l'attributo 'mouth' (il colore dell'interno della bocca,
+        Look.bocca_col, che il materiale stende sopra la carne). Quanto il vertice sta sotto la pelle di prima, solo
+        sulla carne viva."""
+        base = c.body.base()
+
+        def fn(V):
+            return (np.clip((-base(V) - da) / scala, 0, 1) * (self.carne(V) > 0.5)).astype(F)
+        return fn
+
 
 def _colature(sorgenti, lato=-1, seme=0.0):
     """Il sangue che cola sulla pelle (per l'attributo 'blood'): da ogni sorgente (punto, larghezza, lunghezza,
@@ -504,6 +514,7 @@ def _serrasangue(c):
     """La carne viva nei morsi e nei fori dei denti, il sangue che cola da ciascuno, le gocce."""
     s = _cache(c, 'scavi', _geo_serrasangue)
     _dipingi(c, 'wound', s.carne)
+    _dipingi(c, 'mouth', s.fondo(c))
     _dipingi(c, 'blood', _colature([(lo, 0.0055, 0.06 + R, 0.95) for _, lo, R in s.fondo] +
                                    [(p0, R * 0.45, R * 0.8, 0.4) for p0, _, R in s.fondo[4:]]))
     for k in (0, 1, 4, 5):
@@ -635,6 +646,7 @@ def _pagro(c):
     s = _cache(c, 'scavi', _geo_pagro)
     sh, body = c.forma, c.body
     _dipingi(c, 'wound', s.carne)
+    _dipingi(c, 'mouth', s.fondo(c))
     n3 = c.P.sdf.Noise3(4)
 
     def velo(V):
@@ -1007,6 +1019,7 @@ def _palamita(c):
     P = c.P
     s = _cache(c, 'scavi', _geo_palamita)
     _dipingi(c, 'wound', s.carne)
+    _dipingi(c, 'mouth', s.fondo(c))
     giu = s.labbro_giu
     _dipingi(c, 'blood', _colature([(giu[i], 0.006, 0.07 + 0.03 * (i % 3), 0.95) for i in range(3, len(giu) - 2, 4)]))
     _dipingi(c, 'blood', _lungo(giu[2:-2], 0.006, 0.8))
@@ -1509,6 +1522,7 @@ def _pilota(c):
     """La carne viva nel morso, il sangue che cola dall'orlo di sotto lungo il fianco, le gocce."""
     s = _cache(c, 'scavi', _geo_pilota)
     _dipingi(c, 'wound', s.carne)
+    _dipingi(c, 'mouth', s.fondo(c))
     bassi = sorted(s.orlo, key=lambda p: p[2])[:8]
     _dipingi(c, 'blood', _colature([(p, 0.007, 0.11, 1.0) for p in bassi[::2]]))
     for k, p in enumerate(bassi[::3]):
@@ -1630,6 +1644,7 @@ def _verdesca(c):
     P, body, sh = c.P, c.body, c.forma
     s = _cache(c, 'scavi', _geo_verdesca)
     _dipingi(c, 'wound', s.carne)
+    _dipingi(c, 'mouth', s.fondo(c))
     sorgenti = []
     for bordo in s.squarci:
         for p in bordo[4:-1:3]:
@@ -1928,6 +1943,7 @@ def _tonno(c):
     P, body = c.P, c.body
     s = _cache(c, 'scavi', _geo_tonno)
     _dipingi(c, 'wound', s.carne)
+    _dipingi(c, 'mouth', s.fondo(c))
     ferro = _ruggine(c)
     legno = P.materiale('LegnoRaffio', (0.2, 0.12, 0.06), rough=0.75, coat=0.1)
     E1, n1 = body.superficie(0.36, 0.55, -1)
