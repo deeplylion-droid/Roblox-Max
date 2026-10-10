@@ -10,9 +10,9 @@ lucine (i fotofori) lungo il ventre e sotto la mascella. Da bambino giocava a Ma
 sempre: gli occhialini da piscina con le lenti dipinte di nero gli sono rimasti incastrati nella faccia, la carne ci è
 cresciuta attorno. Ora è cieco e caccia a orecchio.
 
-La testa è la A «Sciabola» della tavola (teste_fangy.fangy_a) e il corpo è quello della tavola, presi così come sono
-(stesse misure, stessi occhialini, stesse zanne); qui la testa guarda il pescatore e si gira sul collo, le lucine sono
-una per oggetto e la pelle è tagliata in due mesh più fini. Colori approvati (10 ottobre), quelli della tavola: blu
+La testa è la A «Sciabola» della tavola (teste_fangy.fangy_a) e il corpo è quello della tavola, con le stesse misure,
+gli stessi occhialini e le stesse zanne; qui la testa non è china ma punta la faccia sul pescatore e si gira sul collo,
+le lucine sono una per oggetto e la pelle è tagliata in due mesh più fini. Colori approvati (10 ottobre), quelli della tavola: blu
 notte quasi nero, più scuro sul dorso e più chiaro sul ventre, le lucine azzurro-ciano, la montatura gialla degli
 occhialini con le lenti nere, le zanne pallide.
 
@@ -168,7 +168,8 @@ def luce_material(luci):
     k = min(max(float(luci), 0.0), 1.0)
     if k >= 0.999:
         return TF.luce_material()
-    return D.glow(f'FangyLight{int(round(k * 100)):03d}', tuple(c * k for c in TF.LUCE), 16.0 * k + 1e-4, base=(0.45, 0.90, 1.0))
+    return D.glow(f'FangyLightSpenta{int(round(k * 100)):03d}', tuple(c * k for c in TF.LUCE), 16.0 * k + 1e-4,
+                  base=(0.45, 0.90, 1.0))
 
 
 # ───────────────────────── costruzione ─────────────────────────

@@ -178,6 +178,28 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
   agganciato lei: risale la lenza fino alla canna, jumpscare. Se aspetti, lascia la lenza e sparisce.
 - **Il segnale** (scelto): tutti e due, il ritmo perfetto e la risatina.
 - **Sagoma** (scelta): C «Sanguisuga», un arco di carne attaccato alla lenza per i due capi, ma più grosso.
+- **Testa** (scelta): B «Bacio», il cranio da neonato sotto la cuffia, gli occhi tondi senza palpebre; la ventosa
+  è una bocca enorme a bacio con gli anelli di denti da latte.
+- **Modello e posa** (*da approvare*, 10 ottobre; `tools/render/lampy.py`, posa `lampy_lenza` in
+  `scena_creature.py`, anteprime `docs/concept/pose_lampy.jpg`, `pose_lampy_vicino.jpg`, `lampy_vetrina.jpg`):
+  sta sulla lenza a destra della prua, oltre la punta della canna. La bocca, dove le entra la lenza, è a 43°
+  dall'occhio, a 6 m e a 1,2 m sopra l'acqua; la ventosa della coda tiene la lenza a un palmo dall'acqua, a 55°.
+  L'arco si vede quasi di profilo e la faccia guarda il pescatore. A 43° la canna le passa a sinistra della faccia
+  senza coprirla, e la boa verde (38°) resta staccata a sinistra della testa: più vicina, la boa lampeggiava tra la
+  faccia e l'arco e il suo riflesso le scendeva dalla bocca come bava luminosa. Lì nelle altre notti non c'è
+  nessuno: Archie sta tra la lampara e la canna e molto più in alto, Molly sul bordo di destra da 59°. La testa è
+  la B rifinita e un po' più grande, perché la faccia resti la prima cosa che si legge; il corpo è quello della
+  tavola, un poco più grosso, e tutta Lampy è più grande del modello (1,15). L'orlo della cuffia passa sopra la nuca
+  e il collo esce da sotto, come da una cuffia vera; i fiori sono più fitti sulla fronte. Nel gioco sta nello spazio
+  della barca: la lenza parte dalla canna.
+- **La lenza nel gioco** (*da approvare*): la disegna il motore come sempre, ma per i punti della posa: dalla punta
+  della canna alla bocca, sotto l'arco fino alla ventosa della coda, poi giù in mare (`scena_creature.lampy_lenza_punti`;
+  dall'occhio in `tools/render/cache/lampy_posa.json`). Lampy ha tirato la lenza: il galleggiante è sott'acqua.
+- **Sulla barca** (l'animazione proposta: apre e chiude piano la ventosa, con gli anelli di denti che girano): nel
+  modello ci sono le due parti, `bocca` (da 0, chiusa a bacio stretto sulla lenza, a 1, spalancata a disco come
+  quella della lampreda; nella posa 0,5, la bocca della tavola) e `denti_giro` (gradi: gli anelli vicini girano in
+  versi opposti, come una macina). Cambia solo la testa, il corpo resta lo stesso: le toppe si fanno come per Robin.
+  La vetrina mostra la ventosa chiusa, a riposo e spalancata.
 
 ### Notte 5 · Fangy — *STARE ZITTI*
 
@@ -194,3 +216,21 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
   Se resti fermo abbastanza se ne va. Ogni rumore lo fa venire più vicino; al terzo, jumpscare.
 - **Perché funziona**: va contro tutto il resto. Se in quel momento abbocca un pesce lo devi lasciar
   andare; se arriva Gulpy, tirargli un pesce fa rumore.
+- **Testa** (scelta): A «Sciabola», il testone del pesce dente di sciabola con le zanne del pesce vipera fuori dalla
+  bocca, le fossette per sentire, gli occhialini affondati nella carne.
+- **Modello e posa** (*da approvare*, 10 ottobre; `tools/render/fangy.py`, posa `fangy_ascolta` in
+  `scena_creature.py`, anteprime `docs/concept/pose_fangy.jpg`, `pose_fangy_vicino.jpg`, `fangy_vetrina.jpg`):
+  sta nell'acqua a destra, un po' dietro il pescatore. La testa è a 112° dall'occhio e a 2 m, all'altezza del
+  capodibanda e quasi un metro fuori dalla fiancata; le nocche sono in acqua a mezzo metro dallo scafo. Dall'occhio
+  si vedono la testa e la gobba sopra il bordo, le braccia scendono dietro la fiancata. Lì nelle altre notti non c'è
+  nessuno: Molly arriva fino a 94°, Hatch e il sonar stanno a poppa, la canna e la lenza (con Lampy) davanti a
+  destra. La testa e il corpo sono quelli della tavola, un po' più grandi (1,12); la testa però non è china:
+  punta la faccia sul pescatore, gli occhialini ciechi fissi su di lui (china come nella tavola, vista dall'alto la
+  visiera ossea gli nascondeva le lenti nere). Nel gioco sta nel mondo, come Hatch: la barca non la tocca.
+- **Sulla barca** (l'animazione proposta: gira la testa di scatto verso ogni rumore e le lucine si accendono in fila):
+  nel modello la testa gira sul collo (`testa`, gradi; cambia solo la testa, il corpo resta lo stesso, quindi le
+  toppe si fanno come per Robin) e le lucine sono una per oggetto, 54 in fila: il ventre dalla gola verso l'acqua,
+  poi la mandibola e le guance. Ognuna porta la sua fila e il suo centro, e la posa le elenca dall'occhio
+  (`tools/render/cache/fangy_posa.json`): il motore le può accendere una dopo l'altra e farle pulsare come gli
+  occhi. Da decidere: nello strato le lucine accese, come adesso, o spente (`luci`), lasciando tutta la luce al
+  motore. La vetrina mostra la testa girata dalle due parti e le lucine spente.

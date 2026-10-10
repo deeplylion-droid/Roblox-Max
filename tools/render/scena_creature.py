@@ -299,9 +299,9 @@ def archie_soffia(srotolata=0.0, fiato=0.0):
 
 # Lampy (lampy.py) aggrappata alla lenza vicino al pelo dell'acqua, ad arco: la lenza le entra in bocca, passa sotto
 # l'arco e la ventosa della coda la tiene a un palmo dall'acqua; da lì il filo scende in mare (il galleggiante, tirato
-# sotto, non si vede). Sta dove nel gioco c'è la lenza, a destra della prua oltre la punta della canna (30°), più
-# lontana e più bassa della punta; l'arco si vede quasi di profilo (girato di LAMPY_GIRO, la coda verso il largo) e la
-# faccia guarda il pescatore. A 43° la canna, che all'altezza della testa sta tra 31° e 34°, le passa a sinistra della
+# sotto, non si vede). Sta a destra della prua, oltre la punta della canna (30°), più lontana e più bassa della punta;
+# ha tirato la lenza un po' a destra di dove va di solito (il galleggiante sta a 40°). L'arco si vede quasi di profilo
+# (girato di LAMPY_GIRO, la coda verso il largo) e la faccia guarda il pescatore. A 43° la canna, che all'altezza della testa sta tra 31° e 34°, le passa a sinistra della
 # faccia senza coprirla, e la boa verde (37,7°, 2° sopra l'orizzonte) col suo riflesso sull'acqua resta a sinistra
 # della testa: più vicina, la boa lampeggiava tra la faccia e l'arco e il riflesso le scendeva dalla bocca come bava
 # luminosa. Lì nelle altre notti non c'è nessuno: Archie sta tra la lampara e la canna e molto più in alto, Molly sul
@@ -353,9 +353,9 @@ def lampy_lenza(bocca=None, denti_giro=0.0):
 # Fangy (fangy.py) nell'acqua accanto alla barca, a destra e un po' dietro il pescatore: curvo e basso, le nocche in
 # acqua a mezzo metro dallo scafo, la testa spinta avanti verso di lui (verso il rumore). Dall'occhio si vedono la
 # testa con le zanne e gli occhialini e la gobba sopra il bordo; le braccia scendono dietro la fiancata. Sta dove nelle
-# altre notti non c'è nessuno: tra Molly (sul bordo di destra, fino a 94° con la mano) e la poppa (Hatch e il
-# sonar, oltre 165°); la canna e la lenza stanno davanti a destra (30-45°), Lampy con loro. Sta nel mondo, non sulla
-# barca (come Hatch): non la tocca.
+# altre notti non c'è nessuno: tra Molly (sul bordo di destra, fino a 94°) e la poppa (Hatch e il sonar, oltre 165°);
+# la canna e la lenza stanno davanti a destra (30-45°), Lampy con loro. Sta nel mondo, non sulla barca (come Hatch):
+# non la tocca.
 FANGY_YAW = 112.0      # gradi: dove sta la testa, dall'occhio
 FANGY_DIST = 1.95      # metri, in orizzontale, dall'occhio alla testa
 FANGY_SCALA = 1.12     # più grande del modello della tavola: un mastino grosso, la testa all'altezza del bordo
