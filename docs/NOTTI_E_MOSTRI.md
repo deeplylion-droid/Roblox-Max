@@ -6,7 +6,9 @@
 > **Sagome scelte**: Robin **A «Granchio»**, Archie **C «Periscopio»**, Lampy **C «Sanguisuga»** (ma più
 > grosso), Fangy **B «Mastino»** (`docs/concept/*_sagome.png`). La batteria è approvata così; il segnale di
 > Lampy è **sia il ritmo perfetto sia la risatina**.
-> **Ancora da scegliere**: le teste dei quattro mostri. Niente di questo è ancora nel gioco.
+> **Teste scelte** (10 ottobre): Robin **B «Baffi»**, Lampy **B «Bacio»**, Fangy **A «Sciabola»**
+> (`docs/concept/*_dettagli_bozza.png`). **Archie è da rifare**: l'utente non vuole la pistola, lo vuole
+> «serpente marino che ti soffia per spegnere» (vedi la sua scheda). Colori approvati.
 
 ## Il piano delle notti
 
@@ -28,8 +30,8 @@ stessa melma. **Non parlano** (l'unica eccezione resta la conta di Hatch).
 **Colori** (richiesta dell'utente, 10 ottobre: «i mostri tutti dello stesso colore non piacciono, dobbiamo
 differenziarli come su FNAF dove ognuno ha un colore»): Gulpy, Molly e Hatch restano grigi come sono; i
 quattro nuovi hanno ognuno un colore netto. Confermato poco dopo: «un colore diverso ciascuno: rosso, giallo
-eccetera, un po' come gli animatronics», quindi tinte sature e iconiche, riconoscibili anche al buio. Le tinte
-esatte si giudicano sulle tavole delle teste (*da approvare*):
+eccetera, un po' come gli animatronics», quindi tinte sature e iconiche, riconoscibili anche al buio.
+**Approvati** sulle tavole delle teste (anche la montatura gialla degli occhialini di Fangy):
 
 | Mostro | Colore | Perché |
 |---|---|---|
@@ -98,14 +100,20 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
 
 - **Sagoma** (scelta): C «Periscopio», un collo sottilissimo che sale dritto dall'acqua, la testa in cima
   piegata verso la luce.
+- **Rifatto il 10 ottobre** (nota dell'utente sulle teste: «Non mi piace, rifacciamo, la pistola non è bella,
+  troviamo un altro sistema: che sia un serpente marino e ti soffia per spegnere»). Prima era il pesce
+  arciere con la pistola ad acqua fusa nel braccio.
 
-- **Da dove viene**: il pesce arciere, che sputa getti d'acqua per far cadere gli insetti dalle foglie.
-- **Dal parco**: la pistola ad acqua arancione del negozio, fusa nel braccio.
-- **Da bambino**: sfidava tutti a duello con la pistola ad acqua. Ora **mira alla lampara**.
-- **Come si gioca**: un ticchettio sull'acqua, poi un sibilo che si carica: vuole spegnere la tua luce.
-  Devi **spegnere la lampara** prima che spari e restare al buio finché non si rituffa. Se spara con la
-  lampara accesa il vetro della lampara esplode e nel buio Archie ti è addosso: **jumpscare** (nota
-  dell'utente: non deve limitarsi a spegnerti la luce).
+- **Da dove viene**: il serpente di mare del Mediterraneo (*Ophisurus serpens*), un'anguilla lunghissima e
+  sottile col muso appuntito. Giallo a bande nere (colore approvato), come i serpenti di mare veri.
+- **Dal parco** (*proposta da approvare*): una trombetta da festa, la lingua di carta a strisce con la piuma
+  in punta che si srotola soffiando, fusa nelle labbra.
+- **Da bambino** (*proposta da approvare*): alle feste di compleanno al parco spegneva lui le candeline degli
+  altri bambini. Ora **soffia sulla lampara**.
+- **Come si gioca**: un risucchio lungo, mentre prende fiato: vuole spegnere la tua luce. Devi **spegnere la
+  lampara** prima che soffi e restare al buio finché non si rituffa. Se soffia con la lampara accesa il
+  vetro della lampara esplode e nel buio Archie ti è addosso: **jumpscare** (nota dell'utente: non deve
+  limitarsi a spegnerti la luce).
 - **Perché funziona**: è l'opposto di Robin, che con la luce scappa: la lampara diventa una scelta
   continua.
 
