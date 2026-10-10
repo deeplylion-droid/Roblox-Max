@@ -95,13 +95,14 @@ def hatch_attack():
 def robin_attack():
     import robin as ro
     # il secchio è vuoto: la mano esce dal secchio senza pesce, le arcate aggrottate; si stacca dal bordo e ti
-    # salta in faccia (la testa, larga quasi mezzo metro, si ferma a una spanna dall'occhio)
+    # salta in faccia (la testa, larga quasi mezzo metro, si ferma a due spanne dall'occhio)
     M0, kw = sc.robin_posa()
     sc.LAST_M['robin_secchio'] = M0
     obs = sc.place(ro.build(**kw, fish=False, aggrotta=1.0), M0)
     head = ro.HEAD
-    M1 = _toward_eye(M0, head, 0.40, extra_pitch=12.0)
-    aim = M0 @ Vector(tuple(map(float, head)))
+    M1 = _toward_eye(M0, head, 0.44, extra_pitch=12.0)
+    # la camera mira un po' sotto il centro della testa: alla fine nel quadro restano anche la bocca e i denti
+    aim = M0 @ Vector(tuple(float(v) for v in head + np.array((0.0, 0.0, -0.08))))
     return obs, M0, M1, aim
 
 

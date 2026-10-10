@@ -155,19 +155,26 @@ def save_webp(img: Image.Image, path: str, quality=90, lossless=False):
 
 
 def update_manifest(path: str, key: str, entry):
-    """Aggiorna una voce del manifest; 'a.b' scrive data['a']['b']."""
-    data = {}
-    if os.path.exists(path):
-        with open(path) as f:
-            data = json.load(f)
-    node = data
-    parts = key.split('.')
-    for k in parts[:-1]:
-        node = node.setdefault(k, {})
-    node[parts[-1]] = entry
+    """Aggiorna una voce del manifest; 'a.b' scrive data['a']['b']. Con un lucchetto e una scrittura atomica: più
+    render possono girare insieme e aggiornare lo stesso manifest senza perdersi le voci."""
+    import fcntl
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, 'w') as f:
-        json.dump(data, f, indent=1, sort_keys=True)
+    import tempfile
+    with open(os.path.join(tempfile.gettempdir(), 'splashland_' + os.path.basename(path) + '.lock'), 'w') as lk:
+        fcntl.flock(lk, fcntl.LOCK_EX)
+        data = {}
+        if os.path.exists(path):
+            with open(path) as f:
+                data = json.load(f)
+        node = data
+        parts = key.split('.')
+        for k in parts[:-1]:
+            node = node.setdefault(k, {})
+        node[parts[-1]] = entry
+        tmp = path + '.tmp'
+        with open(tmp, 'w') as f:
+            json.dump(data, f, indent=1, sort_keys=True)
+        os.replace(tmp, path)
 
 
 # ───────────────────────── vista prospettica dal panorama (come nel gioco) ─────────────────────────
