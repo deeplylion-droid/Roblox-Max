@@ -179,6 +179,34 @@
    "space": "boat",
    "yaw": 18.0637
   },
+  "gulpy_mascella_aperta": {
+   "base": "gulpy_pretende",
+   "passes": {
+    "ambient": {
+     "file": "gulpy_mascella_aperta_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "gulpy_mascella_aperta_lamp.webp",
+     "res": 1.0,
+     "scale": 0.28
+    },
+    "lantern": {
+     "file": "gulpy_mascella_aperta_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3992,
+    300,
+    4194,
+    963
+   ],
+   "space": "boat",
+   "yaw": -25.5929
+  },
   "gulpy_mascella_chiusa": {
    "base": "gulpy_pretende",
    "passes": {
