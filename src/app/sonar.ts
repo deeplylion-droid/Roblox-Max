@@ -43,6 +43,9 @@ export class Sonar {
     if (m.state === 'knocking' || m.present) out.push({ a: m.side === 'left' ? -75 : 75, r: m.state === 'knocking' ? 0.3 : 0.16 });
     const rb = sim.robin;
     if (rb?.present) out.push({ a: YAW.robin, r: rb.state === 'climbing' ? 0.3 : 0.15 });
+    // Archie: il collo dritto nell'acqua davanti alla prua (non sale a bordo)
+    const ar = sim.archie;
+    if (ar?.present) out.push({ a: YAW.archie, r: ar.state === 'rising' ? 0.5 : 0.4 });
     const h = sim.hatch;
     if (h.state === 'counting') out.push({ a: 180, r: 0.85 - 0.6 * h.countProgress });
     else if (h.state === 'boarding' || h.state === 'searching') out.push({ a: 180 + (h.lureX ?? 0) * 25, r: 0.12 });

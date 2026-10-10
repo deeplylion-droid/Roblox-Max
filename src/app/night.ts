@@ -77,6 +77,8 @@ const LAMP_AT: Vec3 = [0, 4.17, 0.55];
 const GAUGE_LIGHT = 0.6;
 /** dove si sente Robin: steso sul bordo di sinistra verso prua, le zampe nel secchio */
 const ROBIN_AT: Vec3 = dirPos(YAW.robin, 1.3, -22);
+/** Archie: la testa in cima al collo, davanti alla prua, piegata sulla lampara (notte 3) */
+const ARCHIE_AT: Vec3 = dirPos(YAW.archie, 4.5, 8);
 const HATCH_AT: Vec3 = [0.35, -7.4, -0.6];
 /** il pelo dell'acqua sotto l'occhio */
 const WATER_Z = -1.25;
@@ -291,6 +293,8 @@ export class Night {
   private gaugeGlow = 1;
   /** la ninna nanna della Madre a batteria morta */
   private lullabyV: Voice | null = null;
+  /** il risucchio di Archie in corso: si ferma quando smette di prendere fiato */
+  private archieBreath: { stop(fade?: number): void } | null = null;
 
   constructor(private d: NightDeps) {
     this.S = STRINGS[d.lang];
@@ -346,6 +350,8 @@ export class Night {
     this.radio = null;
     this.lullabyV?.stop(0.4);
     this.lullabyV = null;
+    this.archieBreath?.stop(0.2);
+    this.archieBreath = null;
     this.d.stage.lampSick = 0;
     this.d.sfx.stopLoops();
     this.hud.destroy();
@@ -763,10 +769,48 @@ export class Night {
       case 'denied':
         if (e.reason === 'noFish') this.hud.toast(S.denied.noFish, '', 1.4);
         else if (e.reason === 'notFacing' && this.sim.gulpy.canBeFed) this.hud.toast(S.denied.notFacing, '', 1.2);
-        else if (e.reason === 'dark') {
+        else if (e.reason === 'dark' || e.reason === 'broken') {
           // l'interruttore scatta, ma non succede niente
           a.play('lamp_switch', { pos: LAMP_AT, gain: 0.35, rate: 0.85 });
-          this.hud.toast(S.denied.dark, '', 1.4);
+          this.hud.toast(e.reason === 'dark' ? S.denied.dark : S.denied.broken, '', 1.4);
+        }
+        break;
+      case 'archie':
+        switch (e.e) {
+          case 'rise':
+            fx.archieRise(ARCHIE_AT);
+            cap(S.captions.archieRise);
+            break;
+          case 'inhale':
+          case 'relight': {
+            this.archieBreath?.stop(0.1);
+            const cfg = this.sim.cfg.archie!;
+            this.archieBreath = fx.archieInhale(ARCHIE_AT, e.e === 'inhale' ? cfg.inhale : cfg.relight, e.e === 'relight');
+            cap(S.captions.archieInhale);
+            break;
+          }
+          case 'wait':
+            this.archieBreath?.stop(0.25);
+            this.archieBreath = null;
+            fx.archieWait(ARCHIE_AT);
+            cap(S.captions.archieWait);
+            break;
+          case 'blow':
+            this.archieBreath?.stop(0.05);
+            this.archieBreath = null;
+            fx.archieBlow(ARCHIE_AT, LAMP_AT);
+            // il vetro esplode: un lampo, poi il buio
+            this.d.stage.lampDip = 1;
+            cap(S.captions.archieBlow);
+            break;
+          case 'dive':
+            this.archieBreath?.stop(0.3);
+            this.archieBreath = null;
+            fx.archieDive(ARCHIE_AT);
+            cap(S.captions.archieDive);
+            break;
+          default:
+            break;
         }
         break;
       case 'robin': {
@@ -987,7 +1031,9 @@ export class Night {
           ? this.sim.molly.yaw
           : killer === 'robin'
             ? (L[POSE.robin]?.yaw ?? YAW.robin)
-            : (L[POSE.hatchConta]?.yaw ?? 180);
+            : killer === 'archie'
+              ? YAW.archie
+              : (L[POSE.hatchConta]?.yaw ?? 180);
     this.binoUp = false;
     this.bino = 0;
     this.d.stage.view.swayYaw = this.d.stage.view.swayPitch = this.d.stage.view.steady = 0;
@@ -1925,6 +1971,8 @@ export class Night {
       else if (sim.hatch.state === 'counting') hint = S.hints.hide;
       else if (sim.gulpy.canBeFed && sim.fish > 0) hint = sim.facing(YAW.bow, VIEW.bowHalfAngle) ? S.hints.throw : '';
       else if (sim.robin?.present && !sim.blackout) hint = S.hints.robin;
+      else if (sim.archie?.state === 'inhaling' && sim.lamp > 0) hint = S.hints.archie;
+      else if (sim.archie?.state === 'waiting') hint = S.hints.archieWait;
       else if (f.phase === 'bite') hint = S.hints.hook;
       else if (f.phase === 'reeling') hint = S.hints.reel;
       else if (sim.molly.present || sim.gulpy.present) hint = '';

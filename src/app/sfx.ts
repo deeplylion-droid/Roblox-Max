@@ -296,6 +296,160 @@ export class Sfx {
     this.later(700, () => this.audio.play('splash_s2', { pos, gain: 0.7 }));
   }
 
+  // ───────────────────────── Archie (notte 3) ─────────────────────────
+  // Provvisori: sintetizzati finché Archie non ha i suoi suoni (archie_*).
+
+  /** Archie sale dall'acqua: il mare che si apre, l'acqua che cola giù dal collo lunghissimo. */
+  archieRise(pos: Vec3): void {
+    if (this.playAny('archie_rise', { pos, spread: 0.03 })) return;
+    this.audio.play('splash_s3', { pos, gain: 0.55, rate: 0.75 });
+    this.later(450, () => this.audio.play('splash_s1', { pos, gain: 0.3, rate: 0.6 }));
+    this.later(1300, () => this.audio.play('splash_s2', { pos, gain: 0.18, rate: 1.4 }));
+  }
+
+  /**
+   * Il risucchio nella trombetta, lungo `dur` secondi: aria che sibila al contrario, sempre più acuta e più forte, la
+   * linguetta che vibra e la carta che si arrotola scricchiolando (angry: la seconda volta, più in fretta e più
+   * acuto). Si ferma con stop() quando smette (al buio, o quando soffia).
+   */
+  archieInhale(pos: Vec3, dur: number, angry = false): { stop(fade?: number): void } | null {
+    const file = this.playAny(angry ? 'archie_relight' : 'archie_inhale', { pos, spread: 0.02 });
+    if (file) return { stop: (fade = 0.15) => file.stop(fade) };
+    const c = this.chain(pos, angry ? 1.0 : 0.85, dur + 1.5);
+    if (!c) return null;
+    const { ctx, input, t } = c;
+    const env = ctx.createGain();
+    env.gain.setValueAtTime(0, t);
+    env.gain.linearRampToValueAtTime(0.45, t + Math.min(0.5, dur * 0.2));
+    env.gain.linearRampToValueAtTime(1, t + dur);
+    env.connect(input);
+    // il fiato: rumore in una banda che sale
+    const n = ctx.createBufferSource();
+    n.buffer = noise(ctx);
+    n.loop = true;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.Q.value = 2.2;
+    bp.frequency.setValueAtTime(450, t);
+    bp.frequency.exponentialRampToValueAtTime(angry ? 2600 : 1900, t + dur);
+    const ng = ctx.createGain();
+    ng.gain.value = 0.75;
+    n.connect(bp).connect(ng).connect(env);
+    n.start(t);
+    n.stop(t + dur + 1);
+    // la linguetta della trombetta che vibra: un'onda quadra sottile che sale, col tremolio
+    const o = ctx.createOscillator();
+    o.type = 'square';
+    o.frequency.setValueAtTime(angry ? 380 : 300, t);
+    o.frequency.exponentialRampToValueAtTime(angry ? 880 : 640, t + dur);
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 1600;
+    const og = ctx.createGain();
+    og.gain.value = 0.045;
+    const lfo = ctx.createOscillator();
+    lfo.frequency.value = angry ? 11 : 7;
+    const lg = ctx.createGain();
+    lg.gain.value = 0.025;
+    lfo.connect(lg).connect(og.gain);
+    o.connect(lp).connect(og).connect(env);
+    o.start(t);
+    o.stop(t + dur + 1);
+    lfo.start(t);
+    lfo.stop(t + dur + 1);
+    // la carta che si arrotola: scricchiolii sparsi
+    for (let k = 0; k < dur * 6; k++) this.noiseBurst(ctx, env, t + Math.random() * dur, 0.025 + Math.random() * 0.02, 'highpass', 3200, 0.7, 0.22);
+    return {
+      stop: (fade = 0.15) => {
+        const now = ctx.currentTime;
+        env.gain.cancelScheduledValues(now);
+        env.gain.setValueAtTime(env.gain.value, now);
+        env.gain.linearRampToValueAtTime(0, now + fade);
+      },
+    };
+  }
+
+  /** Al buio: la trombetta che si sgonfia in un lamento (aspetta). */
+  archieWait(pos: Vec3): void {
+    if (this.playAny('archie_wait', { pos, spread: 0.03 })) return;
+    const c = this.chain(pos, 0.55, 1.6);
+    if (!c) return;
+    const { ctx, input, t } = c;
+    const o = ctx.createOscillator();
+    o.type = 'square';
+    o.frequency.setValueAtTime(520, t);
+    o.frequency.exponentialRampToValueAtTime(170, t + 0.9);
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.setValueAtTime(1800, t);
+    lp.frequency.exponentialRampToValueAtTime(500, t + 0.9);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.16, t + 0.05);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 1.0);
+    o.connect(lp).connect(g).connect(input);
+    o.start(t);
+    o.stop(t + 1.1);
+    this.noiseBurst(ctx, input, t, 0.9, 'bandpass', 1400, 1.5, 0.12, 300);
+  }
+
+  /** Soffia: la trombetta da festa a tutto fiato, e il vetro della lampara che esplode. */
+  archieBlow(pos: Vec3, lamp: Vec3): void {
+    if (!this.playAny('archie_blow', { pos, spread: 0.02 })) {
+      const c = this.chain(pos, 0.9, 1.6);
+      if (c) {
+        const { ctx, input, t } = c;
+        const ws = distortion(ctx, 2.5);
+        const env = ctx.createGain();
+        env.gain.setValueAtTime(0, t);
+        env.gain.linearRampToValueAtTime(0.5, t + 0.03);
+        env.gain.setValueAtTime(0.5, t + 0.55);
+        env.gain.exponentialRampToValueAtTime(0.001, t + 0.9);
+        ws.connect(env).connect(input);
+        for (const det of [1, 1.012, 1.5]) {
+          const o = ctx.createOscillator();
+          o.type = 'square';
+          o.frequency.setValueAtTime(330 * det, t);
+          o.frequency.linearRampToValueAtTime(350 * det, t + 0.6);
+          const g = ctx.createGain();
+          g.gain.value = det === 1.5 ? 0.12 : 0.22;
+          o.connect(g).connect(ws);
+          o.start(t);
+          o.stop(t + 1);
+        }
+        this.noiseBurst(ctx, input, t, 0.7, 'bandpass', 900, 0.8, 0.35);
+      }
+    }
+    // il vetro: uno schianto e le schegge che tintinnano
+    this.later(120, () => {
+      if (this.playAny('glass_break', { pos: lamp, spread: 0.03 })) return;
+      const c = this.chain(lamp, 1, 1.5);
+      if (!c) return;
+      const { ctx, input, t } = c;
+      this.noiseBurst(ctx, input, t, 0.35, 'highpass', 2500, 0.6, 0.9);
+      this.noiseBurst(ctx, input, t, 0.12, 'lowpass', 600, 0.7, 0.5);
+      for (let k = 0; k < 14; k++) {
+        const o = ctx.createOscillator();
+        o.type = 'sine';
+        o.frequency.value = 3500 + Math.random() * 5000;
+        const g = ctx.createGain();
+        const s0 = t + 0.05 + Math.random() * 0.7;
+        g.gain.setValueAtTime(0, s0);
+        g.gain.linearRampToValueAtTime(0.08 + Math.random() * 0.08, s0 + 0.003);
+        g.gain.exponentialRampToValueAtTime(0.0005, s0 + 0.12 + Math.random() * 0.15);
+        o.connect(g).connect(input);
+        o.start(s0);
+        o.stop(s0 + 0.3);
+      }
+    });
+  }
+
+  /** Si rituffa: il collo che scivola giù, un tonfo lungo. */
+  archieDive(pos: Vec3): void {
+    if (this.playAny('archie_dive', { pos, spread: 0.03 })) return;
+    this.audio.play('splash_big', { pos, gain: 0.45, rate: 0.85 });
+  }
+
   // ───────────────────────── jumpscare ─────────────────────────
 
   /** L'urlo del jumpscare di ciascuna creatura (in faccia, non spazializzato); la voce serve a troncarlo
@@ -304,7 +458,7 @@ export class Sfx {
     this.stopLoops();
     const v = this.audio.play(`js_${who}`);
     // senza il file (i mostri nuovi, finché non hanno il loro urlo) un urlo sintetizzato al volo
-    if (!v) this.synthScream(1, who === 'molly' ? 1.35 : who === 'hatch' ? 0.85 : who === 'robin' ? 1.1 : 0.7);
+    if (!v) this.synthScream(1, who === 'molly' ? 1.35 : who === 'hatch' ? 0.85 : who === 'robin' ? 1.1 : who === 'archie' ? 0.95 : 0.7);
     return v;
   }
 

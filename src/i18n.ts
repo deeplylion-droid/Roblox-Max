@@ -29,6 +29,9 @@ const IT = {
     turn: 'S per voltarti',
     // notte 2: approvato il 10 ottobre
     robin: 'Robin: luce piena in faccia (E)',
+    // notte 3 (da approvare)
+    archie: 'Archie prende fiato: spegni la lampara (Q)',
+    archieWait: 'Resta al buio finché non va giù',
   },
   denied: {
     noFish: 'Il secchio è vuoto.',
@@ -37,6 +40,8 @@ const IT = {
     notFacing: 'Devi guardare da quella parte.',
     // notte 2: approvato il 10 ottobre
     dark: 'Batteria morta.',
+    // notte 3 (da approvare): il vetro della lampara è esploso
+    broken: 'Il vetro è rotto.',
   },
   caught: 'Hai preso',
   newEntry: 'Nuova voce nel Catalogo',
@@ -170,6 +175,12 @@ const IT = {
     lampSick: 'la lampara sfrigola',
     lampDead: 'buio',
     lullaby: 'un carillon, dal fondo',
+    // notte 3 (da approvare)
+    archieRise: 'qualcosa sale dall’acqua, a prua',
+    archieInhale: 'un risucchio lungo',
+    archieWait: 'aspetta al buio',
+    archieDive: 'si rituffa',
+    archieBlow: 'il vetro della lampara esplode',
   },
   hatchCount: ['Uno…', 'Due…', 'Tre…', 'Quattro…', 'Cinque…', 'Sei…', 'Sette…', 'Otto…', 'Nove…', 'Dieci!'],
   hatchReady: 'Chi c’è c’è, chi non c’è non c’è!',
@@ -203,6 +214,8 @@ const EN: typeof IT = {
     unhide: 'C to come out from under the tarp',
     turn: 'S to turn around',
     robin: 'Robin: full light in his face (E)',
+    archie: 'Archie is drawing breath: turn off the lamp (Q)',
+    archieWait: 'Stay in the dark until he goes under',
   },
   denied: {
     noFish: 'The bucket is empty.',
@@ -210,6 +223,7 @@ const EN: typeof IT = {
     busy: 'Not now.',
     notFacing: 'You have to look that way.',
     dark: 'Battery dead.',
+    broken: 'The glass is broken.',
   },
   caught: 'You caught',
   newEntry: 'New Catalogue entry',
@@ -339,6 +353,11 @@ const EN: typeof IT = {
     lampSick: 'the lamp sputters',
     lampDead: 'dark',
     lullaby: 'a music box, from the deep',
+    archieRise: 'something rises from the water, at the bow',
+    archieInhale: 'a long sucking breath',
+    archieWait: 'it waits in the dark',
+    archieDive: 'it slips back under',
+    archieBlow: 'the lamp glass shatters',
   },
   hatchCount: ['One…', 'Two…', 'Three…', 'Four…', 'Five…', 'Six…', 'Seven…', 'Eight…', 'Nine…', 'Ten!'],
   hatchReady: 'Ready or not, here I come!',
@@ -415,8 +434,28 @@ export const RADIO_NIGHT2: Record<Lang, RadioLine[]> = {
   ],
 };
 
+/** La chiamata della terza notte (Archie), corta e criptica come la seconda: da approvare. */
+export const RADIO_NIGHT3: Record<Lang, RadioLine[]> = {
+  it: [
+    { at: 0.0, text: 'Terza notte. Undici pesci.' },
+    { at: 2.4, text: 'Archie viene per la lampara.' },
+    { at: 5.0, text: 'Se lo senti prendere fiato, spegni.' },
+    { at: 8.0, text: 'E resta al buio finché non va giù.' },
+    { at: 11.2, text: 'Buona pesca.' },
+    { at: 12.6, text: '' },
+  ],
+  en: [
+    { at: 0.0, text: 'Third night. Eleven fish.' },
+    { at: 2.4, text: 'Archie comes for the lamp.' },
+    { at: 5.0, text: 'If you hear him draw breath, turn it off.' },
+    { at: 8.0, text: 'And stay in the dark until he goes under.' },
+    { at: 11.2, text: 'Good fishing.' },
+    { at: 12.6, text: '' },
+  ],
+};
+
 /** La chiamata alla radio di ogni notte. */
-export const RADIO: Record<number, Record<Lang, RadioLine[]>> = { 1: RADIO_NIGHT1, 2: RADIO_NIGHT2 };
+export const RADIO: Record<number, Record<Lang, RadioLine[]>> = { 1: RADIO_NIGHT1, 2: RADIO_NIGHT2, 3: RADIO_NIGHT3 };
 
 export const STRINGS: Record<Lang, typeof IT> = { it: IT, en: EN };
 
