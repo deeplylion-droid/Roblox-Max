@@ -5,6 +5,12 @@
   "h": 800,
   "family": "skeletal"
  },
+ "aguglia_imperiale": {
+  "file": "aguglia_imperiale.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "bleeding"
+ },
  "alaccia_registrata_sopra": {
   "file": "alaccia_registrata_sopra.webp",
   "w": 1600,
@@ -35,11 +41,35 @@
   "h": 800,
   "family": "bleeding"
  },
+ "bavaccia": {
+  "file": "bavaccia.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "corrupt"
+ },
+ "bocchenere": {
+  "file": "bocchenere.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "corrupt"
+ },
  "bogossa": {
   "file": "bogossa.webp",
   "w": 1600,
   "h": 800,
   "family": "skeletal"
+ },
+ "branzombi": {
+  "file": "branzombi.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "zombie"
+ },
+ "castagna_marcia": {
+  "file": "castagna_marcia.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "zombie"
  },
  "castagnola_sgranata": {
   "file": "castagnola_sgranata.webp",
@@ -65,11 +95,23 @@
   "h": 800,
   "family": "zombie"
  },
+ "cernia_gemente": {
+  "file": "cernia_gemente.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "zombie"
+ },
  "cheppia_senza_audio": {
   "file": "cheppia_senza_audio.webp",
   "w": 1600,
   "h": 800,
   "family": "glitch"
+ },
+ "chimera_bianca": {
+  "file": "chimera_bianca.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "zombie"
  },
  "civetta_fuori_quadro": {
   "file": "civetta_fuori_quadro.webp",
@@ -83,6 +125,12 @@
   "h": 800,
   "family": "zombie"
  },
+ "dentiera": {
+  "file": "dentiera.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "bleeding"
+ },
  "donzella_saturata": {
   "file": "donzella_saturata.webp",
   "w": 1600,
@@ -95,11 +143,41 @@
   "h": 800,
   "family": "skeletal"
  },
+ "gallincubo": {
+  "file": "gallincubo.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "corrupt"
+ },
  "gattomorto": {
   "file": "gattomorto.webp",
   "w": 1600,
   "h": 800,
   "family": "zombie"
+ },
+ "ghiozzo_gozzuto": {
+  "file": "ghiozzo_gozzuto.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "corrupt"
+ },
+ "granatiere_nero": {
+  "file": "granatiere_nero.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "corrupt"
+ },
+ "grondongo": {
+  "file": "grondongo.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "bleeding"
+ },
+ "lampreda_vampira": {
+  "file": "lampreda_vampira.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "bleeding"
  },
  "lampuga_fuori_traccia": {
   "file": "lampuga_fuori_traccia.webp",
@@ -125,6 +203,12 @@
   "h": 800,
   "family": "skeletal"
  },
+ "leccia_lacerata": {
+  "file": "leccia_lacerata.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "bleeding"
+ },
  "leccia_senza_segnale": {
   "file": "leccia_senza_segnale.webp",
   "w": 1600,
@@ -137,11 +221,41 @@
   "h": 800,
   "family": "skeletal"
  },
+ "luciferna": {
+  "file": "luciferna.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "corrupt"
+ },
  "menola_neve": {
   "file": "menola_neve.webp",
   "w": 1600,
   "h": 800,
   "family": "glitch"
+ },
+ "missina_della_melma": {
+  "file": "missina_della_melma.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "corrupt"
+ },
+ "mormoria": {
+  "file": "mormoria.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "corrupt"
+ },
+ "mostrella": {
+  "file": "mostrella.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "corrupt"
+ },
+ "murena_murata": {
+  "file": "murena_murata.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "zombie"
  },
  "nasello_senza_naso": {
   "file": "nasello_senza_naso.webp",
@@ -160,6 +274,12 @@
   "w": 1600,
   "h": 800,
   "family": "skeletal"
+ },
+ "ombrina_smorta": {
+  "file": "ombrina_smorta.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "zombie"
  },
  "orrata": {
   "file": "orrata.webp",
@@ -185,6 +305,18 @@
   "h": 800,
   "family": "glitch"
  },
+ "pagro_sanguigno": {
+  "file": "pagro_sanguigno.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "bleeding"
+ },
+ "palamita_squarciata": {
+  "file": "palamita_squarciata.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "bleeding"
+ },
  "palombra": {
   "file": "palombra.webp",
   "w": 1600,
@@ -203,6 +335,24 @@
   "h": 800,
   "family": "zombie"
  },
+ "pesce_angelo_caduto": {
+  "file": "pesce_angelo_caduto.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "corrupt"
+ },
+ "pesce_bubbone": {
+  "file": "pesce_bubbone.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "corrupt"
+ },
+ "pesce_violento": {
+  "file": "pesce_violento.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "bleeding"
+ },
  "pesce_volante_in_pausa": {
   "file": "pesce_volante_in_pausa.webp",
   "w": 1600,
@@ -215,11 +365,59 @@
   "h": 800,
   "family": "glitch"
  },
+ "pilota_sanguinante": {
+  "file": "pilota_sanguinante.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "bleeding"
+ },
+ "rabbiglio": {
+  "file": "rabbiglio.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "bleeding"
+ },
+ "raccapricciola": {
+  "file": "raccapricciola.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "zombie"
+ },
+ "razza_due_facce": {
+  "file": "razza_due_facce.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "corrupt"
+ },
+ "razza_inchiodata": {
+  "file": "razza_inchiodata.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "bleeding"
+ },
  "re_di_triglie_a_righe": {
   "file": "re_di_triglie_a_righe.webp",
   "w": 1600,
   "h": 800,
   "family": "glitch"
+ },
+ "re_nero": {
+  "file": "re_nero.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "corrupt"
+ },
+ "remora_strappata": {
+  "file": "remora_strappata.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "bleeding"
+ },
+ "rombo_sepolto": {
+  "file": "rombo_sepolto.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "zombie"
  },
  "salpa_sfasata": {
   "file": "salpa_sfasata.webp",
@@ -239,17 +437,53 @@
   "h": 800,
   "family": "zombie"
  },
+ "sardonica": {
+  "file": "sardonica.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "corrupt"
+ },
+ "sciabola_di_carbone": {
+  "file": "sciabola_di_carbone.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "corrupt"
+ },
  "sciabola_spolpata": {
   "file": "sciabola_spolpata.webp",
   "w": 1600,
   "h": 800,
   "family": "skeletal"
  },
+ "sciarrano_scrivano": {
+  "file": "sciarrano_scrivano.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "corrupt"
+ },
+ "scorfano_pece": {
+  "file": "scorfano_pece.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "corrupt"
+ },
+ "scorticano": {
+  "file": "scorticano.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "bleeding"
+ },
  "sega_dossa": {
   "file": "sega_dossa.webp",
   "w": 1600,
   "h": 800,
   "family": "skeletal"
+ },
+ "serrasangue": {
+  "file": "serrasangue.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "bleeding"
  },
  "sgombrato": {
   "file": "sgombrato.webp",
@@ -269,17 +503,41 @@
   "h": 800,
   "family": "skeletal"
  },
+ "specchio_nero": {
+  "file": "specchio_nero.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "corrupt"
+ },
  "spratteschio": {
   "file": "spratteschio.webp",
   "w": 1600,
   "h": 800,
   "family": "skeletal"
  },
+ "squalo_capomorto": {
+  "file": "squalo_capomorto.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "zombie"
+ },
+ "squartotta": {
+  "file": "squartotta.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "bleeding"
+ },
  "suro_sfatto": {
   "file": "suro_sfatto.webp",
   "w": 1600,
   "h": 800,
   "family": "zombie"
+ },
+ "tonno_di_sangue": {
+  "file": "tonno_di_sangue.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "bleeding"
  },
  "tordo_torbido": {
   "file": "tordo_torbido.webp",
@@ -292,6 +550,12 @@
   "w": 1600,
   "h": 800,
   "family": "glitch"
+ },
+ "trafittina": {
+  "file": "trafittina.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "bleeding"
  },
  "triglia_doppia": {
   "file": "triglia_doppia.webp",
@@ -310,6 +574,24 @@
   "w": 1600,
   "h": 800,
   "family": "skeletal"
+ },
+ "verdesca_ferita": {
+  "file": "verdesca_ferita.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "bleeding"
+ },
+ "vipera_degli_abissi": {
+  "file": "vipera_degli_abissi.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "corrupt"
+ },
+ "volpe_sfregiata": {
+  "file": "volpe_sfregiata.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "bleeding"
  },
  "zerossa": {
   "file": "zerossa.webp",

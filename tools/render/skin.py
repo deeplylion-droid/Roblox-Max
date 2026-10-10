@@ -20,17 +20,23 @@ F = np.float32
 
 def creature_skin(name, base, dark, light, vein=(0.10, 0.12, 0.17), mouth=(0.07, 0.012, 0.015),
                   rough=0.62, sss=0.10, scale=1.0, pores=1.0, blotch=1.0, spec=0.32, slime_amount=0.75,
-                  slime_tint=(0.80, 0.92, 0.66)):
+                  slime_tint=(0.80, 0.92, 0.66), rest=False):
     """scale: dimensione delle macchie (1 = taglia umana). Attributi letti: mouth, blush, slime, scar.
+
+    rest=True: il disegno della pelle si prende dall'attributo 'rest' (la posizione a riposo di ogni vertice) invece
+    che dalle coordinate dell'oggetto, così su una parte deformata (una mascella che si muove) resta attaccato alla
+    carne invece di scorrere; dove la mesh non è deformata è identico. È un materiale a parte, name + 'Rest'.
 
     Sopra la pelle opaca c'è uno strato di MELMA: chiazze lucide, colature verso il basso, ristagni nelle
     pieghe e attorno a bocca e occhi (attributo 'slime'); dappertutto un velo bagnato appena accennato."""
     import bpy
+    if rest:
+        name = name + 'Rest'
     m = bpy.data.materials.get(name)
     if m:
         return m
     m, g = material(name)
-    co = g.texcoord('Object')
+    co = g.texcoord('Object') if not rest else g.attr('rest', out='Vector')
     k = 1.0 / scale
     # chiazze grandi e maculatura
     big = g.noise(co, scale=2.6 * k, detail=7.0, rough=0.58, distortion=0.35)

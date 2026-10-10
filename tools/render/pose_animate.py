@@ -30,8 +30,17 @@ Con i parametri a riposo i modelli sono identici a prima, e nelle varianti cambi
 TOPPE ha le voci pronte per scena_creature.POSES (POSES.update(pose_animate.TOPPE)), con lo spazio e il mare della
 posa principale.
 
+Attenzione, le mascelle: la palpebra di Molly sta tutta dentro la sagoma della testa, ma la mascella di Hatch che sale
+(il contorno di sotto della testa sale di 22-34 pixel del panorama finale a bocca mezza, di 48-73 a bocca chiusa) e
+quella di Gulpy che va indietro (+10°: il mento sale di ~40 pixel) scoprono una striscia che nello strato principale
+era mascella: una toppa con la sola testa, disegnata sopra lo strato principale, lì lascerebbe vedere la mascella
+vecchia. Dietro quella striscia c'è quasi solo il corpo (collo, petto, spalle): basta rendere visibile nella toppa
+anche il corpo (GULPY_CORPO, HATCH_CORPO) tenendo il riquadro sulla sola testa (jobs.render_sprite ha già rect_objs),
+e nel gioco far sfumare lo strato principale dentro il riquadro mentre entra la toppa. La mascella di Gulpy più chiusa
+(−10°) invece copre di più e non scopre niente.
+
 Anteprime, dall'occhio del pescatore e strette sulla testa, la posa di base accanto alle varianti:
-    nice -n 10 tools/.venv/bin/python tools/render/pose_animate.py [gulpy] [molly] [hatch] [--fast]
+    nice -n 10 tools/.venv/bin/python tools/render/pose_animate.py [gulpy] [molly] [hatch] [--fast] [--tavole]
     → docs/concept/animazioni/gulpy_mascella.jpg, molly_occhi.jpg (i due lati), hatch_bocca.jpg
 """
 from __future__ import annotations
@@ -62,6 +71,9 @@ HATCH_BOCCA = {'mezza': 0.5, 'chiusa': 0.0}          # apertura (1 com'è)
 GULPY_TESTA = ('GulpyHead', 'GulpyEye*', 'GulpyThroat', 'GulpyTeeth', 'GulpySlimeMouth')
 MOLLY_TESTA = ('MollyHead', 'MollyEye*', 'MollyBeak', 'MollySlimeMouth')
 HATCH_TESTA = ('HatchHead', 'HatchEye*', 'HatchTeeth', 'HatchSlime')
+# il corpo dietro le mascelle (vedi sopra, «Attenzione, le mascelle»)
+GULPY_CORPO = ('GulpyBody',)
+HATCH_CORPO = ('HatchBody',)
 
 
 def _base(name):
@@ -207,6 +219,9 @@ def _posa_di_gioco(fn, testa):
     return f
 
 
+# su che cosa si stringe la camera, se non su tutta la testa (la pelle della testa di Gulpy arriva fino al salvagente)
+INQUADRA = {'gulpy': ('GulpyEye*', 'GulpyTeeth', 'GulpyThroat', 'GulpySlimeMouth')}
+
 # per ogni anteprima: (nome del file, righe, nota); ogni riga è (titolo della riga, [(titolo, funzione che costruisce
 # la posa, colonna)]); la base si costruisce per prima (la camera si punta su di lei)
 ANTEPRIME = {
@@ -253,23 +268,72 @@ def _inquadra(objs, size, margin=1.22, name='AnimCam'):
     return cam
 
 
-def anteprime(chi=('gulpy', 'molly', 'hatch'), size=(440, 440)):
-    """Le anteprime delle toppe nella scena del gioco: per ogni riga la posa di base e le varianti, viste
-    dall'occhio del pescatore con la stessa camera stretta sulla testa. → docs/concept/animazioni/<nome>.jpg"""
-    import jobs
+TMP = os.path.join(CACHE, 'animazioni')
+OUT_DIR = os.path.join(ROOT, 'docs', 'concept', 'animazioni')
+
+
+def _pannello(nome, r, k):
+    return os.path.join(TMP, f'{nome}_{r}_{k}.png')
+
+
+def _tavola(who, size=(440, 440)):
+    """Compone la tavola di un'anteprima dai pannelli già resi (in cache/animazioni)."""
     from PIL import Image, ImageDraw, ImageFont
-    out_dir = os.path.join(ROOT, 'docs', 'concept', 'animazioni')
-    tmp = os.path.join(CACHE, 'animazioni')
-    os.makedirs(out_dir, exist_ok=True)
-    os.makedirs(tmp, exist_ok=True)
+    nome, righe, nota = ANTEPRIME[who]
     try:
         font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 15)
         font_b = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 16)
     except OSError:
         font = font_b = ImageFont.load_default()
+    tavola = [(titolo_riga, sorted((col, _pannello(nome, r, k), titolo) for k, (titolo, _, col) in enumerate(pannelli)))
+              for r, (titolo_riga, pannelli) in enumerate(righe)]
+    W, H = size
+    pad, cap, head, line = 8, 30, 26, 20
+    cols = max(len(r) for _, r in tavola)
+    width = cols * W + (cols + 1) * pad
+    # la nota va a capo se non ci sta
+    righe_nota, cur = [], ''
+    for parola in (nota or '').split():
+        prova = (cur + ' ' + parola).strip()
+        if cur and font.getlength(prova) > width - 2 * pad - 8:
+            righe_nota.append(cur)
+            cur = parola
+        else:
+            cur = prova
+    if cur:
+        righe_nota.append(cur)
+    has_head = any(t for t, _ in tavola)
+    rh = H + cap + (head if has_head else 0)
+    foot = line * len(righe_nota) + (6 if righe_nota else 0)
+    sheet = Image.new('RGB', (width, len(tavola) * rh + (len(tavola) + 1) * pad + foot), (14, 14, 16))
+    d = ImageDraw.Draw(sheet)
+    for r, (titolo_riga, riga) in enumerate(tavola):
+        y = pad + r * (rh + pad)
+        if has_head:
+            d.text((pad + 4, y + 3), titolo_riga, fill=(240, 190, 110), font=font_b)
+            y += head
+        for i, (_, path, titolo) in enumerate(riga):
+            x = pad + i * (W + pad)
+            sheet.paste(Image.open(path).convert('RGB'), (x, y))
+            d.text((x + 4, y + H + 7), titolo, fill=(225, 225, 220), font=font)
+    for i, t in enumerate(righe_nota):
+        d.text((pad + 4, sheet.height - foot + i * line), t, fill=(170, 170, 165), font=font)
+    os.makedirs(OUT_DIR, exist_ok=True)
+    dst = os.path.join(OUT_DIR, f'{nome}.jpg')
+    sheet.save(dst, quality=90)
+    print('anteprima', dst, flush=True)
+    return dst
+
+
+def anteprime(chi=('gulpy', 'molly', 'hatch'), size=(440, 440)):
+    """Le anteprime delle toppe nella scena del gioco: per ogni riga la posa di base e le varianti, viste
+    dall'occhio del pescatore con la stessa camera stretta sulla testa. → docs/concept/animazioni/<nome>.jpg
+    (i pannelli in cache/animazioni; con --tavole si ricompongono soltanto le tavole da lì)."""
+    import jobs
+    os.makedirs(TMP, exist_ok=True)
     done = []
     for who in chi:
-        nome, righe, nota = ANTEPRIME[who]
+        nome, righe, _ = ANTEPRIME[who]
         jobs.build_scene(fish=0, rod=False)
         sc = bpy.context.scene
         sc.cycles.use_denoising = True
@@ -278,9 +342,7 @@ def anteprime(chi=('gulpy', 'molly', 'hatch'), size=(440, 440)):
         sc.render.resolution_percentage = 100
         sc.render.resolution_x, sc.render.resolution_y = size
         sc.cycles.samples = 32 if FAST else 96
-        tavola = []
-        for titolo_riga, pannelli in righe:
-            riga = []
+        for r, (_, pannelli) in enumerate(righe):
             cam = None
             for k, (titolo, fn, col) in enumerate(pannelli):
                 before = set(bpy.data.objects.keys())
@@ -289,42 +351,23 @@ def anteprime(chi=('gulpy', 'molly', 'hatch'), size=(440, 440)):
                 new = [bpy.data.objects[n] for n in bpy.data.objects.keys() if n not in before]
                 if cam is None:
                     # la stessa camera per tutta la riga (le varianti stanno nello stesso posto)
-                    cam = _inquadra(testa, size, name=f'AnimCam_{nome}_{len(tavola)}')
+                    fuoco = _testa(testa, INQUADRA[who]) if who in INQUADRA else testa
+                    cam = _inquadra(fuoco, size, margin=1.4 if who in INQUADRA else 1.22, name=f'AnimCam_{nome}_{r}')
                 sc.camera = cam
-                path = os.path.join(tmp, f'{nome}_{len(tavola)}_{k}.png')
+                path = _pannello(nome, r, k)
                 sc.render.filepath = path
                 bpy.ops.render.render(write_still=True)
-                riga.append((col, path, titolo))
                 print('pannello', path, flush=True)
                 for o in new:
                     o.hide_render = True
-            tavola.append((titolo_riga, sorted(riga)))
-        W, H = size
-        pad, cap, head = 8, 30, 26
-        cols = max(len(r) for _, r in tavola)
-        has_head = any(t for t, _ in tavola)
-        rh = H + cap + (head if has_head else 0)
-        foot = 26 if nota else 0
-        sheet = Image.new('RGB', (cols * W + (cols + 1) * pad, len(tavola) * rh + (len(tavola) + 1) * pad + foot), (14, 14, 16))
-        d = ImageDraw.Draw(sheet)
-        for r, (titolo_riga, riga) in enumerate(tavola):
-            y = pad + r * (rh + pad)
-            if has_head:
-                d.text((pad + 4, y + 3), titolo_riga, fill=(240, 190, 110), font=font_b)
-                y += head
-            for i, (_, path, titolo) in enumerate(riga):
-                x = pad + i * (W + pad)
-                sheet.paste(Image.open(path).convert('RGB'), (x, y))
-                d.text((x + 4, y + H + 7), titolo, fill=(225, 225, 220), font=font)
-        if nota:
-            d.text((pad + 4, sheet.height - foot), nota, fill=(170, 170, 165), font=font)
-        dst = os.path.join(out_dir, f'{nome}.jpg')
-        sheet.save(dst, quality=90)
-        print('anteprima', dst, flush=True)
-        done.append(dst)
+        done.append(_tavola(who, size))
     return done
 
 
 if __name__ == '__main__':
-    scelte = [a for a in sys.argv[1:] if a in ANTEPRIME]
-    anteprime(tuple(scelte) or ('gulpy', 'molly', 'hatch'))
+    scelte = tuple(a for a in sys.argv[1:] if a in ANTEPRIME) or ('gulpy', 'molly', 'hatch')
+    if '--tavole' in sys.argv:
+        for w in scelte:
+            _tavola(w)
+    else:
+        anteprime(scelte)

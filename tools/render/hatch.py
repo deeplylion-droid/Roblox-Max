@@ -160,7 +160,11 @@ def head_attrs(jaw=None):
     def scar(p):
         return np.zeros(len(p), F)
 
-    return {'mouth': mouth, 'slime': slime, 'scar': scar}
+    out = {'mouth': mouth, 'slime': slime, 'scar': scar}
+    if jaw is not None:
+        # dove stava a riposo ogni vertice: il disegno della pelle (creature_skin rest=True) resta attaccato alla carne
+        out['rest'] = lambda p: (c + jaw.rest((p - c) @ R)[0] @ R.T).astype(F)
+    return out
 
 
 def _follow(jaw, pts, tilt=1.0):
@@ -248,8 +252,9 @@ def build(viewer=None, bocca=1.0):
     rh = 0.0028 if FAST else 0.0013
     obs = []
     pal = PALETTES[COLORE]
-    sk = skin.creature_skin(f'HatchSkin_{COLORE}', base=pal['base'], dark=pal['dark'], light=pal['light'], vein=pal['vein'],
-                            rough=0.66, sss=0.08, scale=1.1, slime_tint=pal['slime_tint'])
+    skin_kw = dict(base=pal['base'], dark=pal['dark'], light=pal['light'], vein=pal['vein'], rough=0.66, sss=0.08, scale=1.1,
+                   slime_tint=pal['slime_tint'])
+    sk = skin.creature_skin(f'HatchSkin_{COLORE}', **skin_kw)
     hl = head_local()
     head_w = HEAD.field(hl)
     body_f = body_field()
@@ -263,7 +268,8 @@ def build(viewer=None, bocca=1.0):
     full_h = full if jaw is None else sdf.union(body_f, HEAD.field(jaw.field(hl)), k=0.03)
     head = sdf_object('HatchHead', sdf.intersect(full_h, plane_head), V(-0.24, -0.86, 2.30), V(0.24, -0.45, 2.80), res=rh,
                       attrs=head_attrs(jaw), banded=True)
-    head.data.materials.append(sk)
+    # con la bocca mossa il disegno della pelle segue la carne (coordinate a riposo), se no scorrerebbe
+    head.data.materials.append(sk if jaw is None else skin.creature_skin(f'HatchSkin_{COLORE}', rest=True, **skin_kw))
     obs += [body, head]
     for s in (-1, 1):
         e = HEAD.pt((s * 0.075, -0.104, 0.085))

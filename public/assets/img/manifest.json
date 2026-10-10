@@ -374,6 +374,34 @@
    "space": "boat",
    "yaw": -59.0895
   },
+  "robin_chiusi": {
+   "base": "robin_secchio",
+   "passes": {
+    "ambient": {
+     "file": "robin_chiusi_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "robin_chiusi_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "robin_chiusi_lantern.webp",
+     "res": 1.0,
+     "scale": 0.6900000000000001
+    }
+   },
+   "rect": [
+    3672,
+    1060,
+    4159,
+    1459
+   ],
+   "space": "boat",
+   "yaw": -30.1046
+  },
   "robin_secchio": {
    "eyes": [
     [
@@ -409,6 +437,34 @@
     782,
     5218,
     1820
+   ],
+   "space": "boat",
+   "yaw": -30.1046
+  },
+  "robin_strizza": {
+   "base": "robin_secchio",
+   "passes": {
+    "ambient": {
+     "file": "robin_strizza_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "robin_strizza_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "robin_strizza_lantern.webp",
+     "res": 1.0,
+     "scale": 0.6900000000000001
+    }
+   },
+   "rect": [
+    3672,
+    1048,
+    4163,
+    1459
    ],
    "space": "boat",
    "yaw": -30.1046

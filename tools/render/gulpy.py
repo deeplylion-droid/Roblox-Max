@@ -215,7 +215,11 @@ def head_attrs(jaw=None):
     def scar(p):
         return np.zeros(len(p), F)
 
-    return {'mouth': mouth, 'slime': slime, 'scar': scar}
+    out = {'mouth': mouth, 'slime': slime, 'scar': scar}
+    if jaw is not None:
+        # dove stava a riposo ogni vertice: il disegno della pelle (creature_skin rest=True) resta attaccato alla carne
+        out['rest'] = lambda p: (c + jaw.rest((p - c) @ R)[0] @ R.T).astype(F)
+    return out
 
 
 def teeth_pairs(jaw=None):
@@ -312,8 +316,9 @@ def build(grip=None, viewer=None, lo=None, hi=None, mascella=0.0):
             for p in (sh, el, wr):
                 lo = np.minimum(lo, p - 0.14)
                 hi = np.maximum(hi, p + 0.14)
-    sk = skin.creature_skin('GulpySkin', base=(0.19, 0.205, 0.19), dark=(0.06, 0.07, 0.065), light=(0.33, 0.345, 0.32),
-                            vein=(0.12, 0.13, 0.18), rough=0.68, sss=0.10, scale=1.3)
+    skin_kw = dict(base=(0.19, 0.205, 0.19), dark=(0.06, 0.07, 0.065), light=(0.33, 0.345, 0.32),
+                   vein=(0.12, 0.13, 0.18), rough=0.68, sss=0.10, scale=1.3)
+    sk = skin.creature_skin('GulpySkin', **skin_kw)
     # corpo e testa sono lo stesso campo, tagliato al salvagente (la cucitura resta sotto l'anello)
     hl = head_local()
     head_w = HEAD.field(hl)
@@ -330,7 +335,8 @@ def build(grip=None, viewer=None, lo=None, hi=None, mascella=0.0):
     full_h = full if jaw is None else sdf.union(trunk_f, HEAD.field(jaw.field(hl)), k=0.035)
     head = sdf_object('GulpyHead', sdf.intersect(full_h, head_zone2), V(-0.14, -1.12, 1.45), V(0.14, -0.58, 2.40), res=rh,
                       attrs=head_attrs(jaw), banded=True)
-    head.data.materials.append(sk)
+    # con la mascella mossa il disegno della pelle segue la carne (coordinate a riposo), se no scorrerebbe
+    head.data.materials.append(sk if jaw is None else skin.creature_skin('GulpySkin', rest=True, **skin_kw))
     obs += [body, head]
     for s in (-1, 1):
         e = HEAD.pt((s * 0.044, -0.105, 0.0))
