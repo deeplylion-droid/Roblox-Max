@@ -366,7 +366,7 @@ def _terzo_occhio(c):
     verso il lato cieco; guarda fuori dal bordo e un poco dall'altra parte."""
     zc, h, _ = _sezione(c, 0.12)
     r = 0.016
-    return np.array((0.12, 0.002, zc - h - r * 0.05), F32), r, (-0.25, 0.2, -1.0)
+    return np.array((0.12, 0.002, zc - h - r * 0.05), F32), r, (-0.3, -0.12, -1.0)
 
 
 def _campo_sogliola(c, f):
@@ -383,8 +383,8 @@ def _campo_sogliola(c, f):
 
 def _occhio_in_piu(c):
     cen, r, sguardo = _terzo_occhio(c)
-    mat = _mat_occhio(c, 'OcchioCieco', sclera=(0.74, 0.7, 0.62), iride=(0.62, 0.62, 0.56), pupilla=(0.42, 0.43, 0.4),
-                      capillari=1.0, velo=0.25)
+    mat = _mat_occhio(c, 'OcchioCieco', sclera=(0.74, 0.7, 0.62), iride=(0.5, 0.52, 0.46), pupilla=(0.24, 0.25, 0.23),
+                      iride_r=0.62, pupilla_r=0.3, capillari=1.0, velo=0.25)
     c.obs.append(c.P.eyeball('TerzoOcchio', tuple(map(float, cen)), r, mat, look=sguardo, col=c.P.COL))
 
 
@@ -426,8 +426,8 @@ def _lembi_suro_dati(c):
     cerniera si allontana, il lembo no), quelli alti si arricciano in fuori sopra il dorso: escono dalla sagoma."""
     out = []
     for t, v, dz, L, W, alza, arriccia in ((0.33, -0.28, -1, 0.1, 0.042, 0.04, 3.5), (0.5, -0.32, -1, 0.11, 0.05, 0.05, 4.0),
-                                           (0.66, -0.25, -1, 0.085, 0.036, 0.06, 4.5), (0.42, 0.3, 1, 0.07, 0.04, 0.12, 9.0),
-                                           (0.6, 0.35, 1, 0.06, 0.034, 0.1, 10.0), (0.22, -0.4, -1, 0.07, 0.032, 0.05, 5.0)):
+                                           (0.66, -0.25, -1, 0.085, 0.036, 0.06, 4.5), (0.5, 0.32, 1, 0.065, 0.045, 0.2, 16.0),
+                                           (0.22, -0.4, -1, 0.07, 0.032, 0.05, 5.0)):
         p0, n0 = c.body.superficie(t, v, -1)
         e1 = np.array((0.2, 0.0, float(dz)), F32)
         e1 = e1 - n0 * float(e1 @ n0)
@@ -467,7 +467,7 @@ def _lembi_suro(c):
     m, g = P.material('LemboSuro')
     co = g.texcoord('Object')
     n = g.noise(co, scale=60.0, detail=4.0)
-    pelle = g.mix(g.smoothstep(0.3, 0.7, n.fac), (0.2, 0.23, 0.23), (0.34, 0.36, 0.35))
+    pelle = g.mix(g.smoothstep(0.3, 0.7, n.fac), (0.07, 0.11, 0.115), (0.2, 0.23, 0.23))
     carne = g.mix(g.smoothstep(0.3, 0.7, n.fac), (0.46, 0.3, 0.27), (0.34, 0.22, 0.2))
     sotto = g.attr('sotto')
     g.output_material(g.principled(color=g.mix(sotto, pelle, carne), metal=g.mixf(sotto, 0.35, 0.0), rough=g.mixf(sotto, 0.35, 0.5),
@@ -555,10 +555,11 @@ def _naso_via(c):
     cb, rb = _NASO_BUCO
 
     def s(p):
-        x, z = p[:, 0], p[:, 2]
+        x, y, z = p[:, 0], p[:, 1], p[:, 2]
         nz = n3(p, scale=0.006, octaves=3)
         ml = b.mouth_line(x)
-        taglio = x - (0.062 + 0.22 * (z - ml)) - 0.005 * nz
+        # il taglio arriva più indietro sul lato della camera (−Y): la faccia del moncherino guarda verso di noi
+        taglio = x - (0.062 + 0.22 * (z - ml) - 0.55 * y) - 0.006 * nz
         sopra = (ml + 0.0016) - z
         k0 = np.linalg.norm((p - cb) / rb, axis=1)
         k1 = np.linalg.norm((p - cb) / (rb * rb), axis=1)
@@ -668,7 +669,7 @@ def _mat_bolle(c):
     if m:
         return m
     m, g = c.P.material('Bolle')
-    g.output_material(g.principled(color=(0.78, 0.8, 0.74), rough=0.06, transmission=0.4, ior=1.3, spec=0.9, coat=1.0,
+    g.output_material(g.principled(color=(0.74, 0.77, 0.72), rough=0.05, transmission=0.55, ior=1.3, spec=0.9, coat=1.0,
                                    coat_rough=0.02, thin_film=380.0))
     return m
 

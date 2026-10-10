@@ -1701,66 +1701,71 @@ def _polpo_mat(c):
 
 
 def _aguglia(c):
-    """La cosa infilata sul rostro: un polpo trafitto attraverso la testa, ancora vivo. Quattro braccia si attorcigliano
-    sul rostro e sul muso dell'aguglia (una le passa sull'occhio), le altre pendono e si arricciano; gli occhi a
-    fessura guardano la camera; il sangue sul rostro e le gocce dal polpo."""
+    """La cosa infilata sul rostro: un polpo trafitto attraverso la testa, ancora vivo. Due braccia si attorcigliano
+    strette sul rostro verso la punta, due tornano indietro e si avvolgono sul muso dell'aguglia (una le passa
+    sull'occhio), le altre pendono e si arricciano; gli occhi a fessura guardano la camera; il sangue sul rostro e le
+    gocce dal polpo."""
     P, body = c.P, c.body
     r = c.forma.rostro
-    xo = -0.118
+    xo = -0.105
     asse_z = float(r.z)
-    H = np.array((xo, 0.0, asse_z + 0.002), F)
-    mantello = P.sdf.rotate(P.sdf.ellipsoid((xo - 0.01, 0.002, asse_z + 0.036), (0.026, 0.022, 0.033)),
-                            P.sdf.rot_matrix('y', 25.0), center=(xo - 0.01, 0.002, asse_z + 0.036))
-    testa = P.sdf.ellipsoid(H, (0.019, 0.018, 0.017))
+    H = np.array((xo, 0.0, asse_z + 0.003), F)
+    cm = np.array((xo - 0.014, 0.003, asse_z + 0.047), F)
+    mantello = P.sdf.rotate(P.sdf.ellipsoid(cm, (0.034, 0.029, 0.044)), P.sdf.rot_matrix('y', 25.0), center=cm)
+    testa = P.sdf.ellipsoid(H, (0.025, 0.024, 0.022))
     rng = np.random.default_rng(6)
     braccia = []
-    # due braccia a spirale attorno al rostro, verso la punta
+    # due braccia a spirale strette attorno al rostro, verso la punta
     for k, fase in enumerate((0.3, 3.4)):
-        s = np.linspace(0, 1, 22)
-        x = xo - 0.012 - 0.068 * s
-        ang = fase + 2 * math.pi * 1.35 * s
-        rr = 0.0105 - 0.002 * s
-        braccia.append(np.stack([x, rr * np.cos(ang), asse_z + rr * np.sin(ang)], axis=1))
-    # due braccia tese indietro sul muso dell'aguglia: una sopra l'occhio, una sotto la mascella
+        s_ = np.linspace(0, 1, 26)
+        x = xo - 0.016 - 0.07 * s_
+        wy, wz, zc = P.sezione_rostro(r, x)
+        ang = fase + 2 * math.pi * 1.4 * s_
+        ra = 0.0072 - 0.0052 * s_
+        rr = (wy + wz) * 0.5 + ra * 0.85
+        braccia.append((np.stack([x, rr * np.cos(ang), zc + rr * np.sin(ang)], axis=1).astype(F), ra))
+    # due braccia che tornano indietro sul muso: una si avvolge sopra l'occhio, una sotto la mascella
     e = body.occhi_lista()[0][0]
-    braccia.append(_curva(H + np.array((0.008, -0.012, 0.008), F), H + np.array((0.04, -0.03, 0.03), F),
-                          e + np.array((-0.02, -0.03, 0.022), F), e + np.array((0.012, -0.012, 0.004), F), n=20))
-    braccia.append(_curva(H + np.array((0.01, -0.01, -0.012), F), H + np.array((0.05, -0.03, -0.035), F),
-                          np.array((0.045, -0.035, -0.045), F), np.array((0.07, -0.02, -0.03), F), n=20))
+    for Q in (_curva(H + np.array((0.012, -0.016, 0.01), F), H + np.array((0.045, -0.04, 0.035), F),
+                     e + np.array((-0.01, -0.035, 0.03), F), e + np.array((0.016, -0.014, 0.012), F), n=22),
+              _curva(H + np.array((0.014, -0.014, -0.014), F), H + np.array((0.05, -0.04, -0.04), F),
+                     np.array((0.035, -0.04, -0.05), F), np.array((0.06, -0.03, -0.035), F), n=22)):
+        braccia.append((Q, np.linspace(0.0072, 0.0018, len(Q))))
     # quattro braccia che pendono e si arricciano in fondo
     for k in range(4):
-        dy = (-0.016, -0.005, 0.006, 0.016)[k]
-        dx = (-0.012, 0.004, -0.004, 0.012)[k]
-        fondo = np.array((xo + dx * 2.5 + rng.normal(0, 0.006), dy * 2.2, asse_z - 0.075 - rng.uniform(0, 0.02)), F)
-        ricciolo = fondo + np.array((rng.choice((-1, 1)) * 0.014, -0.006, 0.014), F)
-        braccia.append(_curva(H + np.array((dx, dy, -0.012), F), H + np.array((dx * 2, dy * 1.8, -0.045), F),
-                              fondo + np.array((0.0, 0.0, -0.012), F), ricciolo, n=20))
+        dy = (-0.02, -0.007, 0.007, 0.02)[k]
+        dx = (-0.015, 0.005, -0.005, 0.015)[k]
+        fondo = np.array((xo + dx * 2.5 + rng.normal(0, 0.008), dy * 2.2, asse_z - 0.095 - rng.uniform(0, 0.025)), F)
+        ricciolo = fondo + np.array((rng.choice((-1, 1)) * 0.018, -0.008, 0.018), F)
+        Q = _curva(H + np.array((dx, dy, -0.016), F), H + np.array((dx * 2, dy * 1.8, -0.055), F),
+                   fondo + np.array((0.0, 0.0, -0.016), F), ricciolo, n=22)
+        braccia.append((Q, np.linspace(0.0075, 0.0014, len(Q))))
     A, B, R1, R2 = [], [], [], []
-    for Q in braccia:
-        R = np.linspace(0.0056, 0.0011, len(Q))
+    for Q, R in braccia:
+        R = np.broadcast_to(np.asarray(R, F), (len(Q),))
         A += list(Q[:-1])
         B += list(Q[1:])
         R1 += list(R[:-1])
         R2 += list(R[1:])
     fb, lo_b, hi_b = P.campo_coni(A, B, R1, R2)
-    corpo = P.sdf.union(mantello, testa, k=0.008)
+    corpo = P.sdf.union(mantello, testa, k=0.01)
 
     def polpo(p):
-        return P.sdf.smin(corpo(p), fb(p), 0.004).astype(F)
-    lo = np.minimum(lo_b, H - 0.06)
-    hi = np.maximum(hi_b, H + np.array((0.04, 0.04, 0.08), F))
+        return P.sdf.smin(corpo(p), fb(p), 0.005).astype(F)
+    lo = np.minimum(lo_b, H - 0.07)
+    hi = np.maximum(hi_b, H + np.array((0.05, 0.05, 0.11), F))
     c.obs.append(P.oggetto_sdf('Polpo', polpo, lo, hi, _polpo_mat(c), res=_res(c, 0.0006)))
     # gli occhi del polpo, a fessura, che guardano la camera
     occhio = P.eye_material('OcchioPolpo', iris=(0.85, 0.66, 0.22), iris_dark=(0.35, 0.22, 0.05), pupil='slit_h', pupil_size=0.42,
                             shine=(0.6, 0.6, 0.4), shine_strength=0.2, sclera=(0.3, 0.2, 0.06))
     for k, sy in enumerate((-1, 1)):
-        ce = H + np.array((0.004, sy * 0.0165, 0.009), F)
-        c.obs.append(P.eyeball(f'OcchioPolpo{k}', tuple(map(float, ce)), 0.0058, occhio, look=(0.25, -1.0, 0.15), col=P.COL))
+        ce = H + np.array((0.005, sy * 0.0225, 0.012), F)
+        c.obs.append(P.eyeball(f'OcchioPolpo{k}', tuple(map(float, ce)), 0.0075, occhio, look=(0.25, -1.0, 0.15), col=P.COL))
     # il sangue: sul rostro attorno al polpo (fino al muso) e le gocce dalla testa trafitta
     rostro = [np.array((x, -0.007, asse_z), F) for x in np.linspace(-0.16, 0.0, 9)]
     _dipingi(c, 'blood', _lungo(rostro, 0.009, 0.85, lato=0))
-    for k, dx in enumerate((-0.012, 0.006)):
-        c.obs.append(_goccia(c, f'GocciaPolpo{k}', H + np.array((dx, -0.008, -0.016), F), 0.03 + 0.015 * k, r0=0.002, r1=0.0046))
+    for k, dx in enumerate((-0.014, 0.008)):
+        c.obs.append(_goccia(c, f'GocciaPolpo{k}', H + np.array((dx, -0.01, -0.02), F), 0.032 + 0.015 * k, r0=0.0022, r1=0.005))
 
 
 # ── Aguglia Imperiale Trafitta (aguglia imperiale, Tetrapturus belone) ──
@@ -1802,24 +1807,26 @@ def _volpe(c):
     P = c.P
     rng = np.random.default_rng(13)
     seg = []
-    for _ in range(11):
-        t, v = rng.uniform(0.2, 0.92), rng.uniform(-0.5, 0.7)
+    for _ in range(15):
+        t, v = rng.uniform(0.12, 0.95), rng.uniform(-0.55, 0.75)
         zc, h, _ = _sezione(c, t)
         z = zc + h * v
-        L, a = rng.uniform(0.03, 0.065), rng.uniform(0.3, math.pi - 0.3)
+        L, a = rng.uniform(0.025, 0.09), rng.uniform(0.25, math.pi - 0.25)
         seg.append(((t - L / 2 * math.cos(a), z - L / 2 * math.sin(a)), (t + L / 2 * math.cos(a), z + L / 2 * math.sin(a))))
     coda = next(f for f in c.forma.fins if f.kind == 'caudal')
     zc1, _, _ = _sezione(c, 1.0)
     sopra = np.array(coda.outline[:5], F)
     sotto = np.array(coda.outline[5:9][::-1], F)
-    for ea in np.linspace(0.45, 2.1, 13):
+    for ea in np.sort(rng.uniform(0.4, 2.15, 15)):
         eo_s = float(np.interp(ea, sopra[:, 0], sopra[:, 1]))
         eo_g = float(np.interp(ea, sotto[:, 0], sotto[:, 1]))
-        storto = rng.normal(0, 0.06)
+        storto = rng.normal(0, 0.16)
+        quanto = rng.uniform(0.45, 1.25)                    # alcune attraversano il lobo, altre no
+        da_sopra = rng.uniform() < 0.5
+        a_, b_ = (eo_s + 0.12, eo_s + 0.12 - (eo_s - eo_g + 0.24) * quanto) if da_sopra else \
+            (eo_g - 0.12, eo_g - 0.12 + (eo_s - eo_g + 0.24) * quanto)
         x0, x1 = 0.99 + (ea + storto) * coda.size, 0.99 + (ea - storto) * coda.size
-        z0 = zc1 + (eo_g - 0.12) * coda.size * 0.42
-        z1 = zc1 + (eo_s + 0.12) * coda.size * 0.42
-        seg.append(((x0, z0), (x1, z1)))
+        seg.append(((x0, zc1 + a_ * coda.size * 0.42), (x1, zc1 + b_ * coda.size * 0.42)))
     mat = P.materiale('Cicatrice', (0.6, 0.53, 0.53), rough=0.45, coat=0.35, sss=0.2)
     ob = _cicatrici(c, seg, 0.0034, mat)
     if ob is not None:

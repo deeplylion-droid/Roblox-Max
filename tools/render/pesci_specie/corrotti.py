@@ -736,11 +736,12 @@ def _dita_gallincubo(c):
     unghia = P.materiale('Unghia', (0.7, 0.62, 0.5), rough=0.22, coat=0.8, sss=0.15)
     for s in (-1, 1):
         for i in range(3):
-            base, nr = body.superficie(pinna.a - 0.025 - 0.016 * i, -0.72 - 0.08 * i, s)
-            k = 1.0 - 0.09 * i                         # le dita dietro un poco più corte
-            dirs = [(-0.3 + 0.12 * i, 0.85, -1.0), (-0.9, 0.45, -0.5), (-0.25, 0.2, -1.0)]
-            lung = [0.064 * k, 0.045 * k, 0.033 * k]
-            rag = [0.0112, 0.0103, 0.0093, 0.0076]
+            base, nr = body.superficie(pinna.a - 0.012 - 0.03 * i, -0.74, s)
+            k = 1.0 - 0.08 * i                         # le dita dietro un poco più corte
+            ap = -0.45 + 0.42 * i                      # a ventaglio: la prima avanti, l'ultima indietro
+            dirs = [(ap, 0.9, -1.0), (ap - 0.55, 0.35, -0.6), (ap * 0.3 - 0.12, 0.15, -1.0)]
+            lung = [0.066 * k, 0.048 * k, 0.036 * k]
+            rag = [0.0098, 0.009, 0.0082, 0.0067]
             pts = [base - nr * 0.007]
             for d, L in zip(dirs, lung):
                 d = np.array((d[0], s * d[1], d[2]), np.float32)
@@ -772,11 +773,11 @@ def _dita_gallincubo(c):
             # l'unghia sul dorso dell'ultima falange (il lato davanti e in fuori della curva)
             d3 = pts[3] - pts[2]
             d3 = d3 / np.linalg.norm(d3)
-            fuori = np.array((-1.0, s * 0.45, 0.25), np.float32)
+            fuori = np.array((-0.45, s * 1.0, 0.3), np.float32)
             fuori -= d3 * float(fuori @ d3)
             fuori /= np.linalg.norm(fuori)
             cu = pts[3] - d3 * 0.0095 + fuori * rag[3] * 0.75
-            fu = _ellissoide(c, cu, (0.0092, 0.0019, 0.0074), _ruota(d3, fuori))
+            fu = _ellissoide(c, cu, (0.0085, 0.0018, 0.0066), _ruota(d3, fuori))
             c.obs.append(P.oggetto_sdf(f'Unghia{s}_{i}', fu, cu - 0.014, cu + 0.014, unghia, res=0.0005 if c.fast else 0.0003))
 
 
@@ -893,14 +894,14 @@ def _boccucce_mormora(c):
     """Mormorìa: le boccucce nella fessura dell'opercolo: due labbra di carne per bocca, socchiuse, una sopra
     l'altra lungo la mezzaluna; il fondo della fessura rosso cupo."""
     P, body, sh = c.P, c.body, c.forma
-    labbra = P.flesh_material('LabbraMormora', (0.5, 0.14, 0.15))
+    labbra = P.flesh_material('LabbraMormora', (0.66, 0.3, 0.3))
     for k, v in enumerate(np.linspace(-0.54, 0.54, 5)):
         v = float(v)
         xa = float(_bordo_opercolo(sh, v)) - 0.015
         zc, h, _ = (float(a[0]) for a in body.section(np.array([xa], np.float32)))
         z = zc + h * v
         q = np.array((xa, -float(body.surface_y(xa, z)) + 0.0135, z), np.float32)
-        L, ap = 0.0098 - 0.0015 * abs(v), 0.0018 + 0.0012 * (k % 2)
+        L, ap = 0.0098 - 0.0015 * abs(v), 0.0025 + 0.0013 * (k % 2)
         parti = []
         for su, r in ((1, 0.0029), (-1, 0.0035)):
             a = q + np.array((-L, 0.0, su * ap), np.float32)
@@ -917,7 +918,7 @@ def _boccucce_mormora(c):
         v = (p[:, 2] - zc) / h
         xa = _bordo_opercolo(sh, v)
         return dentro(p) * (p[:, 0] > xa - 0.045) * (p[:, 0] < xa + 0.01) * (p[:, 1] < 0)
-    _pittura(c, 'fessura', fondo, (0.14, 0.02, 0.025), ruvido=0.3)
+    _pittura(c, 'fessura', fondo, (0.045, 0.006, 0.01), ruvido=0.3)
 
 
 SPECIE['mormoria'] = Specie(
@@ -1093,7 +1094,7 @@ SPECIE['bocchenere'] = Specie(
     aspetto=Look(back=(0.1, 0.085, 0.07), flank=(0.16, 0.14, 0.12), belly=(0.55, 0.52, 0.5), fin=(0.1, 0.09, 0.075),
                  iris=(0.55, 0.62, 0.45), iris_dark=(0.06, 0.08, 0.05), pupilla='slit_v', metal=0.1, irid=0.15, squame=0.0,
                  linea_laterale=0.0, lucido=0.35, ruvido=0.45, tinta_pinne=0.6,
-                 disegni=[Disegno('macchie', colore=(0.012, 0.01, 0.009), colore2=(0.36, 0.34, 0.3), forza=0.9, scala=16, r=0.42,
+                 disegni=[Disegno('macchie', colore=(0.012, 0.01, 0.009), colore2=(0.26, 0.24, 0.21), forza=0.9, scala=16, r=0.42,
                                   v0=0.12)]),
     extra=_denti_bocchenere, campo=_campo_bocchenere,
     famiglia='corrupt', piano='squalo',

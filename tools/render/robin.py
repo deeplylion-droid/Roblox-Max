@@ -40,7 +40,6 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont  # noqa: E402
 
 import dettagli as D  # noqa: E402
 import sdf  # noqa: E402
-import skin  # noqa: E402
 import teste_robin as T  # noqa: E402
 from common import CACHE, EYE, ROOT, reset_scene  # noqa: E402
 from creature import sdf_object  # noqa: E402
@@ -63,6 +62,7 @@ BASI = {s: [V(s * 0.10, -0.09, 0.93), V(s * 0.11, 0.09, 0.935), V(s * 0.10, 0.25
 CODA = list(T.TAIL) + [V(0, 0.75, -0.34)]     # la coda della tavola, che scende un po' di più in acqua
 L_ALTRO = 0.54                            # braccio e avambraccio dell'altro braccio, in tutto: corto, piegato a chela
 PESCE_L = 0.28                            # il pesce rubato
+VENTAGLI_YAW = 28.0                       # i ventagli della tavola girati all'indietro: le braccia passano davanti
 
 # la posa di gioco (scena_creature.robin_posa) in coordinate locali, arrotondata: è quella che build() fa
 # senza parametri. Nel gioco i numeri si ricalcolano dalla barca.
@@ -352,6 +352,21 @@ def attributi(fr, A):
     return {'ventre': ventre, 'seconda': seconda}
 
 
+def ventagli():
+    """Le pettorali a ventaglio della tavola (teste_robin.ventagli), girate all'indietro di VENTAGLI_YAW attorno
+    alla loro base: nella tavola le braccia andavano avanti, qui partono di lato e le avrebbero bucate."""
+    from mathutils import Matrix
+    obs = T.ventagli()
+    for o in obs:
+        xs = np.empty(len(o.data.vertices) * 3, F)
+        o.data.vertices.foreach_get('co', xs)
+        s = 1 if xs[0::3].mean() > 0 else -1                # da che parte sta (i nomi possono avere .001)
+        b = (s * 0.11, -0.31, 0.93)
+        o.matrix_world = (Matrix.Translation(b) @ Matrix.Rotation(math.radians(s * VENTAGLI_YAW), 4, 'Z')
+                          @ Matrix.Translation(tuple(-v for v in b)) @ o.matrix_world)
+    return obs
+
+
 # ───────────────────────── i biglietti ─────────────────────────
 
 TICKET = 0.052          # lunghezza di un biglietto lungo la striscia (larga 3 cm)
@@ -563,7 +578,7 @@ def build(viewer=None, bucket=None, reach=None, feet=None, grip=None, lungo=None
         ob = sdf_object(name, fld, lo, hi, res=res, attrs=a, banded=True)
         ob.data.materials.append(skin_m)
         obs.insert(0, ob)
-    obs += T.ventagli()
+    obs += ventagli()
     obs += biglietti(A, P)
     if fish:
         obs += pesce_rubato(A, P)
@@ -590,7 +605,7 @@ def _set_barca():
 SHOTS = {
     # (riferimento, camera, bersaglio, lente): camera e bersaglio rispetto alla testa o al pugno, nelle
     # coordinate della barca
-    'insieme': ('testa', (1.25, -0.95, 0.55), (0.55, 0.36, -0.06), 22),
+    'insieme': ('testa', (1.05, -0.80, 0.50), (0.52, 0.36, -0.04), 24),
     'testa': ('testa', (0.50, -0.46, 0.16), (0.0, 0.0, -0.03), 50),
     'mano': ('pugno', (-0.38, -0.52, 0.16), (0.0, 0.0, -0.08), 45),
 }
