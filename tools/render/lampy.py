@@ -140,12 +140,17 @@ def ventosa(bocca):
     c = V(0.0, -0.32 + 0.04 * b, -0.115 - 0.022 * o)
     ha = max(a - r, 0.0) * 1.1
     hv = max(h - r, 0.0) * 1.1
+    # spalancandosi gli anelli si allargano meno del buco: quello di fuori resta sul bordo di dentro delle labbra e i
+    # denti restano fitti (allargati come il buco si sparpagliavano)
+    ha0, hv0 = 0.0572, 0.0456                      # il buco a riposo (bocca 0,5)
+    hx = ha if o <= 0 else ha0 + (ha - ha0) * 0.65
+    hz = hv if o <= 0 else hv0 + (hv - hv0) * 0.65
     anelli = []
     # (frazione del buco, minimo da chiusa, profondità dal piano delle labbra, quanti, lunghezza, raggio)
     for f, rmin, dy, n, L, rt in ((1.10, 0.040, -0.006, 18, 0.018, 0.0078), (0.90, 0.032, 0.012, 15, 0.019, 0.0074),
                                   (0.71, 0.025, 0.032, 12, 0.019, 0.0070), (0.54, 0.019, 0.052, 9, 0.018, 0.0066)):
-        rx = max(ha * f, rmin)
-        rz = max(hv * f, rmin * 0.9)
+        rx = max(hx * f, rmin)
+        rz = max(hz * f, rmin * 0.9)
         anelli.append((rx, rz, float(c[1] + dy * (1.0 - 0.4 * o) + 0.045 * k), n, L, rt))
     return {'b': b, 'o': o, 'k': k, 'c': c, 'a': a, 'h': h, 'r': r, 'amp': 0.060 - 0.050 * b,
             'ha': max(ha, 0.007), 'hv': max(hv, 0.007), 'anelli': anelli}
@@ -240,12 +245,14 @@ def denti(fr, v, giro, seed=17):
 
 
 def gola(fr, v):
-    """Il buio della gola dietro gli anelli di denti."""
+    """Il buio della gola dietro gli anelli di denti: comincia in fondo, dietro l'ultimo anello, ed è di un nero
+    opaco (lucido, a bocca spalancata sembrava una palla nera in fondo alla bocca, un occhio)."""
     c = v['c']
     rg = max(min(v['ha'], v['hv']) * 0.56, 0.010)
-    a, b = c + V(0, 0.03, 0), V(0, -0.04, -0.06)
+    a, b = c + V(0, 0.07, 0), V(0, -0.04, -0.06)
     c0 = fr.pt((a + b) / 2)
-    return D.mesh('LampyThroat', fr.field(sdf.capsule(a, b, rg)), c0 - 0.22 * fr.S, c0 + 0.22 * fr.S, D.dark_throat(), res=0.004)
+    m = D.mat_simple('LampyThroatMat', (0.010, 0.002, 0.004), rough=0.85)
+    return D.mesh('LampyThroat', fr.field(sdf.capsule(a, b, rg)), c0 - 0.22 * fr.S, c0 + 0.22 * fr.S, m, res=0.004)
 
 
 # ───────────────────────── la cuffia a fiori ─────────────────────────
@@ -574,7 +581,7 @@ SHOTS = {
 # la ventosa da vicino, nelle tre aperture: (titolo, bocca, giro dei denti)
 VENTOSE = (('chiusa (bocca 0)', 0.0, 0.0), ('a riposo (bocca 0,5)', BOCCA_RIPOSO, 0.0),
            ('spalancata (bocca 1), denti girati di 10°', 1.0, 10.0))
-SHOT_VENTOSA = ((-0.70, -0.62, 1.04), (-0.62, 0.0, 1.01), 70)
+SHOT_VENTOSA = ((-0.78, -0.88, 1.20), (-0.62, 0.05, 1.10), 55)
 
 
 def mare():

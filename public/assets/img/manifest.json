@@ -1,5 +1,128 @@
 {
  "layers": {
+  "archie_fiato": {
+   "base": "archie_soffia",
+   "passes": {
+    "ambient": {
+     "file": "archie_fiato_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "archie_fiato_lamp.webp",
+     "res": 1.0,
+     "scale": 0.79
+    },
+    "lantern": {
+     "file": "archie_fiato_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    4037,
+    475,
+    4185,
+    602
+   ],
+   "space": "boat",
+   "yaw": 10.7975
+  },
+  "archie_soffia": {
+   "eyes": [
+    [
+     0.8923,
+     4.8442,
+     1.1116
+    ],
+    [
+     0.9387,
+     4.7779,
+     1.1116
+    ]
+   ],
+   "passes": {
+    "ambient": {
+     "file": "archie_soffia_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "archie_soffia_lamp.webp",
+     "res": 1.0,
+     "scale": 2.7
+    },
+    "lantern": {
+     "file": "archie_soffia_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    4037,
+    475,
+    4206,
+    1174
+   ],
+   "space": "boat",
+   "yaw": 10.7975
+  },
+  "archie_trombetta_mezza": {
+   "base": "archie_soffia",
+   "passes": {
+    "ambient": {
+     "file": "archie_trombetta_mezza_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "archie_trombetta_mezza_lamp.webp",
+     "res": 1.0,
+     "scale": 1.8
+    },
+    "lantern": {
+     "file": "archie_trombetta_mezza_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3963,
+    475,
+    4185,
+    631
+   ],
+   "space": "boat",
+   "yaw": 10.7975
+  },
+  "archie_trombetta_tutta": {
+   "base": "archie_soffia",
+   "passes": {
+    "ambient": {
+     "file": "archie_trombetta_tutta_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "archie_trombetta_tutta_lamp.webp",
+     "res": 1.0,
+     "scale": 6.0
+    },
+    "lantern": {
+     "file": "archie_trombetta_tutta_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3860,
+    475,
+    4185,
+    677
+   ],
+   "space": "boat",
+   "yaw": 10.7975
+  },
   "battery": {
    "gauge": [
     [
@@ -347,7 +470,7 @@
     "ambient": {
      "file": "hatch_bocca_mezza_ambient.webp",
      "res": 1.0,
-     "scale": 0.8200000000000001
+     "scale": 6.0
     },
     "lamp": {
      "file": "hatch_bocca_mezza_lamp.webp",

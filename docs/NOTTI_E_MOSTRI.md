@@ -163,6 +163,10 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
   arriva in faccia di tre quarti, il muso che ti passa accanto a sinistra con le zanne. Lo illuminano la luna alle
   spalle, la lanterna e una luce calda dalla parte della lanterna che tocca solo lui (come per Robin), così la faccia
   esce dal buio man mano che arriva.
+- **Render finali** (10 ottobre, in attesa dell'approvazione ma già usabili): `archie_soffia` con gli occhi nel
+  manifest (al buio brillano come quelli degli altri), e le toppe `archie_fiato`, `archie_trombetta_mezza`,
+  `archie_trombetta_tutta`, in `public/assets/img` con le chiavi che il gioco già aspetta. Manca il jumpscare finale
+  (`JUMPSCARES=archie jobs.py jumpscare --quality final`).
 
 ### Notte 4 · Lampy — *NON FERRARE*
 
