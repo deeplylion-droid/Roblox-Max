@@ -6,9 +6,9 @@
 > **Sagome scelte**: Robin **A «Granchio»**, Archie **C «Periscopio»**, Lampy **C «Sanguisuga»** (ma più
 > grosso), Fangy **B «Mastino»** (`docs/concept/*_sagome.png`). La batteria è approvata così; il segnale di
 > Lampy è **sia il ritmo perfetto sia la risatina**.
-> **Teste scelte** (10 ottobre): Robin **B «Baffi»**, Lampy **B «Bacio»**, Fangy **A «Sciabola»**
-> (`docs/concept/*_dettagli_bozza.png`). **Archie è da rifare**: l'utente non vuole la pistola, lo vuole
-> «serpente marino che ti soffia per spegnere» (vedi la sua scheda). Colori approvati.
+> **Teste scelte** (10 ottobre): Robin **B «Baffi»**, Archie **A «Serpente»** (rifatto come serpente di mare
+> con la trombetta da festa, approvata), Lampy **B «Bacio»**, Fangy **A «Sciabola»**
+> (`docs/concept/*_dettagli_bozza.png`). Colori approvati.
 
 ## Il piano delle notti
 
@@ -106,10 +106,12 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
 
 - **Da dove viene**: il serpente di mare del Mediterraneo (*Ophisurus serpens*), un'anguilla lunghissima e
   sottile col muso appuntito. Giallo a bande nere (colore approvato), come i serpenti di mare veri.
-- **Dal parco** (*proposta da approvare*): una trombetta da festa, la lingua di carta a strisce con la piuma
-  in punta che si srotola soffiando, fusa nelle labbra.
-- **Da bambino** (*proposta da approvare*): alle feste di compleanno al parco spegneva lui le candeline degli
-  altri bambini. Ora **soffia sulla lampara**.
+- **Dal parco** (approvato): una trombetta da festa a strisce rosse e bianche, con la piuma in punta, che si
+  srotola soffiando; il bocchino è fuso nelle labbra.
+- **Da bambino** (approvato): alle feste di compleanno al parco spegneva lui le candeline degli altri bambini.
+  Ora **soffia sulla lampara**.
+- **Testa** (scelta): A «Serpente», la testa lunga e appuntita del serpente di mare coi denti aguzzi fuori
+  dalle labbra, che stringe il bocchino.
 - **Come si gioca**: un risucchio lungo, mentre prende fiato: vuole spegnere la tua luce. Devi **spegnere la
   lampara** prima che soffi e restare al buio finché non si rituffa. Se soffia con la lampara accesa il
   vetro della lampara esplode e nel buio Archie ti è addosso: **jumpscare** (nota dell'utente: non deve
