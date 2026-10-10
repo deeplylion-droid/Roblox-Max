@@ -294,11 +294,6 @@ def _acciaio(c, nome='Acciaio'):
     return c.P.materiale(nome, (0.62, 0.63, 0.66), rough=0.18, coat=0.3, metal=1.0)
 
 
-def _carne_mat(c, nome='CarneViva'):
-    """La carne viva rossa e bagnata (lembi, brandelli)."""
-    return c.P.flesh_material(nome, (0.5, 0.06, 0.06))
-
-
 def _pelle_y(c, X, Z, lato=-1, fino=0.2):
     """La pelle lungo y alle posizioni (X, Z) (array), sul lato dato, cercata sul campo vero del corpo (con le pinne
     di carne: serve per la coda dello squalo volpe, che non è nei profili). Bisezione da fuori (y = lato · fino) a
@@ -382,7 +377,7 @@ def _trafittina(c):
     occhi = body.occhi_lista()
     scie = []
     for k, lato in enumerate((-1, 1)):
-        ec, r, _ = occhi[k]
+        _, r, _ = occhi[k]
         tz = [(sh.eye_t + 0.002, sh.eye_z - r * 0.98), (sh.eye_t + 0.009, sh.eye_z - r * 1.8),
               (sh.eye_t + 0.018, sh.eye_z - r * 2.6), (sh.eye_t + 0.028, sh.eye_z - r * 3.4),
               (sh.eye_t + 0.037, sh.eye_z - r * 4.2), (sh.eye_t + 0.044, sh.eye_z - r * 4.9)]
@@ -456,7 +451,7 @@ def _geo_serrasangue(c):
     s = _Scavi(P)
     rng = np.random.default_rng(31)
     A, B, R1, R2, fondo = [], [], [], [], []
-    for k, (t, v, R, verso) in enumerate(_MORSI_SERRA):
+    for t, v, R, verso in _MORSI_SERRA:
         if abs(v) >= 1.0:
             zb = float((body.top if v > 0 else body.bot)(np.array([t], F))[0])
             cz = zb + np.sign(v) * R * 0.3
@@ -719,7 +714,7 @@ def _posti_chiodi(c):
 def _geo_razza(c):
     """Gli strappi passanti nelle ali (fessure frastagliate da dentro l'ala fino al bordo) e i buchi dove entrano i
     chiodi."""
-    P, body = c.P, c.body
+    P = c.P
     s = _Scavi(P)
     n3 = P.sdf.Noise3(17)
     for (t0, z0), (t1, z1), mezza in _STRAPPI_RAZZA:
@@ -987,7 +982,7 @@ def _geo_palamita(c):
         r = (0.0035 + 0.012 * math.sin(math.pi * u) ** 0.6) * (1.0 + 0.3 * math.sin(u * 37.0) * math.sin(u * 13.0))
         Q.append(p - n * r * 0.3)
         R.append(r)
-        e1, e2 = _telaio(n)
+        _, e2 = _telaio(n)
         lab_su.append(p + e2 * r * 0.9)
         lab_giu.append(p - e2 * r * 0.9)
         if i % 3 == 1 and 0.05 < u < 0.97:
@@ -1100,7 +1095,7 @@ def _leccia(c):
     s = _cache(c, 'scavi', _geo_leccia)
     _dipingi(c, 'wound', s.carne)
     _dipingi(c, 'blood', _colature([(p - np.array((0.0, 0.0, 0.004), F), 0.0034, 0.035, 0.9) for p in s.centri]))
-    bassi = [p for p, (t, v) in zip(s.centri, _GRIGLIA_LECCIA) if v < -0.4]
+    bassi = [p for p, (_, v) in zip(s.centri, _GRIGLIA_LECCIA) if v < -0.4]
     for k, p in enumerate(bassi[::2]):
         c.obs.append(_goccia(c, f'GocciaMorsetto{k}', p - np.array((0.0, 0.0, 0.006), F), 0.02 + 0.008 * (k % 2), r0=0.0014, r1=0.0032))
 
@@ -1395,7 +1390,7 @@ def _campo_violino(c, f):
 def _violino(c):
     """Le corde: quattro nervi tesi da un taglio all'altro, sollevati da un ponticello d'osso piantato sul dorso;
     la carne viva nei tagli e il sangue attorno."""
-    P, body = c.P, c.body
+    P = c.P
     s = _cache(c, 'scavi', _geo_violino)
     _dipingi(c, 'wound', s.carne)
     t1, t2, tp = 0.085, 0.56, 0.36
@@ -1495,11 +1490,11 @@ def _geo_pilota(c):
         q = centro + R * np.array((math.cos(a), 0.0, math.sin(a)), F) * 0.98
         if q[2] > ztop + 0.002:
             continue
-        p, n = _pelle_tz(c, float(q[0]), float(q[2]), -1)
+        p, _ = _pelle_tz(c, float(q[0]), float(q[2]), -1)
         if np.linalg.norm(p - centro) > R * 1.05:
             continue
         orlo.append(p)
-    for k, p in enumerate(orlo[::3]):
+    for p in orlo[::3]:
         d = (centro - p) / (np.linalg.norm(centro - p) + 1e-9)
         A.append(p - d * 0.006)
         B.append(p + d * 0.01)
@@ -1564,7 +1559,7 @@ def _remora(c):
         x = p[:, 0]
         alza = 0.02 * np.clip((x - 0.215) / 0.06, 0, 1) ** 2
         guscio = np.abs(base(p) - 0.0022 - alza) - 0.0013
-        zc, h, _ = body.section(np.clip(x, 0, 1))
+        zc, _, _ = body.section(np.clip(x, 0, 1))
         ang = np.arctan2(-p[:, 1], p[:, 2] - zc)              # 0 in cima, + verso il fianco sinistro
         frast = n3(p, scale=0.012, octaves=3)
         dentro = np.maximum(np.abs(x - 0.2) - 0.066 - 0.016 * frast, (np.abs(ang - 0.3) - 0.85 - 0.3 * frast) * 0.045)
@@ -1617,7 +1612,7 @@ def _geo_verdesca(c):
     s = _Scavi(P)
     s.squarci = []
     n3 = P.sdf.Noise3(9)
-    for k, t0 in enumerate((0.4, 0.475, 0.55)):
+    for t0 in (0.4, 0.475, 0.55):
         Q, R, bordo = [], [], []
         for u in np.linspace(0, 1, 22):
             t = t0 + 0.07 * u
