@@ -341,63 +341,6 @@ def _cicatrici(c, segmenti, raggio, mat, nome='Cicatrici', passo=0.004):
     return c.P.oggetto_sdf(nome, f, lo, hi, mat, res=_res(c, max(raggio * 0.3, 0.0005)))
 
 
-def _pinne_razza(c):
-    """Le pinne di carne delle specie viste dall'alto (piano 'razza': dorsali e caudale sulla coda), rifatte qui.
-    In pesci.piastra, sulle razze, il riquadro della maschera viene riportato nel mondo prima che il campo lo usi
-    (le variabili lo, hi della chiusura cambiano dopo): il campo resta vuoto e le pinne non si vedono. Qui la
-    stessa lastra, con il riquadro nel telaio delle pinne. Restituisce [(campo, lo, hi)] nel mondo."""
-    P, body = c.P, c.body
-    vb, a_mondo, da_mondo = body.telaio_pinne()
-    out = []
-    for fin in c.forma.fins:
-        if not fin.carnosa or fin.kind in ('pectoral', 'pelvic'):
-            continue
-        roots, tips, fr = P.fin_points(vb, fin, -1)
-        R, T = np.array(roots, F), np.array(tips, F)
-        o = np.zeros(3, F)
-        e1, e2, en = np.array((1, 0, 0), F), np.array((0, 0, 1), F), np.array((0, 1, 0), F)
-
-        def piano(Q, o=o, e1=e1, e2=e2, en=en):
-            Q = Q - o
-            return np.stack([Q @ e1, Q @ e2], axis=1).astype(F), (Q @ en).astype(F)
-        radice = piano(R)[0]
-        poly = np.concatenate([radice, piano(T)[0][::-1]])
-        H, th1 = fin.size, (0.0024 if c.fast else 0.0015)
-        th0 = max(fin.spessore, th1 * 1.5)
-        tutti = np.concatenate([R, T])
-        lo_t, hi_t = tutti.min(0) - th0 - 0.01, tutti.max(0) + th0 + 0.01
-
-        def f(Pm, piano=piano, radice=radice, poly=poly, H=H, th0=th0, th1=th1, lo_t=lo_t, hi_t=hi_t):
-            out_ = np.full(len(Pm), LONTANO, F)
-            Q = da_mondo(Pm)
-            m = np.all((Q >= lo_t) & (Q <= hi_t), axis=1)
-            if m.any():
-                q2, qn = piano(Q[m])
-                d2 = P._poligono_2d(q2, poly)
-                th = th1 + (th0 - th1) * np.clip(1 - P._polilinea(q2, radice) / (H * 0.9), 0, 1) ** 1.5
-                wy = np.abs(qn) - th
-                out_[m] = np.minimum(np.maximum(d2, wy), 0) + np.sqrt(np.maximum(d2, 0) ** 2 + np.maximum(wy, 0) ** 2)
-            return out_
-        cc = a_mondo(np.array([[a, b, z] for a in (lo_t[0], hi_t[0]) for b in (lo_t[1], hi_t[1]) for z in (lo_t[2], hi_t[2])], F))
-        out.append((f, cc.min(0), cc.max(0)))
-    return out
-
-
-def _con_pinne_razza(c, f):
-    """Il campo f con le pinne di carne della razza rifatte (vedi _pinne_razza), fuse come quelle del generatore."""
-    pinne = _cache(c, 'pinne_razza', _pinne_razza)
-    smin = c.P.sdf.smin
-
-    def g(p):
-        d = f(p)
-        for pf, lo, hi in pinne:
-            m = np.all((p >= lo) & (p <= hi), axis=1)
-            if m.any():
-                d[m] = smin(d[m], pf(p[m]), 0.005)
-        return d.astype(F)
-    return g
-
-
 def _chiodo(P, base, asse, fuori, r=0.0028, testa=0.0068, piega=None):
     """Un chiodo infilato: il gambo da `base` (dentro la carne) lungo `asse` fino alla testa piatta, fuori di
     `fuori` dalla pelle; piega = (dove, direzione) storce la parte di fuori (chiodo piegato). Campo e riquadro."""
@@ -796,7 +739,7 @@ def _geo_razza(c):
 
 
 def _campo_razza(c, f):
-    return _con_pinne_razza(c, _cache(c, 'scavi', _geo_razza).scava(f, k=0.001))
+    return _cache(c, 'scavi', _geo_razza).scava(f, k=0.001)
 
 
 def _razza(c):
@@ -1446,7 +1389,7 @@ def _geo_violino(c):
 
 
 def _campo_violino(c, f):
-    return _con_pinne_razza(c, _cache(c, 'scavi', _geo_violino).scava(f, k=0.001))
+    return _cache(c, 'scavi', _geo_violino).scava(f, k=0.001)
 
 
 def _violino(c):
