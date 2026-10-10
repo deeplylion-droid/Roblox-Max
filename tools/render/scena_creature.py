@@ -11,8 +11,15 @@ mare nasconde la parte sott'acqua.
     molly_sinistra   Molly aggrappata al bordo sinistro
     hatch_conta      Hatch in acqua dietro la poppa, alto fino alla vita, col pesciolino luminoso
     robin_secchio    Robin steso sul bordo sinistro verso prua, il braccio lunghissimo nel secchio (notte 2)
+    robin_strizza    toppa di robin_secchio: la sola testa, che strizza gli occhi nella luce della lampara
+    robin_chiusi     toppa di robin_secchio: la sola testa a occhi chiusi (il battito di ciglia)
+
+Le «toppe» sono pose uguali a quella principale con la sola parte che cambia visibile (il resto della creatura
+fa da maschera, come la barca): il gioco le dissolve sopra lo strato principale. Le opzioni (quarto elemento
+delle voci di POSES) sono spiegate in jobs.job_creature.
 
 Uso: tools/.venv/bin/python tools/render/jobs.py creature --quality preview
+     POSES=robin_strizza,robin_chiusi tools/.venv/bin/python tools/render/jobs.py creature --quality final
 """
 from __future__ import annotations
 
@@ -119,6 +126,14 @@ def hatch_conta():
     return place(obs + lights, M)
 
 
+# La testa di Robin nelle toppe: la pelle della testa (con le arcate), gli occhi, le palpebre, e quello che sta
+# nella faccia e non cambia (gola, denti, la bava della bocca), così la toppa non ha buchi dentro la faccia. I baffi
+# no: partono dagli angoli della bocca e non si muovono con le arcate. Il resto di Robin fa da maschera: le parti
+# che passano davanti alla testa la coprono come nello strato principale.
+ROBIN_TESTA = ('RobinHead', 'RobinEye*', 'RobinLid*', 'RobinThroat', 'RobinTeeth', 'RobinSlime')
+ROBIN_TOPPA = {'visibili': ROBIN_TESTA, 'occhi': False, 'yaw_di': 'robin_secchio'}
+
+# chiave → (funzione, spazio, mare[, opzioni]): vedi jobs.job_creature
 POSES = {
     'gulpy_sale': (gulpy_sale, 'world', False),
     'gulpy_pretende': (gulpy_pretende, 'boat', True),
@@ -126,6 +141,10 @@ POSES = {
     'molly_sinistra': (lambda: molly(-1), 'boat', False),
     'hatch_conta': (hatch_conta, 'world', False),
     'robin_secchio': (lambda: robin_secchio(), 'boat', True),
+    # nella luce piena strizza gli occhi (le palpebre a tre quarti, le arcate aggrottate); sulla barca ogni tanto
+    # sbatte le palpebre
+    'robin_strizza': (lambda: robin_secchio(palpebre=0.75, aggrotta=1.0), 'boat', True, ROBIN_TOPPA),
+    'robin_chiusi': (lambda: robin_secchio(palpebre=1.0, aggrotta=0.0), 'boat', True, ROBIN_TOPPA),
 }
 
 
@@ -207,8 +226,9 @@ def robin_posa():
                'grip': loc(grip), 'lungo': tuple(float(v) for v in lungo)}
 
 
-def robin_secchio():
+def robin_secchio(palpebre=0.0, aggrotta=0.0):
+    """La posa robin_secchio; con palpebre e aggrotta (robin.build) le espressioni delle toppe, nella stessa posa."""
     import robin as ro
     M, kw = robin_posa()
     LAST_M['robin_secchio'] = M
-    return place(ro.build(**kw), M)
+    return place(ro.build(**kw, palpebre=palpebre, aggrotta=aggrotta), M)

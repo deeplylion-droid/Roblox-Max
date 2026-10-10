@@ -83,6 +83,12 @@
   "h": 800,
   "family": "zombie"
  },
+ "ossiuga": {
+  "file": "ossiuga.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "skeletal"
+ },
  "pagello_pixelato": {
   "file": "pagello_pixelato.webp",
   "w": 1600,
@@ -121,6 +127,12 @@
  },
  "sgombrato": {
   "file": "sgombrato.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "skeletal"
+ },
+ "spratteschio": {
+  "file": "spratteschio.webp",
   "w": 1600,
   "h": 800,
   "family": "skeletal"

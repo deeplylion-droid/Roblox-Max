@@ -21,9 +21,18 @@ barca è y < 0, fuori c'è il mare (z = 0). La faccia guarda −Y. Nel gioco il 
 capodibanda (scena_creature.robin_posa): per questo piedi, presa, secchio e direzione del bordo arrivano
 come parametri; senza parametri build() rifà la posa di gioco (POSA, numeri arrotondati).
 
+Le espressioni (approvate: nella luce piena strizza gli occhi, sulla barca ogni tanto sbatte le palpebre):
+build(palpebre=…, aggrotta=…) abbassa le palpebre sugli occhi e aggrotta le arcate. Il gioco le usa come
+«toppe» (scena_creature: robin_strizza, robin_chiusi), strati con la sola testa dissolti sopra robin_secchio.
+A 0 (il predefinito) Robin è quello di sempre, oggetto per oggetto.
+
 Uso: tools/.venv/bin/python tools/render/robin.py [--fast]          vetrina → cache/vetrina/robin_*.png
      tools/.venv/bin/python tools/render/robin.py [--fast] --posa   la posa di gioco nella scena della barca,
                                                                     vista dall'occhio → docs/concept/pose_robin*.jpg
+     tools/.venv/bin/python tools/render/robin.py [--fast] --occhi  le tre teste dall'occhio (normale, strizzata,
+                                                                    chiusa) → docs/concept/pose_robin_occhi.jpg
+     nella vetrina: --palpebre 0.75 --aggrotta 1 per l'espressione (→ robin_<inquadratura>_p0.75_a1.png),
+                    --solo testa,insieme per alcune inquadrature soltanto
 """
 from __future__ import annotations
 
@@ -63,6 +72,12 @@ CODA = list(T.TAIL) + [V(0, 0.75, -0.34)]     # la coda della tavola, che scende
 L_ALTRO = 0.62                            # braccio e avambraccio dell'altro braccio, in tutto: piegato a chela
 PESCE_L = 0.28                            # il pesce rubato
 VENTAGLI_YAW = 28.0                       # i ventagli della tavola girati all'indietro: le braccia passano davanti
+# le palpebre (solo con build(palpebre > 0)): gusci di pelle attorno agli occhi
+LID_GAP = 0.0008                          # tra l'occhio e la palpebra
+LID_T = 0.0016                            # spessore della palpebra
+LID_MEET = -0.12                          # dove si incontrano chiuse: altezza vista da davanti, in raggi dell'occhio
+LID_PIEGA = 0.50                          # la piega della palpebra di sopra, sopra il bordo (radianti)
+RES_LID = 0.0006 if FAST else 0.0004
 
 # la posa di gioco (scena_creature.robin_posa) in coordinate locali, arrotondata: è quella che build() fa
 # senza parametri. Nel gioco i numeri si ricalcolano dalla barca.
@@ -246,6 +261,93 @@ def baffi(fr, verso):
             bb.append(f)
             pts.append(cp)
     return T.fine('RobinBarbels', sdf.union(*bb), pts, T.pelle_robin(), res=RES_FINE, attrs={'ventre': T.costante(0.6)})
+
+
+# ───────────────────────── le espressioni: palpebre e arcate ─────────────────────────
+# Le palpebre girano attorno all'asse di traverso della testa che passa per il centro dell'occhio, come quelle
+# vere, che si incontrano agli angoli dell'occhio: il bordo è il cerchio massimo dell'occhio su un piano che
+# contiene quell'asse. 'th' è l'angolo del bordo visto da davanti (sin th = la sua altezza al centro, in raggi
+# dell'occhio): +90° in cima, 0 al centro della pupilla, −90° in fondo.
+
+def _palpebra(E, rm, th, verso, normale):
+    """Una palpebra dell'occhio di centro E (verso = 1 quella di sopra, −1 quella di sotto): il guscio di pelle a
+    raggio rm, dalla parte del piano del bordo che copre l'occhio, col bordo arrotondato a cordoncino e la piega
+    parallela al bordo (un solco, e in quella di sopra la pelle che ci si rimbocca sopra)."""
+    n = normale(th) * verso
+    coperta = lambda p: -((p - E) @ n)                    # < 0 dalla parte che copre l'occhio
+    guscio = lambda p: np.abs(np.linalg.norm(p - E, axis=1) - rm) - LID_T / 2
+    lid = sdf.union(sdf.intersect(guscio, coperta, k=0.0004), D.torus_axis(E, normale(th), rm, LID_T / 2 + 0.00025), k=0.0004)
+    ro = rm + LID_T / 2
+    tp = th + verso * LID_PIEGA * (1.0 if verso > 0 else 0.6)
+    if verso > 0:
+        lid = sdf.union(lid, sdf.intersect(D.torus_axis(E, normale(tp + 0.14), ro, 0.0006), coperta), k=0.0006)
+    solco = sdf.intersect(D.torus_axis(E, normale(tp), ro + 0.0001, 0.00045 if verso > 0 else 0.0003), coperta)
+    return sdf.subtract(lid, solco, k=0.0003)
+
+
+def palpebre_obj(fr, occhi, chiuse, attrs):
+    """Le palpebre di Robin, della sua pelle (stesso materiale e stessi attributi del colore della testa): una
+    mesh per occhio, 'RobinLid0' su 'RobinEye0' e 'RobinLid1' su 'RobinEye1', con la palpebra di sopra e quella
+    di sotto. chiuse = 0: aperte, nascoste tutte e due dietro l'occhio; 1: chiuse, si incontrano un filo sotto il
+    centro (LID_MEET); in mezzo si accostano in proporzione (0,75: resta una fessura di un quarto dell'occhio).
+    Il bordo è scuro (la rima delle ciglia), così l'occhio chiuso si legge come una riga."""
+    up, fwd = fr.dir((0, 0, 1)), fr.dir((0, -1, 0))
+
+    def normale(th):
+        """La normale del piano del bordo all'angolo th, verso la parte di sopra."""
+        return (math.cos(th) * up - math.sin(th) * fwd).astype(F)
+
+    k = min(max(float(chiuse), 0.0), 1.0)
+    th_su = math.asin(max(-1.0, min(1.0, 1.0 - k * (1.0 - LID_MEET))))
+    th_giu = math.asin(max(-1.0, min(1.0, -1.0 + k * (1.0 + LID_MEET))))
+    n_su, n_giu = normale(th_su), normale(th_giu)
+    obs = []
+    for eye in occhi:
+        E = V(*eye.location)
+        rm = float(eye.scale[0]) + LID_GAP + LID_T / 2
+        f = sdf.union(_palpebra(E, rm, th_su, 1.0, normale), _palpebra(E, rm, th_giu, -1.0, normale))
+
+        def rima(p, E=E):
+            q = p - E
+            d = np.minimum(np.abs(q @ n_su), np.abs(q @ n_giu))
+            return ((1.0 - D.smooth01(d, 0.0004, 0.0016)) * 0.9).astype(F)
+        la = dict(attrs)
+        la['mouth'] = rima                                   # al posto delle orbite scure: la palpebra è pelle
+        idx = eye.name.split('.')[0][len('RobinEye'):]
+        pad = rm + LID_T + 0.003
+        ob = sdf_object('RobinLid' + idx, f, E - pad, E + pad, res=RES_LID, attrs=la, banded=True)
+        ob.data.materials.append(T.pelle_robin())
+        obs.append(ob)
+    return obs
+
+
+def arcate_moto(fr, k):
+    """Le arcate aggrottate (k = 0..1): le due arcate sopra gli occhi della testa B (il cappuccio di pelle che
+    nella tavola si chiama 'lids', intagliato dalle orbite) scendono sugli occhi e si stringono verso il naso, la
+    testa interna più in basso (a V, come chi strizza gli occhi nella luce); la fronte le segue, sotto il centro
+    degli occhi non si muove niente. Restituisce moto(p), lo spostamento della pelle nel punto p (coordinate di
+    Robin): il campo spostato vale f(p − moto(p)), e così gli attributi del colore (vanno con la pelle)."""
+    R, pos, k = fr.R, fr.pos, float(k)
+
+    def moto(p):
+        q = (p - pos) @ R                                      # coordinate della testa
+        out = np.zeros_like(q)
+        alto = D.smooth01(q[:, 2], 0.014, 0.040)
+        for s in (-1, 1):
+            t = np.linalg.norm((q - V(s * 0.056, -0.124, 0.048)) / V(0.050, 0.042, 0.032), axis=1)
+            w = D.smooth01(1.0 - t, 0.0, 0.6) * alto * k
+            dentro = D.smooth01(0.072 - s * q[:, 0], -0.010, 0.032)     # verso il naso scende di più
+            out[:, 0] -= s * 0.0045 * w
+            out[:, 1] -= 0.0020 * w
+            out[:, 2] -= (0.0035 + 0.0055 * dentro) * w
+        return (out @ R.T).astype(F)
+    return moto
+
+
+def spostato(g, moto):
+    """Il campo (o l'attributo) g con la pelle spostata di moto(p): in p c'è quello che prima stava in p − moto(p).
+    Dove moto è zero resta g, identico."""
+    return lambda p: g(p - moto(p))
 
 
 # ───────────────────────── il corpo ─────────────────────────
@@ -559,12 +661,15 @@ def melma(A, P, pesce=True):
 
 # ───────────────────────── costruzione ─────────────────────────
 
-def build(viewer=None, bucket=None, reach=None, feet=None, grip=None, lungo=None, fish=True):
+def build(viewer=None, bucket=None, reach=None, feet=None, grip=None, lungo=None, fish=True, palpebre=0.0, aggrotta=0.0):
     """Robin nella posa del secchio, in coordinate locali. viewer: dove guardano gli occhi e verso cui si gira la
     testa; bucket: il centro della bocca del secchio; reach: dove la mano stringe il pesce; feet: le punte
     delle sei zampe (tre per lato: davanti, in mezzo, dietro; prima il lato −X); grip: dove l'altra mano si
     aggrappa al capodibanda; lungo: la direzione del capodibanda (orizzontale). fish=False: la mano senza il
-    pesce. Gli occhi sono gli oggetti 'RobinEye0' e 'RobinEye1'."""
+    pesce. Gli occhi sono gli oggetti 'RobinEye0' e 'RobinEye1'.
+    Le espressioni: palpebre = 0 gli occhi aperti, 1 chiusi (le palpebre 'RobinLid0' e 'RobinLid1', della pelle,
+    scendono sugli occhi; vedi palpebre_obj); aggrotta = 0..1 le arcate sopra gli occhi scendono aggrottate (nella
+    pelle della testa, 'RobinHead'; vedi arcate_moto). A 0 non si aggiunge e non si sposta niente."""
     P = dict(POSA)
     for k, v in (('viewer', viewer), ('bucket', bucket), ('reach', reach), ('feet', feet), ('grip', grip), ('lungo', lungo)):
         if v is not None:
@@ -577,13 +682,20 @@ def build(viewer=None, bucket=None, reach=None, feet=None, grip=None, lungo=None
     elev = math.degrees(math.atan2(float(d[2]), float(np.hypot(d[0], d[1]))))
     pitch = -max(-5.0, min(22.0, elev * 0.85))
     fr, hf, cut, attrs, obs = testa(turn, pitch, vw)
+    occhi = [o for o in obs if o.name.split('.')[0] in ('RobinEye0', 'RobinEye1')]
     obs.append(baffi(fr, V(*P['bucket']) - HEAD))
     f = sdf.subtract(corpo(hf, A), sdf.union(T.gills(), cut), k=0.005)
     a = attributi(fr, A)
     a.update(attrs)
+    a_pelle = a
+    if aggrotta > 0:
+        # le arcate si spostano dopo i tagli delle orbite: così il loro bordo intagliato scende sopra gli occhi
+        moto = arcate_moto(fr, aggrotta)
+        f = spostato(f, moto)
+        a_pelle = {n: spostato(g, moto) for n, g in a.items()}
     skin_m = T.pelle_robin()
     for name, fld, lo, hi, res in pezzi_pelle(f, A):
-        ob = sdf_object(name, fld, lo, hi, res=res, attrs=a, banded=True)
+        ob = sdf_object(name, fld, lo, hi, res=res, attrs=a_pelle, banded=True)
         ob.data.materials.append(skin_m)
         obs.insert(0, ob)
     obs += ventagli()
@@ -591,6 +703,8 @@ def build(viewer=None, bucket=None, reach=None, feet=None, grip=None, lungo=None
     if fish:
         obs += pesce_rubato(A, P)
     obs += melma(A, P, pesce=fish)
+    if palpebre > 0:
+        obs += palpebre_obj(fr, occhi, palpebre, a)
     return obs
 
 
@@ -620,6 +734,15 @@ SHOTS = {
 }
 
 
+def _argomento(nome, default=None):
+    """Il valore che segue 'nome' sulla riga di comando (o default)."""
+    return sys.argv[sys.argv.index(nome) + 1] if nome in sys.argv else default
+
+
+# l'espressione della vetrina (--palpebre, --aggrotta): a 0 è il Robin di sempre
+ESPRESSIONE = {'palpebre': float(_argomento('--palpebre', 0.0)), 'aggrotta': float(_argomento('--aggrotta', 0.0))}
+
+
 def scena_vetrina():
     """La scena della vetrina: Robin nella posa di gioco sul capodibanda (scena_creature.robin_posa), in un pezzo
     di barca, con le luci di studio delle altre vetrine: la lanterna calda davanti e in basso, la luna fredda
@@ -636,7 +759,7 @@ def scena_vetrina():
     w.node_tree.nodes['Background'].inputs[0].default_value = (0.010, 0.014, 0.022, 1)
     _set_barca()
     M, kw = SC.robin_posa()
-    SC.place(build(**kw), M)
+    SC.place(build(**kw, **ESPRESSIONE), M)
     h = np.array(M @ Vector(tuple(map(float, HEAD))))
     p = np.array(M @ Vector(tuple(map(float, kw['reach']))))
     D.area_light('Key', tuple(h + (0.30, -1.10, -0.35)), tuple(h), 40, (1.0, 0.72, 0.44), 0.4)
@@ -647,7 +770,8 @@ def scena_vetrina():
 
 
 def showcase(shots=('insieme', 'testa', 'mano', 'fuori')):
-    """La vetrina: tools/render/cache/vetrina/robin_<inquadratura>.png."""
+    """La vetrina: tools/render/cache/vetrina/robin_<inquadratura>.png (con un'espressione,
+    robin_<inquadratura>_p<palpebre>_a<aggrotta>.png)."""
     from mathutils import Vector
     out = []
     ref = scena_vetrina()
@@ -670,7 +794,10 @@ def showcase(shots=('insieme', 'testa', 'mano', 'fuori')):
         cam.location = tuple(c0 + cl)
         cam.rotation_mode = 'QUATERNION'
         cam.rotation_quaternion = (Vector(tuple(c0 + ct)) - Vector(tuple(c0 + cl))).to_track_quat('-Z', 'Y')
-        path = os.path.join(CACHE, 'vetrina', f'robin_{name}.png')
+        coda = ''
+        if any(ESPRESSIONE.values()):
+            coda = '_p{palpebre:g}_a{aggrotta:g}'.format(**ESPRESSIONE)
+        path = os.path.join(CACHE, 'vetrina', f'robin_{name}{coda}.png')
         sc.render.filepath = path
         bpy.ops.render.render(write_still=True)
         out.append(path)
@@ -788,8 +915,71 @@ def anteprima_posa():
     return out, info
 
 
+# le tre teste dell'anteprima degli occhi: (posa di scena_creature, didascalia)
+TESTE_OCCHI = (('robin_secchio', 'normale · robin_secchio'),
+               ('robin_strizza', 'strizza gli occhi · robin_strizza (palpebre 0,75, aggrotta 1)'),
+               ('robin_chiusi', 'battito di ciglia · robin_chiusi (palpebre 1)'))
+
+
+def anteprima_occhi(lens=75.0, size=(640, 540)):
+    """Le tre teste di Robin affiancate, dall'occhio del pescatore: normale, che strizza gli occhi nella luce, a
+    occhi chiusi. Ognuna è la posa intera di scena_creature (robin_secchio, robin_strizza, robin_chiusi) nella
+    scena del gioco con la batteria della notte 2, come anteprima_posa, con la camera stretta sulla testa.
+    → docs/concept/pose_robin_occhi.jpg (e i pannelli in cache/robin_occhi_<posa>.png)."""
+    import batteria
+    import jobs
+    import scena_creature as SC
+    from common import perspective_camera
+    from mathutils import Vector
+    jobs.build_scene(fish=5, rod=True)
+    batteria.build_battery(needle=0.72)
+    sc = bpy.context.scene
+    sc.cycles.use_denoising = True
+    sc.render.image_settings.file_format = 'PNG'
+    sc.render.resolution_percentage = 100
+    sc.render.resolution_x, sc.render.resolution_y = size
+    sc.cycles.samples = 32 if FAST else 96
+    panels = []
+    for key, titolo in TESTE_OCCHI:
+        before = set(bpy.data.objects.keys())
+        SC.POSES[key][0]()
+        bpy.context.view_layer.update()
+        new = [bpy.data.objects[n] for n in set(bpy.data.objects.keys()) - before]
+        if not panels:
+            # la camera si punta sulla testa della prima posa (le tre stanno nello stesso posto)
+            h = SC.LAST_M['robin_secchio'] @ Vector(tuple(map(float, HEAD)))
+            perspective_camera(EYE, tuple(h), lens=lens, name='RobinCam_occhi')
+        path = os.path.join(CACHE, f'robin_occhi_{key}.png')
+        sc.render.filepath = path
+        bpy.ops.render.render(write_still=True)
+        panels.append((path, titolo))
+        print('pannello', path, flush=True)
+        for o in new:
+            o.hide_render = True
+    W, H = size
+    pad, cap = 8, 38
+    sheet = Image.new('RGB', (len(panels) * W + (len(panels) + 1) * pad, H + 2 * pad + cap), (14, 14, 16))
+    d = ImageDraw.Draw(sheet)
+    try:
+        font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 17)
+    except OSError:
+        font = ImageFont.load_default()
+    for i, (path, titolo) in enumerate(panels):
+        x = pad + i * (W + pad)
+        sheet.paste(Image.open(path).convert('RGB'), (x, pad))
+        d.text((x + 4, pad + H + 9), titolo, fill=(225, 225, 220), font=font)
+    dst = os.path.join(ROOT, 'docs', 'concept', 'pose_robin_occhi.jpg')
+    sheet.save(dst, quality=90)
+    print('anteprima', dst, flush=True)
+    return dst
+
+
 if __name__ == '__main__':
     if '--posa' in sys.argv:
         anteprima_posa()
+    elif '--occhi' in sys.argv:
+        anteprima_occhi()
+    elif '--solo' in sys.argv:
+        showcase(tuple(_argomento('--solo').split(',')))
     else:
         showcase()
