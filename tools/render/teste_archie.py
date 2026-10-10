@@ -56,7 +56,7 @@ HEAD = V(-0.04, 0.18, 2.36)               # centro della testa, in cima al collo
 AIM = unit(LAMP - HEAD)                   # la testa la prende di mira
 HEAD_PITCH = -math.degrees(math.asin(float(AIM[2])))
 HEAD_YAW = math.degrees(math.asin(float(AIM[0]) / math.sqrt(1.0 - float(AIM[2]) ** 2)))
-CAM = ((-1.20, -0.20, 2.34), (-0.14, -0.02, 2.32), 36)
+CAM = ((-1.20, -0.14, 2.26), (-0.12, 0.05, 2.22), 36)
 TESTONE = 1.3                             # le teste da bambino (B, C) sono più grandi del vero
 
 # i testi sotto i pannelli della tavola (nome della variante e spiegazione)
@@ -118,7 +118,7 @@ def piuma_material():
 # solo il collo, lungo e liscio come un'anguilla, e la testa in cima piegata verso la luce.
 
 NECK = [V(0.02, 0.50, -0.20), V(0.0, 0.47, 0.50), V(-0.01, 0.44, 1.20), V(-0.02, 0.41, 1.80), V(-0.025, 0.37, 2.10)]
-NECK_R = [0.090, 0.078, 0.066, 0.058, 0.055]
+NECK_R = [0.085, 0.072, 0.058, 0.050, 0.047]
 
 
 class Testa(D.Frame):
@@ -148,7 +148,7 @@ def frame(k=1.0, dyaw=0.0):
 def neck_path(fr, attacco):
     """I punti del collo fino alla testa: l'ultimo tratto entra nella nuca dal basso ('attacco', locale)."""
     q = V(*attacco)
-    return NECK + [fr.pt(q), fr.pt(q + V(0, -0.06, 0.04))], NECK_R + [0.060, 0.064]
+    return NECK + [fr.pt(q), fr.pt(q + V(0, -0.06, 0.04))], NECK_R + [0.054, 0.060]
 
 
 class Collo:
@@ -196,7 +196,7 @@ def bande_collo(collo, s_top, p):
 def pinna(collo, s_top):
     """La pinna bassa lungo il dorso, come sul serpente di mare: una lama sottile che corre su tutto il collo e
     muore poco dietro la testa."""
-    lama = sdf.ellipsoid(V(0, 0, 0), (0.0035, 0.013, 0.030))      # (di fianco, in altezza, lungo il collo)
+    lama = sdf.ellipsoid(V(0, 0, 0), (0.0045, 0.024, 0.032))      # (di fianco, in altezza, lungo il collo)
     parts, pts = [], []
     for sv in np.arange(1.0, s_top - 0.10, 0.04):
         i = int(np.searchsorted(collo.s, sv))
@@ -435,13 +435,13 @@ def archie_a():
     gape = [[V(s * 0.016, -0.200, -0.014), V(s * 0.034, -0.140, -0.024), V(s * 0.046, -0.060, -0.030), V(s * 0.046, -0.020, -0.034)] for s in (-1, 1)]
     mouth = sdf.union(*[chain(g, [0.0026, 0.0034, 0.0032, 0.0022], k=0.002) for g in gape])
     hole = sdf.round_cone(qb + unit(V(*db)) * 0.01, qb - unit(V(*db)) * 0.02, 0.0072, 0.0066)
-    sockets = sdf.union(*[sdf.sphere(V(s * 0.040, -0.098, 0.028), 0.012) for s in (-1, 1)])
+    sockets = sdf.union(*[sdf.sphere(V(s * 0.041, -0.098, 0.029), 0.0145) for s in (-1, 1)])
     pores = sdf.union(*[sdf.sphere(V(s * 0.034, y, 0.022), 0.0026) for s in (-1, 1) for y in (-0.150, -0.125, -0.070, -0.045)])   # pori della linea laterale
 
     def testa(q):
         m = sdf.ellipsoid(V(0, -0.03, -0.01), (0.11, 0.28, 0.14))(q) < 0.0
         ven = np.clip(0.5 - (q[:, 2] + 0.005) / 0.08, 0.0, 1.0)
-        sec = bande_testa(q, [(-0.098, 0.022, 0.016), (0.110, 0.030, 0.024)], zmin=-0.045)
+        sec = bande_testa(q, [(-0.098, 0.026, 0.018), (0.110, 0.030, 0.024)], zmin=-0.045)
         return ven, sec, m
 
     def bocca(p):
@@ -452,10 +452,10 @@ def archie_a():
     obs = [pelle_mesh(f, attrs, {'mouth': bocca})]
     pairs = []
     for g in gape:
-        pairs += zanne(fr, [p + V(0, 0, 0.003) for p in g], 7, su=True, L=(0.010, 0.017))
-        pairs += zanne(fr, [p + V(0, 0.006, -0.003) for p in g], 6, su=False, L=(0.008, 0.014))
+        pairs += zanne(fr, [p + V(0, 0, 0.003) for p in g], 6, su=True, L=(0.018, 0.030), r=0.0034, fuori=0.55)
+        pairs += zanne(fr, [p + V(0, 0.010, -0.003) for p in g], 5, su=False, L=(0.014, 0.022), r=0.0030, fuori=0.55)
     obs.append(D.teeth_mesh('ArchieTeeth', pairs, D.needle_teeth()))
-    obs += D.eyes('ArchieEye', [fr.pt((s * 0.040, -0.098, 0.028)) for s in (-1, 1)], 0.0125 * fr.k, AIM)
+    obs += D.eyes('ArchieEye', [fr.pt((s * 0.041, -0.098, 0.029)) for s in (-1, 1)], 0.0155 * fr.k, AIM)
     obs += trombetta(fr, qb, db)
     obs.append(bava('ArchieSlime', fili=[(fr.pt((0.030, -0.150, -0.024)), fr.pt((0.032, -0.150, -0.036)), 0.004)],
                     gocce=[(fr.pt((0.0, -0.205, -0.030)), 0.05), (fr.pt((-0.036, -0.120, -0.034)), 0.035)]))
@@ -510,8 +510,8 @@ def archie_b():
     obs = [pelle_mesh(f, attrs, {'mouth': bocca})]
     pairs = []
     for g in gape:
-        pairs += zanne(fr, [p + V(0, 0, 0.003) for p in g], 4, su=True, L=(0.007, 0.012), r=0.0021)
-        pairs += zanne(fr, [p + V(0, 0.005, -0.003) for p in g], 3, su=False, L=(0.006, 0.010), r=0.0020)
+        pairs += zanne(fr, [p + V(0, 0, 0.003) for p in g], 4, su=True, L=(0.011, 0.018), r=0.0026, fuori=0.45)
+        pairs += zanne(fr, [p + V(0, 0.006, -0.003) for p in g], 3, su=False, L=(0.009, 0.014), r=0.0024, fuori=0.45)
     obs.append(D.teeth_mesh('ArchieTeeth', pairs, D.needle_teeth()))
     obs += D.eyes('ArchieEye', [fr.pt((s * 0.036, -0.078, 0.024)) for s in (-1, 1)], 0.0175 * fr.k, AIM)
     obs += trombetta(fr, qb, db)
