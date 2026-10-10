@@ -1,5 +1,76 @@
 {
  "layers": {
+  "battery": {
+   "gauge": [
+    [
+     0.734,
+     1.448,
+     -0.5738
+    ],
+    [
+     0.0357,
+     -0.0181,
+     0.0
+    ],
+    [
+     0.0085,
+     0.0167,
+     0.0353
+    ]
+   ],
+   "passes": {
+    "ambient": {
+     "file": "battery_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "battery_lamp.webp",
+     "res": 1.0,
+     "scale": 1.6
+    },
+    "lantern": {
+     "file": "battery_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3575,
+    946,
+    4310,
+    1473
+   ],
+   "space": "boat",
+   "yaw": 21.6531
+  },
+  "battery_lit": {
+   "passes": {
+    "ambient": {
+     "file": "battery_lit_ambient.webp",
+     "res": 1.0,
+     "scale": 2.6
+    },
+    "lamp": {
+     "file": "battery_lit_lamp.webp",
+     "res": 1.0,
+     "scale": 1.6
+    },
+    "lantern": {
+     "file": "battery_lit_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3575,
+    946,
+    4310,
+    1473
+   ],
+   "space": "boat",
+   "yaw": 21.6531
+  },
   "boat": {
    "passes": {
     "ambient": {

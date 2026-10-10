@@ -297,7 +297,7 @@ void main() {
   float along = dot(q, dir);
   float across = abs(q.x * dir.y - q.y * dir.x);
   float aa = max(fwidth(across), 1e-3);
-  float w = 0.03 * (1.0 - 0.5 * clamp(along / 0.8, 0.0, 1.0));    // l'ago si assottiglia verso la punta
+  float w = 0.042 * (1.0 - 0.5 * clamp(along / 0.8, 0.0, 1.0));   // l'ago si assottiglia verso la punta
   float needle = (1.0 - smoothstep(w - aa, w + aa, across)) * smoothstep(-0.14 - aa, -0.14 + aa, along) * (1.0 - smoothstep(0.8 - aa, 0.8 + aa, along));
   float hub = 1.0 - smoothstep(0.075 - aa, 0.075 + aa, length(q));
   vec3 m = mix(vec3(1.0), vec3(0.45, 0.02, 0.016), needle * uAlpha);
