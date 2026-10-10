@@ -23,6 +23,12 @@
   "h": 800,
   "family": "bleeding"
  },
+ "bogossa": {
+  "file": "bogossa.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "skeletal"
+ },
  "castagnola_sgranata": {
   "file": "castagnola_sgranata.webp",
   "w": 1600,
@@ -58,6 +64,12 @@
   "w": 1600,
   "h": 800,
   "family": "glitch"
+ },
+ "lattossino": {
+  "file": "lattossino.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "skeletal"
  },
  "leccia_senza_segnale": {
   "file": "leccia_senza_segnale.webp",
@@ -154,5 +166,11 @@
   "w": 1600,
   "h": 800,
   "family": "corrupt"
+ },
+ "zerossa": {
+  "file": "zerossa.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "skeletal"
  }
 }
