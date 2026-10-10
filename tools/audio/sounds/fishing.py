@@ -119,7 +119,8 @@ def reel_loop(s, rng):
     phi = (phi - phi[0]) / (phi[-1] - phi[0] + speed[0])          # 0 → 1 in un giro, periodico
     y = np.zeros(n)
     for k in range(12):
-        i = int(np.searchsorted(phi, k / 12))
+        # mezzo scatto di sfasamento: nessuno scatto cade proprio sul punto di loop
+        i = int(np.searchsorted(phi, (k + 0.5) / 12))
         a = (1.0 if k % 2 == 0 else 0.86) * rng.uniform(0.93, 1.05) * (0.75 + 0.25 * speed[min(i, n - 1)])
         exc = np.zeros(ns(0.05))
         exc[0], exc[1] = 1.0, -0.6
