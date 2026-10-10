@@ -62,26 +62,27 @@ RES_BODY = 0.0045 if FAST else 0.003      # il collo
 RES_HEAD = 0.0028 if FAST else 0.0015     # la testa (nel jumpscare arriva a mezzo metro dall'occhio)
 RES_FINE = 0.0018 if FAST else 0.0010     # pezzi sottili (denti, piuma, bava)
 
-K = 1.30                                  # la testa A più grande del vero (nella tavola 1,15): a quasi cinque metri
-                                          # dal pescatore deve leggersi accanto al cappello della lampara
-HEAD = V(0.0, -0.20, 2.06)                # centro della testa (prima di puntarla sulla lampara)
+K = 1.50                                  # la testa A più grande del vero (nella tavola 1,15): a cinque metri dal
+                                          # pescatore deve leggersi accanto al cappello della lampara
+HEAD = V(0.0, -0.20, 2.44)                # centro della testa (prima di puntarla sulla lampara)
 # nel sistema locale della testa (dritta, faccia verso −Y, alto +Z), come teste_archie.archie_a:
 QB = V(0.0, -0.214, -0.012)               # dove il bocchino esce dalle labbra
 DB = unit(V(0.0, -1.0, 0.15))             # e verso dove punta
-OCCHI = [V(s * 0.0285, -0.098, 0.021) for s in (-1, 1)]   # nella tavola sporgevano troppo, da rana: qui affondano
-R_OCCHIO = 0.0136
+OCCHI = [V(s * 0.0270, -0.098, 0.020) for s in (-1, 1)]   # nella tavola sporgevano troppo, da rana: qui affondano
+R_OCCHIO = 0.0122
 ATTACCO = V(0.0, 0.125, -0.040)           # dove il collo entra nella testa: dietro e sotto, la nuca sporge sopra
 PIEGA = 50.0                              # gradi: quanto il collo, in cima, si piega in avanti verso la testa
 R_PIEGA = 0.30                            # il raggio di quella piega
-K_CARTA = 1.45                            # la trombetta, più grande del vero come la testa
-CARTA_L = 0.40                            # la lingua di carta, dal bocchino alla punta (metri)
-PIUMA_L = 0.060                           # la piuma in punta
+K_CARTA = 1.60                            # la trombetta, più grande del vero come la testa
+CARTA_L = 0.85                            # la lingua di carta, dal bocchino alla punta (metri): lunga una volta e mezza
+                                          # la testa, come quelle vere, così dall'alto arriva al vetro sotto il cappello
+PIUMA_L = 0.085                           # la piuma in punta
 
 # la posa di gioco (scena_creature.archie_posa) in coordinate locali, arrotondata: è quella che build() fa senza
 # parametri. Nel gioco i numeri si ricalcolano dalla barca.
 POSA = {
-    'lampara': (0.0, -0.9603, 1.8028),
-    'viewer': (3.4159, -3.3521, 1.2528),
+    'lampara': (0.0, -1.4583, 1.8263),
+    'viewer': (3.4159, -3.8501, 1.2763),
 }
 
 
@@ -112,10 +113,11 @@ def gape():
 
 
 def gola(fiato):
-    """La gola gonfia (centro e semiassi, locali): a riposo appena gonfia, col fiato tesa come un pallone."""
+    """La gola gonfia (centro e semiassi, locali): a riposo appena gonfia, col fiato tesa come un pallone, che si
+    gonfia in giù più che di lato (di lato pendono le zanne di sopra, che non ci devono affondare)."""
     g = min(max(float(fiato), 0.0), 1.0)
-    c = V(0, -0.030, -0.050) + (V(0, -0.046, -0.082) - V(0, -0.030, -0.050)) * g
-    r = V(0.045, 0.088, 0.034) + (V(0.074, 0.118, 0.064) - V(0.045, 0.088, 0.034)) * g
+    c = V(0, -0.030, -0.050) + (V(0, -0.040, -0.095) - V(0, -0.030, -0.050)) * g
+    r = V(0.045, 0.088, 0.034) + (V(0.058, 0.115, 0.070) - V(0.045, 0.088, 0.034)) * g
     return c, r
 
 
@@ -129,9 +131,15 @@ def testa_campo(fiato=0.0):
     gc, gr = gola(fiato)
     gular = sdf.ellipsoid(gc, tuple(float(x) for x in gr))
     nares = sdf.union(*[sdf.round_cone(V(s * 0.010, -0.196, 0.006), V(s * 0.015, -0.214, -0.012), 0.0046, 0.0034) for s in (-1, 1)])
-    # le arcate: una cresta morbida sopra ogni occhio, più bassa verso il muso (lo sguardo cattivo)
-    brows = sdf.union(*[chain([o + V(s * 0.000, -0.026, 0.009), o + V(s * 0.004, -0.004, 0.0145), o + V(s * 0.002, 0.020, 0.016)],
-                              [0.0042, 0.0068, 0.0050], k=0.004) for s, o in zip((-1, 1), OCCHI)])
+    # le arcate: una cresta morbida che corre sulla pelle sopra ogni occhio, più bassa e più sporgente verso il muso
+    # (lo sguardo cattivo); i punti si appoggiano sulla testa (TA.sulla_pelle), così la cresta non sporge a corno
+    base = sdf.union(cran, snout, k=0.016)
+    brows = []
+    for s, o in zip((-1, 1), OCCHI):
+        q = [o + V(s * 0.004, -0.024, 0.010), o + V(s * 0.006, -0.002, 0.014), o + V(s * 0.003, 0.022, 0.014)]
+        q = TA.sulla_pelle(base, q, off=0.0015)
+        brows.append(chain(list(q), [0.0034, 0.0052, 0.0038], k=0.004))
+    brows = sdf.union(*brows)
     g = gape()
     # le labbra: un cordoncino sopra e sotto lo squarcio, i denti escono da lì
     lips = sdf.union(*[chain([p + V(np.sign(p[0]) * 0.002, 0, dz) for p in side], [0.0030, 0.0036, 0.0036, 0.0032, 0.0024], k=0.003)
@@ -217,7 +225,7 @@ def collo_punti(fr):
     curva = [C + h * (-R_PIEGA * math.cos(t)) + V(0, 0, R_PIEGA * math.sin(t)) for t in np.linspace(0.0, a, 6)]
     base = curva[0]
     side = unit(np.cross(V(0, 0, 1), h))
-    zs = (-0.60, -0.05, 0.50, 1.00, 1.42)
+    zs = (-0.60, -0.05, 0.55, 1.10, 1.62)
     up = []
     for z in zs:
         f = (base[2] - z) / (base[2] - zs[0])               # 0 in cima, 1 in fondo
@@ -226,7 +234,7 @@ def collo_punti(fr):
 
 
 # il raggio del collo lungo la sua lunghezza (frazione da 0, in fondo al mare, a 1, dentro la nuca)
-RAGGI = ((0.0, 0.088), (0.22, 0.080), (0.55, 0.065), (0.80, 0.054), (0.92, 0.050), (0.98, 0.054), (1.0, 0.056))
+RAGGI = ((0.0, 0.095), (0.22, 0.086), (0.55, 0.071), (0.80, 0.059), (0.92, 0.055), (0.98, 0.060), (1.0, 0.063))
 
 
 class Collo:
@@ -339,7 +347,7 @@ def pieghe_arco(collo, s0, s1):
 
 # ───────────────────────── la trombetta da festa ─────────────────────────
 
-def spirale(Lc, r_in=0.0095, passo=0.0105):
+def spirale(Lc, r_in=0.0100, passo=0.0115):
     """I giri della carta arrotolata: una spirale stretta (ogni giro più largo del passo) che contiene la lunghezza Lc,
     dal raggio di fuori a r_in (la punta, al centro). Restituisce i giri e il raggio di fuori."""
     if Lc <= 1e-4:
@@ -372,12 +380,13 @@ def trombetta(fr, srotolata=0.0):
     # la carta: il tratto disteso (lungo d, un filo cadente) e poi la spirale che curva sotto
     Ls = s * CARTA_L
     path, a, b = [], [], []
-    a_gonfia, b_gonfia = 0.0105 * k, 0.0098 * k            # gonfia: quasi tonda
-    a_piatta, b_piatta = 0.0120 * k, 0.0032 * k            # arrotolata: schiacciata (e più larga)
+    a_gonfia, b_gonfia = 0.0132 * k, 0.0124 * k            # gonfia: quasi tonda (lunga una ventina di volte la sua
+                                                           # grossezza, come quelle vere; più sottile sembra una cannuccia)
+    a_piatta, b_piatta = 0.0125 * k, 0.0032 * k            # arrotolata: schiacciata (e più larga)
     a_bocc = 0.0088 * k                                    # incollata al bocchino
     start = m1 - d * 0.008
     n1 = int(round(60 * s)) + 2 if Ls > 1e-4 else 0       # tutta arrotolata: la spirale parte dal bocchino
-    droop = 0.020 * s
+    droop = 0.030 * s
     for i in range(n1 + 1):
         t = i / max(n1, 1)
         path.append(start + d * (Ls * t) + down * (droop * t * t))
@@ -392,7 +401,7 @@ def trombetta(fr, srotolata=0.0):
         dd = unit(path[-1] - path[-2]) if n1 > 0 else d
         dn = unit(down - (down @ dd) * dd)
         c = path[-1] + dn * r_out
-        passo = (r_out - 0.0095) / max(n, 1e-6)
+        passo = (r_out - 0.0100) / max(n, 1e-6)
         m = max(8, int(round(46 * n)))
         for i in range(1, m + 1):
             phi = 2 * math.pi * n * i / m
@@ -439,13 +448,13 @@ def trombetta(fr, srotolata=0.0):
     rng = np.random.default_rng(3)
     giro = min(1.0, n / 0.6)                               # quanto è arrotolata la punta
     ciocche, cp = [], []
-    for i in range(12):
-        v = unit(td + V(*rng.normal(0.0, 0.55, 3)))
+    for i in range(18):
+        v = unit(td + V(*rng.normal(0.0, 0.62, 3)))
         if giro > 0:
             v = unit(v * (1.0 - 0.7 * giro) + side * (1.0 if i % 2 else -1.0) * 1.2 * giro)
-        Lp = rng.uniform(0.75, 1.0) * PIUMA_L
-        pts = [end - td * 0.004, end + v * Lp * 0.5 + V(0, 0, -0.004), end + v * Lp + V(0, 0, -0.014)]
-        ciocche.append(tubo(pts, 0.0032 * k, 0.0007 * k, n=5)[0])
+        Lp = rng.uniform(0.70, 1.0) * PIUMA_L
+        pts = [end - td * 0.006, end + v * Lp * 0.5 + V(0, 0, -0.005), end + v * Lp + V(0, 0, -0.016)]
+        ciocche.append(tubo(pts, 0.0036 * k, 0.0008 * k, n=5)[0])
         cp.append(np.array(pts, F))
     obs.append(fine('ArchieFeather', sdf.union(*ciocche, k=0.003), cp, TA.piuma_material(), pad=0.008, res=RES_FINE))
     return obs
@@ -528,7 +537,9 @@ def build(lampara=None, viewer=None, srotolata=0.0, fiato=0.0):
     obs.append(ob)
     Pn = np.array(pts, F)
     lo, hi = Pn.min(0) - 0.15, Pn.max(0) + 0.15
-    lo[2] = -0.62
+    # sotto il mare non serve (il mare fa da maschera, e il gioco taglia lo strato al pelo dell'acqua, che lì è
+    # qualche centimetro sotto zero): il collo finisce poco sotto la superficie
+    lo[2] = -0.10
     ob = sdf_object('ArchieSkin', sdf.subtract(f, zona), lo, hi, res=RES_BODY, attrs=attrs, banded=True)
     ob.data.materials.append(pelle)
     obs.append(ob)
@@ -567,10 +578,12 @@ def _set_barca():
 SHOTS = {
     # (riferimento, camera, bersaglio, lente): camera e bersaglio rispetto alla testa, nelle coordinate della barca
     # (la lampara è lì accanto: le camere stanno fuori dal suo cappello)
-    'insieme': ('testa', (1.55, -1.75, -0.45), (-0.25, 0.05, -0.75), 24),
-    'testa': ('testa', (-0.30, -0.70, -0.20), (-0.06, -0.02, -0.06), 45),
+    'insieme': ('testa', (1.45, -1.45, -0.80), (-0.35, 0.10, -0.95), 26),
+    'testa': ('testa', (-0.40, -1.05, -0.30), (-0.12, -0.04, -0.10), 45),
     'fuori': ('testa', (-1.75, 2.55, -0.45), (0.05, 0.0, -0.75), 28),
-    'bocca': ('testa', (-0.12, -0.42, -0.10), (-0.13, -0.02, -0.06), 70),
+    'bocca': ('testa', (-0.20, -0.66, -0.16), (-0.20, -0.06, -0.10), 60),
+    # per le varianti: la testa e la lampara insieme, la trombetta distesa ci deve stare tutta
+    'trombetta': ('testa', (0.15, -2.10, -0.35), (-0.50, -0.30, -0.30), 38),
 }
 
 
@@ -618,7 +631,8 @@ def showcase(shots=('insieme', 'testa', 'fuori', 'bocca')):
     cam = bpy.data.objects.new('Cam', cam_d)
     sc.collection.objects.link(cam)
     sc.camera = cam
-    W, H = (720, 540) if FAST else (1440, 1080)
+    # la tavola ha pannelli da 480×360: la metà basta (il doppio per lato serve all'antialias)
+    W, H = (720, 540) if FAST else (960, 720)
     sc.render.resolution_x, sc.render.resolution_y = W, H
     sc.cycles.samples = 32 if FAST else 128
     sc.render.image_settings.file_format = 'PNG'

@@ -16,6 +16,10 @@ mare nasconde la parte sott'acqua.
     archie_soffia    Archie che sale dal mare a destra della lampara, il collo dritto, la testa piegata sul vetro
                      con la trombetta puntata (notte 3; la trombetta arrotolata)
     archie_fiato     toppa di archie_soffia: la testa con la gola gonfia, il risucchio prima di soffiare
+    lampy_lenza      Lampy aggrappata alla lenza vicino al pelo dell'acqua, ad arco, con la bocca e la ventosa della coda
+                     (notte 4; da approvare)
+    fangy_ascolta    Fangy nell'acqua accanto alla barca, a destra dietro il pescatore: curvo, la testa spinta avanti
+                     verso il rumore, le nocche in acqua (notte 5; da approvare)
 
 Le «toppe» sono pose uguali a quella principale con la sola parte che cambia visibile (il resto della creatura
 fa da maschera, come la barca): il gioco le dissolve sopra lo strato principale. Le opzioni (quarto elemento
@@ -159,6 +163,10 @@ POSES = {
     # notte 3: Archie accanto alla lampara; prima di soffiare prende fiato e la gola si gonfia (toppa)
     'archie_soffia': (lambda: archie_soffia(), 'boat', True),
     'archie_fiato': (lambda: archie_soffia(fiato=1.0), 'boat', True, ARCHIE_TOPPA),
+    # notte 4: Lampy sulla lenza, a destra della prua (da approvare)
+    'lampy_lenza': (lambda: lampy_lenza(), 'boat', True),
+    # notte 5: Fangy nell'acqua a destra, dietro il pescatore (da approvare)
+    'fangy_ascolta': (lambda: fangy_ascolta(), 'world', True),
 }
 
 
@@ -258,8 +266,8 @@ def robin_secchio(palpebre=0.0, aggrotta=0.0):
 # lampara; ARCHIE_LATO la porta un po' dietro la lampara: dal pescatore la faccia si vede di tre quarti (di fianco,
 # a 0°, si vedrebbe di profilo; più dietro, la trombetta distesa verrebbe verso di lui e si accorcerebbe).
 ARCHIE_LATO = 35.0     # gradi attorno alla lampara, da destra (0) verso il largo (90)
-ARCHIE_SU = 16.0       # gradi sopra il vetro
-ARCHIE_DIST = 0.90     # metri dal centro della testa al vetro (la trombetta distesa ci arriva a pochi centimetri)
+ARCHIE_SU = 26.0       # gradi sopra il vetro
+ARCHIE_DIST = 1.40     # metri dal centro della testa al vetro (la trombetta distesa ci arriva a pochi centimetri)
 
 
 def archie_posa():
@@ -285,3 +293,91 @@ def archie_soffia(srotolata=0.0, fiato=0.0):
     M, kw = archie_posa()
     LAST_M['archie_soffia'] = M
     return place(ar.build(**kw, srotolata=srotolata, fiato=fiato), M)
+
+
+# ───────────────────────── notte 4 ─────────────────────────
+
+# Lampy (lampy.py) aggrappata alla lenza vicino al pelo dell'acqua, ad arco: la lenza le entra in bocca, passa sotto
+# l'arco e la ventosa della coda la tiene a un palmo dall'acqua; da lì il filo scende in mare (il galleggiante, tirato
+# sotto, non si vede). Sta dove nel gioco c'è la lenza, a destra della prua oltre la punta della canna (30°), più
+# lontana e più bassa della punta; l'arco si vede quasi di profilo (girato di LAMPY_GIRO, la coda verso il largo) e la
+# faccia guarda il pescatore. A 43° la canna, che all'altezza della testa sta tra 31° e 34°, le passa a sinistra della
+# faccia senza coprirla, e la boa verde (37,7°, 2° sopra l'orizzonte) col suo riflesso sull'acqua resta a sinistra
+# della testa: più vicina, la boa lampeggiava tra la faccia e l'arco e il riflesso le scendeva dalla bocca come bava
+# luminosa. Lì nelle altre notti non c'è nessuno: Archie sta tra la lampara e la canna e molto più in alto, Molly sul
+# bordo di destra da 59°. Nel gioco la lenza va disegnata per i punti di lampy_lenza_punti: dalla punta della canna
+# alla bocca, sotto l'arco fino alla ventosa della coda, poi in mare.
+LAMPY_YAW = 43.0       # gradi: dove la lenza le entra in bocca, dall'occhio
+LAMPY_DIST = 6.0       # metri, in orizzontale, dall'occhio alla bocca
+LAMPY_GIRO = 15.0      # gradi: l'arco girato con la coda verso il largo (0: esattamente di profilo dall'occhio)
+LAMPY_SCALA = 1.15     # più grande del modello: a sei metri deve leggersi accanto alla canna
+CANNA_PUNTA = (2.02, 2.95, 1.80)   # la punta della canna a riposo (boat.build_rod, lo strato rod0 del gioco)
+
+
+def lampy_posa():
+    """La trasformazione della posa lampy_lenza e i parametri di lampy.build() in coordinate locali (servono anche
+    alla vetrina di lampy.py). Lampy gira solo attorno a Z, il mare resta a z = 0; la bocca (lampy.BOCCA) va a
+    LAMPY_DIST metri dall'occhio, a LAMPY_YAW gradi."""
+    import lampy as la
+    from mathutils import Vector
+    a = math.radians(LAMPY_YAW)
+    b = (EYE[0] + LAMPY_DIST * math.sin(a), EYE[1] + LAMPY_DIST * math.cos(a), float(la.BOCCA[2]) * LAMPY_SCALA)
+    yaw = facing_yaw(b) + LAMPY_GIRO
+    off = M_of((0.0, 0.0, 0.0), yaw=yaw, scale=LAMPY_SCALA) @ Vector(tuple(map(float, la.BOCCA)))
+    M = M_of((b[0] - off.x, b[1] - off.y, b[2] - off.z), yaw=yaw, scale=LAMPY_SCALA)
+    loc = lambda p: tuple(round(float(v), 4) for v in to_local(M, p))
+    return M, {'viewer': loc(EYE)}
+
+
+def lampy_lenza_punti(M=None):
+    """I punti della lenza con Lampy attaccata (mondo): la punta della canna, la bocca, la ventosa della coda, dove
+    il filo entra in mare."""
+    import lampy as la
+    from mathutils import Vector
+    if M is None:
+        M, _ = lampy_posa()
+    w = lambda p: tuple(float(x) for x in M @ Vector(tuple(map(float, p))))
+    return [CANNA_PUNTA, w(la.BOCCA), w(la.CODA), w(la.ACQUA)]
+
+
+def lampy_lenza(bocca=None, denti_giro=0.0):
+    """La posa lampy_lenza; con bocca e denti_giro (lampy.build) le varianti delle toppe, nella stessa posa."""
+    import lampy as la
+    M, kw = lampy_posa()
+    LAST_M['lampy_lenza'] = M
+    return place(la.build(**kw, bocca=la.BOCCA_RIPOSO if bocca is None else bocca, denti_giro=denti_giro), M)
+
+
+# ───────────────────────── notte 5 ─────────────────────────
+
+# Fangy (fangy.py) nell'acqua accanto alla barca, a destra e un po' dietro il pescatore: curvo e basso, le nocche in
+# acqua a mezzo metro dallo scafo, la testa spinta avanti verso di lui (verso il rumore). Dall'occhio si vedono la
+# testa con le zanne e gli occhialini e la gobba sopra il bordo; le braccia scendono dietro la fiancata. Sta dove nelle
+# altre notti non c'è nessuno: tra Molly (sul bordo di destra, fino a 94° con la mano) e la poppa (Hatch e il
+# sonar, oltre 165°); la canna e la lenza stanno davanti a destra (30-45°), Lampy con loro. Sta nel mondo, non sulla
+# barca (come Hatch): non la tocca.
+FANGY_YAW = 112.0      # gradi: dove sta la testa, dall'occhio
+FANGY_DIST = 1.95      # metri, in orizzontale, dall'occhio alla testa
+FANGY_SCALA = 1.12     # più grande del modello della tavola: un mastino grosso, la testa all'altezza del bordo
+
+
+def fangy_posa():
+    """La trasformazione della posa fangy_ascolta e i parametri di fangy.build() in coordinate locali (servono anche
+    alla vetrina di fangy.py). Fangy gira solo attorno a Z, col corpo verso il pescatore; il mare resta a z = 0."""
+    import fangy as fa
+    from mathutils import Vector
+    a = math.radians(FANGY_YAW)
+    h = (EYE[0] + FANGY_DIST * math.sin(a), EYE[1] + FANGY_DIST * math.cos(a), 0.0)
+    yaw = facing_yaw(h)
+    off = M_of((0.0, 0.0, 0.0), yaw=yaw, scale=FANGY_SCALA) @ Vector(tuple(map(float, fa.HEAD)))
+    M = M_of((h[0] - off.x, h[1] - off.y, 0.0), yaw=yaw, scale=FANGY_SCALA)
+    loc = lambda p: tuple(round(float(v), 4) for v in to_local(M, p))
+    return M, {'viewer': loc(EYE)}
+
+
+def fangy_ascolta(testa=0.0, luci=1.0):
+    """La posa fangy_ascolta; con testa e luci (fangy.build) le varianti delle toppe, nella stessa posa."""
+    import fangy as fa
+    M, kw = fangy_posa()
+    LAST_M['fangy_ascolta'] = M
+    return place(fa.build(**kw, testa=testa, luci=luci), M)

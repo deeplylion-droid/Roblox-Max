@@ -136,6 +136,33 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
   limitarsi a spegnerti la luce).
 - **Perché funziona**: è l'opposto di Robin, che con la luce scappa: la lampara diventa una scelta
   continua.
+- **Modello e posa** (*da approvare*, 10 ottobre; `tools/render/archie.py`, posa `archie_soffia` in
+  `scena_creature.py`, anteprime `docs/concept/pose_archie.jpg`, `pose_archie_vicino.jpg`, `archie_vetrina.jpg`):
+  sale dal mare a destra della lampara e un po' oltre, a 12° dall'occhio, tra la lampara e la canna: lì nelle altre
+  notti non c'è nessuno (Gulpy e Robin stanno a sinistra della prua, Molly sui fianchi, Hatch a poppa, la lenza va
+  verso il largo a destra della canna). Il collo, sottilissimo e a bande nere un po' storte (a passo fisso sembrava
+  un palo da barbiere), esce dritto da dietro la prua e in cima si piega in avanti; la testa, a 2,4 m sul mare e a
+  5 m dal pescatore, guarda giù sul vetro dall'alto, con la trombetta arrotolata sotto il muso e puntata sulla
+  lampara. La faccia si vede di tre quarti, l'occhio sinistro ti guarda. La testa è la A rifinita: gli occhi più
+  piccoli e affondati sotto un'arcata aggrottata (nella tavola sporgevano, da rana), le labbra col bordo, le zanne
+  davanti più lunghe e storte all'indietro, le pieghe sulla gola. È più grande del vero (una volta e mezza) e la
+  trombetta è lunga 85 cm, una volta e mezza la testa come quelle vere: così dall'alto arriva al vetro passando sotto
+  il cappello, e da dove sei la vedi srotolarsi per quasi dieci gradi. Nel gioco sta nello spazio della barca (si
+  muove con lei, così la trombetta resta puntata sulla lampara); lo strato finisce al pelo dell'acqua.
+- **Sulla barca** (l'animazione scelta: prende fiato nella trombetta, che si srotola a metà e si riavvolge): le toppe
+  `archie_trombetta_mezza` e `archie_trombetta_tutta` (`pose_animate.py`; tavola
+  `docs/concept/animazioni/archie_trombetta.jpg`). Tutta distesa è il soffio: la piuma arriva a una decina di
+  centimetri dal vetro. Per il risucchio una toppa in più (*da approvare*), `archie_fiato`: la gola si gonfia come un
+  pallone mentre prende fiato (nel gioco può seguire il risucchio, da 0 a 1). Nelle toppe si vede anche il collo
+  dietro la testa e il riquadro sta sulla testa: la spirale che si srotola lascia vuoto il suo posto, e il gioco
+  sfuma lo strato principale dove la toppa è vuota, come per le mascelle di Gulpy e Hatch.
+- **Jumpscare** (*da approvare*; `jumpscare.py`, `ATTACKS['archie']`; anteprima
+  `docs/concept/jumpscare/js_archie_fotogrammi.jpg`): il vetro è esploso e la lampara è spenta (nella scena non c'è
+  più il vetro, la reticella e la lampadina di servizio non fanno luce). Nel buio si vedono solo i suoi occhi che
+  brillano, come nel gioco a lampara spenta; la trombetta si è riavvolta di scatto, si stacca dalla lampara e ti
+  arriva in faccia di tre quarti, il muso che ti passa accanto a sinistra con le zanne. Lo illuminano la luna alle
+  spalle, la lanterna e una luce calda dalla parte della lanterna che tocca solo lui (come per Robin), così la faccia
+  esce dal buio man mano che arriva.
 
 ### Notte 4 · Lampy — *NON FERRARE*
 

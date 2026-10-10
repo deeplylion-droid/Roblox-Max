@@ -132,8 +132,9 @@ def _occhi_accesi(obs, forza=2.5):
 def archie_attack():
     import archie as ar
     # ha soffiato con la lampara accesa e il vetro è esploso: nel buio la trombetta si è riavvolta di scatto, gli occhi
-    # brillano; si stacca dalla lampara e ti viene addosso. La testa gira appena verso di te (il muso ti passa accanto,
-    # a sinistra: si vedono di tre quarti i denti e l'occhio) e alza il muso; il collo resta dietro la testa
+    # brillano; si stacca dalla lampara e ti viene addosso. La testa si gira verso di te, di tre quarti (il muso ti
+    # passa appena a sinistra, si vedono l'occhio acceso e la fila di zanne) e ti guarda un po' dall'alto; il collo resta
+    # dietro la testa
     _lampara_esplosa()
     M0, kw = sc.archie_posa()
     sc.LAST_M['archie_soffia'] = M0
@@ -153,16 +154,18 @@ def archie_attack():
     f1 = q @ f0
     axis = f1.cross(Vector((0.0, 0.0, 1.0))).normalized()
     q = Quaternion(axis, math.radians(ARCHIE_JS['muso']) - math.asin(max(-1.0, min(1.0, f1.z)))) @ q
-    target = Vector(EYE) + v * ARCHIE_JS['dist']
+    target = Vector(EYE) + v * ARCHIE_JS['dist'] - left * ARCHIE_JS['destra']
     M1 = Matrix.Translation(target) @ q.to_matrix().to_4x4() @ Matrix.Translation(-h0) @ M0
     # la camera mira un po' sotto il centro della testa: alla fine nel quadro restano le mascelle coi denti
     aim = M0 @ Vector(tuple(float(x) for x in ar.HEAD + np.array((0.0, 0.0, -0.05))))
     return obs, M0, M1, aim
 
 
-# Archie alla fine del jumpscare: a quanti metri dall'occhio arriva il centro della testa, di quanti gradi il muso passa
-# a sinistra della camera e quanto guarda in giù (gradi, negativo)
-ARCHIE_JS = {'dist': 0.50, 'lato': 35.0, 'muso': -8.0}
+# Archie alla fine del jumpscare: a quanti metri dall'occhio arriva il centro della testa (e di quanto a destra della
+# linea dello sguardo, perché il muso e la trombetta restino nel quadro), di quanti gradi il muso passa a sinistra della
+# camera e quanto guarda in giù (gradi, negativo). Di tre quarti: di fronte il muso lungo si accorcia e la testa non si
+# legge più, di profilo ti passa accanto
+ARCHIE_JS = {'dist': 0.52, 'destra': 0.05, 'lato': 28.0, 'muso': -12.0}
 
 ATTACKS = {'gulpy': gulpy_attack, 'molly': molly_attack, 'hatch': hatch_attack, 'robin': robin_attack,
            'archie': archie_attack}
