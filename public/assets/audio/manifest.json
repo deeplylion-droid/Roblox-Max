@@ -687,6 +687,14 @@
     "gain": 0.5,
     "category": "ui"
   },
+  "ui_page": {
+    "file": "ui_page.ogg",
+    "duration": 0.55,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.6,
+    "category": "ui"
+  },
   "ui_start": {
     "file": "ui_start.ogg",
     "duration": 1.5,

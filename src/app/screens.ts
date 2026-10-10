@@ -1,5 +1,5 @@
 /** Schermate in DOM sopra la scena: avvertenza, titolo, intro, pausa, opzioni, diario, alba, game over. */
-import { FISH, FISH_PROTOTYPES, type FishFamily, type FishSpecies } from '../game/catalog.ts';
+import { FISH, FISH_BY_ID, type FishFamily, type FishSpecies } from '../game/catalog.ts';
 import { LORE } from '../game/config.ts';
 import { LORE_TEXT, STRINGS, type Lang } from '../i18n.ts';
 import type { CatalogEntry, Options } from './save.ts';
@@ -163,54 +163,238 @@ export class Screens {
     );
   }
 
-  /** Il Catalogo: cento caselle per famiglia; le specie non ancora prese sono sagome. revealAll per le prove. */
+  /**
+   * Il Catalogo è un libro aperto sul banco della barca. Prima doppia pagina: il frontespizio e l'indice; poi
+   * una doppia pagina per famiglia: a sinistra le foto delle specie attaccate col nastro (le specie non ancora
+   * prese sono sagome a matita), a destra la scheda della specie scelta. Le pagine si girano davvero
+   * (frecce, angoli, segnalibri). revealAll mostra tutte le voci (per le prove).
+   */
   catalog(o: { caught: Record<string, CatalogEntry>; images: Record<string, string>; revealAll: boolean; onBack: () => void }): void {
     const S = this.S;
     const L = this.lang;
-    const total = FISH.length;
-    const got = FISH.filter((f) => o.caught[f.id]).length;
-    const detail = h('div', { class: 'cat-detail' });
-    const showDetail = (f: FishSpecies) => {
-      detail.replaceChildren();
-      const c = o.caught[f.id];
-      if (o.images[f.id]) detail.append(h('img', { class: 'fish', src: o.images[f.id]!, alt: '' }));
-      detail.append(
-        h('h3', {}, f.name[L]),
-        h('div', { class: 'meta' }, `${S.families[f.family]} · ${S.rarities[f.rarity]}`),
-        h('div', { class: 'meta' }, `${S.inspiredBy}: ${f.real[L]} (${f.real.sci})`),
-        h('p', {}, f.desc[L] ?? f.desc.it),
-        h('div', { class: 'meta' }, c ? `${S.timesCaught}: ${c.count} · ${S.record}: ${c.bestKg < 1 ? c.bestKg.toFixed(2) : c.bestKg.toFixed(1)} ${S.kg}` : '—'),
-      );
-      detail.classList.add('show');
-    };
-    const grid = h('div', { class: 'cat-grid' });
     const families: FishFamily[] = ['skeletal', 'zombie', 'glitch', 'corrupt', 'bleeding'];
-    for (const fam of families) {
-      grid.append(h('h4', { class: `fam-${fam}` }, S.families[fam]));
-      const row = h('div', { class: 'cat-row' });
-      for (const f of FISH.filter((x) => x.family === fam)) {
-        const known = !!o.caught[f.id] || o.revealAll;
-        const tile = h('button', { type: 'button', class: `cat-tile${known ? '' : ' locked'}${FISH_PROTOTYPES.includes(f.id) ? ' proto' : ''}` });
-        const img = o.images[f.id];
-        if (img) tile.append(h('img', { src: img, alt: '', loading: 'lazy' }));
-        else {
-          const sh = h('span', { class: 'shape' });
-          sh.innerHTML = FISH_SHAPE;
-          tile.append(sh);
-        }
-        tile.append(h('span', { class: 'label' }, known ? f.name[L] : S.unknownFish));
-        if (known) tile.addEventListener('click', () => showDetail(f));
-        row.append(tile);
+    const known = (f: FishSpecies) => !!o.caught[f.id] || o.revealAll;
+    const got = FISH.filter((f) => o.caught[f.id]).length;
+    const ofFam = (fam: FishFamily) => FISH.filter((f) => f.family === fam);
+    const last = families.length;
+    const A = 'assets/img/catalogo/';
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+
+    const screen = h('div', { class: 'screen book-screen fade-in' });
+    // indirizzi assoluti: un url() relativo dentro una variabile CSS si risolverebbe rispetto al foglio di stile
+    const abs = (f: string) => `url("${new URL(A + f, document.baseURI).href}")`;
+    screen.style.setProperty('--sfondo', abs('sfondo.webp'));
+    screen.style.setProperty('--carta', abs('carta.webp'));
+    screen.style.setProperty('--cuoio', abs('cuoio.webp'));
+    const book = h('div', { class: 'book' });
+    const pages = h('div', { class: 'book-pages' });
+    const left = h('div', { class: 'page left' });
+    const right = h('div', { class: 'page right' });
+    const prevCorner = h('div', { class: 'corner prev' });
+    const nextCorner = h('div', { class: 'corner next' });
+    pages.append(left, right, prevCorner, nextCorner, h('div', { class: 'book-light' }));
+    const tabs = h('div', { class: 'book-tabs' });
+    book.append(h('div', { class: 'book-cover' }), tabs, pages);
+
+    let spread = 0;
+    let busy = false;
+    const sel: Partial<Record<FishFamily, string>> = {};
+
+    // rotazione delle foto: sempre la stessa per la stessa specie
+    const tilt = (id: string, max: number) => {
+      let x = 0;
+      for (const ch of id) x = (x * 31 + ch.charCodeAt(0)) % 997;
+      return ((x / 996) * 2 - 1) * max;
+    };
+    const pageNo = (n: number) => h('div', { class: 'page-no' }, `${S.pageAbbr} ${n}`);
+    const snap = (f: FishSpecies, big = false) => {
+      const k = known(f);
+      const img = o.images[f.id];
+      const el = h('figure', { class: `snap${k ? '' : ' unknown'}${big ? ' big' : ''}` });
+      el.style.setProperty('--r', `${tilt(f.id, big ? 1.6 : 3.5).toFixed(2)}deg`);
+      const ph = h('div', { class: 'ph' });
+      if (k && img) ph.append(h('img', { src: img, alt: '' }));
+      else {
+        const sh = h('span', { class: 'shape' });
+        sh.innerHTML = FISH_SHAPE;
+        ph.append(sh);
       }
-      grid.append(row);
-    }
-    this.show(
-      h('div', { class: 'screen catalog-screen fade-in' },
-        h('h2', {}, `${S.catalogTitle} · ${got} / ${total}`),
-        h('p', { class: 'muted' }, S.catalogHint),
-        h('div', { class: 'cat-body' }, grid, detail),
-        h('div', { class: 'menu' }, button(S.back, o.onBack, 'back'))),
-    );
+      el.append(ph);
+      if (!big) el.append(h('figcaption', {}, k ? f.name[L] : S.unknownFish));
+      return el;
+    };
+    const kgText = (x: number) => (x < 1 ? x.toFixed(2) : x.toFixed(1)).replace('.', L === 'it' ? ',' : '.');
+    const whenText = (f: FishSpecies) => {
+      const w = f.when;
+      if (!w) return S.when.always;
+      const parts: string[] = [];
+      if (w.night) parts.push(S.when.night.replace('{n}', String(w.night)));
+      if (w.lamp === 'dark') parts.push(S.when.dark);
+      if (w.lamp === 'bright') parts.push(S.when.bright);
+      if (w.from != null) parts.push(S.when.from.replace('{h}', `${w.from}:00`));
+      if (w.near === 'any') parts.push(S.when.nearAny);
+      else if (w.near) parts.push(S.when.near.replace('{who}', w.near[0]!.toUpperCase() + w.near.slice(1)));
+      return parts.join(', ');
+    };
+
+    const renderLeft = (k: number): HTMLElement[] => {
+      if (k === 0) {
+        return [
+          h('div', { class: 'title-page' },
+            h('h2', {}, S.catalogTitle),
+            h('div', { class: 'rule' }),
+            h('p', { class: 'progress' }, `${S.bookFound}: ${got} ${S.bookOf} ${FISH.length}`),
+            h('p', { class: 'hint' }, S.catalogHint)),
+          pageNo(1),
+        ];
+      }
+      const fam = families[k - 1]!;
+      const list = ofFam(fam);
+      const grid = h('div', { class: 'snaps' });
+      for (const f of list) {
+        const el = snap(f);
+        if (known(f)) {
+          el.classList.add('can');
+          if (sel[fam] === f.id) el.classList.add('on');
+          el.addEventListener('click', () => {
+            sel[fam] = f.id;
+            for (const x of Array.from(left.querySelectorAll('.snap.on'))) x.classList.remove('on');
+            el.classList.add('on');
+            right.replaceChildren(...renderRight(spread));
+            uiSound('ui_click');
+          });
+        }
+        grid.append(el);
+      }
+      return [
+        h('header', { class: `fam-head fam-${fam}` },
+          h('h3', {}, S.familyPlural[fam]),
+          h('p', {}, S.familyText[fam]),
+          h('div', { class: 'count' }, `${list.filter((f) => o.caught[f.id]).length} / ${list.length}`)),
+        grid,
+        pageNo(2 * k + 1),
+      ];
+    };
+
+    const renderRight = (k: number): HTMLElement[] => {
+      if (k === 0) {
+        const idx = h('div', { class: 'index' }, h('h3', {}, S.bookIndex));
+        families.forEach((fam, i) => {
+          const list = ofFam(fam);
+          const row = h('button', { type: 'button', class: `row fam-${fam}` },
+            h('span', { class: 'name' }, S.familyPlural[fam]),
+            h('span', { class: 'dots' }),
+            h('span', { class: 'num' }, `${list.filter((f) => o.caught[f.id]).length} / ${list.length}`),
+            h('span', { class: 'pg' }, String(2 * (i + 1) + 1)));
+          row.addEventListener('click', () => turn(i + 1));
+          idx.append(row, h('p', { class: 'fam-text' }, S.familyText[fam]));
+        });
+        return [idx, pageNo(2)];
+      }
+      const fam = families[k - 1]!;
+      const list = ofFam(fam);
+      const id = sel[fam] ?? list.find(known)?.id;
+      if (!id) return [h('p', { class: 'note' }, S.bookNone), pageNo(2 * k + 2)];
+      const f = FISH_BY_ID[id]!;
+      const c = o.caught[f.id];
+      return [
+        snap(f, true),
+        h('h3', { class: 'fish-name' }, f.name[L]),
+        h('div', { class: 'real' }, `${S.inspiredBy}: ${f.real[L]} · `, h('i', {}, f.real.sci)),
+        h('div', { class: 'stamps' },
+          h('span', { class: `stamp fam-${f.family}` }, S.families[f.family]),
+          h('span', { class: `stamp rar-${f.rarity}` }, S.rarities[f.rarity])),
+        h('p', { class: 'desc' }, f.desc[L] ?? f.desc.it),
+        h('dl', { class: 'facts' },
+          h('dt', {}, S.bookWeight), h('dd', {}, `${kgText(f.kg[0])}–${kgText(f.kg[1])} ${S.kg}`),
+          h('dt', {}, S.bookPull), h('dd', {}, S.pull[f.pull]),
+          h('dt', {}, S.bookWhen), h('dd', {}, whenText(f))),
+        h('div', { class: 'log' }, c ? `${S.timesCaught}: ${c.count}    ${S.record}: ${kgText(c.bestKg)} ${S.kg}` : '—'),
+        pageNo(2 * k + 2),
+      ];
+    };
+
+    const paintChrome = () => {
+      for (const t of Array.from(tabs.children)) t.classList.toggle('on', Number((t as HTMLElement).dataset.k) === spread);
+      prevCorner.hidden = spread === 0;
+      nextCorner.hidden = spread === last;
+      prevBtn.disabled = spread === 0;
+      nextBtn.disabled = spread === last;
+    };
+
+    const turn = (to: number) => {
+      if (busy || to === spread || to < 0 || to > last) return;
+      uiSound('ui_page');
+      const fwd = to > spread;
+      const nl = renderLeft(to);
+      const nr = renderRight(to);
+      spread = to;
+      paintChrome();
+      if (reduce) {
+        left.replaceChildren(...nl);
+        right.replaceChildren(...nr);
+        return;
+      }
+      busy = true;
+      // la pagina che gira: davanti la pagina di adesso, dietro quella che arriva
+      const leaf = h('div', { class: `leaf ${fwd ? 'fwd' : 'bwd'}` });
+      const front = h('div', { class: `page face ${fwd ? 'right' : 'left'}` });
+      const back = h('div', { class: `page face back ${fwd ? 'left' : 'right'}` });
+      front.append(...Array.from((fwd ? right : left).childNodes).map((n) => n.cloneNode(true)));
+      back.append(...(fwd ? nl : nr));
+      leaf.append(front, back);
+      (fwd ? right : left).replaceChildren(...(fwd ? nr : nl));
+      pages.append(leaf);
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        (fwd ? left : right).replaceChildren(...Array.from(back.childNodes));
+        leaf.remove();
+        busy = false;
+      };
+      void leaf.offsetWidth; // lo stato di partenza va calcolato prima, se no la transizione non parte
+      leaf.classList.add('go');
+      leaf.addEventListener('transitionend', finish, { once: true });
+      setTimeout(finish, 1100);
+    };
+
+    // segnalibri: indice e famiglie
+    const tabLabels = [S.bookIndex, ...families.map((f) => S.familyPlural[f])];
+    tabLabels.forEach((label, k) => {
+      const t = h('button', { type: 'button', class: `tab${k ? ` fam-${families[k - 1]}` : ' idx'}` }, label);
+      t.dataset.k = String(k);
+      t.addEventListener('click', () => turn(k));
+      tabs.append(t);
+    });
+    prevCorner.addEventListener('click', () => turn(spread - 1));
+    nextCorner.addEventListener('click', () => turn(spread + 1));
+    const prevBtn = button('‹', () => turn(spread - 1));
+    const nextBtn = button('›', () => turn(spread + 1));
+    prevBtn.classList.add('turnbtn');
+    nextBtn.classList.add('turnbtn');
+    const nav = h('div', { class: 'book-nav' }, prevBtn, h('span', { class: 'hint' }, S.bookTurn), nextBtn, button(S.bookClose, o.onBack, 'back'));
+
+    left.append(...renderLeft(0));
+    right.append(...renderRight(0));
+    screen.append(book, nav);
+    this.show(screen);
+    paintChrome();
+
+    const onKey = (e: KeyboardEvent) => {
+      if (!screen.isConnected) {
+        document.removeEventListener('keydown', onKey);
+        return;
+      }
+      if (e.key === 'ArrowRight' || e.key === 'PageDown') turn(spread + 1);
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') turn(spread - 1);
+      else if (e.key === 'Escape') {
+        document.removeEventListener('keydown', onKey);
+        uiSound('ui_back');
+        o.onBack();
+      }
+    };
+    document.addEventListener('keydown', onKey);
   }
 
   /** Statica tra il jumpscare e il game over. */

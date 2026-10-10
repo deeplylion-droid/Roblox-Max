@@ -140,6 +140,7 @@ Legno e ottone, come gli oggetti della barca.
 | `ui_click` | 90 ms | Un nottolino di legno con il fermo d'ottone. |
 | `ui_back` | 110 ms | Lo stesso gesto al contrario: lo scatto d'ottone e due colpetti di legno che scendono. |
 | `ui_start` | 1,5 s | Un rintocco della campanella di bordo e il mare che risponde con un'onda lunga. |
+| `ui_page` | 0,55 s | **Nuovo.** Si gira una pagina del Catalogo: la carta spessa che si stacca dalla pila, l'aria che la pagina sposta, qualche crepitio della carta vecchia, la pagina che si posa. *Da approvare.* |
 
 ## Come li usa il gioco
 

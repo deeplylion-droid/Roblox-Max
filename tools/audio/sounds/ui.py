@@ -65,3 +65,24 @@ def ui_start(s, rng):
     nb = ns(1.2)
     place(out, stereo(0.18 * lowpass(rng.standard_normal(nb), 120, 2) * curve(nb, [(0, 0), (0.5, 1), (1.2, 0)])), 0.15)
     return highpass(out, 40, 2)
+
+
+@sound('ui_page', 0.55, channels=2, category='ui', gain=0.6, rms=-22.0, max_gr=6.0)
+def ui_page(s, rng):
+    """Si gira una pagina del Catalogo: la carta spessa che si stacca dalla pila (un fruscio che sale), l'aria
+    che la pagina sposta mentre passa sopra, qualche crepitio della carta vecchia, poi la pagina che si posa."""
+    n = s.n
+    out = np.zeros((2, n))
+    # fruscio della carta: rumore in banda che segue la velocità della pagina (sale e scende), da destra a sinistra
+    v = curve(n, [(0, 0.0), (0.05, 0.35), (0.22, 1.0), (0.4, 0.45), (0.55, 0.0)])
+    for c, (p0, p1) in enumerate(((0.35, -0.25), (0.55, -0.05))):
+        sw = tv_bandpass(rng.standard_normal(n), 900 + 3200 * v, (900 + 3200 * v) * 0.9) * v ** 1.4
+        out[c] += 0.55 * normalize(sw) * (1.0 - 0.3 * c)
+    # crepitii della carta (micro-scatti fitti all'inizio)
+    cr = crinkle(rng, 0.3, [(0, 0.6), (0.06, 1.0), (0.18, 0.3), (0.3, 0.0)], density=900, f_lo=1500, f_hi=7000, res=3200, swish=0.1)
+    place(out, stereo(0.28 * cr), 0.02)
+    # la pagina che si posa: un colpetto morbido e sordo
+    nb = ns(0.12)
+    thud = lowpass(rng.standard_normal(nb), 380, 2) * exp_env(nb, 0.06, attack=0.004)
+    place(out, stereo(0.35 * normalize(thud)), 0.4)
+    return highpass(out, 90, 2)
