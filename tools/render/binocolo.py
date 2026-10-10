@@ -141,27 +141,44 @@ def banner_texture():
     return path
 
 
-def photo_texture(seed):
-    """Fototessera sbiadita di un bambino: il volto è scolorito fino al bianco."""
+def photo_texture(seed, style='print'):
+    """Fototessera sbiadita di un bambino: il volto è scolorito fino al bianco. style: 'print' (stampa a
+    colori come quelle del 1997), 'polaroid' (bordo bianco largo in basso), 'school' (foto di classe, fondo
+    azzurro screziato), 'inkjet' (stampata in casa, colori slavati e righe della stampante)."""
     rng = np.random.default_rng(seed)
     W, H = 300, 380
-    im = Image.new('RGB', (W, H), (236, 230, 214))
+    paper = (236, 230, 214) if style != 'inkjet' else (226, 228, 230)
+    im = Image.new('RGB', (W, H), paper)
     d = ImageDraw.Draw(im)
-    bg = tuple(int(v) for v in rng.integers(90, 140, 3))
-    d.rectangle((20, 20, W - 20, H - 70), fill=bg)
-    cx, cy = W / 2, 150
+    bottom = 110 if style == 'polaroid' else 70
+    if style == 'school':
+        bg = (88, 122, 168)
+    else:
+        bg = tuple(int(v) for v in rng.integers(90, 140, 3))
+    d.rectangle((20, 20, W - 20, H - bottom), fill=bg)
+    if style == 'school':
+        for _ in range(60):
+            px, py = rng.uniform(20, W - 20), rng.uniform(20, H - bottom)
+            r = rng.uniform(6, 22)
+            d.ellipse((px - r, py - r, px + r, py + r), fill=tuple(int(v) for v in (70 + rng.integers(0, 40), 104 + rng.integers(0, 40), 150 + rng.integers(0, 40))))
+    cx, cy = W / 2, 150 if style != 'polaroid' else 135
     hair = tuple(int(v) for v in (rng.integers(30, 80), rng.integers(22, 50), rng.integers(10, 30)))
     d.ellipse((cx - 70, cy - 85, cx + 70, cy + 60), fill=hair)
-    d.rectangle((cx - 95, cy + 70, cx + 95, H - 70), fill=tuple(int(v) for v in rng.integers(60, 200, 3)))
+    d.rectangle((cx - 95, cy + 70, cx + 95, H - bottom), fill=tuple(int(v) for v in rng.integers(60, 200, 3)))
     d.ellipse((cx - 55, cy - 60, cx + 55, cy + 75), fill=(250, 248, 242))
+    if style == 'polaroid':
+        d.rectangle((0, H - bottom, W, H), fill=(240, 238, 230))
     im = im.filter(ImageFilter.GaussianBlur(2.2))
-    # macchie d'acqua e ingiallito
+    # macchie d'acqua e ingiallito (le carte più vecchie di più)
     a = np.asarray(im).astype(np.float32)
     n = rng.random((H // 10 + 1, W // 10 + 1))
     n = np.kron(n, np.ones((10, 10)))[:H, :W]
     a *= (0.85 + 0.15 * n[..., None])
-    a[..., 2] *= 0.86
-    path = _tex_path(f'foto_{seed}.png')
+    a[..., 2] *= {'print': 0.86, 'polaroid': 0.9, 'school': 0.92, 'inkjet': 0.97}[style]
+    if style == 'inkjet':
+        a = 0.75 * a + 0.25 * a.mean(axis=2, keepdims=True) + 20
+        a *= (1 - 0.06 * (np.arange(H) % 7 == 0))[:, None, None]
+    path = _tex_path(f'foto_{style}_{seed}.png')
     Image.fromarray(np.clip(a, 0, 255).astype(np.uint8)).save(path)
     return path
 
@@ -351,29 +368,70 @@ def lore_camcorder():
 
 
 def lore_photos():
-    """Tre fotografie in cornice, in piedi fra i lumini dell'edicola, appena inclinate all'indietro."""
+    """Le fotografie dei bambini sull'edicola, i volti sbiaditi fino al bianco. In mezzo, più grandi e in
+    piedi fra i lumini, le tre della Night Splash del 1997; tutt'attorno, appoggiate ai teschi sugli
+    scaffali, quelle dei bambini presi negli anni dopo, ogni volta che la quota non è arrivata: cornici e
+    carte di epoche diverse (revisione del 10 ottobre: i bambini sono più di tre, i mostri cresceranno)."""
     (x, y), rz = _chapel()
     base_z = 3.6
 
     def lp(lx, ly, lz):
         return np.array((x + lx * math.cos(rz) - ly * math.sin(rz), y + lx * math.sin(rz) + ly * math.cos(rz), base_z + lz))
-    right = np.array((math.cos(rz), math.sin(rz), 0.0))
+    right0 = np.array((math.cos(rz), math.sin(rz), 0.0))
     back = np.array((-math.sin(rz), math.cos(rz), 0.0))      # verso il muro dei teschi
-    lean = math.radians(12)
-    up = np.array((0.0, 0.0, 1.0)) * math.cos(lean) + back * math.sin(lean)
-    front = np.cross(up, right)
-    if front @ back > 0:
-        front = -front
+    zz = np.array((0.0, 0.0, 1.0))
+
+    def axes(lean_deg, roll_deg):
+        lean, roll = math.radians(lean_deg), math.radians(roll_deg)
+        up = zz * math.cos(lean) + back * math.sin(lean)
+        right = right0 * math.cos(roll) + np.cross(right0, up) * 0.0 + up * math.sin(roll)
+        right = right - up * (right @ up)
+        right /= np.linalg.norm(right)
+        up2 = np.cross(right, np.cross(up, right))
+        up2 /= np.linalg.norm(up2)
+        front = np.cross(up2, right)
+        if front @ back > 0:
+            front = -front
+        return right, up2, front
+
     obs = []
-    frame = painted('PhotoFrame', (0.18, 0.12, 0.07), rust=0.0, rough=0.6)
-    for i, lx in enumerate((-0.7, 0.0, 0.7)):
-        c = lp(lx, 0.25, 1.12 + (0.04 if i == 1 else 0.0))     # sul primo ripiano sopra gli scogli
-        fr = quad(f'PhotoFrame{i}', tuple(c), right, up, 0.5, 0.62, frame, segs=2)
+
+    def photo(i, c, right, up, front, w, h, frame_col, style, seed, border=0.8):
+        fm = painted(f'PhotoFrame{i}', frame_col, rust=0.0, rough=0.55)
+        fr = quad(f'PhotoFrame{i}', tuple(c), right, up, w, h, fm, segs=2)
         so = fr.modifiers.new('T', 'SOLIDIFY')
-        so.thickness = 0.04
+        so.thickness = 0.03 if w < 0.4 else 0.04
         obs.append(fr)
-        mat = image_material(f'PhotoMat{i}', photo_texture(31 + i), rough=0.5)
-        obs.append(quad(f'Photo{i}', tuple(c + front * 0.03), right, up, 0.4, 0.5, mat, segs=2))
+        mat = image_material(f'PhotoMat{i}', photo_texture(seed, style), rough=0.5)
+        obs.append(quad(f'Photo{i}', tuple(c + front * 0.025), right, up, w * border, h * border, mat, segs=2))
+
+    # le tre del 1997, in piedi fra i lumini (come prima)
+    r, u, f = axes(12, 0)
+    for i, lx in enumerate((-0.7, 0.0, 0.7)):
+        c = lp(lx, 0.25, 1.12 + (0.04 if i == 1 else 0.0))
+        photo(i, c, r, u, f, 0.5, 0.62, (0.18, 0.12, 0.07), 'print', 31 + i)
+    # le altre, appoggiate ai teschi sugli scaffali (righe 1-4 del muro, landmarks.build_chapel)
+    frames = [(0.10, 0.06, 0.035), (0.42, 0.30, 0.16), (0.55, 0.45, 0.20), (0.50, 0.50, 0.52),
+              (0.85, 0.45, 0.62), (0.30, 0.55, 0.80), (0.06, 0.05, 0.05), (0.62, 0.55, 0.40)]
+    styles = ['print', 'polaroid', 'school', 'inkjet']
+    slots = [(1, -1.62), (1, 1.58), (2, -1.45), (2, -0.55), (2, 0.42), (2, 1.38),
+             (3, -1.2), (3, -0.2), (3, 0.85), (3, 1.7), (4, -0.75), (4, 0.6)]
+    rr = np.random.default_rng(1998)
+    for k, (row, lx) in enumerate(slots):
+        lz = 0.55 + row * 0.72
+        w = rr.uniform(0.26, 0.34)
+        st = styles[int(rr.integers(0, len(styles)))]
+        h = w * (1.22 if st != 'polaroid' else 1.18)
+        lean = rr.uniform(9, 17)
+        r, u, f = axes(lean, rr.normal(0, 4))
+        bottom = lp(lx, 0.74, lz - 0.09)
+        c = bottom + u * (h / 2)
+        if st == 'polaroid':
+            # le polaroid senza cornice: solo il cartoncino bianco
+            mat = image_material(f'PhotoMat{3 + k}', photo_texture(40 + k, st), rough=0.6)
+            obs.append(quad(f'Photo{3 + k}', tuple(c), r, u, w, h, mat, segs=2))
+            continue
+        photo(3 + k, c, r, u, f, w, h, frames[int(rr.integers(0, len(frames)))], st, 40 + k, border=0.78)
     return obs
 
 
