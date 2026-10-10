@@ -1536,8 +1536,10 @@ SPECIE['raccapricciola'] = Specie(
               Fin('pectoral', 0.25, 0.265, PETTORALE, 0.1, 11),
               Fin('pelvic', 0.3, 0.315, PELVICA, 0.08, 6)]),
     aspetto=Look(back=(0.24, 0.26, 0.26), flank=(0.52, 0.52, 0.48), belly=(0.74, 0.73, 0.7), fin=(0.2, 0.2, 0.2),
-                 iris=(0.75, 0.68, 0.45), metal=0.5, irid=0.35, squame=0.8,
-                 disegni=[Disegno('linea', colore=(0.055, 0.025, 0.008), forza=1.0, v=0.04, inclinazione=3.4, larghezza=0.34,
+                 iris=(0.75, 0.68, 0.45), metal=0.28, irid=0.25, squame=0.8,
+                 # la fascia scura dal muso, attraverso l'occhio, alla prima dorsale (con poco metallo, se no il
+                 # riflesso della lampara sulla testa la cancella)
+                 disegni=[Disegno('linea', colore=(0.05, 0.022, 0.007), forza=1.0, v=0.09, inclinazione=3.08, larghezza=0.36,
                                   u0=0.02, u1=0.28),
                           Disegno('strisce', colore=(0.6, 0.4, 0.08), forza=0.65, n=1, v0=-0.14, v1=0.14, larghezza=0.16, u0=0.1),
                           Disegno('ventre', colore=(0.8, 0.8, 0.8), forza=0.5, v1=-0.35)]),
