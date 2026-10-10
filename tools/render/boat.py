@@ -490,8 +490,10 @@ def build_lampara(mats):
     return obs + [mantle, bulb]
 
 
-def build_rod(mats, bend=0.0, name='Rod'):
-    """bend: 0 = a riposo, 1 = abboccata, 2 = recupero sotto sforzo."""
+def build_rod(mats, bend=0.0, name='Rod', tilt=0.0, flex=0.0):
+    """bend: 0 = a riposo, 1 = abboccata, 2 = recupero sotto sforzo. Per il lancio: tilt (gradi) alza la canna
+    ruotandola nel portacanna (positivo = punta su e indietro), flex piega la cima (positivo = la punta resta
+    indietro e su, caricata; negativo = scatta in avanti e giù, la frustata)."""
     butt = np.array(ROD_BUTT)
     gun = np.array(ROD_GUNWALE)
     tip = np.array(ROD_TIP)
@@ -503,8 +505,20 @@ def build_rod(mats, bend=0.0, name='Rod'):
         p = gun + d * u
         sag = 0.06 * u * u + bend * (0.22 * u ** 2.2 + (0.18 if bend > 1.5 else 0.0) * u ** 3)
         p = p + np.array((0.0, -0.05 * bend * u ** 2, -sag))
+        # la cima che si flette nel lancio: indietro (verso il pescatore) e su, o avanti e giù
+        p = p + flex * u ** 2.4 * np.array((-0.06, -0.30, 0.26))
         pts.append(p)
     path = np.vstack([butt, pts])
+    if tilt:
+        # la canna ruota nel portacanna, nel piano verticale che la contiene (la punta su e indietro)
+        h = np.array((d[0], d[1], 0.0))
+        axis = np.cross(h / np.linalg.norm(h), np.array((0.0, 0.0, 1.0)))
+        a = math.radians(tilt)
+        k = axis / np.linalg.norm(axis)
+        K = np.array([[0, -k[2], k[1]], [k[2], 0, -k[0]], [-k[1], k[0], 0]])
+        R = np.eye(3) + math.sin(a) * K + (1 - math.cos(a)) * (K @ K)
+        path = (path - gun) @ R.T + gun
+        pts = list(path[1:])
     blank = tube(name, path, 0.011, n=10, taper=0.25)
     blank.data.materials.append(mats['carbon'])
     obs = [blank]

@@ -1,9 +1,21 @@
 {
+ "balestra_sfocata": {
+  "file": "balestra_sfocata.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "glitch"
+ },
  "barracruda": {
   "file": "barracruda.webp",
   "w": 1600,
   "h": 800,
   "family": "bleeding"
+ },
+ "castagnola_sgranata": {
+  "file": "castagnola_sgranata.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "glitch"
  },
  "donzella_saturata": {
   "file": "donzella_saturata.webp",
@@ -17,11 +29,41 @@
   "h": 800,
   "family": "glitch"
  },
+ "menola_neve": {
+  "file": "menola_neve.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "glitch"
+ },
+ "occhialone_veloce": {
+  "file": "occhialone_veloce.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "glitch"
+ },
  "orrata": {
   "file": "orrata.webp",
   "w": 1600,
   "h": 800,
   "family": "zombie"
+ },
+ "pagello_pixelato": {
+  "file": "pagello_pixelato.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "glitch"
+ },
+ "pettine_a_scatti": {
+  "file": "pettine_a_scatti.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "glitch"
+ },
+ "re_di_triglie_a_righe": {
+  "file": "re_di_triglie_a_righe.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "glitch"
  },
  "salpa_sfasata": {
   "file": "salpa_sfasata.webp",
@@ -34,6 +76,12 @@
   "w": 1600,
   "h": 800,
   "family": "skeletal"
+ },
+ "torpedine_statica": {
+  "file": "torpedine_statica.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "glitch"
  },
  "triglia_doppia": {
   "file": "triglia_doppia.webp",

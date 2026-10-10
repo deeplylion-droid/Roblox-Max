@@ -470,6 +470,166 @@
    ],
    "yaw": 34.5552
   },
+  "rod_c1": {
+   "passes": {
+    "ambient": {
+     "file": "rod_c1_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "rod_c1_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "rod_c1_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3993,
+    489,
+    4369,
+    1634
+   ],
+   "space": "boat",
+   "tip": [
+    1.9353,
+    3.2493,
+    0.9389
+   ],
+   "yaw": 34.645
+  },
+  "rod_c2": {
+   "passes": {
+    "ambient": {
+     "file": "rod_c2_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "rod_c2_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "rod_c2_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    4004,
+    336,
+    4354,
+    1634
+   ],
+   "space": "boat",
+   "tip": [
+    1.8207,
+    2.9142,
+    1.2962
+   ],
+   "yaw": 35.2846
+  },
+  "rod_f1": {
+   "passes": {
+    "ambient": {
+     "file": "rod_f1_ambient.webp",
+     "res": 1.0,
+     "scale": 0.31
+    },
+    "lamp": {
+     "file": "rod_f1_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "rod_f1_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3977,
+    726,
+    4388,
+    1634
+   ],
+   "space": "boat",
+   "tip": [
+    2.0707,
+    3.7055,
+    0.26
+   ],
+   "yaw": 33.8326
+  },
+  "rod_f2": {
+   "passes": {
+    "ambient": {
+     "file": "rod_f2_ambient.webp",
+     "res": 1.0,
+     "scale": 0.43
+    },
+    "lamp": {
+     "file": "rod_f2_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "rod_f2_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3969,
+    820,
+    4403,
+    1634
+   ],
+   "space": "boat",
+   "tip": [
+    2.112,
+    3.8893,
+    -0.0484
+   ],
+   "yaw": 33.4963
+  },
+  "rod_m": {
+   "passes": {
+    "ambient": {
+     "file": "rod_m_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "rod_m_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "rod_m_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3999,
+    484,
+    4365,
+    1634
+   ],
+   "space": "boat",
+   "tip": [
+    1.9309,
+    3.1824,
+    0.9374
+   ],
+   "yaw": 34.8144
+  },
   "world": {
    "data": "world_data.webp",
    "passes": {

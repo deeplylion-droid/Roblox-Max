@@ -91,6 +91,12 @@ const FLOAT_LIGHT: Vec3 = [1.5, 0.42, 0.12];
  *  suono 'cast') fino a CAST_WHIP, poi il galleggiante vola fino al tonfo */
 const CAST_LOAD = 0.12;
 const CAST_WHIP = 0.24;
+/** la canna nel lancio, fotogramma per fotogramma ([fino a quale istante, strato]; pose renderizzate a parte,
+ *  jobs.py props con PROPS=lancio): si alza e si carica, la frustata in avanti (il galleggiante parte con
+ *  rod_f2) e la cima che torna */
+const CAST_ROD: [number, string][] = [
+  [0.04, 'rod0'], [0.08, 'rod_c1'], [0.14, 'rod_c2'], [0.18, 'rod_m'], [0.21, 'rod_f1'], [0.28, 'rod_f2'], [0.32, 'rod_f1'],
+];
 const BELL_YAW = -40;
 
 /** Pose renderizzate nella scena (vedi tools/render/scena_creature.py). */
@@ -1198,12 +1204,16 @@ export class Night {
     return sh[i % n]! * (1 - t) + sh[(i + 1) % n]! * t;
   }
 
-  /** La canna da disegnare: dritta, piegata all'abboccata, piegatissima in recupero; nella frustata del lancio flette. */
+  /** La canna da disegnare: dritta, piegata all'abboccata, piegatissima in recupero; nel lancio le pose del lancio. */
   private rodKey(): string {
     const f = this.sim.fishing;
+    if (f.phase === 'casting' && this.castT >= 0) {
+      const L = this.d.stage.man.layers;
+      for (const [until, key] of CAST_ROD) if (this.castT < until) return L[key] ? key : 'rod0';
+      return 'rod0';
+    }
     const bend = f.bend;
-    const whip = f.phase === 'casting' && this.castT >= CAST_LOAD + 0.03 && this.castT < CAST_WHIP + 0.06;
-    return bend >= 1.4 ? 'rod2' : bend >= 0.5 || whip ? 'rod1' : 'rod0';
+    return bend >= 1.4 ? 'rod2' : bend >= 0.5 ? 'rod1' : 'rod0';
   }
 
   /** La frustata del lancio nella vista (gradi di yaw e pitch): caricando si alza un poco, col colpo scatta giù. */
@@ -1292,9 +1302,12 @@ export class Night {
         // il volo rallenta verso l'arrivo (il filo che corre via frena il galleggiante); dietro, una scia della sua luce
         const u = Math.min(1, (ct - CAST_WHIP) / (FISHING.castTime - CAST_WHIP));
         const land = this.floatAt(FLOAT_FAR);
+        // parte da dove l'ha lasciato la frustata (la punta della posa rod_f2), anche se la canna intanto torna
+        const rt = man.layers['rod_f2']?.tip ?? tip;
+        const from: Vec3 = [rt[0], rt[1], rt[2] - 0.42];
         const fly = (u: number): Vec3 => {
           const s = 1 - (1 - Math.max(0, u)) ** 1.8;
-          return [hang[0] + (land[0] - hang[0]) * s, hang[1] + (land[1] - hang[1]) * s, hang[2] + (land[2] - hang[2]) * s + CAST_ARC * 4 * s * (1 - s)];
+          return [from[0] + (land[0] - from[0]) * s, from[1] + (land[1] - from[1]) * s, from[2] + (land[2] - from[2]) * s + CAST_ARC * 4 * s * (1 - s)];
         };
         end = fly(u);
         sag = 0.06 * u;

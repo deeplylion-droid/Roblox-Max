@@ -284,6 +284,15 @@ def job_props(q):
             render_sprite(q, key, obs, extra={'tip': [round(float(tip[i] - EYE[i]), 4) for i in range(3)]})
             for o in obs:
                 o.hide_render = True
+    # la canna nel lancio: si alza e si carica, poi la frustata in avanti (il gioco le sfoglia; vedi rodKey in
+    # src/app/night.ts). PROPS=lancio
+    if 'lancio' in only:
+        for tilt, flex, key in ((7.0, 0.35, 'rod_c1'), (14.0, 0.8, 'rod_c2'), (5.0, 0.7, 'rod_m'),
+                                (-3.0, -0.55, 'rod_f1'), (-6.0, -1.1, 'rod_f2')):
+            obs, tip = boat.build_rod(mats, name=key, tilt=tilt, flex=flex)
+            render_sprite(q, key, obs, extra={'tip': [round(float(tip[i] - EYE[i]), 4) for i in range(3)]})
+            for o in obs:
+                o.hide_render = True
     # la batteria della lampara (dalla notte 2): il quadrante senza ago, l'ago lo disegna il gioco. Due
     # strati uguali: col quadrante spento e acceso (retroilluminato); il gioco li dissolve (a batteria
     # morta la luce del voltmetro si spegne, quando è quasi scarica trema con la lampara)
