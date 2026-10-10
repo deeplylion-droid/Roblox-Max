@@ -169,7 +169,8 @@ export const NIGHTS: Record<number, NightConfig> = {
   // Notte 2: arriva Robin e la lampara consuma la batteria (docs/NOTTI_E_MOSTRI.md). I tre della prima notte
   // tornano prima e più spesso; Hatch può arrivare mentre c'è Molly. Il mare è più vivo: i pesci abboccano
   // circa tre volte più in fretta, se no la quota 10 non si fa. Giocatori simulati (npm run sim -- 2 300):
-  // esperto 100%, medio 81%, maldestro 56% delle notti vinte.
+  // esperto 100%, medio 81%, maldestro 56-57% delle notti vinte (approvato il 10 ottobre). Quando la batteria
+  // muore e canta la Madre, gli altri mostri scappano (approvato).
   2: {
     night: 2,
     quota: 10,

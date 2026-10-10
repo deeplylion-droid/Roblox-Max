@@ -62,7 +62,7 @@ def gauge_face_texture(path, needle=None):
     d.ellipse((8, 8, S - 8, S - 8), fill=(214, 204, 176))
     try:
         big = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 46)
-        small = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 34)
+        small = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 44)
     except OSError:
         big = small = ImageFont.load_default()
     a0, a1 = GAUGE_SPAN
@@ -80,15 +80,16 @@ def gauge_face_texture(path, needle=None):
             a = ang(v)
             pts.append((c + (r1 - 22) * math.sin(a), c - (r1 - 22) * math.cos(a)))
         d.polygon(pts, fill=col)
+    # tacche ogni mezzo volt, lunghe sui volt interi; i numeri solo su 10, 12 e 14 (da lontano si leggono)
     for i, v in enumerate(np.linspace(10.0, 15.0, 11)):
         a = ang(v)
         rr = r0 if i % 2 == 0 else r0 + 18
         d.line((c + rr * math.sin(a), c - rr * math.cos(a), c + r1 * math.sin(a), c - r1 * math.cos(a)), fill=(24, 22, 20), width=7 if i % 2 == 0 else 4)
-        if i % 2 == 0:
+        if i % 4 == 0:
             t = str(int(round(v)))
-            rt = r0 - 40
+            rt = r0 - 46
             w = d.textlength(t, font=small)
-            d.text((c + rt * math.sin(a) - w / 2, c - rt * math.cos(a) - 20), t, fill=(24, 22, 20), font=small)
+            d.text((c + rt * math.sin(a) - w / 2, c - rt * math.cos(a) - 24), t, fill=(24, 22, 20), font=small)
     w = d.textlength('VOLT', font=big)
     d.text((c - w / 2, c + 40), 'VOLT', fill=(30, 28, 26), font=big)
     if needle is not None:
@@ -99,8 +100,8 @@ def gauge_face_texture(path, needle=None):
     # ingiallito e macchiato dall'umidità
     a = np.asarray(im).astype(np.float32)
     rng = np.random.default_rng(12)
-    n = rng.random((S // 16 + 1, S // 16 + 1))
-    n = np.kron(n, np.ones((16, 16)))[:S, :S]
+    small = (rng.random((S // 32, S // 32)) * 255).astype(np.uint8)
+    n = np.asarray(Image.fromarray(small).resize((S, S), Image.BICUBIC)).astype(np.float32) / 255.0
     a *= (0.88 + 0.12 * n[..., None])
     Image.fromarray(np.clip(a, 0, 255).astype(np.uint8)).save(path)
     return path
@@ -218,10 +219,11 @@ def build_battery(needle=None):
 def preview():
     """Anteprima da approvare: la scena del gioco vista dal posto del pescatore verso il banco di prua."""
     import jobs
-    jobs.build_scene(fish=5, rod=True)
+    close = '--vicino' in sys.argv
+    # nel primo piano niente pesci nel secchio (da così vicino si vede che sono sagome per il panorama)
+    jobs.build_scene(fish=0 if close else 5, rod=True)
     build_battery(needle=0.72)
     sc = bpy.context.scene
-    close = '--vicino' in sys.argv
     target = (0.70, 0.94, 0.66) if close else (0.55, 0.98, 0.55)
     perspective_camera(EYE, target, lens=110.0 if close else 26.0, name='BatteryCam')
     W, H = (960, 540) if FAST else (1600, 900)

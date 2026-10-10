@@ -43,7 +43,9 @@ grigia e bagnata e la stessa melma. **Non parlano** (l'unica eccezione resta la 
   finisce prima, la Madre sale. È il momento di Freddy quando salta la corrente in FNAF, con la nostra
   canzone. Nel gioco la canzone è proprio `mus_title` (64 secondi, quanto il tempo che ti resta): parte
   ovattata e si apre salendo; se finisce, un tonfo enorme sotto la barca, la barca che sobbalza, il tema
-  della Madre e il buio.
+  della Madre e il buio. **Approvato**: mentre canta la Madre gli altri mostri scappano e non tornano
+  finché la canzone non finisce (come in FNAF quando salta la corrente: resta solo Freddy).
+- **Difficoltà approvata** (200 partite simulate per tipo): esperti 100%, medi 81%, maldestri 57%.
 - **La scelta di ogni minuto**: la luce attira i pesci (serve per la quota) e scaccia Robin, ma costa. Al
   buio si pesca poco e le creature arrivano più vicine prima che te ne accorga.
 - **Quota 10 pesci** (prima notte 8). Gulpy, Molly e Hatch tornano più spesso; Hatch può arrivare mentre
@@ -56,8 +58,8 @@ La notte 2 si gioca: dal menu con **Continua** dopo aver vinto la prima, con **N
 della prima, o con `?notte=2` nell'indirizzo (prove). C'è tutto tranne **Robin visibile**: finché non è
 scelta la testa e fatto il modello, Robin si sente soltanto (suoni provvisori fatti con i file di scena:
 zampette, secchio che tintinna, pesce strappato, fuga in acqua) e si vede sul sonar; il jumpscare è un urlo
-sintetizzato. *Da approvare*: la chiamata alla radio della notte 2, i sottotitoli dei suoni nuovi, il
-suggerimento per Robin, il messaggio «La batteria è morta.» (`src/i18n.ts`, segnati ⚠️).
+sintetizzato. *Da approvare*: i testi della notte 2 (radio, le due morti, sottotitoli, suggerimento,
+«Batteria morta.»), accorciati e resi più criptici come chiesto (`src/i18n.ts`, segnati ⚠️).
 
 ## I quattro mostri nuovi
 

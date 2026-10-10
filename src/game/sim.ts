@@ -301,8 +301,8 @@ export class NightSim {
       this.emit({ t: 'battery', e: 'dead' });
       this.lullaby = b.lullaby;
       this.emit({ t: 'lullaby', e: 'start' });
-      // ⚠️ da approvare: quando canta la Madre i bambini scappano (come in FNAF, quando salta la corrente
-      // resta solo Freddy): niente più visite fino alla fine della canzone
+      // quando canta la Madre i bambini scappano (come in FNAF, quando salta la corrente resta solo
+      // Freddy): niente più visite fino alla fine della canzone (approvato il 10 ottobre)
       const w = this.world;
       this.gulpy.retreat(w);
       this.molly.retreat();
