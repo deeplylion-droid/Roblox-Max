@@ -550,7 +550,7 @@ SPECIE['pettine_a_scatti'] = Specie(
     ritocco=_a_scatti,
     famiglia='glitch', piano='alto',
     ritratto=Ritratto(riquadro=(0.54, 0.4), centro=(0.36, 0.3)),
-    opzioni=dict(seed=81))
+    opzioni=dict(seed=87, doppio=0.0))
 
 
 # ── Re di Triglie a Righe (re di triglie, Apogon imberbis) ──
@@ -1105,10 +1105,13 @@ SPECIE['leccia_senza_segnale'] = Specie(
 # vicino al bordo destro, dove esce la coda, l'immagine si strappa a fette come se il pezzo di fuori si
 # muovesse (ritocco).
 def _fuori_quadro(img, c):
-    """ritocco: nell'ultimo quinto a destra (dove esce la coda) una fascia su due scorre di lato."""
+    """ritocco: nell'ultimo quinto a destra (dove esce la coda) una fascia su due scorre di lato. Prima si toglie
+    quello che il glitch di sempre (np.roll) ha fatto rientrare dal bordo sinistro: i pezzi usciti a destra (la
+    testa comincia a un decimo della larghezza, lì non c'è altro)."""
     rng = np.random.default_rng(162)
     H, W = img.shape[:2]
     out = img.copy()
+    out[:, :int(W * 0.06), 3] = 0
     y = 0
     while y < H:
         h = max(2, int(H * rng.uniform(0.015, 0.05)))

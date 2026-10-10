@@ -157,7 +157,7 @@ class _Scavi:
         """La carne viva sui vertici: 1 sulle pareti dei pezzi tolti, che sfuma in `bordo` sulla pelle attorno."""
         return np.clip(1.0 - self.g(V) / bordo, 0.0, 1.0)
 
-    def fondo(self, c, da=0.003, scala=0.008):
+    def scuro(self, c, da=0.003, scala=0.008):
         """Il fondo delle ferite profonde, più scuro: per l'attributo 'mouth' (il colore dell'interno della bocca,
         Look.bocca_col, che il materiale stende sopra la carne). Quanto il vertice sta sotto la pelle di prima, solo
         sulla carne viva."""
@@ -398,8 +398,8 @@ def _trafittina(c):
     E, nE = body.superficie(0.345, 0.62, -1)
     Q = _curva(base, base + np.array((0.012, -0.004, 0.065), F), E + nE * 0.05 + np.array((-0.018, 0.0, 0.012), F),
                E - nE * 0.016, n=18)
-    R = np.linspace(0.0036, 0.0011, len(Q))
-    nera = P.materiale('SpinaTracina', (0.018, 0.016, 0.015), rough=0.28, coat=0.7)
+    R = np.linspace(0.0052, 0.0013, len(Q))
+    nera = P.materiale('SpinaTracina', (0.03, 0.026, 0.024), rough=0.25, coat=0.8)
     c.obs.append(_tubo(c, 'SpinaPiegata', Q, R, nera))
     _dipingi(c, 'blood', _colature([(E, 0.006, 0.06, 1.0)]))
 
@@ -420,8 +420,8 @@ SPECIE['trafittina'] = Specie(
         eye_t=0.085, eye_z=0.036, eye_r=0.018, mouth_t=0.085, mouth_z0=0.008, mouth_z1=-0.024, gill_t=0.24,
         spine=[Spine(0.232, 0.232, 0.22, 0.22, 1, lunghezza=0.036, raggio=0.0036, inclinazione=0.9, fila=True),
                Spine(0.072, 0.094, 0.96, 0.96, 2, lunghezza=0.008, raggio=0.0022, inclinazione=0.45, fila=True)],
-        fins=[Fin('dorsal', 0.255, 0.335, [(0, 0), (0.08, 1.0), (0.3, 0.92), (0.6, 0.7), (0.85, 0.4), (1, 0.05)], 0.095, 6, spiny=True,
-                  colore=(0.016, 0.015, 0.016), bordo=(0.01, 0.01, 0.012)),
+        fins=[Fin('dorsal', 0.255, 0.335, [(0, 0), (0.08, 1.0), (0.3, 0.92), (0.6, 0.7), (0.85, 0.4), (1, 0.05)], 0.1, 6, spiny=True,
+                  colore=(0.06, 0.055, 0.05), bordo=(0.012, 0.011, 0.012)),
               Fin('dorsal', 0.35, 0.96, [(0, 0), (0.02, 0.8), (0.1, 0.95), (0.5, 0.95), (0.9, 0.9), (1, 0.15)], 0.048, 32,
                   colore=(0.5, 0.42, 0.22)),
               Fin('anal', 0.3, 0.96, [(0, 0), (0.02, 0.75), (0.1, 0.9), (0.5, 0.9), (0.9, 0.85), (1, 0.15)], 0.04, 34),
@@ -514,7 +514,7 @@ def _serrasangue(c):
     """La carne viva nei morsi e nei fori dei denti, il sangue che cola da ciascuno, le gocce."""
     s = _cache(c, 'scavi', _geo_serrasangue)
     _dipingi(c, 'wound', s.carne)
-    _dipingi(c, 'mouth', s.fondo(c))
+    _dipingi(c, 'mouth', s.scuro(c))
     _dipingi(c, 'blood', _colature([(lo, 0.0055, 0.06 + R, 0.95) for _, lo, R in s.fondo] +
                                    [(p0, R * 0.45, R * 0.8, 0.4) for p0, _, R in s.fondo[4:]]))
     for k in (0, 1, 4, 5):
@@ -646,7 +646,7 @@ def _pagro(c):
     s = _cache(c, 'scavi', _geo_pagro)
     sh, body = c.forma, c.body
     _dipingi(c, 'wound', s.carne)
-    _dipingi(c, 'mouth', s.fondo(c))
+    _dipingi(c, 'mouth', s.scuro(c))
     n3 = c.P.sdf.Noise3(4)
 
     def velo(V):
@@ -891,14 +891,14 @@ def _rabbiglio(c):
     ang = float(c.specie.opzioni.get('bocca', 22.0))
     R = P.sdf.rot_matrix('y', -ang)
     cerniera = np.array((sh.mouth_t, 0.0, sh.mouth_z1), F)
-    giallo = P.materiale('IncisiviConiglio', (0.9, 0.84, 0.66), rough=0.2, coat=0.8, sss=0.2)
-    for k, (jaw, lungo) in enumerate((('su', 0.032), ('giu', 0.016))):
+    giallo = P.materiale('IncisiviConiglio', (0.93, 0.88, 0.72), rough=0.18, coat=0.8, sss=0.15)
+    for k, (jaw, lungo) in enumerate((('su', 0.038), ('giu', 0.018))):
         for s in (-1, 1):
             zl = float(body.mouth_line(np.array([0.004], F))[0])
-            c0 = np.array((-0.0012, s * 0.0038, zl - lungo * 0.38 if jaw == 'su' else zl + lungo * 0.3), F)
-            f0 = P.sdf.box(c0, (0.0024, 0.0034, lungo * 0.5), rounding=0.0014)
+            c0 = np.array((-0.0005, s * 0.0046, zl - lungo * 0.38 if jaw == 'su' else zl + lungo * 0.3), F)
+            f0 = P.sdf.box(c0, (0.0034, 0.0042, lungo * 0.5), rounding=0.0016)
             # gli incisivi di sopra sporgono in avanti, come quelli di un coniglio
-            f0 = P.sdf.rotate(f0, P.sdf.rot_matrix('y', 16.0 if jaw == 'su' else -8.0), center=(0.004, 0.0, zl))
+            f0 = P.sdf.rotate(f0, P.sdf.rot_matrix('y', 24.0 if jaw == 'su' else -10.0), center=(0.004, 0.0, zl))
             if jaw == 'giu':
                 f0 = P.sdf.rotate(f0, R, center=cerniera)
                 c0 = (c0 - cerniera) @ R.T + cerniera
@@ -908,7 +908,7 @@ def _rabbiglio(c):
     rng = np.random.default_rng(8)
     C, Rr = [], []
     for _ in range(150):
-        x = rng.uniform(0.007, sh.mouth_t + 0.014)
+        x = rng.uniform(0.012, sh.mouth_t + 0.016)
         zl = float(body.mouth_line(np.array([min(x, sh.mouth_t)], F))[0])
         z = zl + rng.normal(0, 0.0065)
         y = -float(body.surface_y(min(max(x, 0.002), 1.0), z)) - rng.uniform(-0.0008, 0.0035)
@@ -1019,7 +1019,7 @@ def _palamita(c):
     P = c.P
     s = _cache(c, 'scavi', _geo_palamita)
     _dipingi(c, 'wound', s.carne)
-    _dipingi(c, 'mouth', s.fondo(c))
+    _dipingi(c, 'mouth', s.scuro(c))
     giu = s.labbro_giu
     _dipingi(c, 'blood', _colature([(giu[i], 0.006, 0.07 + 0.03 * (i % 3), 0.95) for i in range(3, len(giu) - 2, 4)]))
     _dipingi(c, 'blood', _lungo(giu[2:-2], 0.006, 0.8))
@@ -1522,7 +1522,7 @@ def _pilota(c):
     """La carne viva nel morso, il sangue che cola dall'orlo di sotto lungo il fianco, le gocce."""
     s = _cache(c, 'scavi', _geo_pilota)
     _dipingi(c, 'wound', s.carne)
-    _dipingi(c, 'mouth', s.fondo(c))
+    _dipingi(c, 'mouth', s.scuro(c))
     bassi = sorted(s.orlo, key=lambda p: p[2])[:8]
     _dipingi(c, 'blood', _colature([(p, 0.007, 0.11, 1.0) for p in bassi[::2]]))
     for k, p in enumerate(bassi[::3]):
@@ -1644,7 +1644,7 @@ def _verdesca(c):
     P, body, sh = c.P, c.body, c.forma
     s = _cache(c, 'scavi', _geo_verdesca)
     _dipingi(c, 'wound', s.carne)
-    _dipingi(c, 'mouth', s.fondo(c))
+    _dipingi(c, 'mouth', s.scuro(c))
     sorgenti = []
     for bordo in s.squarci:
         for p in bordo[4:-1:3]:
@@ -1943,7 +1943,7 @@ def _tonno(c):
     P, body = c.P, c.body
     s = _cache(c, 'scavi', _geo_tonno)
     _dipingi(c, 'wound', s.carne)
-    _dipingi(c, 'mouth', s.fondo(c))
+    _dipingi(c, 'mouth', s.scuro(c))
     ferro = _ruggine(c)
     legno = P.materiale('LegnoRaffio', (0.2, 0.12, 0.06), rough=0.75, coat=0.1)
     E1, n1 = body.superficie(0.36, 0.55, -1)
