@@ -433,7 +433,35 @@ def preview_composite(out_png, yaw=0.0, pitch=-12.0, lamp=1.0, ambient=1.0, extr
     post.save_png(post.tonemap(view, exposure), out_png)
 
 
-JOBS = {'world': job_world, 'boat': job_boat, 'props': job_props, 'creature': job_creature, 'reencode': job_reencode, 'tarp': job_tarp, 'jumpscare': job_jumpscare, 'binocolo': job_binocolo}
+def job_bordo(q):
+    """Il bordo della barca visto dall'occhio: per ogni direzione (yaw da −180° a 179,5°, passo 0,5°) l'altezza
+    angolare del capodibanda, nello spazio della barca. Il gioco ci taglia le creature che scendono dietro il
+    bordo quando se ne vanno (manifest points.sheer, gradi)."""
+    import scena_creature as sc
+    pts = []
+    for side in (-1, 1):
+        for t in np.linspace(-0.985, 0.985, 3000):
+            x, ztop = sc.gunwale_at(float(t) * boat.HALF, side)
+            pts.append((x + side * 0.02, float(t) * boat.HALF, ztop))
+    # lo specchio di poppa, da un fianco all'altro
+    t = -0.985
+    xl, zl = sc.gunwale_at(t * boat.HALF, -1)
+    xr, zr = sc.gunwale_at(t * boat.HALF, 1)
+    for u in np.linspace(0.0, 1.0, 600):
+        pts.append((xl + (xr - xl) * u, t * boat.HALF - 0.02, zl + (zr - zl) * u))
+    P = np.array(pts) - np.array(EYE)
+    yaw = np.degrees(np.arctan2(P[:, 0], P[:, 1]))
+    el = np.degrees(np.arctan2(P[:, 2], np.hypot(P[:, 0], P[:, 1])))
+    out = []
+    for b in np.arange(-180.0, 180.0, 0.5):
+        d = np.abs((yaw - b + 180.0) % 360.0 - 180.0)
+        near = d < 0.3
+        out.append(float(el[near].max()) if near.any() else float(el[np.argmin(d)]))
+    post.update_manifest(MANIFEST, 'points.sheer', [round(e, 3) for e in out])
+    log('bordo: %d direzioni, da %.1f° a %.1f°' % (len(out), min(out), max(out)))
+
+
+JOBS = {'world': job_world, 'boat': job_boat, 'props': job_props, 'creature': job_creature, 'reencode': job_reencode, 'tarp': job_tarp, 'jumpscare': job_jumpscare, 'binocolo': job_binocolo, 'bordo': job_bordo}
 
 
 def main():

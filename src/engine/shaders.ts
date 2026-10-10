@@ -55,6 +55,9 @@ uniform float uShimmer;
 uniform float uOpacity;  // dissolvenza dello strato (le creature che compaiono e spariscono)
 uniform vec2 uShift;     // spostamento dello strato (pixel del panorama): la creatura che emerge
 uniform float uClipY;    // > 0: sotto questa riga del panorama non si disegna (il pelo dell'acqua)
+uniform float uPart;     // creatura che sale o scende dietro il bordo: 0 tutta, 1 la parte contro mare e cielo
+                         // (disegnata prima della barca, che la copre), 2 la parte davanti alla barca (le mani)
+uniform sampler2D uBoat; // la barca: il suo alfa dice dov'era coperta la creatura nella posa
 
 vec3 dec(vec4 t, float s) { vec3 c = t.rgb * t.rgb; return c * c * s; }   // gamma 4
 
@@ -67,6 +70,14 @@ void main() {
   if (uClipY > 0.0 && p.y > uClipY) discard;
   p -= uShift;
   if (p.x < uRect.x || p.x > uRect.z || p.y < uRect.y || p.y > uRect.w) discard;
+  float part = 1.0;
+  if (uPart > 0.5) {
+    // il punto della posa da cui viene questo pixel: davanti alla barca o contro il mare? (lo strato è centrato
+    // sul suo yaw, la barca su 0)
+    float b = texture(uBoat, vec2(fract(p.x / uPano.x + uYaw / (2.0 * PI)), p.y / uPano.y)).a;
+    part = uPart < 1.5 ? 1.0 - b : b;
+    if (part < 0.004) discard;
+  }
   vec2 uv = (p - uRect.xy) / (uRect.zw - uRect.xy);
   float mist = 0.0, sky = 0.0;
   if (uHasData > 0.5) {
@@ -98,7 +109,7 @@ void main() {
     fog = mix(fog, horizon * 0.35, sky);
     c = mix(c, uFogColor, clamp(fog, 0.0, 0.92));
   }
-  frag = vec4(c * alpha, alpha) * uOpacity;
+  frag = vec4(c * alpha, alpha) * uOpacity * part;
 }`;
 
 /**

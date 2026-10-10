@@ -36,6 +36,8 @@ export interface Manifest {
     lighthouseYaw: number;
     moonYaw: number;
     moonElev: number;
+    /** il bordo della barca visto dall'occhio: altezza in gradi per yaw da −180° (passo 360°/lunghezza) */
+    sheer?: number[];
   };
   lights?: Record<string, Vec3>;
 }

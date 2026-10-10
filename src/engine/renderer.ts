@@ -22,6 +22,12 @@ export interface LayerDraw {
   shift?: [number, number];
   /** riga del panorama sotto cui lo strato non si vede (il pelo dell'acqua mentre emerge) */
   clipY?: number;
+  /**
+   * Creatura sulla barca che sale o scende dietro il bordo: lo strato si divide secondo dove lo copriva la barca
+   * nella posa. 'back' è la parte contro il mare e il cielo, da disegnare prima della barca che la copre mentre
+   * scende; 'front' è quella davanti alla barca (le mani sul bordo), da disegnare dopo.
+   */
+  part?: 'back' | 'front';
 }
 
 /** Immagine a tutto schermo dentro la scena (vista dal telone, jumpscare). */
@@ -216,11 +222,13 @@ export class Renderer {
         .f1('uOpacity', d.opacity ?? 1)
         .f2('uShift', d.shift?.[0] ?? 0, d.shift?.[1] ?? 0)
         .f1('uClipY', d.clipY ?? 0)
+        .f1('uPart', d.part === 'back' ? 1 : d.part === 'front' ? 2 : 0)
         .f1('uHasData', l.data ? 1 : 0)
         .tex('uAmb', 0, l.amb)
         .tex('uLamp', 1, l.lamp)
         .tex('uLant', 2, l.lantern)
-        .tex('uData', 3, l.data);
+        .tex('uData', 3, l.data)
+        .tex('uBoat', 4, d.part ? (this.layers.get('boat')?.amb ?? null) : null);
       this.tri.draw();
       if (key === 'world' && f.bino && f.bino.amount > 0.001 && f.bino.places.length) {
         this.drawPersp(view, f);

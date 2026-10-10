@@ -1,7 +1,7 @@
 /**
  * Una notte giocata: collega la simulazione (src/game) alla scena, all'audio e all'interfaccia.
- * Le creature sono strati del panorama (le pose renderizzate) che emergono, compaiono e svaniscono
- * secondo lo stato della simulazione; la vista da sotto il telone e i jumpscare sono immagini a
+ * Le creature sono strati del panorama (le pose renderizzate) che emergono dall'acqua o salgono da dietro il
+ * bordo, e se ne vanno scendendo, secondo lo stato della simulazione; la vista da sotto il telone e i jumpscare sono immagini a
  * tutto schermo disegnate dentro la scena (prendono bloom, grana e vignetta come il resto).
  */
 import type { Vec3 } from '../engine/assets.ts';
@@ -93,6 +93,17 @@ function approach(cur: number, target: number, rate: number, dt: number): number
   return cur + (target - cur) * (1 - Math.exp(-rate * dt));
 }
 
+/** Verso il bersaglio a velocità costante: una corsa intera in `up` secondi a salire, in `down` a scendere. */
+function toward(cur: number, target: number, up: number, down: number, dt: number): number {
+  return target > cur ? Math.min(target, cur + dt / up) : Math.max(target, cur - dt / down);
+}
+
+/** Rallenta arrivando a 1 e accelera ripartendo da 1: una creatura che sale e si ferma, o che si lascia cadere. */
+function ease(x: number): number {
+  const t = Math.max(0, Math.min(1, x));
+  return 1 - (1 - t) * (1 - t);
+}
+
 function smooth01(x: number): number {
   const t = Math.max(0, Math.min(1, x));
   return t * t * (3 - 2 * t);
@@ -171,7 +182,7 @@ export class Night {
   private reelByMouse = false;
   private hoverTarget: Target = null;
   // stato visivo (morbido)
-  private v = { gSale: 0, gRise: 0, gPret: 0, mR: 0, mL: 0, hConta: 0, hRise: 0, robin: 0, tarp: 0, toy: 0, toyX: -1, dawn: 0, rock: 0, dark: 0 };
+  private v = { gSale: 0, gRise: 0, gPret: 0, mR: 0, mL: 0, hRise: 0, robin: 0, tarp: 0, toy: 0, toyX: -1, dawn: 0, rock: 0, dark: 0 };
   private gulpyDive = 0;
   private js: { killer: MonsterId; t: number; yaw: number; scream: Voice | null } | null = null;
   private lineSway = 0;
@@ -916,25 +927,25 @@ export class Night {
     }
     v.gSale = approach(v.gSale, saleT, saleT > v.gSale ? 3 : 1.5, dt);
     v.gRise = approach(v.gRise, riseT, 4, dt);
-    v.gPret = approach(v.gPret, pretT, pretT > v.gPret ? 5 : 2.2, dt);
+    // alla prua sale da dietro il bordo; se ne va lasciandosi ricadere giù
+    v.gPret = toward(v.gPret, pretT, 0.45, 1.0, dt);
     if (v.gRise < 0.02 && saleT === 0) v.gSale = approach(v.gSale, 0, 6, dt);
 
-    // Molly: si affaccia dal suo lato, scivola via quando è contenta
+    // Molly: si affaccia di colpo dal suo lato, scivola giù quando è contenta
     const mollyShown = m.state === 'peeking' || m.state === 'tantrum' || m.state === 'attack';
     const rT = mollyShown && m.side === 'right' ? 1 : 0;
     const lT = mollyShown && m.side === 'left' ? 1 : 0;
-    v.mR = approach(v.mR, rT, rT > v.mR ? 4 : 1.6, dt);
-    v.mL = approach(v.mL, lT, lT > v.mL ? 4 : 1.6, dt);
+    v.mR = toward(v.mR, rT, 0.35, 0.9, dt);
+    v.mL = toward(v.mL, lT, 0.35, 0.9, dt);
 
-    // Hatch: emerge dietro la poppa per contare; quando sale a bordo sparisce dall'acqua
+    // Hatch: emerge piano dietro la poppa per contare; quando sale a bordo si rituffa
     const counting = h.state === 'counting';
-    v.hConta = approach(v.hConta, counting ? 1 : 0, counting ? 2.5 : 3.5, dt);
-    v.hRise = approach(v.hRise, counting ? 1 : 0, counting ? 1.2 : 3, dt);
+    v.hRise = toward(v.hRise, counting ? 1 : 0, 1.6, 0.9, dt);
 
-    // Robin: sul bordo mentre sale e ruba; nella luce si ritrae (l'opacità cala con la paura)
+    // Robin: sul bordo mentre sale e ruba; nella luce si ritrae, abbassandosi dietro il bordo
     const rb = sim.robin;
-    const robinT = rb && rb.present ? 1 - 0.5 * rb.fear : rb?.state === 'attack' ? 1 : 0;
-    v.robin = approach(v.robin, robinT, robinT > v.robin ? 3 : 4, dt);
+    const robinT = rb && rb.present ? 1 - 0.6 * rb.fear : rb?.state === 'attack' ? 1 : 0;
+    v.robin = toward(v.robin, robinT, 0.6, 0.5, dt);
 
     this.updateBattery(dt);
 
@@ -963,7 +974,7 @@ export class Night {
       // senza i fotogrammi renderizzati, il jumpscare zooma sulla posa della creatura
       if (!this.d.assets.jumpscares[this.js.killer]) {
         if (this.js.killer === 'gulpy') v.gPret = 1;
-        else if (this.js.killer === 'hatch') v.hConta = v.hRise = 1;
+        else if (this.js.killer === 'hatch') v.hRise = 1;
         else if (this.js.killer === 'robin') v.robin = 1;
         else if (this.sim.molly.side === 'right') v.mR = 1;
         else v.mL = 1;
@@ -1024,19 +1035,30 @@ export class Night {
     const layers: (string | LayerDraw)[] = ['world'];
     const has = (k: string) => !!man.layers[k];
     // creature nel mondo: emergono dal pelo dell'acqua (lo strato scende e si taglia al galleggiamento)
-    const t = this.d.stage.time;
     const rise = (key: string, opacity: number, r: number): LayerDraw | null => {
       const info = man.layers[key];
       if (!info || opacity < 0.002) return null;
-      const h = info.rect[3] - info.rect[1];
-      // in acqua la creatura segue l'onda: sale e scende di un soffio
-      const bob = 1.6 * Math.sin(t * 0.9 + key.length) + 0.7 * Math.sin(t * 2.3);
-      return { key, opacity, shift: [0, (1 - r) * h + bob], clipY: info.rect[3] - 3 };
+      return { key, opacity, shift: [0, this.wavePx(key, r)], clipY: info.rect[3] - 3 };
     };
     const gs = rise(POSE.gulpySale, v.gSale, v.gRise);
     if (gs) layers.push(gs);
-    const hc = rise(POSE.hatchConta, v.hConta, 0.15 + 0.85 * v.hRise);
+    const hc = rise(POSE.hatchConta, v.hRise > 0.002 ? 1 : 0, ease(v.hRise));
     if (hc) layers.push(hc);
+    // creature sulla barca: salgono e scendono dietro il bordo. Mentre si muovono, la parte che nella posa si
+    // vedeva contro il mare passa sotto la barca, che la copre; le mani sul bordo restano sopra e mollano la
+    // presa per prime
+    const aboard: LayerDraw[] = [];
+    for (const [key, p] of this.aboard()) {
+      if (!has(key) || p < 0.002) continue;
+      if (p >= 0.999) {
+        aboard.push({ key });
+        continue;
+      }
+      const shift: [number, number] = [0, this.sinkPx(key, p)];
+      layers.push({ key, shift, part: 'back' });
+      const hands = smooth01((p - 0.75) / 0.25);
+      if (hands > 0.002) aboard.push({ key, shift, part: 'front', opacity: hands });
+    }
     layers.push('boat');
     if (sim.cfg.battery && has('battery')) {
       layers.push('battery');
@@ -1048,11 +1070,45 @@ export class Night {
     layers.push(bend >= 1.4 ? 'rod2' : bend >= 0.5 ? 'rod1' : 'rod0');
     const n = sim.fish;
     if (n > 0) layers.push(n <= 3 ? 'fish2' : n <= 6 ? 'fish5' : 'fish9');
-    if (has(POSE.gulpyPretende) && v.gPret > 0.002) layers.push({ key: POSE.gulpyPretende, opacity: v.gPret });
-    if (has(POSE.mollyRight) && v.mR > 0.002) layers.push({ key: POSE.mollyRight, opacity: v.mR });
-    if (has(POSE.mollyLeft) && v.mL > 0.002) layers.push({ key: POSE.mollyLeft, opacity: v.mL });
-    if (has(POSE.robin) && v.robin > 0.002) layers.push({ key: POSE.robin, opacity: v.robin });
+    layers.push(...aboard);
     return layers;
+  }
+
+  /** Le creature sulla barca e quanto sono su (1 in posa, 0 sparite dietro il bordo). */
+  private aboard(): [string, number][] {
+    const v = this.v;
+    return [
+      [POSE.gulpyPretende, v.gPret],
+      [POSE.mollyRight, v.mR],
+      [POSE.mollyLeft, v.mL],
+      [POSE.robin, v.robin],
+    ];
+  }
+
+  /** Di quanto (pixel del panorama) è scesa dietro il bordo una creatura sulla barca: p = 1 in posa, 0 sparita. */
+  private sinkPx(key: string, p: number): number {
+    const info = this.d.stage.man.layers[key];
+    return info ? (1 - ease(p)) * (info.rect[3] - info.rect[1] + 8) : 0;
+  }
+
+  /** Di quanto è sotto il pelo dell'acqua una creatura in mare (r = 1 tutta fuori): segue anche l'onda, di un soffio. */
+  private wavePx(key: string, r: number): number {
+    const info = this.d.stage.man.layers[key];
+    if (!info) return 0;
+    const t = this.d.stage.time;
+    const bob = 1.6 * Math.sin(t * 0.9 + key.length) + 0.7 * Math.sin(t * 2.3);
+    return (1 - r) * (info.rect[3] - info.rect[1]) + bob;
+  }
+
+  /** Altezza (gradi) del bordo della barca visto dall'occhio, nella direzione yaw (gradi, spazio della barca). */
+  private sheerAt(yaw: number): number | null {
+    const sh = this.d.stage.man.points.sheer;
+    if (!sh?.length) return null;
+    const n = sh.length;
+    const f = ((((yaw + 180) / 360) % 1) + 1) % 1 * n;
+    const i = Math.floor(f);
+    const t = f - i;
+    return sh[i % n]! * (1 - t) + sh[(i + 1) % n]! * t;
   }
 
   /** Lenza dalla punta della canna all'acqua. */
@@ -1122,20 +1178,28 @@ export class Night {
     const out = { world: [] as LightGlow[], boat: [] as LightGlow[] };
     if (dark <= 0.01) return out;
     const v = this.v;
-    const shown: [string, number][] = [
-      [POSE.gulpySale, v.gSale * v.gRise],
-      [POSE.gulpyPretende, v.gPret],
-      [POSE.mollyRight, v.mR],
-      [POSE.mollyLeft, v.mL],
-      [POSE.hatchConta, v.hConta * v.hRise],
-      [POSE.robin, v.robin],
+    const pano = st.man.pano;
+    const degPx = (pano.latMax - pano.latMin) / pano.height;
+    // [strato, intensità, di quanto è sceso (pixel del panorama)]: gli occhi scendono con la creatura e
+    // spariscono sotto il pelo dell'acqua o dietro il bordo
+    const shown: [string, number, number][] = [
+      [POSE.gulpySale, v.gSale, this.wavePx(POSE.gulpySale, v.gRise)],
+      [POSE.hatchConta, v.hRise > 0.002 ? 1 : 0, this.wavePx(POSE.hatchConta, ease(v.hRise))],
+      ...this.aboard().map(([key, p]): [string, number, number] => [key, p > 0.002 ? 1 : 0, this.sinkPx(key, p)]),
     ];
-    for (const [key, k] of shown) {
+    for (const [key, k, drop] of shown) {
       const info = st.man.layers[key];
       if (!info?.eyes || k < 0.05) continue;
+      const water = info.space === 'world' ? pano.latMax - (info.rect[3] - 3) * degPx : null;
       const pulse = 0.85 + 0.15 * Math.sin(st.time * 1.7 + key.length);
+      const a = k * dark * pulse;
       for (const e of info.eyes) {
-        const g: LightGlow = { dir: norm(e), color: [0.55 * k * dark * pulse, 0.7 * k * dark * pulse, 0.62 * k * dark * pulse], radius: 0.0022 };
+        const yaw = Math.atan2(e[0], e[1]);
+        const el = Math.atan2(e[2], Math.hypot(e[0], e[1])) - drop * degPx * D2R;
+        const limit = water ?? this.sheerAt(yaw / D2R);
+        if (limit === null ? drop > 0 : el / D2R < limit + 0.3) continue;
+        const c = Math.cos(el);
+        const g: LightGlow = { dir: [c * Math.sin(yaw), c * Math.cos(yaw), Math.sin(el)], color: [0.55 * a, 0.7 * a, 0.62 * a], radius: 0.0022 };
         (info.space === 'world' ? out.world : out.boat).push(g);
       }
     }
