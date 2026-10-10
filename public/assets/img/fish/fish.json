@@ -1,4 +1,16 @@
 {
+ "alaccia_registrata_sopra": {
+  "file": "alaccia_registrata_sopra.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "glitch"
+ },
+ "anguilla_smagnetizzata": {
+  "file": "anguilla_smagnetizzata.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "glitch"
+ },
  "balestra_sfocata": {
   "file": "balestra_sfocata.webp",
   "w": 1600,
@@ -17,14 +29,38 @@
   "h": 800,
   "family": "glitch"
  },
+ "cheppia_senza_audio": {
+  "file": "cheppia_senza_audio.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "glitch"
+ },
+ "civetta_fuori_quadro": {
+  "file": "civetta_fuori_quadro.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "glitch"
+ },
  "donzella_saturata": {
   "file": "donzella_saturata.webp",
   "w": 1600,
   "h": 800,
   "family": "glitch"
  },
+ "lampuga_fuori_traccia": {
+  "file": "lampuga_fuori_traccia.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "glitch"
+ },
  "lanzardo_riavvolto": {
   "file": "lanzardo_riavvolto.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "glitch"
+ },
+ "leccia_senza_segnale": {
+  "file": "leccia_senza_segnale.webp",
   "w": 1600,
   "h": 800,
   "family": "glitch"
@@ -49,6 +85,18 @@
  },
  "pagello_pixelato": {
   "file": "pagello_pixelato.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "glitch"
+ },
+ "pappagallo_in_loop": {
+  "file": "pappagallo_in_loop.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "glitch"
+ },
+ "pesce_volante_in_pausa": {
+  "file": "pesce_volante_in_pausa.webp",
   "w": 1600,
   "h": 800,
   "family": "glitch"

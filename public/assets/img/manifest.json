@@ -374,6 +374,45 @@
    "space": "boat",
    "yaw": -59.0895
   },
+  "robin_secchio": {
+   "eyes": [
+    [
+     -0.6376,
+     0.6991,
+     -0.2956
+    ],
+    [
+     -0.5241,
+     0.7877,
+     -0.2956
+    ]
+   ],
+   "passes": {
+    "ambient": {
+     "file": "robin_secchio_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "robin_secchio_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "robin_secchio_lantern.webp",
+     "res": 1.0,
+     "scale": 0.97
+    }
+   },
+   "rect": [
+    3315,
+    782,
+    5218,
+    1820
+   ],
+   "space": "boat",
+   "yaw": -30.1046
+  },
   "rod0": {
    "passes": {
     "ambient": {
