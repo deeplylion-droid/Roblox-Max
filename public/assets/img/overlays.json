@@ -213,7 +213,7 @@
   },
   "glow": {
    "file": "tarp_glow.webp",
-   "scale": 0.32
+   "scale": 0.25
   }
  }
 }

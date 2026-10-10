@@ -10,19 +10,19 @@
     "lamp": {
      "file": "boat_lamp.webp",
      "res": 1.0,
-     "scale": 1.1
+     "scale": 1.2000000000000002
     },
     "lantern": {
      "file": "boat_lantern.webp",
      "res": 0.5,
-     "scale": 0.79
+     "scale": 0.78
     }
    },
    "rect": [
     0,
     0,
-    4096,
-    1070
+    8192,
+    2139
    ],
    "space": "boat",
    "yaw": 0.0
@@ -37,7 +37,7 @@
     "lamp": {
      "file": "fish2_lamp.webp",
      "res": 1.0,
-     "scale": 3.6
+     "scale": 4.2
     },
     "lantern": {
      "file": "fish2_lantern.webp",
@@ -46,10 +46,10 @@
     }
    },
    "rect": [
-    2009,
-    579,
-    2093,
-    712
+    4031,
+    1170,
+    4173,
+    1410
    ],
    "space": "boat",
    "yaw": 17.9357
@@ -64,19 +64,19 @@
     "lamp": {
      "file": "fish5_lamp.webp",
      "res": 1.0,
-     "scale": 1.1
+     "scale": 0.63
     },
     "lantern": {
      "file": "fish5_lantern.webp",
      "res": 1.0,
-     "scale": 0.29
+     "scale": 0.3
     }
    },
    "rect": [
-    1993,
-    572,
-    2108,
-    719
+    3998,
+    1156,
+    4204,
+    1425
    ],
    "space": "boat",
    "yaw": 18.1011
@@ -91,7 +91,7 @@
     "lamp": {
      "file": "fish9_lamp.webp",
      "res": 1.0,
-     "scale": 0.5700000000000001
+     "scale": 0.9
     },
     "lantern": {
      "file": "fish9_lantern.webp",
@@ -100,10 +100,10 @@
     }
    },
    "rect": [
-    1969,
-    561,
-    2097,
-    712
+    3951,
+    1134,
+    4182,
+    1410
    ],
    "space": "boat",
    "yaw": 18.0637
@@ -130,7 +130,7 @@
     "lamp": {
      "file": "gulpy_pretende_lamp.webp",
      "res": 1.0,
-     "scale": 0.33
+     "scale": 0.38
     },
     "lantern": {
      "file": "gulpy_pretende_lantern.webp",
@@ -139,10 +139,10 @@
     }
    },
    "rect": [
-    1821,
-    71,
-    2336,
-    669
+    3655,
+    154,
+    4659,
+    1325
    ],
    "space": "boat",
    "yaw": -25.5929
@@ -150,13 +150,13 @@
   "gulpy_sale": {
    "eyes": [
     [
-     -1.6934,
-     6.0239,
+     -1.8075,
+     5.9907,
      0.1001
     ],
     [
-     -1.8075,
-     5.9907,
+     -1.6934,
+     6.0239,
      0.1001
     ]
    ],
@@ -178,10 +178,10 @@
     }
    },
    "rect": [
-    1983,
-    287,
-    2112,
-    601
+    3978,
+    587,
+    4212,
+    1190
    ],
    "space": "world",
    "yaw": -16.2347
@@ -203,7 +203,7 @@
     "ambient": {
      "file": "hatch_conta_ambient.webp",
      "res": 1.0,
-     "scale": 6.0
+     "scale": 5.9
     },
     "lamp": {
      "file": "hatch_conta_lamp.webp",
@@ -217,15 +217,27 @@
     }
    },
    "rect": [
-    1951,
-    278,
-    2142,
-    872
+    3915,
+    569,
+    4271,
+    1730
    ],
    "space": "world",
    "yaw": 178.0604
   },
   "molly_destra": {
+   "eyes": [
+    [
+     1.1286,
+     0.3658,
+     -0.2056
+    ],
+    [
+     1.1743,
+     0.1659,
+     -0.2617
+    ]
+   ],
    "passes": {
     "ambient": {
      "file": "molly_destra_ambient.webp",
@@ -244,15 +256,27 @@
     }
    },
    "rect": [
-    1833,
-    390,
-    2246,
-    860
+    3679,
+    792,
+    4479,
+    1708
    ],
    "space": "boat",
-   "yaw": 76.3218
+   "yaw": 76.3251
   },
   "molly_sinistra": {
+   "eyes": [
+    [
+     -1.2047,
+     0.5859,
+     -0.2066
+    ],
+    [
+     -1.1006,
+     0.7625,
+     -0.2628
+    ]
+   ],
    "passes": {
     "ambient": {
      "file": "molly_sinistra_ambient.webp",
@@ -267,17 +291,17 @@
     "lantern": {
      "file": "molly_sinistra_lantern.webp",
      "res": 1.0,
-     "scale": 0.44
+     "scale": 0.48
     }
    },
    "rect": [
-    1874,
-    391,
-    2230,
-    835
+    3760,
+    794,
+    4448,
+    1657
    ],
    "space": "boat",
-   "yaw": -59.0864
+   "yaw": -59.0895
   },
   "rod0": {
    "passes": {
@@ -289,7 +313,7 @@
     "lamp": {
      "file": "rod0_lamp.webp",
      "res": 1.0,
-     "scale": 0.25
+     "scale": 0.29
     },
     "lantern": {
      "file": "rod0_lantern.webp",
@@ -298,10 +322,10 @@
     }
    },
    "rect": [
-    1987,
-    309,
-    2196,
-    824
+    3986,
+    630,
+    4379,
+    1634
    ],
    "space": "boat",
    "tip": [
@@ -330,10 +354,10 @@
     }
    },
    "rect": [
-    1989,
-    343,
-    2194,
-    824
+    3990,
+    698,
+    4375,
+    1634
    ],
    "space": "boat",
    "tip": [
@@ -348,12 +372,12 @@
     "ambient": {
      "file": "rod2_ambient.webp",
      "res": 1.0,
-     "scale": 0.25
+     "scale": 0.26
     },
     "lamp": {
      "file": "rod2_lamp.webp",
      "res": 1.0,
-     "scale": 0.25
+     "scale": 0.28
     },
     "lantern": {
      "file": "rod2_lantern.webp",
@@ -362,10 +386,10 @@
     }
    },
    "rect": [
-    1991,
-    412,
-    2192,
-    824
+    3994,
+    837,
+    4371,
+    1634
    ],
    "space": "boat",
    "tip": [
@@ -381,7 +405,7 @@
     "ambient": {
      "file": "world_ambient.webp",
      "res": 1.0,
-     "scale": 0.53
+     "scale": 0.39
     },
     "lamp": {
      "file": "world_lamp.webp",
@@ -397,8 +421,8 @@
    "rect": [
     0,
     0,
-    4096,
-    1070
+    8192,
+    2139
    ],
    "space": "world",
    "yaw": 0.0
@@ -472,10 +496,10 @@
   ]
  },
  "pano": {
-  "height": 1070,
+  "height": 2139,
   "latMax": 36.0,
   "latMin": -58.0,
-  "width": 4096
+  "width": 8192
  },
  "points": {
   "bucket": [
