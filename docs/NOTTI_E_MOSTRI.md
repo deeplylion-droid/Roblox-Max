@@ -74,13 +74,17 @@ eccetera, un po' come gli animatronics», quindi tinte sature e iconiche, ricono
 ### Stato nel gioco (10 ottobre)
 
 La notte 2 si gioca: dal menu con **Continua** dopo aver vinto la prima, con **Notte successiva** alla fine
-della prima, o con `?notte=2` nell'indirizzo (prove). Robin visibile è in arrivo (modello approvato, strato in
-render); finché lo strato non c'è, Robin si sente soltanto (suoni provvisori fatti con i file di scena:
+della prima, o con `?notte=2` nell'indirizzo (prove). Robin ora si vede (strato `robin_secchio`, 10 ottobre): sale dal
+mare sul bordo, nella luce trema e si accende di rosso, scacciato scivola giù; prima si sentiva soltanto (suoni provvisori fatti con i file di scena:
 zampette, secchio che tintinna, pesce strappato, fuga in acqua) e si vede sul sonar; il jumpscare è un urlo
 sintetizzato. I testi della notte 2 (radio, le due morti, sottotitoli, suggerimento, «Batteria morta.»),
 accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`).
 
 ## I quattro mostri nuovi
+
+> **Animazioni sulla barca** (10 ottobre, decise dall'utente): come Gulpy (la mascella lenta), Molly (sbatte gli
+> occhi), Hatch (la bocca che conta) e Robin (sbatte gli occhi), **ognuno dei prossimi mostri avrà una piccola
+> animazione** quando è in scena: da progettare insieme al modello.
 
 ### Notte 2 · Robin — *SCACCIARLO CON LA LUCE*
 
