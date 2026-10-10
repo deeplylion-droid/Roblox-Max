@@ -9,9 +9,10 @@ corazzata, pettorali a ventaglio con i raggi liberi che usa come zampette sul fo
 barca come un ragno di mare, ruba i pesci dal secchio. Bozze di studio: non sono i modelli definitivi.
 
 Colori (proposta da approvare, 10 ottobre): i mostri nuovi non sono più grigi come i primi tre, ognuno ha
-un colore netto come in FNAF. Robin è rosso corallo come la gallinella vera (Chelidonichthys), più scuro e
-più bagnato sul dorso, rosato sulla pancia; i ventagli e le zampette sono turchese elettrico a macchie blu;
-la melma è tinta di rosso. Pelle, chiazze, vene e melma restano quelle di famiglia: cambia solo la tinta.
+un colore netto come in FNAF. Robin è rosso pieno come la gallinella vera (Chelidonichthys), più scuro e
+più bagnato sul dorso, più chiaro e appena rosato sulla pancia; i ventagli e le zampette sono turchese
+elettrico a macchie blu; la melma è tinta di rosso; i biglietti restano arancio. Pelle, chiazze, vene e
+melma restano quelle di famiglia: cambia solo la tinta, che deve restare satura anche al buio.
 
 Coordinate come la sagoma: il bordo della barca corre lungo X a y = 0 (capodibanda a z = 0,75), dentro
 la barca è y < 0, fuori c'è il mare (z = 0). La faccia guarda −Y, verso il secchio e il pescatore.
@@ -222,21 +223,22 @@ def biglietti_material():
     u = g.math('FRACT', g.div(tick, 0.052))
     a = g.math('ABSOLUTE', side)
     perf = g.smoothstep(0.045, 0.012, g.mn(u, g.sub(1.0, u)))            # perforazione
-    # la finestrella chiara è piccola: sul braccio rosso il biglietto deve restare arancio
+    # la finestrella chiara è piccola: sul braccio rosso il biglietto deve restare arancio (e la carta è un
+    # arancio cupo: con AgX un arancio chiaro sotto la lampara sbianca in color pesca)
     win = g.mul(g.mul(g.smoothstep(0.26, 0.30, u), g.smoothstep(0.74, 0.70, u)), g.smoothstep(0.46, 0.40, a))
     # "scritte" nella finestrella: righe di segni scuri
     txt = g.noise(g.comb(g.mul(tick, 260.0), g.mul(side, 5.0), 0.0), scale=1.0, detail=1.0)
     rows = g.smoothstep(0.25, 0.0, g.math('ABSOLUTE', g.sub(g.math('FRACT', g.mul(g.add(side, 1.0), 1.6)), 0.5)))
     ink = g.mul(g.mul(win, g.smoothstep(0.5, 0.56, txt.fac)), g.sub(1.0, rows))
-    col = g.mix(g.smoothstep(0.80, 0.92, a), (1.0, 0.46, 0.035), (0.75, 0.16, 0.10))   # bordino rosa scuro
-    col = g.mix(win, col, (0.98, 0.80, 0.62))
+    col = g.mix(g.smoothstep(0.80, 0.92, a), (0.80, 0.26, 0.02), (0.66, 0.10, 0.09))   # bordino rosa scuro
+    col = g.mix(win, col, (0.88, 0.70, 0.50))
     col = g.mix(ink, col, (0.40, 0.06, 0.04))
     col = g.mix(perf, col, (0.30, 0.10, 0.04))
     # carta fradicia: macchie d'alga e di sporco, scolorita a chiazze
     st = g.noise(co, scale=9.0, detail=5.0, rough=0.6)
     col = g.mix(g.mul(g.smoothstep(0.56, 0.72, st.fac), 0.75), col, (0.16, 0.15, 0.06))
     fade = g.noise(co, scale=3.0, detail=3.0)
-    col = g.mix(g.mul(g.smoothstep(0.45, 0.7, fade.fac), 0.22), col, (0.95, 0.62, 0.50))
+    col = g.mix(g.mul(g.smoothstep(0.45, 0.7, fade.fac), 0.22), col, (0.85, 0.50, 0.35))
     bump = g.bump(g.add(g.mul(perf, 0.6), g.mul(st.fac, 0.3)), strength=0.25, distance=0.001)
     g.output_material(g.principled(color=col, rough=0.55, coat=0.35, coat_rough=0.15, sss=0.15,
                                    sss_radius=(1.0, 0.5, 0.3), sss_scale=0.004, normal=bump))
@@ -805,27 +807,38 @@ def robin_b():
 
 
 def shh_hand(fr, s=-1):
-    """La mano sulla bocca, «zitto»: un pugno lasco davanti al mento, l'indice dritto in piedi sulle labbra
-    con l'unghia nera verso chi guarda (è l'unghia a far leggere il dito come un dito), il pollice
-    ripiegato sulle altre dita. In coordinate locali della testa (s: da che parte arriva il braccio);
-    restituisce il campo, il polso (nel mondo) e le unghie [(centro, raggi)] in coordinate locali."""
+    """La mano sulla bocca, «zitto»: un pugno lasco davanti al mento, staccato dalla faccia; l'indice sale
+    di sbieco e appoggia solo la punta sul labbro di sopra, con l'unghia chiara verso chi guarda. Dritto e
+    attaccato alla faccia si leggeva come una proboscide che scende dal naso: di sbieco e staccato si legge
+    come un dito. In coordinate locali della testa (s: da che parte arriva il braccio); restituisce il
+    campo, il polso (nel mondo) e le unghie [(campo, centro)] in coordinate locali."""
     X = V(s, 1, 1)
-    wrist = V(0.078, -0.098, -0.225) * X
-    palm = D.ellipsoid_rot(V(0.040, -0.122, -0.158) * X, (0.032, 0.022, 0.034), sdf.rot_matrix('y', -20 * s))
-    parts = [palm, sdf.round_cone(wrist, V(0.050, -0.118, -0.170) * X, 0.020, 0.022)]
-    # l'indice: dalla nocca sale davanti alla bocca e si ferma appena sopra il labbro
-    idx, _ = tubo([V(0.020, -0.136, -0.128) * X, V(0.010, -0.130, -0.098) * X, V(0.003, -0.122, -0.068) * X, V(0.0, -0.116, -0.044) * X], 0.0115, 0.0088, n=5, nodi=0.12)
+    wrist = V(0.085, -0.120, -0.205) * X
+    palm = D.ellipsoid_rot(V(0.050, -0.150, -0.150) * X, (0.032, 0.022, 0.032), sdf.rot_matrix('y', -25 * s))
+    parts = [palm, sdf.round_cone(wrist, V(0.060, -0.146, -0.162) * X, 0.020, 0.022)]
+    # l'indice: dalla nocca, staccato dalla faccia, sale di sbieco e appoggia la punta sul labbro di sopra
+    idx, cp = tubo([V(0.034, -0.166, -0.122) * X, V(0.020, -0.150, -0.094) * X, V(0.008, -0.128, -0.064) * X, V(-0.002, -0.112, -0.046) * X],
+                   0.0118, 0.0090, n=5, nodi=0.12)
     parts.append(idx)
     # medio, anulare, mignolo chiusi a pugno: le nocche in fila davanti, le punte nel palmo
     for k in range(3):
-        x0, z0 = 0.030 + 0.013 * k, -0.140 - 0.013 * k
-        f, _ = tubo([V(x0, -0.138, z0) * X, V(x0 - 0.006, -0.152, z0 - 0.012) * X, V(x0 - 0.012, -0.146, z0 - 0.026) * X,
-                     V(x0 - 0.014, -0.130, z0 - 0.030) * X], 0.0105 - 0.0008 * k, 0.0085 - 0.0008 * k, n=4, nodi=0.15)
+        x0, z0 = 0.046 + 0.011 * k, -0.134 - 0.012 * k
+        f, _ = tubo([V(x0, -0.170, z0) * X, V(x0 - 0.006, -0.184, z0 - 0.012) * X, V(x0 - 0.012, -0.176, z0 - 0.026) * X,
+                     V(x0 - 0.014, -0.160, z0 - 0.030) * X], 0.0105 - 0.0008 * k, 0.0085 - 0.0008 * k, n=4, nodi=0.15)
         parts.append(f)
-    th, _ = tubo([V(0.066, -0.116, -0.176) * X, V(0.040, -0.150, -0.172) * X, V(0.016, -0.150, -0.160) * X], 0.0105, 0.008, n=4)
+    th, tp = tubo([V(0.080, -0.150, -0.168) * X, V(0.056, -0.184, -0.162) * X, V(0.034, -0.186, -0.150) * X], 0.0105, 0.008, n=4)
     parts.append(th)
-    nails = [(V(0.0, -0.1245, -0.050) * X, (0.0070, 0.0030, 0.0100)),          # l'indice, verso chi guarda
-             (V(0.012, -0.1575, -0.157) * X, (0.0058, 0.0028, 0.0070))]          # il pollice
+
+    def unghia(cp, r, avanti=V(0, -1, 0)):
+        """L'unghia sulla punta di un dito, dalla parte di chi guarda, orientata lungo il dito."""
+        d = unit(cp[-1] - cp[-6])
+        nf = unit(avanti - (avanti @ d) * d)
+        c = cp[-1] - d * r[2] * 0.7 + nf * (r[1] + 0.0060)
+        M = np.stack([np.cross(nf, d), nf, d], axis=1).astype(F)
+        e = sdf.ellipsoid(V(0, 0, 0), r)
+        return (lambda p: e((p - c) @ M)), c
+
+    nails = [unghia(cp, (0.0068, 0.0026, 0.0100)), unghia(tp, (0.0058, 0.0026, 0.0075))]
     return sdf.union(*parts, k=0.007), fr.pt(wrist), nails
 
 
@@ -876,9 +889,9 @@ def robin_c():
     hf = entro(fr.field(sdf.union(head, crust, hand, k=0.006)), HEAD - 0.32, HEAD + 0.32)
     cut = entro(fr.field(sdf.union(sockets, grin)), HEAD - 0.25, HEAD + 0.25)
     obs = [corpo_mesh(fr, hf, cut=cut, attrs={'blush': blush, 'mouth': dark, 'ventre': ventre}, shh_wrist=wrist)]
-    nails = sdf.union(*[sdf.ellipsoid(c, r) for c, r in unghie])
-    obs.append(fine('RobinNails', fr.field(nails), [np.array([fr.pt(c) for c, _ in unghie])],
-                    D.mat_simple('Nails', (0.03, 0.03, 0.028), rough=0.2, coat=0.8), pad=0.02, res=0.0012))
+    nails = sdf.union(*[f for f, _ in unghie])
+    obs.append(fine('RobinNails', fr.field(nails), [np.array([fr.pt(c) for _, c in unghie])],
+                    D.mat_simple('NailsIvory', (0.72, 0.66, 0.52), rough=0.2, coat=0.8), pad=0.02, res=0.0012))
     c0 = fr.pt((0, -0.080, -0.060))
     obs.append(D.mesh('RobinThroat', fr.field(sdf.ellipsoid(V(0, -0.080, -0.060), (0.075, 0.02, 0.007))), c0 - 0.1, c0 + 0.1, D.dark_throat(), res=0.002))
     pairs = []
