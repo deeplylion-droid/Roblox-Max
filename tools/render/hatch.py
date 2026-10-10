@@ -30,6 +30,22 @@ from dettagli import (Frame, V, above, area_light, chain, ellipsoid_rot, glow, h
 FAST = '--fast' in sys.argv
 F = np.float32
 
+# Il colore della pelle (richiesta dell'utente del 10 ottobre: i mostri vanno distinti per colore, come gli
+# animatronics; dei primi tre si comincia da Hatch). 'grigio' è quello approvato per la prima notte; le altre
+# sono proposte. Per la vetrina: --colore arancio|verde|grigio.
+PALETTES = {
+    'grigio': dict(base=(0.165, 0.150, 0.135), dark=(0.05, 0.045, 0.04), light=(0.30, 0.28, 0.25), vein=(0.13, 0.10, 0.14),
+                   slime_tint=(0.80, 0.92, 0.66)),
+    # arancione zucca: contrasta con l'esca verde-acqua e non si confonde coi quattro nuovi (rosso, giallo,
+    # viola, blu); più cupo e bagnato sul dorso
+    'arancio': dict(base=(0.62, 0.15, 0.018), dark=(0.20, 0.040, 0.008), light=(0.88, 0.36, 0.08), vein=(0.30, 0.05, 0.02),
+                    slime_tint=(0.98, 0.80, 0.58)),
+    # verde annegato: alga e acqua ferma
+    'verde': dict(base=(0.08, 0.33, 0.06), dark=(0.015, 0.09, 0.02), light=(0.26, 0.52, 0.12), vein=(0.04, 0.14, 0.06),
+                  slime_tint=(0.80, 0.95, 0.66)),
+}
+COLORE = sys.argv[sys.argv.index('--colore') + 1] if '--colore' in sys.argv else 'grigio'
+
 HEAD = Frame((0, -0.60, 2.56), pitch=12)
 LURE = HEAD.pt((0, -0.345, 0.06))          # il pesciolino luminoso
 VIEWER = V(-0.5, -2.6, 1.25)
@@ -184,8 +200,9 @@ def build(viewer=None):
     rb = 0.008 if FAST else 0.004
     rh = 0.0028 if FAST else 0.0013
     obs = []
-    sk = skin.creature_skin('HatchSkin', base=(0.165, 0.150, 0.135), dark=(0.05, 0.045, 0.04), light=(0.30, 0.28, 0.25),
-                            vein=(0.13, 0.10, 0.14), rough=0.66, sss=0.08, scale=1.1)
+    pal = PALETTES[COLORE]
+    sk = skin.creature_skin(f'HatchSkin_{COLORE}', base=pal['base'], dark=pal['dark'], light=pal['light'], vein=pal['vein'],
+                            rough=0.66, sss=0.08, scale=1.1, slime_tint=pal['slime_tint'])
     head_w = HEAD.field(head_local())
     full = sdf.union(body_field(), head_w, k=0.03)
     # cucitura nel collo, dietro la testa
@@ -271,7 +288,7 @@ def showcase(shots=('insieme', 'testa')):
         cam.location = cl
         cam.rotation_mode = 'QUATERNION'
         cam.rotation_quaternion = (Vector(ct) - Vector(cl)).to_track_quat('-Z', 'Y')
-        path = os.path.join(CACHE, 'vetrina', f'hatch_{name}.png')
+        path = os.path.join(CACHE, 'vetrina', f'hatch_{name}.png' if COLORE == 'grigio' else f'hatch_{name}_{COLORE}.png')
         sc.render.filepath = path
         bpy.ops.render.render(write_still=True)
         out.append(path)
