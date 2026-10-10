@@ -1,16 +1,17 @@
 """
 ARCHIE — modello definitivo (sagoma C «Periscopio», testa A «Serpente»), notte 3.
 
-Un collo sottilissimo e lunghissimo sale dritto dal mare accanto alla prua; in cima fa l'arco e la testa guarda
-giù sulla lampara, con la trombetta da festa puntata sul vetro. Viene dal serpente di mare del Mediterraneo
+Un collo sottilissimo e lunghissimo sale dritto dal mare accanto alla prua, come un periscopio; in cima si piega in
+avanti e la testa guarda giù sulla lampara dall'alto, con la trombetta da festa puntata sul vetro. Viene dal serpente di mare del Mediterraneo
 (Ophisurus serpens): un'anguilla serpentiforme, il muso lungo e appuntito, i denti aguzzi fuori dalle labbra, le
 narici a tubetto in punta, la pinna bassa lungo il dorso, niente braccia. Da bambino, alle feste di compleanno al
 parco, spegneva lui le candeline degli altri bambini: ora soffia sulla lampara. La trombetta (la lingua di Menelik
 di carta a strisce, con la piuma in punta) ha il bocchino fuso nelle labbra.
 
 La testa è la A «Serpente» della tavola (teste_archie.archie_a) rifinita: più fine (è quella che nel jumpscare ti
-arriva in faccia), le arcate sopra gli occhi un po' aggrottate, le labbra col bordo, i denti più lunghi davanti e
-storti come quelli di una murena, le pieghe della gola. Colori approvati (10 ottobre), quelli della tavola: giallo
+arriva in faccia), gli occhi più piccoli e affondati sotto le arcate un po' aggrottate, le labbra col bordo, i denti
+più lunghi davanti e storti come quelli di una murena, le pieghe della gola. È più grande del vero (K) e la trombetta
+è lunga una volta e mezza la testa: Archie sta a cinque metri dal pescatore e deve leggersi accanto alla lampara. Colori approvati (10 ottobre), quelli della tavola: giallo
 limone pieno a bande nere che girano tutto attorno al collo, la gola giallo chiaro, la carta rossa e bianca, la
 piuma rosa; melma e chiazze di famiglia.
 
@@ -27,8 +28,11 @@ A 0 Archie è quello di sempre, oggetto per oggetto, e il collo e la testa resta
 Uso: tools/.venv/bin/python tools/render/archie.py [--fast]          vetrina → docs/concept/archie_vetrina.jpg
      tools/.venv/bin/python tools/render/archie.py [--fast] --posa   la posa di gioco nella scena della barca, vista
                                                                      dall'occhio → docs/concept/pose_archie*.jpg
-     tools/.venv/bin/python tools/render/archie.py --jumpscare-tavola   la tavola dei fotogrammi del jumpscare dagli
-                                    EXR in cache/draft/jumpscare → docs/concept/jumpscare/js_archie_fotogrammi.jpg
+     tools/.venv/bin/python tools/render/archie.py --jumpscare-tavola [draft|preview|final]   la tavola dei
+                                    fotogrammi del jumpscare dagli EXR in cache/<qualità>/jumpscare (fatti con
+                                    JS_ANTEPRIMA=1 JUMPSCARES=archie jobs.py jumpscare) → docs/concept/jumpscare/
+                                    js_archie_fotogrammi.jpg
+     --vetrina-tavola, --posa-tavole   rimontano le tavole della vetrina e della posa dai pannelli già fatti
      nella vetrina: --srotolata 1 --fiato 1 per le varianti, --solo testa,insieme per alcune inquadrature soltanto
 """
 from __future__ import annotations
@@ -337,7 +341,7 @@ def branchie(collo, s_top):
 
 
 def pieghe_arco(collo, s0, s1):
-    """Le pieghe della pelle dentro l'arco, dove il collo si piega e la carne si schiaccia (sulla gola)."""
+    """Le pieghe della pelle dentro la piega in cima al collo, dove la carne si schiaccia (sulla gola)."""
     def f(p):
         _, s, b = collo.query(p)
         m = D.smooth01(s, s0, s0 + 0.05) * (1.0 - D.smooth01(s, s1 - 0.05, s1)) * D.smooth01(-b, 0.2, 0.7)

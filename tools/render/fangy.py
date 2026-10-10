@@ -24,8 +24,9 @@ Le parti che si muovono, per le toppe del gioco (come palpebre e aggrotta di rob
 testa sul collo di tanti gradi (positivi verso la sinistra di Fangy, che è +X), con le zanne, gli occhialini, la bava e
 le lucine della testa: il gioco la fa scattare verso ogni rumore. Il corpo resta lo stesso, oggetto per oggetto
 (cambiano solo 'FangyHead' e i pezzi della testa). Le lucine sono oggetti separati, una per oggetto, in fila:
-'FangyLight00', 'FangyLight01', … prima le file del ventre, dalla gola verso l'acqua, poi quelle della testa (LUCI
-dice quante sono e di che fila): il gioco le farà pulsare e accendere in fila da solo, come le luci degli occhi.
+'FangyLight00', 'FangyLight01', … prima le file del ventre, dalla gola verso l'acqua, poi quelle della testa; ogni
+lucina porta la sua fila ('fila') e il suo centro ('centro', coordinate di Fangy) come proprietà dell'oggetto: il
+gioco le farà pulsare e accendere in fila da solo, come le luci degli occhi.
 build(luci=…) è quanto brillano nel render (1 accese come nella tavola, 0 spente).
 
 Uso: tools/.venv/bin/python tools/render/fangy.py [--fast]          vetrina → docs/concept/fangy_vetrina.jpg
@@ -64,8 +65,8 @@ RES_HEAD = 0.0030 if FAST else 0.0017     # la testa con le fossette e gli occhi
 
 HEAD = V(0.0, -0.19, 0.85)                # centro della testa, come nella tavola
 K_TESTA = 1.14                            # la testa A della tavola è più grande del vero
-CHINA, PIEGA = 10.0, 6.0                  # la testa china e piegata di lato (chi ascolta), come nella tavola
-CHINA_TAVOLA = 3.8                        # di quanti gradi la camera della tavola stava sopra la testa
+PIEGA = 6.0                               # la testa piegata di lato (chi ascolta), come nella tavola
+CHINA = 3.0                               # gradi: la faccia punta appena sotto il pescatore
 COLLO = V(0.0, 0.12, -0.04)               # nel sistema della testa: dove entra il collo (e il perno su cui gira)
 COLLO_R = 0.10
 R_ZONA = 0.40                             # la sfera della testa: ci sta a ogni giro, con la carne che si raccorda
@@ -73,20 +74,21 @@ R_ZONA = 0.40                             # la sfera della testa: ci sta a ogni 
 # la posa di gioco (scena_creature.fangy_posa) in coordinate locali, arrotondata: è quella che build() fa senza
 # parametri. Nel gioco i numeri si ricalcolano dalla barca.
 POSA = {
-    'viewer': (0.0, -1.9, 0.45),
+    'viewer': (0.0, -1.93, 1.12),
 }
 
 
 def testa_frame(viewer, testa=0.0):
-    """Il sistema della testa (teste_fangy.Head) e il punto del collo. A riposo la testa guarda il pescatore: girata
-    verso di lui (±35° al massimo), piegata di lato come nella tavola, e china quanto basta perché lui la veda come la
-    vedeva la camera della tavola (lì la camera stava 3,8° sopra la testa e la testa era china di 10°: dall'occhio, che
-    sta più in alto, la visiera ossea nasconderebbe gli occhialini). Il collo ci entra dove vuole il corpo; testa =
-    gradi in più attorno all'asse verticale per il collo (il corpo non si muove)."""
+    """Il sistema della testa (teste_fangy.Head) e il punto del collo. A riposo la testa punta la faccia sul
+    pescatore, gli occhialini ciechi fissi su di lui: girata verso di lui (±35° al massimo), alzata quanto serve
+    (CHINA gradi sotto i suoi occhi) e piegata di lato come nella tavola. Nella tavola la testa era china di 10° con la
+    camera quasi alla sua altezza; il pescatore sta più in alto, e con la testa china la visiera ossea gli
+    nasconderebbe le lenti nere. Il collo ci entra dove vuole il corpo; testa = gradi in più attorno all'asse
+    verticale per il collo (il corpo non si muove)."""
     d = V(*viewer) - HEAD
     yaw = max(-35.0, min(35.0, math.degrees(math.atan2(float(d[0]), float(-d[1])))))
     su = math.degrees(math.atan2(float(d[2]), float(np.hypot(d[0], d[1]))))
-    china = max(-15.0, min(20.0, CHINA + CHINA_TAVOLA - su))
+    china = max(-15.0, min(20.0, CHINA - su))
     fr0 = TF.Head(HEAD, yaw=yaw, pitch=china, roll=PIEGA, scale=K_TESTA)
     neck = fr0.pt(COLLO)
     fr = TF.Head(HEAD, yaw=yaw, pitch=china, roll=PIEGA, scale=K_TESTA)
@@ -175,7 +177,7 @@ def build(viewer=None, testa=0.0, luci=1.0, solo_testa=False):
     """Fangy nell'acqua, in coordinate locali. viewer: dove guarda la testa a riposo (il pescatore); testa: gradi di
     giro della testa sul collo (positivi verso la sinistra di Fangy); luci: quanto brillano le lucine (0..1).
     La pelle è tagliata in due mesh che combaciano: 'FangyHead' (la testa, nella sfera R_ZONA) e 'FangySkin' (il
-    corpo). Le lucine sono 'FangyLight00'… (l'ordine è in LUCI dopo la costruzione). solo_testa=True fa solo la testa
+    corpo). Le lucine sono 'FangyLight00'…, in fila, con le proprietà 'fila' e 'centro'. solo_testa=True fa solo la testa
     con i suoi pezzi e le sue lucine (per le varianti della vetrina: il corpo non cambia)."""
     P = dict(POSA)
     if viewer is not None:
@@ -224,14 +226,14 @@ def build(viewer=None, testa=0.0, luci=1.0, solo_testa=False):
         ordine += sorted(idx, key=lambda i: (-round(float(pts[i, 2]), 3), float(pts[i, 0])))
     ordine += [i for i in range(nb, len(want)) if keep[i]]
     mat = luce_material(luci)
-    LUCI.clear()
     for j, i in enumerate(ordine):
         if solo_testa and i < nb:
             continue
         c = pts[i] - nrm[i] * (rr[i] * 0.30)
         o = TF.balls(f'FangyLight{j:02d}', [c], [rr[i] * 0.95], mat)
+        o['fila'] = nomi[i]                          # la fila e il centro (coordinate di Fangy) restano sull'oggetto
+        o['centro'] = [float(x) for x in c]
         obs.append(o)
-        LUCI.append({'nome': o.name, 'fila': nomi[i], 'locale': [round(float(x), 4) for x in c]})
         if luci > 0 and j % 3 == 0:
             # un filo di luce vera sulla pelle bagnata attorno (luci della testa a parte: girano con lei)
             nome = 'FangyFotoforo' if i < nb else 'FangyFotoforoTesta'
@@ -253,10 +255,6 @@ def build(viewer=None, testa=0.0, luci=1.0, solo_testa=False):
         rip.name = 'FangyRipples'
         obs.append(rip)
     return obs
-
-
-# le lucine dell'ultima costruzione, nell'ordine dei nomi: [{'nome', 'fila', 'locale'}]
-LUCI = []
 
 
 # ───────────────────────── vetrina ─────────────────────────
@@ -334,10 +332,8 @@ def _camera(M, cl, ct, lens):
 def _testa_di(obs):
     """Gli oggetti della testa (quelli che le varianti rifanno): la pelle della testa, gli occhialini, le zanne, la
     gola, la bava e le lucine della testa."""
-    nb = sum(1 for d in LUCI if d['fila'].startswith('ventre'))
-    teste = {d['nome'] for d in LUCI[nb:]}
-    return [o for o in obs if o.name.startswith(('FangyHead', 'FangyGoggle', 'FangyFangs', 'FangyThroat', 'FangyDrool', 'FangySlime',
-                                                 'FangyFotoforoTesta')) or o.name in teste]
+    testa = ('FangyHead', 'FangyGoggle', 'FangyFangs', 'FangyThroat', 'FangyDrool', 'FangySlime', 'FangyFotoforoTesta')
+    return [o for o in obs if o.name.startswith(testa) or (o.get('fila') and not o['fila'].startswith('ventre'))]
 
 
 def showcase(shots=('insieme', 'testa', 'fuori'), varianti=True):
@@ -470,7 +466,8 @@ def ingombro(obs, M):
         'testa_m': _rel(head),
         'distanza_testa': round(float(math.dist(tuple(head), EYE)), 2),
         'quota_testa': round(float(head[2]), 2),
-        'luci': [[d['nome'], d['fila'], _rel(M @ Vector(d['locale']))] for d in LUCI],
+        'luci': [[o.name, o['fila'], _rel(o.matrix_world @ Vector(o['centro']))]
+                 for o in sorted((o for o in meshes if o.get('fila')), key=lambda o: o.name)],
     }
     for k, n in (('testa_mesh', 'FangyHead'), ('corpo', 'FangySkin'), ('zanne', 'FangyFangs')):
         o = bpy.data.objects.get(n)
