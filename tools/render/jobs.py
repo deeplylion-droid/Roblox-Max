@@ -225,13 +225,27 @@ def job_boat(q):
     write_globals(q.pano_width)
 
 
-def render_sprite(q, key, objs, space='boat', margin=12, holdout_boat=True, samples=None, extra=None, sea=False):
+def yaw_center(pts):
+    """Il centro (yaw, gradi) di uno strato: la media circolare degli yaw dei punti (dietro la poppa gli angoli
+    scavalcano ±180°)."""
+    ys = np.radians([yaw_of(p) for p in pts])
+    return float(np.degrees(np.arctan2(np.mean(np.sin(ys)), np.mean(np.cos(ys)))))
+
+
+def render_sprite(q, key, objs, space='boat', margin=12, holdout_boat=True, samples=None, extra=None, sea=False,
+                  holdout=(), rect_objs=None, yaw=None):
     """Rende visibili alla camera solo objs; la barca fa da maschera (holdout) se richiesto.
-    sea=True: anche il mare fa da maschera (creature immerse, pure negli strati legati alla barca)."""
+    sea=True: anche il mare fa da maschera (creature immerse, pure negli strati legati alla barca).
+    holdout: altri oggetti che fanno da maschera come la barca: non si vedono ma coprono quello che sta dietro
+    (e restano nelle ombre e nei riflessi). Servono alle toppe: lo strato con un pezzo solo della creatura.
+    rect_objs: gli oggetti su cui si calcola il riquadro dello strato (predefinito objs).
+    yaw: il centro dello strato in gradi (predefinito: la media degli yaw dei punti del riquadro); una toppa usa
+    quello dello strato su cui va, così i pixel dei due strati coincidono uno a uno."""
     boat_objs = renderable(coll_objects('boat'))
     env_objs = renderable(coll_objects('env'))
     keep = set(o.name for o in objs)
-    saved = {o.name: (o.visible_camera, o.is_holdout) for o in boat_objs + env_objs}
+    masks = [o for o in holdout if o.name not in keep]
+    saved = {o.name: (o.visible_camera, o.is_holdout) for o in boat_objs + env_objs + masks}
     for o in env_objs:
         o.visible_camera = False
     for o in boat_objs:
@@ -241,15 +255,16 @@ def render_sprite(q, key, objs, space='boat', margin=12, holdout_boat=True, samp
             o.is_holdout = True
         else:
             o.visible_camera = False
+    for o in masks:
+        o.visible_camera = True
+        o.is_holdout = True
     if space == 'world' or sea:
         sea_ob = bpy.data.objects.get('Sea')
         if sea_ob:
             sea_ob.visible_camera = True
             sea_ob.is_holdout = True
-    pts = dense_points(objs)
-    # media circolare: dietro la poppa gli angoli scavalcano ±180°
-    ys = np.radians([yaw_of(p) for p in pts])
-    yc = float(np.degrees(np.arctan2(np.mean(np.sin(ys)), np.mean(np.cos(ys)))))
+    pts = dense_points(objs if rect_objs is None else rect_objs)
+    yc = yaw_center(pts) if yaw is None else float(yaw)
     cam = bpy.context.scene.camera
     set_pano_yaw(cam, yc)
     rect = pano_rect(pts, q.pano_width, yc, margin)
@@ -259,7 +274,7 @@ def render_sprite(q, key, objs, space='boat', margin=12, holdout_boat=True, samp
     render(exr, samples or q.samples, (W, H), region=rect, transparent=True, data_passes=('Alpha',))
     log(f'sprite {key} render', round(time.time() - t, 1), 's', rect)
     set_pano_yaw(cam, 0.0)
-    for o in boat_objs + env_objs:
+    for o in boat_objs + env_objs + masks:
         if o.name in saved:
             o.visible_camera, o.is_holdout = saved[o.name]
     return encode_layer(key, exr, space, q.pano_width, rect=rect, yaw_center=round(yc, 4), with_alpha=True, extra=extra)
@@ -310,24 +325,101 @@ def job_props(q):
             o.hide_render = True
 
 
+def nome_base(name):
+    """Il nome di un oggetto senza il suffisso .001 che Blender aggiunge ai doppioni (quando una creatura si
+    costruisce più volte nella stessa scena, come le toppe dopo la posa principale)."""
+    head, dot, tail = name.rpartition('.')
+    return head if dot and tail.isdigit() else name
+
+
+def scegli(objs, nomi):
+    """Gli oggetti il cui nome corrisponde a uno dei modelli in 'nomi' (fnmatch: 'RobinEye*', 'Fin?'); il
+    suffisso .001 dei doppioni non conta. 'nomi' può anche essere una funzione nome → bool."""
+    import fnmatch
+    if callable(nomi):
+        return [o for o in objs if nomi(nome_base(o.name))]
+    return [o for o in objs if any(fnmatch.fnmatchcase(nome_base(o.name), n) for n in nomi)]
+
+
+def yaw_dello_strato(key, fatti):
+    """Il centro (yaw) dello strato 'key': reso in questo giro (fatti) o già nel manifest; None se non c'è."""
+    if key in fatti:
+        return fatti[key]
+    if os.path.exists(MANIFEST):
+        with open(MANIFEST) as f:
+            e = json.load(f).get('layers', {}).get(key)
+        if e:
+            return e['yaw']
+    return None
+
+
 def job_creature(q):
     """Le creature nelle pose di gioco, come strati del panorama (vedi scena_creature.py).
-    Variabile d'ambiente POSES=chiave1,chiave2 per renderne solo alcune."""
+    Variabile d'ambiente POSES=chiave1,chiave2 per renderne solo alcune.
+
+    Le voci di scena_creature.POSES sono chiave → (funzione, spazio, mare) oppure (funzione, spazio, mare, opzioni):
+      funzione  costruisce la posa nella scena; gli oggetti nuovi che crea sono la creatura
+      spazio    'boat' (lo strato si muove con la barca) o 'world' (sta nel mondo, col mare)
+      mare      True: anche il mare fa da maschera (la parte sott'acqua non si vede)
+      opzioni   un dizionario, facoltativo; serve soprattutto alle pose «a toppa»: uno strato con un pezzo solo
+                della creatura (la testa con gli occhi strizzati, un battito di ciglia), nella stessa posa dello
+                strato principale, che il gioco dissolve sopra di esso. Le chiavi:
+        'visibili'  i nomi degli oggetti della creatura che restano visibili: modelli fnmatch ('RobinEye*'), il
+                    suffisso .001 dei doppioni non conta (o una funzione nome → bool). Gli altri oggetti della
+                    creatura fanno da maschera come la barca: non si vedono ma coprono quello che sta dietro (un
+                    braccio davanti alla faccia la copre come nello strato principale) e restano nelle ombre e nei
+                    riflessi. Il riquadro dello strato si calcola solo sui visibili. Senza: tutti visibili.
+        'occhi'     se registrare gli occhi nel manifest (predefinito True; tra i visibili, gli oggetti che hanno
+                    'Eye' nel nome). Una toppa che mostra gli stessi occhi dello strato principale mette False,
+                    se no il gioco li fa brillare due volte al buio.
+        'yaw_di'    la chiave dello strato principale: la toppa usa il suo stesso centro (yaw), così i pixel dei
+                    due strati coincidono uno a uno. Lo yaw si prende dallo strato reso prima nello stesso giro
+                    o, se no, dal manifest (che deve venire dallo stesso render: la stessa RENDER_OUT); se non
+                    c'è si calcola sulla creatura intera, visibili e maschere (quasi lo stesso centro), e lo dice
+                    il log. Senza: il centro si calcola sui visibili.
+    Esempio (scena_creature.py), una toppa con la sola testa:
+        'robin_strizza': (lambda: robin_secchio(palpebre=0.75, aggrotta=1.0), 'boat', True,
+                          {'visibili': ('RobinHead', 'RobinEye*', 'RobinLid*'), 'occhi': False,
+                           'yaw_di': 'robin_secchio'}),
+    e si rende come le altre: POSES=robin_secchio,robin_strizza jobs.py creature --quality final. La funzione
+    della toppa deve rifare la creatura identica a quella principale fuori dal pezzo che cambia (stessa posa,
+    stessi parametri), se no le maschere non combaciano."""
     import scena_creature
     build_scene(fish=0, rod=False)
     panorama_camera()
     only = [k for k in os.environ.get('POSES', '').split(',') if k]
-    for key, (fn, space, sea) in scena_creature.POSES.items():
+    fatti = {}
+    for key, voce in scena_creature.POSES.items():
         if only and key not in only:
             continue
+        fn, space, sea = voce[:3]
+        opts = voce[3] if len(voce) > 3 else {}
         before = set(bpy.data.objects.keys())
         fn()
         new = [bpy.data.objects[n] for n in set(bpy.data.objects.keys()) - before]
         bpy.context.view_layer.update()
-        # dove sono gli occhi (dall'occhio del pescatore): a lampara spenta si vedono solo loro
-        eyes = [[round(float(o.matrix_world.translation[i] - EYE[i]), 4) for i in range(3)]
-                for o in new if o.type == 'MESH' and 'Eye' in o.name and not o.name.startswith(('Toy', 'Duck'))]
-        render_sprite(q, key, [o for o in new if o.type == 'MESH'], space=space, sea=sea, extra={'eyes': eyes})
+        meshes = [o for o in new if o.type == 'MESH']
+        vis, masks = meshes, []
+        if opts.get('visibili'):
+            vis = scegli(meshes, opts['visibili'])
+            masks = [o for o in meshes if o not in vis]
+            if not vis:
+                raise RuntimeError(f'{key}: nessun oggetto visibile tra {sorted(o.name for o in meshes)}')
+            log(f'{key}: visibili', sorted(o.name for o in vis), '· maschera', len(masks), 'oggetti')
+        extra = None
+        if opts.get('occhi', True):
+            # dove sono gli occhi (dall'occhio del pescatore): a lampara spenta si vedono solo loro
+            eyes = [[round(float(o.matrix_world.translation[i] - EYE[i]), 4) for i in range(3)]
+                    for o in vis if 'Eye' in o.name and not o.name.startswith(('Toy', 'Duck'))]
+            extra = {'eyes': eyes}
+        yaw = None
+        if opts.get('yaw_di'):
+            yaw = yaw_dello_strato(opts['yaw_di'], fatti)
+            if yaw is None:
+                yaw = yaw_center(dense_points(meshes))
+                log(f'{key}: lo strato {opts["yaw_di"]} non c\'è, centro dalla creatura intera', round(yaw, 4))
+        entry = render_sprite(q, key, vis, space=space, sea=sea, extra=extra, holdout=masks, yaw=yaw)
+        fatti[key] = entry['yaw']
         for o in new:
             o.hide_render = True
         bpy.context.view_layer.update()
