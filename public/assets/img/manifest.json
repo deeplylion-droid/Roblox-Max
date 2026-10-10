@@ -313,6 +313,62 @@
    "space": "world",
    "yaw": -16.2347
   },
+  "hatch_bocca_chiusa": {
+   "base": "hatch_conta",
+   "passes": {
+    "ambient": {
+     "file": "hatch_bocca_chiusa_ambient.webp",
+     "res": 1.0,
+     "scale": 0.77
+    },
+    "lamp": {
+     "file": "hatch_bocca_chiusa_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "hatch_bocca_chiusa_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3952,
+    677,
+    4238,
+    936
+   ],
+   "space": "world",
+   "yaw": 178.0604
+  },
+  "hatch_bocca_mezza": {
+   "base": "hatch_conta",
+   "passes": {
+    "ambient": {
+     "file": "hatch_bocca_mezza_ambient.webp",
+     "res": 1.0,
+     "scale": 0.8200000000000001
+    },
+    "lamp": {
+     "file": "hatch_bocca_mezza_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "hatch_bocca_mezza_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3952,
+    677,
+    4238,
+    973
+   ],
+   "space": "world",
+   "yaw": 178.0604
+  },
   "hatch_conta": {
    "eyes": [
     [
