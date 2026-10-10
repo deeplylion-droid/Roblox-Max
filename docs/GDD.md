@@ -152,10 +152,16 @@ TypeScript + WebGL2 (renderer proprio), interfaccia in HTML/CSS, Web Audio. Desk
 
 ## 15. Oltre la Notte 1 (roadmap)
 
+> **Deciso il 10 ottobre**: sette mostri in tutto, uno nuovo per notte. Nelle notti avanzate tornano tutti
+> quelli già visti e la regia decide quanti possono essere attivi insieme. Le schede dei quattro mostri
+> nuovi sono in `docs/NOTTI_E_MOSTRI.md` (sagome e teste ancora da scegliere).
+
 | Notte | Novità |
 |---|---|
-| 2 | Batteria: lampara e sonar consumano. |
-| 3 | Nuova creatura (da definire insieme). |
-| 4 | Nuova creatura che tira la lenza: abboccate finte (da definire insieme). |
-| 5 | **La Madre**: il sonar mostra un'ombra enorme; immobilità totale. |
-| 6 | Notte extra con livelli di aggressività personalizzabili. |
+| 1 | Gulpy, Molly, Hatch. |
+| 2 | **Robin** (scacciarlo con la luce) e **la batteria**: lampara e sonar consumano. |
+| 3 | **Archie** (spegnere la luce in tempo). |
+| 4 | **Lampy** (non ferrare le abboccate finte). |
+| 5 | **Fangy** (stare zitti). |
+| 6 | **La Madre**, il finale: tutti e sette i mostri; il sonar mostra un'ombra enorme; immobilità totale. |
+| 7 | Notte extra con livelli di aggressività personalizzabili. |
