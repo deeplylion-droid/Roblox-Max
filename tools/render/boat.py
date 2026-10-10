@@ -26,6 +26,9 @@ WORK_LIGHT = (0.0, 2.04, 0.80)        # lampadina di servizio sotto il bordo del
 ROD_BUTT = (0.86, 0.30, 0.40)
 ROD_GUNWALE = (0.97, 0.55, 0.74)
 ROD_TIP = (2.02, 2.95, 1.86)
+# fin dove arriva il fusto nello strato del manico (rod_base), in frazione della canna dal portacanna: poco oltre il
+# punto dove esce da dietro il portacanna visto dall'occhio (u0 in src/app/rod_colori.ts, tools/render/canna_colori.py)
+ROD_BASE_U = 2 / 24
 BENCH_TOP = 0.42                      # piano del banco di prua (ThwartFwd)
 BUCKET_POS = (0.50, 0.98, BENCH_TOP)  # sul banco di prua, a destra (dal pagliolo non si vedeva)
 TARP_POS = (-0.55, 0.98, BENCH_TOP)   # telone piegato sul banco di prua, a sinistra vicino alla bambola
@@ -512,9 +515,15 @@ def build_rod(mats, bend=0.0, name='Rod', tilt=0.0, flex=0.0, solo_base=False):
         pts.append(p)
     path = np.vstack([butt, pts])
     if solo_base:
-        # il fusto fino a poco sopra il portacanna, con la stessa rastremazione che ha nella canna intera
-        path = np.vstack([butt, gun + d * 0.02])
-        blank = tube(name, path, 0.011, n=10, taper=1.0 - 0.75 * 1.5 / 25)
+        # il fusto fino a poco oltre il punto dove, dall'occhio, esce da dietro il portacanna (ROD_BASE_U): da lì lo
+        # disegna il gioco, sopra questo pezzo; stessa rastremazione e stesso peso della cima della canna intera
+        # (dal manico al portacanna il fusto è più ripido, poi piega nella direzione della canna: il portacanna sta lì).
+        # Gli stessi punti e la stessa rastremazione della canna intera, e niente tappo in fondo (lo copre il fusto
+        # del gioco): così le normali, e il riflesso della lampara, sono quelli della canna intera
+        k = round(ROD_BASE_U * n)
+        tail = [gun + d * (i / n) - np.array((0.0, 0.0, 0.06 * (i / n) ** 2)) for i in range(1, k + 1)]
+        path = np.vstack([butt, gun, *tail])
+        blank = tube(name, path, 0.011, n=10, taper=1.0 - 0.75 * (k + 1) / 25, cap=False)
         blank.data.materials.append(mats['carbon'])
         obs = [blank]
         grip = tube(name + 'Grip', [butt, butt + (gun - butt) * 0.85], 0.017, n=10)

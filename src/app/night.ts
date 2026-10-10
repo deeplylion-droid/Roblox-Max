@@ -18,6 +18,7 @@ import type { Options } from './save.ts';
 import type { Sfx } from './sfx.ts';
 import { Sonar } from './sonar.ts';
 import { Rod } from './rod.ts';
+import { ROD_COLORS } from './rod_colori.ts';
 import type { Stage } from './stage.ts';
 
 export interface OverlayTex {
@@ -1390,31 +1391,49 @@ export class Night {
     if (f.phase !== 'casting') this.castFrom = null;
   }
 
-  /** Il fusto della canna da disegnare (e la campanella in punta), se c'è lo strato del manico. */
+  /** Il fusto della canna da disegnare, con gli anelli e la campanella in punta, se c'è lo strato del manico. I
+   *  colori vengono dal render della canna intera (rod_colori.ts), illuminati come gli strati. */
   private rodTubes(): TubeDraw[] {
     if (!this.d.stage.man.layers['rod_base']) return [];
-    const st = this.d.stage;
-    const lw = st.lampWeight();
-    const tip = this.rod.tip();
-    // carbonio scuro: il riflesso caldo della lampara su un lato, la luna appena sull'altro
+    const C = ROD_COLORS;
     const blank: TubeDraw = {
       points: this.rod.points(),
       radius: this.rod.radii(),
-      lit: [0.085 * lw + 0.014, 0.06 * lw + 0.016, 0.038 * lw + 0.02],
-      mid: [0.012 * lw + 0.004, 0.009 * lw + 0.0045, 0.007 * lw + 0.005],
-      dark: [0.004, 0.004, 0.005],
+      bands: C.bands,
+      amb: C.points.map((p) => p.amb),
+      lamp: C.points.map((p) => p.lamp),
+      lant: C.points.map((p) => p.lant),
       light: LAMP_AT,
     };
+    // un colore solo, uguale in tutte le fasce (gli anelli cromati, la campanella d'ottone)
+    const flat = (c: readonly number[], n: number) => Array.from({ length: n }, () => Array.from({ length: 3 }, () => c));
+    const out: TubeDraw[] = [blank];
+    for (const r of C.rings) {
+      // l'anello sotto il fusto: un puntino lungo quanto è largo
+      const a = this.rod.at(r.u - 0.004), b = this.rod.at(r.u + 0.004);
+      const da = 0.012 + r.r * 0.3;
+      out.push({
+        points: [[a[0], a[1], a[2] - da], [b[0], b[1], b[2] - da]],
+        radius: [r.r * 0.8, r.r * 0.8],
+        bands: [-0.5, 0, 0.5],
+        amb: flat(r.amb, 2),
+        lamp: flat(r.lamp, 2),
+        lant: flat(r.lant, 2),
+        light: LAMP_AT,
+      });
+    }
     // la campanella d'ottone appesa sotto la punta
-    const bell: TubeDraw = {
+    const tip = this.rod.tip();
+    out.push({
       points: [[tip[0], tip[1], tip[2] - 0.012], [tip[0], tip[1], tip[2] - 0.04]],
       radius: [0.006, 0.013],
-      lit: [0.55 * lw + 0.05, 0.38 * lw + 0.04, 0.12 * lw + 0.03],
-      mid: [0.16 * lw + 0.01, 0.1 * lw + 0.01, 0.03 * lw + 0.008],
-      dark: [0.01, 0.008, 0.004],
+      bands: [-0.5, 0, 0.5],
+      amb: flat(C.bell.amb, 2),
+      lamp: flat(C.bell.lamp, 2),
+      lant: flat(C.bell.lant, 2),
       light: LAMP_AT,
-    };
-    return [blank, bell];
+    });
+    return out;
   }
 
   /** La frustata del lancio nella vista (gradi di yaw e pitch): caricando si alza un poco, col colpo scatta giù. */
@@ -1760,7 +1779,8 @@ export class Night {
       overlay: this.overlay(),
       line: tk?.line ?? null,
       strokes: tk?.strokes,
-      tubes: tk ? this.rodTubes() : [],
+      // la canna resta finché si vede la barca: sotto il telone la copre la tela, come il resto
+      tubes: binoOn ? [] : this.rodTubes(),
       // a batteria morta lo schermo del sonar è nero
       sonar: binoOn || this.sim.blackout ? null : this.sonar.canvas,
       gauge: this.sim.cfg.battery && !binoOn ? { angle: this.needleAngle(), alpha: 1 } : null,

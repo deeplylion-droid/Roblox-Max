@@ -419,6 +419,34 @@
    "space": "boat",
    "yaw": 76.3251
   },
+  "molly_destra_secondo": {
+   "base": "molly_destra",
+   "passes": {
+    "ambient": {
+     "file": "molly_destra_secondo_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "molly_destra_secondo_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "molly_destra_secondo_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3834,
+    815,
+    4368,
+    1399
+   ],
+   "space": "boat",
+   "yaw": 76.3251
+  },
   "molly_sinistra": {
    "eyes": [
     [
@@ -668,13 +696,13 @@
     }
    },
    "rect": [
-    3991,
-    1136,
-    4175,
+    3995,
+    1119,
+    4186,
     1634
    ],
    "space": "boat",
-   "yaw": 43.1382
+   "yaw": 42.6946
   },
   "rod_c1": {
    "passes": {

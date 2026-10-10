@@ -51,11 +51,14 @@ export interface TubeDraw {
   points: Vec3[];
   /** raggio (metri) punto per punto */
   radius: number[];
-  /** colori lineari: il lato verso la luce, il mezzo, il lato in ombra */
-  lit: Vec3;
-  mid: Vec3;
-  dark: Vec3;
-  /** dove sta la luce che fa il riflesso (dall'occhio, spazio barca): il lato in luce guarda lì */
+  /** dove stanno le fasce di colore attraverso il tubo, in mezze larghezze (da −1, il lato verso `light`, a +1) */
+  bands: readonly number[];
+  /** i colori lineari di ogni punto, fascia per fascia, per passo di luce come gli strati (ambiente, lampara,
+   *  lanterna): il motore li somma con le intensità del fotogramma, così il tubo si accende con la lampara */
+  amb: readonly (readonly (readonly number[])[])[];
+  lamp: readonly (readonly (readonly number[])[])[];
+  lant: readonly (readonly (readonly number[])[])[];
+  /** il punto (dall'occhio, spazio barca) verso cui guarda il lato −1 delle fasce: la lampara che fa il riflesso */
   light: Vec3;
 }
 
@@ -292,7 +295,7 @@ export class Renderer {
     if (f.boatGlows?.length) this.drawGlows(view, f.boatGlows);
     if (f.sonar) this.drawScreen(view, f);
     if (f.gauge) this.drawGauge(view, f.gauge);
-    for (const t of f.tubes ?? []) this.drawTube(view, t);
+    for (const t of f.tubes ?? []) this.drawTube(view, t, f);
     for (const s of f.strokes ?? []) this.drawLine(view, s);
     if (f.line) this.drawLine(view, f.line);
     if (f.overlay && f.overlay.alpha > 0.001) this.drawOverlay(f.overlay);
@@ -436,24 +439,35 @@ export class Renderer {
     this.tri.draw();
   }
 
-  /** Il tubo (la canna): ogni punto proiettato con la sua profondità, largo quanto il raggio visto da lì; tre file
-   *  di vertici (lato in luce, mezzo, lato in ombra) danno l'ombreggiatura del cilindro. Sotto il pixel di
-   *  larghezza sfuma, invece di sfarfallare. */
-  private drawTube(view: View, t: TubeDraw): void {
+  /** Il tubo (la canna): ogni punto proiettato con la sua profondità, largo quanto il raggio visto da lì. Attraverso
+   *  il tubo, file di vertici con i colori delle fasce (presi dal render: il riflesso della lampara, il mezzo, il lato
+   *  in ombra), illuminati come gli strati; ai bordi un pixel che sfuma a zero, così il contorno non fa scalini. Il
+   *  lato −1 delle fasce guarda verso `light` (in 3D: vale anche se la luce è fuori dallo schermo). */
+  private drawTube(view: View, t: TubeDraw, f: FrameParams): void {
     const gl = this.gl;
     const W = this.w, H = this.h;
     const fx = W / 2 / view.tanX;
+    const n = t.points.length;
     const P: { x: number; y: number; hw: number }[] = [];
-    for (let i = 0; i < t.points.length; i++) {
+    for (let i = 0; i < n; i++) {
       const s = view.projectDepth(t.points[i]!);
       if (!s) return;
       P.push({ x: s[0] * W, y: s[1] * H, hw: (t.radius[i]! / s[2]) * fx });
     }
-    const L = view.projectDepth(t.light);
-    const data: number[] = [];
-    const vert = (x: number, y: number, c: Vec3, a: number) => data.push((x / W) * 2 - 1, (y / H) * 2 - 1, c[0] * a, c[1] * a, c[2] * a, a);
-    const n = P.length;
-    const rows: { lx: number; ly: number; mx: number; my: number; dx: number; dy: number; a: number }[] = [];
+    const wA = f.ambient, wL = f.lamp, wT = f.lantern;
+    const nb = t.bands.length;
+    // le file attraverso il tubo: il bordo sfumato, il bordo, le fasce, il bordo, il bordo sfumato
+    const rows: { s: number; band: number; edge: number }[] = [
+      { s: -1, band: 0, edge: -1 },
+      { s: -1, band: 0, edge: 0 },
+      ...t.bands.map((b, k) => ({ s: b, band: k, edge: 0 })),
+      { s: 1, band: nb - 1, edge: 0 },
+      { s: 1, band: nb - 1, edge: 1 },
+    ];
+    const R = rows.length;
+    // vertici: per ogni punto, per ogni fila, posizione (pixel), colore premoltiplicato, alfa
+    const vx = new Float32Array(n * R * 6);
+    let side = 1;
     for (let i = 0; i < n; i++) {
       const a = P[Math.max(0, i - 1)]!, b = P[Math.min(n - 1, i + 1)]!, p = P[i]!;
       let tx = b.x - a.x, ty = b.y - a.y;
@@ -461,27 +475,50 @@ export class Renderer {
       tx /= l;
       ty /= l;
       let nx = -ty, ny = tx;
-      if (L && (L[0] * W - p.x) * nx + (L[1] * H - p.y) * ny < 0) {
-        nx = -nx;
-        ny = -ny;
+      // da che parte sta la luce: un passo dal punto verso di lei, proiettato
+      const q = t.points[i]!, L = t.light;
+      const dx = L[0] - q[0], dy = L[1] - q[1], dz = L[2] - q[2];
+      const dl = Math.hypot(dx, dy, dz) || 1;
+      const sl = view.projectDepth([q[0] + (dx / dl) * 0.05, q[1] + (dy / dl) * 0.05, q[2] + (dz / dl) * 0.05]);
+      if (sl) side = (sl[0] * W - p.x) * nx + (sl[1] * H - p.y) * ny < 0 ? 1 : -1;
+      // la normale guarda via dalla luce: il lato −1 delle fasce sta verso di lei
+      nx *= side;
+      ny *= side;
+      const hw = Math.max(0.5, p.hw);
+      // sotto il pixel il tubo non si stringe più: schiarisce (alfa) invece di sfarfallare
+      const alpha = Math.min(1, Math.max(0.25, p.hw * 1.8));
+      const A = t.amb[i]!, Lp = t.lamp[i]!, T = t.lant[i]!;
+      for (let r = 0; r < R; r++) {
+        const row = rows[r]!;
+        const off = row.s * hw + row.edge * 1.0;
+        const ca = A[row.band]!, cl = Lp[row.band]!, ct = T[row.band]!;
+        const al = row.edge ? 0 : alpha;
+        const o = (i * R + r) * 6;
+        vx[o] = ((p.x + nx * off) / W) * 2 - 1;
+        vx[o + 1] = ((p.y + ny * off) / H) * 2 - 1;
+        vx[o + 2] = (ca[0]! * wA + cl[0]! * wL + ct[0]! * wT) * al;
+        vx[o + 3] = (ca[1]! * wA + cl[1]! * wL + ct[1]! * wT) * al;
+        vx[o + 4] = (ca[2]! * wA + cl[2]! * wL + ct[2]! * wT) * al;
+        vx[o + 5] = al;
       }
-      const hw = Math.max(0.55, p.hw);
-      rows.push({ lx: p.x + nx * hw, ly: p.y + ny * hw, mx: p.x, my: p.y, dx: p.x - nx * hw, dy: p.y - ny * hw, a: Math.min(1, Math.max(0.3, p.hw * 1.8)) });
     }
+    const data = new Float32Array((n - 1) * (R - 1) * 6 * 6);
+    let k = 0;
+    const put = (i: number, r: number) => {
+      const o = (i * R + r) * 6;
+      for (let c = 0; c < 6; c++) data[k++] = vx[o + c]!;
+    };
     for (let i = 0; i < n - 1; i++) {
-      const r0 = rows[i]!, r1 = rows[i + 1]!;
-      // lato in luce → mezzo
-      vert(r0.lx, r0.ly, t.lit, r0.a); vert(r0.mx, r0.my, t.mid, r0.a); vert(r1.lx, r1.ly, t.lit, r1.a);
-      vert(r1.lx, r1.ly, t.lit, r1.a); vert(r0.mx, r0.my, t.mid, r0.a); vert(r1.mx, r1.my, t.mid, r1.a);
-      // mezzo → lato in ombra
-      vert(r0.mx, r0.my, t.mid, r0.a); vert(r0.dx, r0.dy, t.dark, r0.a); vert(r1.mx, r1.my, t.mid, r1.a);
-      vert(r1.mx, r1.my, t.mid, r1.a); vert(r0.dx, r0.dy, t.dark, r0.a); vert(r1.dx, r1.dy, t.dark, r1.a);
+      for (let r = 0; r < R - 1; r++) {
+        put(i, r); put(i, r + 1); put(i + 1, r);
+        put(i + 1, r); put(i, r + 1); put(i + 1, r + 1);
+      }
     }
     gl.bindVertexArray(this.tubeVao);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.tubeBuf);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.DYNAMIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, data, gl.DYNAMIC_DRAW);
     this.pTube.use();
-    gl.drawArrays(gl.TRIANGLES, 0, data.length / 6);
+    gl.drawArrays(gl.TRIANGLES, 0, k / 6);
     gl.bindVertexArray(null);
   }
 
