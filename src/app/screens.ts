@@ -132,6 +132,15 @@ export class Screens {
     slider(S.sensitivity, 'sensitivity', 0.4, 2, 0.05);
     toggle(S.subtitles, 'subtitles');
     toggle(S.reduceFlash, 'reduceFlash');
+    // qualità grafica: sui PC più deboli la scena si disegna a risoluzione ridotta (l'interfaccia resta nitida)
+    const steps = [1, 0.75, 0.5];
+    const qLabel = (v: number) => S.qualityLevels[Math.max(0, steps.indexOf(v))]!;
+    const qb = button(qLabel(opts.quality), () => {
+      const v = steps[(Math.max(0, steps.indexOf(opts.quality)) + 1) % steps.length]!;
+      o.onChange('quality', v);
+      qb.textContent = qLabel(v);
+    });
+    rows.append(h('label', {}, h('span', {}, S.quality), qb));
     const lang = button(this.lang === 'it' ? 'Italiano' : 'English', () => o.onChange('lang', this.lang === 'it' ? 'en' : 'it'));
     rows.append(h('label', {}, h('span', {}, S.language), lang));
     if (o.fullscreen) {

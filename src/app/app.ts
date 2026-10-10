@@ -148,6 +148,7 @@ export class App {
     v.sfx = v.amb = v.voice = v.ui = o.sfx;
     this.audio.applyVolumes();
     this.stage.brightness = o.brightness;
+    this.stage.renderer.renderScale = o.quality;
   }
 
   private intro(n = this.nightNo): void {
