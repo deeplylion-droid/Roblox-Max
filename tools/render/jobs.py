@@ -284,15 +284,19 @@ def job_props(q):
             render_sprite(q, key, obs, extra={'tip': [round(float(tip[i] - EYE[i]), 4) for i in range(3)]})
             for o in obs:
                 o.hide_render = True
-    # la batteria della lampara (dalla notte 2): il quadrante senza ago, l'ago lo disegna il gioco
+    # la batteria della lampara (dalla notte 2): il quadrante senza ago, l'ago lo disegna il gioco. Due
+    # strati uguali: col quadrante spento e acceso (retroilluminato); il gioco li dissolve (a batteria
+    # morta la luce del voltmetro si spegne, quando è quasi scarica trema con la lampara)
     if not only or 'battery' in only:
         import batteria
-        obs = batteria.build_battery(needle=None)
+        obs = batteria.build_battery(needle=None, glow=0.0)
         c, n, right, up = batteria.battery_frame()
         face = c + n * 0.0025 - np.array(EYE)
         r = batteria.GAUGE_R
         gauge = [[round(float(v[i]), 4) for i in range(3)] for v in (face, right * r, up * r)]
         render_sprite(q, 'battery', obs, extra={'gauge': gauge})
+        batteria.set_glow(batteria.GLOW_STRENGTH)
+        render_sprite(q, 'battery_lit', obs)
         for o in obs:
             o.hide_render = True
 

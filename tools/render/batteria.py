@@ -107,12 +107,27 @@ def gauge_face_texture(path, needle=None):
     return path
 
 
-def face_material(name, path):
-    """Il quadrante sotto il vetro: carta opaca con sopra uno strato lucido (il vetro, senza rifrazione)."""
+GLOW_COLOR = (1.0, 0.62, 0.28)               # la lampadina dietro il quadrante: ambra, come i cruscotti vecchi
+GLOW_STRENGTH = 4.0
+
+
+def face_material(name, path, glow=0.0):
+    """Il quadrante sotto il vetro: carta opaca con sopra uno strato lucido (il vetro, senza rifrazione).
+    Retroilluminato (richiesta dell'utente: «fallo illuminato così è più importante»): la carta lascia
+    passare la luce ambra della lampadina, l'inchiostro no. glow = forza dell'emissione (0 = spento)."""
     m, g = material(name)
     col, _ = g.image(path, g.texcoord('UV'), extension='CLIP')
-    g.output_material(g.principled(color=col, rough=0.6, coat=0.8, coat_rough=0.08))
+    lit = g.mix(1.0, col, GLOW_COLOR, blend='MULTIPLY')
+    g.output_material(g.principled(color=col, rough=0.6, coat=0.8, coat_rough=0.08, emission=lit, emission_strength=glow))
     return m
+
+
+def set_glow(strength):
+    """Accende o spegne la retroilluminazione del quadrante (tra un render e l'altro dello stesso oggetto)."""
+    m = bpy.data.materials.get('GaugeFaceMat')
+    for n in m.node_tree.nodes:
+        if n.type == 'BSDF_PRINCIPLED':
+            n.inputs['Emission Strength'].default_value = strength
 
 
 def battery_frame():
@@ -132,8 +147,9 @@ def battery_frame():
     return base, n, right, up
 
 
-def build_battery(needle=None):
-    """La batteria con morsetti, pinze, cavi fino al palo della lampara e il voltmetro. Restituisce gli oggetti."""
+def build_battery(needle=None, glow=GLOW_STRENGTH):
+    """La batteria con morsetti, pinze, cavi fino al palo della lampara e il voltmetro (col quadrante
+    retroilluminato di forza glow). Restituisce gli oggetti."""
     obs = []
     x, y, z = BATTERY_POS
     sx, sy, sz = BATTERY_SIZE
@@ -204,7 +220,7 @@ def build_battery(needle=None):
             uv.data[li].uv = uvs[me.loops[li].vertex_index]
     face = bpy.data.objects.new('GaugeFace', me)
     bpy.data.collections['boat'].objects.link(face) if 'boat' in bpy.data.collections else bpy.context.scene.collection.objects.link(face)
-    face.data.materials.append(face_material('GaugeFaceMat', tex))
+    face.data.materials.append(face_material('GaugeFaceMat', tex, glow))
     obs.append(face)
     # la maniglia di gomma da una parte all'altra del coperchio
     strap = tube('BatteryStrap', catmull([(x - sx / 2 - 0.004, y + 0.03, z + sz - 0.03), (x - sx * 0.3, y + 0.03, z + sz + 0.05),

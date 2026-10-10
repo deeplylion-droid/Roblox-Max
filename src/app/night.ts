@@ -189,6 +189,8 @@ export class Night {
   /** ago del voltmetro (volt, velocità): una molla smorzata, come un ago vero */
   private needle = { v: 13.8, vel: 0 };
   private flickerTimer = 0;
+  /** la lucina dietro il quadrante del voltmetro (0..1): trema con la lampara, muore con la batteria */
+  private gaugeGlow = 1;
   /** la ninna nanna della Madre a batteria morta */
   private lullabyV: Voice | null = null;
 
@@ -988,6 +990,10 @@ export class Night {
       n.v = 9.85;
       n.vel = -n.vel * 0.3;
     }
+    // la luce del quadrante: piena finché la batteria regge, cala quando è quasi scarica e ne segue i cali,
+    // si spegne con lei
+    const glowT = sim.blackout ? 0 : (c < b.low ? 0.55 + 0.45 * (c / b.low) : 1) * (1 - 0.85 * st.lampDip);
+    this.gaugeGlow = approach(this.gaugeGlow, glowT, sim.blackout ? 14 : 20, dt);
     // quasi scarica: la reticella trema, e ogni tanto la luce cala di colpo con uno sfrigolio
     const sick = !sim.blackout && sim.lamp > 0 && c < b.low ? 0.4 + 0.6 * (1 - c / b.low) : 0;
     st.lampSick = approach(st.lampSick, sick, 2, dt);
@@ -1030,7 +1036,11 @@ export class Night {
     const hc = rise(POSE.hatchConta, v.hConta, 0.15 + 0.85 * v.hRise);
     if (hc) layers.push(hc);
     layers.push('boat');
-    if (sim.cfg.battery && has('battery')) layers.push('battery');
+    if (sim.cfg.battery && has('battery')) {
+      layers.push('battery');
+      // il voltmetro retroilluminato (lo stesso strato col quadrante acceso, dissolto sopra)
+      if (has('battery_lit') && this.gaugeGlow > 0.002) layers.push({ key: 'battery_lit', opacity: this.gaugeGlow });
+    }
     // canna: dritta, piegata all'abboccata, piegatissima in recupero
     const bend = sim.fishing.bend;
     layers.push(bend >= 1.4 ? 'rod2' : bend >= 0.5 ? 'rod1' : 'rod0');

@@ -22,8 +22,19 @@
 
 Come per la prima notte, i mostri sono bambini presi dalla Madre: le loro foto stanno sull'edicola. Ognuno
 ha un pesce vero da cui viene, una cosa del parco addosso e un'abitudine di quando era bambino diventata
-la sua regola. Sono allungati, magri e sproporzionati come Gulpy, Molly e Hatch, con la stessa pelle
-grigia e bagnata e la stessa melma. **Non parlano** (l'unica eccezione resta la conta di Hatch).
+la sua regola. Sono allungati, magri e sproporzionati come Gulpy, Molly e Hatch, bagnati e coperti della
+stessa melma. **Non parlano** (l'unica eccezione resta la conta di Hatch).
+
+**Colori** (richiesta dell'utente, 10 ottobre: «i mostri tutti dello stesso colore non piacciono, dobbiamo
+differenziarli come su FNAF dove ognuno ha un colore»): Gulpy, Molly e Hatch restano grigi come sono; i
+quattro nuovi hanno ognuno un colore netto. *Proposta da approvare*:
+
+| Mostro | Colore | Perché |
+|---|---|---|
+| Robin | **rosso corallo**, pinne a ventaglio azzurro-turchese | la gallinella vera è rossa con le «ali» azzurre |
+| Archie | **giallo limone a fasce nere**, la pistola arancione | le bande nere del pesce arciere |
+| Lampy | **viola-magenta**, la cuffia a fiori rosa e bianca | pelle da sanguisuga; stacca dal mare blu-verde |
+| Fangy | **blu notte quasi nero**, lucine azzurre lungo il ventre | i pesci degli abissi; in acqua si vedono solo le luci |
 
 ## Notte 2 — La batteria
 
@@ -35,6 +46,9 @@ grigia e bagnata e la stessa melma. **Non parlano** (l'unica eccezione resta la 
 - **Nel gioco** l'ago lo disegna il motore sopra il quadrante renderizzato: nel rosso esattamente quando la
   carica scende sotto la soglia bassa (15%), cala un poco con la lampara alta (la batteria sotto sforzo),
   trema appena; a batteria morta batte sul fermo.
+- **Il quadrante è retroilluminato** (richiesta dell'utente: «fallo illuminato così è più importante»): una
+  lucina ambra dietro la carta, come i cruscotti di una volta. Si legge anche a lampara spenta; quando la
+  batteria è quasi scarica cala e trema insieme alla lampara; quando muore si spegne con lei.
 - La **lampara** consuma secondo il livello (spenta niente, bassa poco, alta molto); il **sonar** aperto
   consuma un po'. La carica basta per tenere la lampara bassa tutta la notte, non alta.
 - Quando l'ago scende nel rosso la lampara comincia a tremolare.
