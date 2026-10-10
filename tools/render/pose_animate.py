@@ -1,0 +1,330 @@
+"""
+Le piccole animazioni dei mostri sulla barca (approvate dall'utente il 10 ottobre): le «toppe» di gulpy_pretende,
+molly_destra / molly_sinistra e hatch_conta.
+
+Il gioco le fa alternando lentamente delle toppe: la stessa posa di gioco resa con una variante del modello, con
+visibile solo la testa (il resto della creatura fa da maschera, come la barca), lo strato ritagliato sulla testa e
+dissolto sopra lo strato principale (vedi jobs.job_creature: le opzioni 'visibili', 'occhi', 'yaw_di').
+
+    gulpy_mascella_chiusa    Gulpy con la mascella sganciata un po' più chiusa (gulpy.build(mascella=−10)) …
+    gulpy_mascella_aperta    … e un po' più aperta (+10): alternate piano, la mascella che pende ondeggia.
+                             Il pescatore vede la faccia da molto sopra il suo asse (la testa pende): la mascella
+                             più chiusa gli viene incontro e mostra più bocca, la più aperta va indietro verso il
+                             petto e la bocca sembra più stretta
+    molly_destra_primo       Molly sul bordo destro col primo occhio chiuso: quello che ti fissa (molly.EYES[0])
+    molly_destra_secondo     … col secondo chiuso: quello che scivola via (EYES[1]); il gioco lo chiude dopo il
+                             primo, in ritardo, storto (molly.build(palpebre=(1, 0)) e (0, 1))
+    molly_sinistra_primo     lo stesso sul bordo sinistro
+    molly_sinistra_secondo
+    hatch_bocca_mezza        Hatch con la bocca mezza chiusa (hatch.build(bocca=0,5)) …
+    hatch_bocca_chiusa       … e chiusa, resta una fessura (bocca=0): da alternare a ogni numero della conta
+
+Ogni funzione costruisce la creatura nella STESSA posizione della posa di gioco e restituisce (tutti gli oggetti
+della creatura, gli oggetti della testa da tenere visibili). La sistemazione è copiata da scena_creature
+(gulpy_pretende, molly, hatch_conta), che non accettano i parametri nuovi: se la posa cambia là va cambiata anche
+qui. Se la posa principale è già stata costruita nella stessa sessione (scena_creature.LAST_M), le funzioni
+controllano che la trasformazione sia la stessa e si fermano se non lo è.
+Con i parametri a riposo i modelli sono identici a prima, e nelle varianti cambiano solo i pezzi della testa
+(GULPY_TESTA, MOLLY_TESTA, HATCH_TESTA): il corpo resta lo stesso, quindi le maschere combaciano.
+
+TOPPE ha le voci pronte per scena_creature.POSES (POSES.update(pose_animate.TOPPE)), con lo spazio e il mare della
+posa principale.
+
+Anteprime, dall'occhio del pescatore e strette sulla testa, la posa di base accanto alle varianti:
+    nice -n 10 tools/.venv/bin/python tools/render/pose_animate.py [gulpy] [molly] [hatch] [--fast]
+    → docs/concept/animazioni/gulpy_mascella.jpg, molly_occhi.jpg (i due lati), hatch_bocca.jpg
+"""
+from __future__ import annotations
+
+import fnmatch
+import math
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+import bpy  # noqa: E402
+import numpy as np  # noqa: E402
+
+import scena_creature as SC  # noqa: E402
+from common import CACHE, EYE, ROOT  # noqa: E402
+
+F = np.float32
+FAST = '--fast' in sys.argv
+
+# le varianti
+GULPY_MASCELLA = {'chiusa': -10.0, 'aperta': 10.0}   # gradi attorno alla cerniera (+ apre)
+MOLLY_PRIMO = 0                                      # l'occhio che si chiude per primo (molly.EYES): quello che ti fissa
+HATCH_BOCCA = {'mezza': 0.5, 'chiusa': 0.0}          # apertura (1 com'è)
+
+# gli oggetti della testa: quello che cambia e quello che sta dentro la faccia (così la toppa non ha buchi);
+# il resto della creatura fa da maschera
+GULPY_TESTA = ('GulpyHead', 'GulpyEye*', 'GulpyThroat', 'GulpyTeeth', 'GulpySlimeMouth')
+MOLLY_TESTA = ('MollyHead', 'MollyEye*', 'MollyBeak', 'MollySlimeMouth')
+HATCH_TESTA = ('HatchHead', 'HatchEye*', 'HatchTeeth', 'HatchSlime')
+
+
+def _base(name):
+    """Il nome senza il .001 dei doppioni (una creatura costruita più volte nella stessa scena)."""
+    head, dot, tail = name.rpartition('.')
+    return head if dot and tail.isdigit() else name
+
+
+def _testa(obs, nomi):
+    return [o for o in obs if o.type == 'MESH' and any(fnmatch.fnmatchcase(_base(o.name), n) for n in nomi)]
+
+
+def _stessa_posa(key, M):
+    """Se la posa principale è già stata costruita in questa sessione, la sua trasformazione deve essere M."""
+    M0 = SC.LAST_M.get(key)
+    if M0 is not None and max(abs(M0[i][j] - M[i][j]) for i in range(4) for j in range(4)) > 1e-5:
+        raise RuntimeError(f'la posa {key} in scena_creature.py non è più quella copiata in pose_animate.py: '
+                           'aggiorna la sistemazione qui')
+
+
+# ───────────────────────── le pose, con i parametri nuovi ─────────────────────────
+
+def gulpy_pretende(mascella=0.0):
+    """Come scena_creature.gulpy_pretende (Gulpy sporto sulla prua, le mani sul bordo), con la mascella ruotata."""
+    import gulpy
+    o = (-1.9, 3.4, -0.4)
+    M = SC.M_of(o, yaw=SC.facing_yaw(o), pitch=25.0, scale=SC.GULPY_SCALE)
+    _stessa_posa('gulpy_pretende', M)
+    # una mano sul capodibanda di sinistra, l'altra sulla punta di prua
+    xg, zg = SC.gunwale_at(1.2, -1)
+    xb, zb = SC.gunwale_at(2.45, -1)
+    grip = [SC.to_local(M, (xg + 0.02, 1.2, zg)), SC.to_local(M, (xb + 0.04, 2.45, zb))]
+    lo = np.minimum(np.array((-0.62, -1.0, -0.02), F), np.min(grip, axis=0) - 0.25)
+    hi = np.maximum(np.array((0.62, 0.48, 2.72), F), np.max(grip, axis=0) + 0.25)
+    obs = gulpy.build(grip=grip, viewer=SC.to_local(M, EYE), lo=lo, hi=hi, mascella=mascella)
+    SC.place(obs, M)
+    return obs, _testa(obs, GULPY_TESTA)
+
+
+def molly(side, palpebre=(0.0, 0.0)):
+    """Come scena_creature.molly(side) (+1 bordo destro, −1 sinistro), con gli occhi chiusi per 'palpebre'."""
+    import molly as mo
+    y = -0.26 if side > 0 else 0.15
+    xc, ztop = SC.gunwale_at(y, side)
+    M = SC.M_of((xc, y, ztop - mo.GUN_TOP), yaw=-90.0 if side > 0 else 90.0)
+    _stessa_posa('molly_destra' if side > 0 else 'molly_sinistra', M)
+    v = SC.to_local(M, EYE)
+    d = v - mo.C
+    turn = max(-35.0, min(35.0, math.degrees(math.atan2(float(d[0]), float(-d[1])))))
+    obs = mo.build(viewer=v, head_turn=turn, palpebre=palpebre)
+    SC.place(obs, M)
+    return obs, _testa(obs, MOLLY_TESTA)
+
+
+def hatch_conta(bocca=1.0):
+    """Come scena_creature.hatch_conta (dietro la poppa, piegato sulla barca), con la bocca aperta per 'bocca'."""
+    import hatch
+    # appena dietro la poppa, altissimo, piegato sulla barca: l'esca gli penzola sopra il ponte di poppa
+    o = (0.10, -3.45, -1.05)
+    M = SC.M_of(o, yaw=SC.facing_yaw(o), pitch=14.0)
+    _stessa_posa('hatch_conta', M)
+    before = set(bpy.data.objects.keys())
+    obs = hatch.build(viewer=SC.to_local(M, EYE), bocca=bocca)
+    # la luce dell'esca di questa costruzione (non quella di un Hatch costruito prima nella stessa scena)
+    lights = [bpy.data.objects[n] for n in bpy.data.objects.keys()
+              if n not in before and bpy.data.objects[n].type == 'LIGHT' and n.startswith('ToyLight')]
+    # di notte, a qualche metro, lo illumina solo la sua esca: più forte che in vetrina
+    for li in lights:
+        li.data.energy = 9.0
+        li.data.shadow_soft_size = 0.035
+    SC.place(obs + lights, M)
+    return obs + lights, _testa(obs, HATCH_TESTA)
+
+
+# ───────────────────────── le varianti (le toppe) ─────────────────────────
+
+def gulpy_mascella_chiusa():
+    return gulpy_pretende(mascella=GULPY_MASCELLA['chiusa'])
+
+
+def gulpy_mascella_aperta():
+    return gulpy_pretende(mascella=GULPY_MASCELLA['aperta'])
+
+
+def _occhio(i):
+    return tuple(1.0 if k == i else 0.0 for k in range(2))
+
+
+def molly_destra_primo():
+    return molly(+1, _occhio(MOLLY_PRIMO))
+
+
+def molly_destra_secondo():
+    return molly(+1, _occhio(1 - MOLLY_PRIMO))
+
+
+def molly_sinistra_primo():
+    return molly(-1, _occhio(MOLLY_PRIMO))
+
+
+def molly_sinistra_secondo():
+    return molly(-1, _occhio(1 - MOLLY_PRIMO))
+
+
+def hatch_bocca_mezza():
+    return hatch_conta(bocca=HATCH_BOCCA['mezza'])
+
+
+def hatch_bocca_chiusa():
+    return hatch_conta(bocca=HATCH_BOCCA['chiusa'])
+
+
+def _toppa(fn, base, testa):
+    space, sea = SC.POSES[base][1:3]
+    return (fn, space, sea, {'visibili': testa, 'occhi': False, 'yaw_di': base})
+
+
+# chiave → (funzione, spazio, mare, opzioni), come le voci di scena_creature.POSES (vedi jobs.job_creature)
+TOPPE = {
+    'gulpy_mascella_chiusa': _toppa(gulpy_mascella_chiusa, 'gulpy_pretende', GULPY_TESTA),
+    'gulpy_mascella_aperta': _toppa(gulpy_mascella_aperta, 'gulpy_pretende', GULPY_TESTA),
+    'molly_destra_primo': _toppa(molly_destra_primo, 'molly_destra', MOLLY_TESTA),
+    'molly_destra_secondo': _toppa(molly_destra_secondo, 'molly_destra', MOLLY_TESTA),
+    'molly_sinistra_primo': _toppa(molly_sinistra_primo, 'molly_sinistra', MOLLY_TESTA),
+    'molly_sinistra_secondo': _toppa(molly_sinistra_secondo, 'molly_sinistra', MOLLY_TESTA),
+    'hatch_bocca_mezza': _toppa(hatch_bocca_mezza, 'hatch_conta', HATCH_TESTA),
+    'hatch_bocca_chiusa': _toppa(hatch_bocca_chiusa, 'hatch_conta', HATCH_TESTA),
+}
+
+
+# ───────────────────────── anteprime ─────────────────────────
+
+def _num(x):
+    return f'{x:g}'.replace('.', ',').replace('-', '−')
+
+
+def _posa_di_gioco(fn, testa):
+    """La posa principale vera (scena_creature), con gli oggetti della testa: è la base delle anteprime e, costruita
+    prima delle varianti, fa controllare a queste di stare nella stessa trasformazione."""
+    def f():
+        obs = fn()
+        return obs, _testa(obs, testa)
+    return f
+
+
+# per ogni anteprima: (nome del file, righe, nota); ogni riga è (titolo della riga, [(titolo, funzione che costruisce
+# la posa, colonna)]); la base si costruisce per prima (la camera si punta su di lei)
+ANTEPRIME = {
+    'gulpy': ('gulpy_mascella', [
+        ('', [('posa di base · gulpy_pretende', _posa_di_gioco(SC.gulpy_pretende, GULPY_TESTA), 1),
+              (f'mascella più chiusa ({_num(GULPY_MASCELLA["chiusa"])}°) · gulpy_mascella_chiusa', gulpy_mascella_chiusa, 0),
+              (f'mascella più aperta (+{_num(GULPY_MASCELLA["aperta"])}°) · gulpy_mascella_aperta', gulpy_mascella_aperta, 2)]),
+    ], 'Da qui la faccia si vede molto dall\'alto: la mascella più chiusa viene in avanti, verso di te, e mostra più bocca; '
+       'la più aperta va indietro verso il petto e la bocca sembra più stretta.'),
+    'molly': ('molly_occhi', [
+        ('bordo destro', [('posa di base · molly_destra', _posa_di_gioco(lambda: SC.molly(+1), MOLLY_TESTA), 0),
+                          ('primo occhio chiuso · molly_destra_primo', molly_destra_primo, 1),
+                          ('secondo occhio chiuso · molly_destra_secondo', molly_destra_secondo, 2)]),
+        ('bordo sinistro', [('posa di base · molly_sinistra', _posa_di_gioco(lambda: SC.molly(-1), MOLLY_TESTA), 0),
+                            ('primo occhio chiuso · molly_sinistra_primo', molly_sinistra_primo, 1),
+                            ('secondo occhio chiuso · molly_sinistra_secondo', molly_sinistra_secondo, 2)]),
+    ], 'Il primo occhio è quello che ti fissa (a sinistra), il secondo quello che scivola via.'),
+    'hatch': ('hatch_bocca', [
+        ('', [('posa di base · hatch_conta', _posa_di_gioco(SC.hatch_conta, HATCH_TESTA), 0),
+              (f'bocca mezza chiusa ({_num(HATCH_BOCCA["mezza"])}) · hatch_bocca_mezza', hatch_bocca_mezza, 1),
+              (f'bocca chiusa ({_num(HATCH_BOCCA["chiusa"])}) · hatch_bocca_chiusa', hatch_bocca_chiusa, 2)]),
+    ], 'La mascella sale ruotando dietro la testa; i denti di vetro di sotto si ripiegano dentro la bocca.'),
+}
+
+
+def _inquadra(objs, size, margin=1.22, name='AnimCam'):
+    """Camera nell'occhio del pescatore puntata sul centro della testa, con l'obiettivo che la fa stare nel quadro."""
+    import jobs
+    from common import perspective_camera
+    from mathutils import Vector
+    pts = np.array(jobs.dense_points(objs, n=800))
+    c = (pts.min(0) + pts.max(0)) / 2
+    cam = perspective_camera(EYE, tuple(map(float, c)), lens=50.0, name=name)
+    bpy.context.view_layer.update()
+    R = cam.matrix_world.to_3x3()
+    right, up, fwd = R.col[0], R.col[1], -R.col[2]
+    t = 0.0
+    W, H = size
+    for p in pts:
+        d = Vector(tuple(map(float, p))) - Vector(EYE)
+        z = d.dot(fwd)
+        t = max(t, abs(d.dot(right)) / z, abs(d.dot(up)) / z * W / H)
+    cam.data.lens = 18.0 / (t * margin)
+    return cam
+
+
+def anteprime(chi=('gulpy', 'molly', 'hatch'), size=(440, 440)):
+    """Le anteprime delle toppe nella scena del gioco: per ogni riga la posa di base e le varianti, viste
+    dall'occhio del pescatore con la stessa camera stretta sulla testa. → docs/concept/animazioni/<nome>.jpg"""
+    import jobs
+    from PIL import Image, ImageDraw, ImageFont
+    out_dir = os.path.join(ROOT, 'docs', 'concept', 'animazioni')
+    tmp = os.path.join(CACHE, 'animazioni')
+    os.makedirs(out_dir, exist_ok=True)
+    os.makedirs(tmp, exist_ok=True)
+    try:
+        font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 15)
+        font_b = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 16)
+    except OSError:
+        font = font_b = ImageFont.load_default()
+    done = []
+    for who in chi:
+        nome, righe, nota = ANTEPRIME[who]
+        jobs.build_scene(fish=0, rod=False)
+        sc = bpy.context.scene
+        sc.cycles.use_denoising = True
+        sc.render.use_compositing = False
+        sc.render.image_settings.file_format = 'PNG'
+        sc.render.resolution_percentage = 100
+        sc.render.resolution_x, sc.render.resolution_y = size
+        sc.cycles.samples = 32 if FAST else 96
+        tavola = []
+        for titolo_riga, pannelli in righe:
+            riga = []
+            cam = None
+            for k, (titolo, fn, col) in enumerate(pannelli):
+                before = set(bpy.data.objects.keys())
+                obs, testa = fn()
+                bpy.context.view_layer.update()
+                new = [bpy.data.objects[n] for n in bpy.data.objects.keys() if n not in before]
+                if cam is None:
+                    # la stessa camera per tutta la riga (le varianti stanno nello stesso posto)
+                    cam = _inquadra(testa, size, name=f'AnimCam_{nome}_{len(tavola)}')
+                sc.camera = cam
+                path = os.path.join(tmp, f'{nome}_{len(tavola)}_{k}.png')
+                sc.render.filepath = path
+                bpy.ops.render.render(write_still=True)
+                riga.append((col, path, titolo))
+                print('pannello', path, flush=True)
+                for o in new:
+                    o.hide_render = True
+            tavola.append((titolo_riga, sorted(riga)))
+        W, H = size
+        pad, cap, head = 8, 30, 26
+        cols = max(len(r) for _, r in tavola)
+        has_head = any(t for t, _ in tavola)
+        rh = H + cap + (head if has_head else 0)
+        foot = 26 if nota else 0
+        sheet = Image.new('RGB', (cols * W + (cols + 1) * pad, len(tavola) * rh + (len(tavola) + 1) * pad + foot), (14, 14, 16))
+        d = ImageDraw.Draw(sheet)
+        for r, (titolo_riga, riga) in enumerate(tavola):
+            y = pad + r * (rh + pad)
+            if has_head:
+                d.text((pad + 4, y + 3), titolo_riga, fill=(240, 190, 110), font=font_b)
+                y += head
+            for i, (_, path, titolo) in enumerate(riga):
+                x = pad + i * (W + pad)
+                sheet.paste(Image.open(path).convert('RGB'), (x, y))
+                d.text((x + 4, y + H + 7), titolo, fill=(225, 225, 220), font=font)
+        if nota:
+            d.text((pad + 4, sheet.height - foot), nota, fill=(170, 170, 165), font=font)
+        dst = os.path.join(out_dir, f'{nome}.jpg')
+        sheet.save(dst, quality=90)
+        print('anteprima', dst, flush=True)
+        done.append(dst)
+    return done
+
+
+if __name__ == '__main__':
+    scelte = [a for a in sys.argv[1:] if a in ANTEPRIME]
+    anteprime(tuple(scelte) or ('gulpy', 'molly', 'hatch'))
