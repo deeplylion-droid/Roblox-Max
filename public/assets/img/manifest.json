@@ -514,6 +514,34 @@
    "space": "boat",
    "yaw": -59.0895
   },
+  "molly_sinistra_secondo": {
+   "base": "molly_sinistra",
+   "passes": {
+    "ambient": {
+     "file": "molly_sinistra_secondo_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "molly_sinistra_secondo_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "molly_sinistra_secondo_lantern.webp",
+     "res": 1.0,
+     "scale": 0.39
+    }
+   },
+   "rect": [
+    3834,
+    815,
+    4313,
+    1346
+   ],
+   "space": "boat",
+   "yaw": -59.0895
+  },
   "robin_chiusi": {
    "base": "robin_secchio",
    "passes": {
