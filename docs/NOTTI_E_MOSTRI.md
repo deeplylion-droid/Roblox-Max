@@ -84,7 +84,11 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
 
 > **Animazioni sulla barca** (10 ottobre, decise dall'utente): come Gulpy (la mascella lenta), Molly (sbatte gli
 > occhi), Hatch (la bocca che conta) e Robin (sbatte gli occhi), **ognuno dei prossimi mostri avrà una piccola
-> animazione** quando è in scena: da progettare insieme al modello.
+> animazione** quando è in scena: da progettare insieme al modello. Proposte legate a come si gioca ognuno
+> (*da approvare*): **Archie** prende fiato nella trombetta, che si srotola a metà e si riavvolge (il
+> risucchio che si sente); **Lampy** apre e chiude piano la ventosa, con gli anelli di denti che girano;
+> **Fangy** gira la testa di scatto verso ogni rumore e le lucine del ventre si accendono in fila, come un
+> respiro (queste si fanno nel motore, senza render).
 
 ### Notte 2 · Robin — *SCACCIARLO CON LA LUCE*
 
