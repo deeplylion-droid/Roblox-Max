@@ -289,9 +289,9 @@ def _dente_umano(c, nome, centro, larghezza, altezza, spessore, lungo, su, mat, 
     else:
         rr = min(larghezza, spessore) * 0.4
         f = P.sdf.rotate(P.sdf.box(c0, (larghezza / 2, altezza / 2, spessore / 2), rounding=rr), R, center=c0)
-    m = max(larghezza, altezza, spessore) + 0.004
+    m = 0.5 * altezza + 0.5 * max(larghezza, spessore) + 0.002       # il riquadro stretto attorno al dente
     if res is None:
-        res = 0.0005 if c.fast else 0.00028
+        res = 0.0005 if c.fast else 0.0003
     c.obs.append(P.oggetto_sdf(nome, f, c0 - m, c0 + m, mat, res=res))
 
 
@@ -1396,7 +1396,14 @@ def _baffi_granatiere(c):
 
     def coda(p):
         return np.clip((p[:, 0] - 0.5) / 0.08, 0, 1)
-    _pittura(c, 'coda_nuda', coda, (0.5, 0.33, 0.31), ruvido=0.42, liscio=True)
+    _pittura(c, 'coda_nuda', coda, (0.56, 0.36, 0.34), ruvido=0.42, liscio=True)
+    # i solchi fra gli anelli della coda, più scuri (gli anelli sono Shape.anelli: creste in x = k / anelli)
+    n = c.forma.anelli
+
+    def solchi(p):
+        cresta = np.clip(np.cos(2 * np.pi * n * p[:, 0]), 0, 1) ** 6
+        return coda(p) * (1 - cresta) * 0.75
+    _pittura(c, 'solchi_coda', solchi, (0.26, 0.15, 0.14), ruvido=0.5)
 
 
 SPECIE['granatiere_nero'] = Specie(

@@ -510,14 +510,19 @@ def biglietti(A, P):
 
 # ───────────────────────── il pesce rubato e la melma ─────────────────────────
 
+def giu_pesce(A, P):
+    """Il verso del pesce rubato, dalla coda alla testa: pende, piegato appena verso il centro del secchio."""
+    return unit(V(0, 0, -1) + orizz(V(*P['bucket']) - A['fist']) * 0.25)
+
+
 def pesce_rubato(A, P):
     """Il pesce appena tirato fuori dal secchio, preso per la coda: pende a testa in giù sopra la bocca del
     secchio, col fianco verso il pescatore. Ha la pelle dei pesci del secchio (boat.fish_material), argentata a
     bande: quella della tavola, scura, contro il secchio non si vedeva. Gli occhi del pesce si rinominano: il
     gioco fa brillare al buio gli oggetti che hanno 'Eye' nel nome."""
     import boat
-    fist, bk = A['fist'], V(*P['bucket'])
-    giu = unit(V(0, 0, -1) + orizz(bk - fist) * 0.25)
+    fist = A['fist']
+    giu = giu_pesce(A, P)
     view = orizz(V(*P['viewer']) - fist)
     dorso = unit(np.cross(view, V(0, 0, 1)))
     obs = T.pesce('StolenFish', fist + V(0, 0, 0.045), giu, L=PESCE_L, dorso=tuple(dorso))
@@ -537,8 +542,8 @@ def melma(A, P, pesce=True):
             gocce.append((pts[-2] + V(0, 0, -0.012), rng.uniform(0.02, 0.05)))
     fist = A['fist']
     gocce.append((fist + V(0.0, 0.0, -0.035) + A['a'] * 0.02, 0.05))
-    if pesce:
-        gocce.append((fist + V(0, 0, -PESCE_L * 0.9), 0.04))
+    if pesce:                                            # dalla bocca del pesce, che pende un po' storto
+        gocce.append((fist + V(0, 0, 0.045) + giu_pesce(A, P) * (PESCE_L * 0.99), 0.04))
     g, lg, dn = A['grip'], A['bordo'], A['dentro']
     for dx in (-0.045, 0.0, 0.04):
         gocce.append((g + lg * dx * 1.25 + dn * 0.088 + V(0, 0, -0.15), rng.uniform(0.02, 0.04)))
@@ -750,8 +755,7 @@ def anteprima_posa():
     jobs.build_scene(fish=5, rod=True)
     batteria.build_battery(needle=0.72)
     before = set(bpy.data.objects.keys())
-    fn, space, sea = SC.POSES['robin_secchio']
-    fn()
+    SC.POSES['robin_secchio'][0]()
     bpy.context.view_layer.update()
     new = [bpy.data.objects[n] for n in set(bpy.data.objects.keys()) - before]
     info = ingombro(new)
@@ -762,6 +766,8 @@ def anteprima_posa():
     sc.cycles.use_denoising = True
     sc.render.image_settings.file_format = 'PNG'
     sc.render.resolution_percentage = 100
+    sc.render.resolution_x, sc.render.resolution_y = 1600, 900
+    sc.cycles.samples = 32 if FAST else 64
     out = []
     # la vista del gioco (90° di campo, 16:9) girata un po' a sinistra della prua: dentro ci sono la faccia e il
     # secchio; poi una più stretta sul mostro. Con --fast le mesh sono grossolane e i campioni pochi
@@ -769,12 +775,9 @@ def anteprima_posa():
         'pose_robin': (-12.0, -12.0, 18.0),
         'pose_robin_vicino': (-31.0, -11.0, 32.0),
     }.items():
-        size = (1600, 900)
         t = (EYE[0] + math.sin(math.radians(yaw)) * math.cos(math.radians(pitch)),
              EYE[1] + math.cos(math.radians(yaw)) * math.cos(math.radians(pitch)), EYE[2] + math.sin(math.radians(pitch)))
         perspective_camera(EYE, t, lens=lens, name='RobinCam_' + name)
-        sc.render.resolution_x, sc.render.resolution_y = size
-        sc.cycles.samples = 32 if FAST else 64
         path = os.path.join(CACHE, f'{name}.png')
         sc.render.filepath = path
         bpy.ops.render.render(write_still=True)
