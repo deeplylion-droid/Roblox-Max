@@ -31,8 +31,8 @@ FAST = '--fast' in sys.argv
 F = np.float32
 
 # Il colore della pelle (richiesta dell'utente del 10 ottobre: i mostri vanno distinti per colore, come gli
-# animatronics; dei primi tre si comincia da Hatch). 'grigio' è quello approvato per la prima notte; le altre
-# sono proposte. Per la vetrina: --colore arancio|verde|grigio.
+# animatronics; dei primi tre si comincia da Hatch). Scelto l'ARANCIO (10 ottobre); 'grigio' era quello della
+# prima versione, 'verde' l'alternativa scartata. Per la vetrina: --colore arancio|verde|grigio.
 PALETTES = {
     'grigio': dict(base=(0.165, 0.150, 0.135), dark=(0.05, 0.045, 0.04), light=(0.30, 0.28, 0.25), vein=(0.13, 0.10, 0.14),
                    slime_tint=(0.80, 0.92, 0.66)),
@@ -44,7 +44,7 @@ PALETTES = {
     'verde': dict(base=(0.08, 0.33, 0.06), dark=(0.015, 0.09, 0.02), light=(0.26, 0.52, 0.12), vein=(0.04, 0.14, 0.06),
                   slime_tint=(0.80, 0.95, 0.66)),
 }
-COLORE = sys.argv[sys.argv.index('--colore') + 1] if '--colore' in sys.argv else 'grigio'
+COLORE = sys.argv[sys.argv.index('--colore') + 1] if '--colore' in sys.argv else 'arancio'
 
 HEAD = Frame((0, -0.60, 2.56), pitch=12)
 LURE = HEAD.pt((0, -0.345, 0.06))          # il pesciolino luminoso
