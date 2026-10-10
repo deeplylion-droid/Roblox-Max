@@ -51,12 +51,12 @@ FAST = D.FAST
 RES_BODY = 0.0045 if FAST else 0.003      # collo e testa: una mesh sola, valutata a fasce
 RES_FINE = 0.0016 if FAST else 0.0011     # pezzi sottili (capelli, piuma, elastico, bava)
 
-LAMP = V(-0.55, -1.25, 2.70)              # la lampara (fuori campo): la luce calda viene da lì
+LAMP = V(-0.55, -1.25, 2.95)              # la lampara (fuori campo, più in alto della testa): la luce calda viene da lì
 HEAD = V(-0.04, 0.18, 2.36)               # centro della testa, in cima al collo
 AIM = unit(LAMP - HEAD)                   # la testa la prende di mira
 HEAD_PITCH = -math.degrees(math.asin(float(AIM[2])))
 HEAD_YAW = math.degrees(math.asin(float(AIM[0]) / math.sqrt(1.0 - float(AIM[2]) ** 2)))
-CAM = ((-1.22, -0.08, 2.24), (-0.10, 0.06, 2.20), 36)
+CAM = ((-1.20, -0.20, 2.34), (-0.14, -0.02, 2.32), 36)
 TESTONE = 1.3                             # le teste da bambino (B, C) sono più grandi del vero
 
 # i testi sotto i pannelli della tavola (nome della variante e spiegazione)
@@ -328,7 +328,7 @@ def carta_tubo(name, path, a, b, side, mat, seg=18):
     return R.mesh_obj(name, verts, faces, mat, attrs={'tick': tick, 'ang': ang})
 
 
-def trombetta(fr, q, d_loc=(0.0, -1.0, 0.06), L=0.28, giri=1.5, k=1.3):
+def trombetta(fr, q, d_loc=(0.0, -1.0, 0.15), L=0.17, giri=1.6, k=1.3):
     """La trombetta da festa fusa nelle labbra: il bocchino bianco che esce dalla bocca, il tubo di carta a
     strisce gonfio e dritto (sta soffiando: un filo cadente, la carta è bagnata), la punta ancora arrotolata
     sotto in un ricciolo, la piuma rosa zuppa in fondo al ricciolo. q: dove esce il bocchino (locale)."""
@@ -429,7 +429,7 @@ def archie_a():
     jaw = chain([V(0, 0.02, -0.040), V(0, -0.10, -0.032), V(0, -0.200, -0.020)], [0.044, 0.032, 0.013], k=0.02)
     gular = sdf.ellipsoid(V(0, -0.03, -0.058), (0.048, 0.095, 0.042))        # la gola gonfia: sta soffiando
     nares = sdf.union(*[sdf.round_cone(V(s * 0.010, -0.196, 0.006), V(s * 0.015, -0.214, -0.012), 0.0046, 0.0034) for s in (-1, 1)])
-    qb, db = V(0, -0.214, -0.012), (0.0, -1.0, 0.10)
+    qb, db = V(0, -0.214, -0.012), (0.0, -1.0, 0.15)
     head = sdf.union(cran, snout, jaw, gular, nares, labbra_fuse(qb, db, 0.0105, 0.0058), k=0.016)
     # lo squarcio della bocca, dalla punta fin sotto l'occhio
     gape = [[V(s * 0.016, -0.200, -0.014), V(s * 0.034, -0.140, -0.024), V(s * 0.046, -0.060, -0.030), V(s * 0.046, -0.020, -0.034)] for s in (-1, 1)]
@@ -476,14 +476,14 @@ def archie_b():
     # le orecchie a sventola: attaccate davanti, il bordo libero dietro, la conca in fuori e in avanti
     ec = [V(s * 0.090, 0.030, 0.006) for s in (-1, 1)]
     en = [V(s * math.cos(math.radians(38)), -math.sin(math.radians(38)), 0) for s in (-1, 1)]
-    ears = sdf.union(*[D.ellipsoid_rot(c, (0.012, 0.028, 0.044), sdf.rot_matrix('z', -s * 38)) for s, c in zip((-1, 1), ec)])
-    helix = sdf.union(*[sdf.intersect(D.torus_axis(c + n * 0.007, n, 0.024, 0.0045), sdf.plane(V(0, 0, -1), -0.010)) for c, n in zip(ec, en)])
-    qb, db = V(0, -0.176, -0.020), (0.0, -1.0, 0.08)
+    ears = sdf.union(*[D.ellipsoid_rot(c, (0.011, 0.024, 0.038), sdf.rot_matrix('z', -s * 38)) for s, c in zip((-1, 1), ec)])
+    helix = sdf.union(*[sdf.intersect(D.torus_axis(c + n * 0.007, n, 0.020, 0.0042), sdf.plane(V(0, 0, -1), -0.008)) for c, n in zip(ec, en)])
+    qb, db = V(0, -0.176, -0.020), (0.0, -1.0, 0.15)
     head = sdf.union(cran, face, snout, jaw, cheeks, brow, ears, helix, labbra_fuse(qb, db, 0.0125, 0.0078), k=0.018)
     gape = [[V(s * 0.020, -0.160, -0.030), V(s * 0.040, -0.110, -0.040), V(s * 0.054, -0.060, -0.046)] for s in (-1, 1)]
     mouth = sdf.union(*[chain(g, [0.0026, 0.0032, 0.0022], k=0.002) for g in gape])
     hole = sdf.round_cone(qb + unit(V(*db)) * 0.01, qb - unit(V(*db)) * 0.02, 0.0072, 0.0066)
-    concha = sdf.union(*[D.ellipsoid_rot(c + n * 0.010 + V(0, -0.004, -0.006), (0.006, 0.010, 0.016), sdf.rot_matrix('z', -s * 38)) for s, c, n in zip((-1, 1), ec, en)])
+    concha = sdf.union(*[D.ellipsoid_rot(c + n * 0.009 + V(0, -0.003, -0.005), (0.0055, 0.009, 0.014), sdf.rot_matrix('z', -s * 38)) for s, c, n in zip((-1, 1), ec, en)])
     sockets = sdf.union(*[sdf.sphere(V(s * 0.036, -0.080, 0.024), 0.0175) for s in (-1, 1)])
     # le lentiggini del bambino sulle guance: puntini bruni (metà del nero delle bande)
     rng = np.random.default_rng(8)
@@ -552,7 +552,7 @@ def archie_c():
     nose = sdf.sphere(V(0, -0.098, -0.002), 0.0125)
     brows = sdf.union(*[chain([V(s * 0.016, -0.086, 0.044), V(s * 0.036, -0.086, 0.054), V(s * 0.056, -0.076, 0.048)], [0.0055, 0.0065, 0.0050], k=0.004) for s in (-1, 1)])
     ears = sdf.union(*[sdf.ellipsoid(V(s * 0.084, 0.006, -0.010), (0.013, 0.024, 0.032)) for s in (-1, 1)])
-    qb, db = V(0, -0.106, -0.058), (0.0, -1.0, 0.16)
+    qb, db = V(0, -0.106, -0.058), (0.0, -1.0, 0.20)
     head = sdf.union(cran, cheeks, chin, nose, ears, brows, labbra_fuse(qb, db, 0.0110, 0.0085), k=0.022)
     hole = sdf.round_cone(qb + unit(V(*db)) * 0.01, qb - unit(V(*db)) * 0.02, 0.0072, 0.0066)
     sockets = sdf.union(*[sdf.sphere(V(s * 0.035, -0.074, 0.016), 0.020) for s in (-1, 1)])
