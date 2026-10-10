@@ -1274,7 +1274,7 @@ def _festa_di_compleanno(img, c):
         font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf', int(H * S * 0.05))
     except OSError:
         font = ImageFont.load_default()
-    d.text((x1 * S - W * S * 0.2, (y1 + H * 0.06) * S), '14.06.1991', fill=(255, 170, 40), font=font)
+    d.text((x1 * S - W * S * 0.2, (y1 + H * 0.06) * S), '14.08.1997', fill=(255, 170, 40), font=font)
     tela = tela.filter(ImageFilter.GaussianBlur(S * W / 800 * 1.2)).resize((W, H), Image.LANCZOS)
     vecchia = np.asarray(tela, np.float32) / 255.0
     luce_v = vecchia @ np.array((0.299, 0.587, 0.114), np.float32)
