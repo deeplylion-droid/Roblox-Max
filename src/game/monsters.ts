@@ -125,6 +125,13 @@ export class Gulpy {
     }
   }
 
+  /** Canta la Madre (batteria morta): torna giù e non risale finché la canzone non finisce. */
+  retreat(w: WorldView): void {
+    if (!this.present) return;
+    w.emit({ t: 'gulpy', e: 'leave' });
+    this.go('leaving', 2.2);
+  }
+
   private gurgle(dt: number, w: WorldView, rate = 1): void {
     this.gurgleTimer -= dt * rate;
     if (this.gurgleTimer <= 0) {
@@ -170,6 +177,13 @@ export class Molly {
     if (this.state === 'tantrum') return 0.35 + 0.65 * (this.tantrum / this.cfg.tantrumMax);
     if (this.state === 'peeking') return 0.25 * Math.max(0, (this.neglect - this.cfg.neglectMax * 0.5) / (this.cfg.neglectMax * 0.5));
     return 0;
+  }
+
+  /** Canta la Madre: smette di bussare e scivola via. */
+  retreat(): void {
+    if (this.state !== 'knocking' && this.state !== 'peeking' && this.state !== 'tantrum') return;
+    this.state = 'leaving';
+    this.timer = 2.4;
   }
 
   update(dt: number, w: WorldView): void {
@@ -294,6 +308,14 @@ export class Hatch {
 
   get searchProgress(): number {
     return this.state === 'searching' && this.searchTotal > 0 ? 1 - this.timer / this.searchTotal : 0;
+  }
+
+  /** Canta la Madre: la conta si interrompe, scende dalla poppa. */
+  retreat(w: WorldView): void {
+    if (this.state !== 'counting' && this.state !== 'boarding' && this.state !== 'searching') return;
+    w.emit({ t: 'hatch', e: 'leave' });
+    this.state = 'leaving';
+    this.timer = 1.8;
   }
 
   update(dt: number, w: WorldView, hiding: { hidden: boolean }): void {
@@ -473,6 +495,14 @@ export class Robin {
       case 'attack':
         break;
     }
+  }
+
+  /** Canta la Madre: scappa come davanti alla luce. */
+  retreat(w: WorldView): void {
+    if (!this.present) return;
+    w.emit({ t: 'robin', e: 'scared' });
+    this.state = 'fleeing';
+    this.timer = 1.6;
   }
 
   /** La lampara al massimo in faccia: se è durata abbastanza scappa (vero = è scappato). */

@@ -15,12 +15,21 @@ type Mode = 'warning' | 'title' | 'intro' | 'night' | 'paused' | 'static' | 'end
 
 const isElectron = navigator.userAgent.includes('Electron');
 
+/** L'ultima notte che esiste nel gioco. */
+function lastNight(): number {
+  let n = 1;
+  while (NIGHTS[n + 1]) n++;
+  return n;
+}
+
 export class App {
   private mode: Mode = 'warning';
   private night: Night | null = null;
   readonly screens: Screens;
   private timer = 0;
   private lang: Lang;
+  /** la notte in corso (o l'ultima giocata) */
+  private nightNo = 1;
 
   constructor(
     private stage: Stage,
@@ -76,10 +85,13 @@ export class App {
     this.titleMusic(true);
     this.stage.lampTarget = 1;
     this.stage.view.hfov = 90;
+    // ?notte=N: la nuova partita parte da quella notte (prove)
+    const forced = Number(new URLSearchParams(location.search).get('notte'));
+    const reached = Math.min(this.save.night, lastNight());
     this.screens.title({
-      canContinue: false,
-      onNew: () => this.intro(),
-      onContinue: () => this.intro(),
+      canContinue: reached >= 2,
+      onNew: () => this.intro(NIGHTS[forced] ? forced : 1),
+      onContinue: () => this.intro(reached),
       onJournal: () => this.extras(),
       onOptions: () => this.options(() => this.title()),
       onQuit: isElectron ? () => window.close() : null,
@@ -135,10 +147,11 @@ export class App {
     this.stage.brightness = o.brightness;
   }
 
-  private intro(): void {
+  private intro(n = this.nightNo): void {
     this.mode = 'intro';
     this.timer = 3.6;
-    this.screens.intro(1, NIGHTS[1]!.quota);
+    this.nightNo = NIGHTS[n] ? n : 1;
+    this.screens.intro(this.nightNo, NIGHTS[this.nightNo]!.quota);
     this.titleMusic(false);
     this.audio.play('mus_night_start', { gain: 0.9 });
     setTimeout(() => this.audio.play('foghorn', { gain: 0.5, lowpass: 1800 }), 1500);
@@ -157,6 +170,7 @@ export class App {
       options: this.save.options,
       foundLore: this.save.lore,
       assets: this.assets,
+      night: this.nightNo,
       seed: (Date.now() & 0x7fffffff) >>> 0,
       onEnd: (r) => this.endNight(r),
       onPause: () => this.pause(),
@@ -212,7 +226,7 @@ export class App {
   private endNight(r: NightEnd): void {
     // i ritrovamenti restano anche se la notte va male
     for (const l of r.stats.lore) if (!this.save.lore.includes(l)) this.save.lore.push(l);
-    if (r.kind === 'won') this.save.night = Math.max(this.save.night, 2);
+    if (r.kind === 'won') this.save.night = Math.max(this.save.night, this.nightNo + 1);
     writeSave(this.save);
     const S = this.S;
     const show = () => {
@@ -226,7 +240,8 @@ export class App {
         caught: r.stats.caught,
         fed: r.stats.fed,
         lore: r.stats.lore.length,
-        demoEnd: r.kind === 'won',
+        demoEnd: r.kind === 'won' && !NIGHTS[this.nightNo + 1],
+        onNext: r.kind === 'won' && NIGHTS[this.nightNo + 1] ? () => this.intro(this.nightNo + 1) : null,
         onRetry: () => this.intro(),
         onMenu: () => this.title(),
       });

@@ -18,6 +18,8 @@ export interface LayerInfo {
   tip?: Vec3;
   /** occhi delle creature (dall'occhio del pescatore): a lampara spenta brillano appena */
   eyes?: Vec3[];
+  /** batteria: il quadrante del voltmetro (centro, semiasse destro, semiasse alto, dall'occhio) */
+  gauge?: [Vec3, Vec3, Vec3];
 }
 
 export interface Manifest {

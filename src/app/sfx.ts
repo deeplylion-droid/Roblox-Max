@@ -253,6 +253,49 @@ export class Sfx {
     this.rockLoop = this.toyLoop = null;
   }
 
+  // ───────────────────────── Robin (notte 2) ─────────────────────────
+  // Provvisori: file di scena e rumore sintetizzato finché Robin non ha i suoi suoni (robin_*).
+
+  /** Zampette dure che ticchettano sul legno (una corsa di n colpetti). */
+  private claws(pos: Vec3, n: number, gap: number, gain = 1): void {
+    const c = this.chain(pos, gain, n * gap + 0.5);
+    if (!c) return;
+    for (let i = 0; i < n; i++) {
+      const t = c.t + i * gap * (0.7 + Math.random() * 0.6);
+      this.noiseBurst(c.ctx, c.input, t, 0.035, 'bandpass', 3200 + Math.random() * 1600, 6, 0.55);
+      this.noiseBurst(c.ctx, c.input, t, 0.05, 'lowpass', 900, 0.8, 0.25);
+    }
+  }
+
+  /** Robin sale sul bordo: acqua che cola, il legno che cede appena, le zampette. */
+  robinClimb(pos: Vec3): void {
+    if (this.playAny('robin_climb', { pos, spread: 0.03 })) return;
+    this.audio.play('splash_s1', { pos, gain: 0.45, rate: 1.15 });
+    this.audio.play('creak_1', { pos, gain: 0.4, rate: 1.2 });
+    this.later(350, () => this.claws(pos, 9, 0.09, 0.9));
+  }
+
+  /** Le zampe nel secchio: lamiera che tintinna, pesci bagnati che scivolano. */
+  robinRattle(bucket: Vec3): void {
+    if (this.playAny('robin_rattle', { pos: bucket, spread: 0.05 })) return;
+    this.audio.play('fish_bucket', { pos: bucket, gain: 0.4, rate: 1.3 + Math.random() * 0.2 });
+    this.claws(bucket, 4, 0.07, 0.7);
+  }
+
+  /** Un pesce strappato dal secchio e trascinato oltre il bordo, giù in acqua. */
+  robinSteal(bucket: Vec3, side: Vec3): void {
+    if (this.playAny('robin_steal', { pos: bucket, spread: 0.03 })) return;
+    this.audio.play('fish_out', { pos: bucket, gain: 0.8, rate: 1.15 });
+    this.later(650, () => this.audio.play('splash_s1', { pos: side, gain: 0.6 }));
+  }
+
+  /** Nella luce piena scappa: corsa di zampette e tuffo. */
+  robinScared(pos: Vec3): void {
+    if (this.playAny('robin_scared', { pos, spread: 0.03 })) return;
+    this.claws(pos, 12, 0.05, 1);
+    this.later(700, () => this.audio.play('splash_s2', { pos, gain: 0.7 }));
+  }
+
   // ───────────────────────── jumpscare ─────────────────────────
 
   /** L'urlo del jumpscare di ciascuna creatura (in faccia, non spazializzato); la voce serve a troncarlo

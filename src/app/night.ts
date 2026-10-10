@@ -12,7 +12,7 @@ import { HOUR_SECONDS, NIGHTS, VIEW, YAW, type LampLevel, type MonsterId } from 
 import type { GameEvent } from '../game/events.ts';
 import { NightSim } from '../game/sim.ts';
 import { FISH_BY_ID } from '../game/catalog.ts';
-import { LORE_TEXT, RADIO_NIGHT1, STRINGS, type Lang } from '../i18n.ts';
+import { LORE_TEXT, RADIO, STRINGS, type Lang } from '../i18n.ts';
 import { Hud } from './hud.ts';
 import type { Options } from './save.ts';
 import type { Sfx } from './sfx.ts';
@@ -55,6 +55,8 @@ export interface NightDeps {
   options: Options;
   foundLore: string[];
   assets: NightAssets;
+  /** quale notte (1, 2…); senza, la prima */
+  night?: number;
   seed: number;
   onEnd: (r: NightEnd) => void;
   onPause: () => void;
@@ -68,6 +70,9 @@ const D2R = Math.PI / 180;
 
 // dove stanno le cose, dall'occhio del pescatore (coordinate dei render, metri)
 const RADIO_AT: Vec3 = [-0.3, -1.51, -0.655];
+const LAMP_AT: Vec3 = [0, 4.17, 0.55];
+/** dove si sente Robin: steso sul bordo di sinistra verso prua, le zampe nel secchio */
+const ROBIN_AT: Vec3 = dirPos(YAW.robin, 1.3, -22);
 const HATCH_AT: Vec3 = [0.35, -7.4, -0.6];
 const BELL_YAW = -40;
 
@@ -78,6 +83,8 @@ const POSE = {
   mollyRight: 'molly_destra',
   mollyLeft: 'molly_sinistra',
   hatchConta: 'hatch_conta',
+  /** notte 2: ancora da modellare (si disegna quando il render c'è) */
+  robin: 'robin_secchio',
 } as const;
 
 function approach(cur: number, target: number, rate: number, dt: number): number {
@@ -162,7 +169,7 @@ export class Night {
   private reelByMouse = false;
   private hoverTarget: Target = null;
   // stato visivo (morbido)
-  private v = { gSale: 0, gRise: 0, gPret: 0, mR: 0, mL: 0, hConta: 0, hRise: 0, tarp: 0, toy: 0, toyX: -1, dawn: 0, rock: 0, dark: 0 };
+  private v = { gSale: 0, gRise: 0, gPret: 0, mR: 0, mL: 0, hConta: 0, hRise: 0, robin: 0, tarp: 0, toy: 0, toyX: -1, dawn: 0, rock: 0, dark: 0 };
   private gulpyDive = 0;
   private js: { killer: MonsterId; t: number; yaw: number; scream: Voice | null } | null = null;
   private lineSway = 0;
@@ -177,10 +184,18 @@ export class Night {
   /** dove si sente Gulpy: lontano mentre sale, aggrappato alla prua quando pretende (dai render) */
   private gulpyFar: Vec3;
   private bowAt: Vec3;
+  /** quale notte si gioca */
+  readonly nightNo: number;
+  /** ago del voltmetro (volt, velocità): una molla smorzata, come un ago vero */
+  private needle = { v: 13.8, vel: 0 };
+  private flickerTimer = 0;
+  /** la ninna nanna della Madre a batteria morta */
+  private lullabyV: Voice | null = null;
 
   constructor(private d: NightDeps) {
     this.S = STRINGS[d.lang];
-    this.sim = new NightSim(NIGHTS[1]!, d.seed, d.foundLore);
+    this.nightNo = NIGHTS[d.night ?? 1] ? (d.night ?? 1) : 1;
+    this.sim = new NightSim(NIGHTS[this.nightNo]!, d.seed, d.foundLore);
     this.hud = new Hud(d.ui, d.lang);
     this.sonarEl = document.createElement('div');
     this.sonarEl.className = 'sonar-full';
@@ -206,7 +221,7 @@ export class Night {
     this.bind();
     this.hud.setLamp(1);
     this.hud.setQuota(0, this.sim.cfg.quota);
-    this.hud.setClock(1, 0, 0);
+    this.hud.setClock(this.nightNo, 0, 0);
   }
 
   // ───────────────────────── avvio e chiusura ─────────────────────────
@@ -229,6 +244,9 @@ export class Night {
     this.radio?.utt?.stop();
     this.radio?.hiss?.stop(0.2);
     this.radio = null;
+    this.lullabyV?.stop(0.4);
+    this.lullabyV = null;
+    this.d.stage.lampSick = 0;
     this.d.sfx.stopLoops();
     this.hud.destroy();
     this.sonarEl.remove();
@@ -416,6 +434,11 @@ export class Night {
 
   private toggleSonar(open = !this.sonarOpen): void {
     if (this.sim.hide !== 'out' && open) return;
+    if (open && this.sim.blackout) {
+      // a batteria morta lo schermo resta nero: il tasto scatta a vuoto
+      this.d.audio.play('lamp_switch', { gain: 0.25, rate: 1.3 });
+      return;
+    }
     this.sonarOpen = open;
     this.sonarEl.classList.toggle('show', open);
     this.d.audio.play(open ? 'radio_on' : 'radio_off', { gain: 0.25 });
@@ -617,6 +640,60 @@ export class Night {
       case 'denied':
         if (e.reason === 'noFish') this.hud.toast(S.denied.noFish, '', 1.4);
         else if (e.reason === 'notFacing' && this.sim.gulpy.canBeFed) this.hud.toast(S.denied.notFacing, '', 1.2);
+        else if (e.reason === 'dark') {
+          // l'interruttore scatta, ma non succede niente
+          a.play('lamp_switch', { pos: LAMP_AT, gain: 0.35, rate: 0.85 });
+          this.hud.toast(S.denied.dark, '', 1.4);
+        }
+        break;
+      case 'robin': {
+        const bucket = this.d.stage.man.points.bucket;
+        switch (e.e) {
+          case 'climb':
+            fx.robinClimb(ROBIN_AT);
+            cap(S.captions.robinClimb);
+            break;
+          case 'reach':
+            fx.robinRattle(bucket);
+            cap(S.captions.robinRattle);
+            break;
+          case 'rattle':
+            fx.robinRattle(bucket);
+            break;
+          case 'steal':
+            fx.robinSteal(bucket, ROBIN_AT);
+            cap(S.captions.robinSteal);
+            break;
+          case 'scared':
+            fx.robinScared(ROBIN_AT);
+            cap(S.captions.robinScared);
+            break;
+          default:
+            break;
+        }
+        break;
+      }
+      case 'battery':
+        if (e.e === 'low') {
+          // l'ago entra nel rosso: la lampara comincia a tremolare
+          cap(S.captions.lampSick);
+        } else {
+          // l'ultimo sfrigolio, poi il buio: si spengono lampara e sonar
+          a.play('lamp_flicker', { pos: LAMP_AT, gain: 0.9, rate: 0.8 });
+          this.d.stage.lampDip = 1;
+          if (this.sonarOpen) this.toggleSonar(false);
+          cap(S.captions.lampDead);
+        }
+        break;
+      case 'lullaby':
+        if (e.e === 'start') {
+          // dal fondo, piano: il carillon della Madre (lo stesso del menu), ovattato, che si apre salendo.
+          // Dura quanto la canzone: se finisce prima delle sei, la Madre sale.
+          this.lullabyV = a.play('mus_title', { loop: false, gain: 0, lowpass: 320 });
+          this.lullabyV?.setGain(0.95, 5);
+          this.lullabyV?.setLowpass(5000, 16);
+          cap(S.captions.lullaby);
+        }
         break;
       case 'gulpy':
         switch (e.e) {
@@ -724,12 +801,22 @@ export class Night {
         this.stopReel();
         if (e.killer === 'mother') {
           const o = this.sim.outcome;
-          this.endResult = { kind: 'dead', killer: 'mother', cause: o.kind === 'dead' ? o.cause : undefined, stats: this.stats() };
+          const cause = o.kind === 'dead' ? o.cause : undefined;
+          this.endResult = { kind: 'dead', killer: 'mother', cause, stats: this.stats() };
           this.endTimer = 4.5;
-          // le campane della festa, ovattate, e sotto la Madre che si sveglia
-          a.play('bell_dawn', { pos: dirPos(BELL_YAW, 5, 4), gain: 0.35, lowpass: 900 });
-          a.play('mus_madre', { gain: 0.9 });
-          this.hud.toast(S.sixAm, S.quotaMissed, 4);
+          if (cause === 'lullaby') {
+            // la canzone è finita al buio: sotto la barca sale qualcosa di enorme
+            this.lullabyV?.stop(0.2);
+            this.lullabyV = null;
+            a.play('splash_big', { pos: [0, 1.2, -2.2], gain: 1, rate: 0.7 });
+            a.play('mus_madre', { gain: 1 });
+            this.d.stage.view.shake = this.d.options.reduceFlash ? 0.4 : 1.6;
+          } else {
+            // le campane della festa, ovattate, e sotto la Madre che si sveglia
+            a.play('bell_dawn', { pos: dirPos(BELL_YAW, 5, 4), gain: 0.35, lowpass: 900 });
+            a.play('mus_madre', { gain: 0.9 });
+            this.hud.toast(S.sixAm, S.quotaMissed, 4);
+          }
         } else {
           this.startJumpscare(e.killer);
           this.endResult = { kind: 'dead', killer: e.killer, stats: this.stats() };
@@ -741,6 +828,9 @@ export class Night {
       case 'won':
         this.finished = true;
         this.stopReel();
+        // salvo all'alba: il carillon si spegne
+        this.lullabyV?.stop(3);
+        this.lullabyV = null;
         this.endResult = { kind: 'won', stats: this.stats() };
         this.endTimer = 7;
         a.play('bell_dawn', { pos: dirPos(BELL_YAW, 5, 4), gain: 0.8, lowpass: 3000 });
@@ -764,7 +854,14 @@ export class Night {
   private startJumpscare(killer: MonsterId): void {
     // la camera si gira dove la creatura parte (la posa di gioco da cui partono i fotogrammi)
     const L = this.d.stage.man.layers;
-    const yaw = killer === 'gulpy' ? (L[POSE.gulpyPretende]?.yaw ?? 0) : killer === 'molly' ? this.sim.molly.yaw : (L[POSE.hatchConta]?.yaw ?? 180);
+    const yaw =
+      killer === 'gulpy'
+        ? (L[POSE.gulpyPretende]?.yaw ?? 0)
+        : killer === 'molly'
+          ? this.sim.molly.yaw
+          : killer === 'robin'
+            ? (L[POSE.robin]?.yaw ?? YAW.robin)
+            : (L[POSE.hatchConta]?.yaw ?? 180);
     this.binoUp = false;
     this.bino = 0;
     this.d.stage.view.swayYaw = this.d.stage.view.swayPitch = this.d.stage.view.steady = 0;
@@ -827,6 +924,13 @@ export class Night {
     v.hConta = approach(v.hConta, counting ? 1 : 0, counting ? 2.5 : 3.5, dt);
     v.hRise = approach(v.hRise, counting ? 1 : 0, counting ? 1.2 : 3, dt);
 
+    // Robin: sul bordo mentre sale e ruba; nella luce si ritrae (l'opacità cala con la paura)
+    const rb = sim.robin;
+    const robinT = rb && rb.present ? 1 - 0.5 * rb.fear : rb?.state === 'attack' ? 1 : 0;
+    v.robin = approach(v.robin, robinT, robinT > v.robin ? 3 : 4, dt);
+
+    this.updateBattery(dt);
+
     // telone: la tela scende sulla testa
     v.tarp = sim.hideAmount;
     const searching = h.state === 'searching' || (h.state === 'leaving' && sim.hidden);
@@ -853,12 +957,53 @@ export class Night {
       if (!this.d.assets.jumpscares[this.js.killer]) {
         if (this.js.killer === 'gulpy') v.gPret = 1;
         else if (this.js.killer === 'hatch') v.hConta = v.hRise = 1;
+        else if (this.js.killer === 'robin') v.robin = 1;
         else if (this.sim.molly.side === 'right') v.mR = 1;
         else v.mL = 1;
       }
       if (t < 0.12 && !this.d.options.reduceFlash) st.lampDip = 1;
     }
     st.update(dt);
+  }
+
+  /** Batteria (dalla notte 2): l'ago del voltmetro e la lampara che trema quando è quasi scarica. */
+  private updateBattery(dt: number): void {
+    const sim = this.sim;
+    const b = sim.cfg.battery;
+    const st = this.d.stage;
+    if (!b) return;
+    // l'ago: nel rosso proprio quando la carica scende sotto la soglia bassa; la lampara alta lo fa calare un
+    // poco (la batteria sotto sforzo), a batteria morta batte sul fermo
+    const c = sim.battery;
+    const rest = c >= b.low ? 11.6 + 2.2 * ((c - b.low) / (1 - b.low)) : 10.2 + 1.4 * (c / b.low);
+    const load = [0, 0.06, 0.2][sim.lamp]! + (sim.sonarOpen ? 0.05 : 0);
+    const target = sim.blackout ? 9.5 : rest - load;
+    const n = this.needle;
+    n.vel += ((target - n.v) * 38 - n.vel * 8) * dt;
+    n.v += n.vel * dt;
+    if (n.v < 9.85) {
+      n.v = 9.85;
+      n.vel = -n.vel * 0.3;
+    }
+    // quasi scarica: la reticella trema, e ogni tanto la luce cala di colpo con uno sfrigolio
+    const sick = !sim.blackout && sim.lamp > 0 && c < b.low ? 0.4 + 0.6 * (1 - c / b.low) : 0;
+    st.lampSick = approach(st.lampSick, sick, 2, dt);
+    if (sick > 0 && !this.finished) {
+      this.flickerTimer -= dt;
+      if (this.flickerTimer <= 0) {
+        st.lampDip = Math.max(st.lampDip, 0.3 + 0.5 * Math.random() * sick);
+        this.d.audio.play('lamp_flicker', { pos: LAMP_AT, gain: 0.25 + 0.4 * sick, rate: 0.9 + Math.random() * 0.2 });
+        this.flickerTimer = (3.2 - 2.4 * sick) * (0.5 + Math.random());
+      }
+    }
+  }
+
+  /** L'ago in radianti (0 = in alto, positivo a destra), con un filo di tremolio. */
+  private needleAngle(): number {
+    const t = this.d.stage.time;
+    const jitter = (0.012 + 0.05 * this.d.stage.lampSick) * noise1(t * 11, 7);
+    const volts = this.needle.v + (this.sim.blackout ? 0 : jitter);
+    return (-50 + (100 * (volts - 10)) / 5) * D2R;
   }
 
   private layerDraws(): (string | LayerDraw)[] {
@@ -882,6 +1027,7 @@ export class Night {
     const hc = rise(POSE.hatchConta, v.hConta, 0.15 + 0.85 * v.hRise);
     if (hc) layers.push(hc);
     layers.push('boat');
+    if (sim.cfg.battery && has('battery')) layers.push('battery');
     // canna: dritta, piegata all'abboccata, piegatissima in recupero
     const bend = sim.fishing.bend;
     layers.push(bend >= 1.4 ? 'rod2' : bend >= 0.5 ? 'rod1' : 'rod0');
@@ -890,6 +1036,7 @@ export class Night {
     if (has(POSE.gulpyPretende) && v.gPret > 0.002) layers.push({ key: POSE.gulpyPretende, opacity: v.gPret });
     if (has(POSE.mollyRight) && v.mR > 0.002) layers.push({ key: POSE.mollyRight, opacity: v.mR });
     if (has(POSE.mollyLeft) && v.mL > 0.002) layers.push({ key: POSE.mollyLeft, opacity: v.mL });
+    if (has(POSE.robin) && v.robin > 0.002) layers.push({ key: POSE.robin, opacity: v.robin });
     return layers;
   }
 
@@ -966,6 +1113,7 @@ export class Night {
       [POSE.mollyRight, v.mR],
       [POSE.mollyLeft, v.mL],
       [POSE.hatchConta, v.hConta * v.hRise],
+      [POSE.robin, v.robin],
     ];
     for (const [key, k] of shown) {
       const info = st.man.layers[key];
@@ -1024,7 +1172,9 @@ export class Night {
       bino: this.bino > 0 ? { amount: be, places } : null,
       overlay: this.overlay(),
       line: this.sim.hide === 'out' && !binoOn ? this.line() : null,
-      sonar: binoOn ? null : this.sonar.canvas,
+      // a batteria morta lo schermo del sonar è nero
+      sonar: binoOn || this.sim.blackout ? null : this.sonar.canvas,
+      gauge: this.sim.cfg.battery && !binoOn ? { angle: this.needleAngle(), alpha: 1 } : null,
       sonarGain: 0.9 + 0.2 * Math.sin(st.time * 2.3),
       ambient: 1 + v.dawn * 1.6,
       exposure: st.brightness + dawnExposure * 0.5,
@@ -1048,7 +1198,7 @@ export class Night {
     this.d.sfx.rock(v.rock);
     this.d.sfx.toy(v.toy, dirPos(180 + v.toyX * 35, 1.3, -15));
     // sibilo della lampara col livello
-    this.loops.lamp?.setGain([0.0, 0.45, 0.8][sim.lamp]!, 0.15);
+    this.loops.lamp?.setGain([0.0, 0.45, 0.8][sim.lamp]! * (1 - 0.6 * this.d.stage.lampDip), 0.05);
     // campane delle ore
     for (let i = 0; i < this.bells.length; i++) {
       this.bells[i]! -= dt;
@@ -1080,6 +1230,8 @@ export class Night {
     if (sim.molly.state === 'tantrum') danger = Math.max(danger, 0.6 + 0.4 * (sim.molly.tantrum / sim.cfg.molly.tantrumMax));
     if (sim.hatch.state === 'counting') danger = Math.max(danger, sim.hatch.countProgress * (sim.hide === 'out' ? 1 : 0.4));
     if (sim.hatch.state === 'searching') danger = Math.max(danger, 0.7);
+    if (sim.robin?.state === 'stealing') danger = Math.max(danger, sim.fish <= 1 ? 0.8 : 0.45);
+    if (sim.blackout && sim.cfg.battery) danger = Math.max(danger, 0.3 + 0.6 * (1 - sim.lullaby / sim.cfg.battery.lullaby));
     if (this.js || this.finished) danger = 0;
     this.heart = approach(this.heart, danger, 2, dt);
     if (this.heart > 0.05 && !this.loops.heart) this.loops.heart = a.play('heartbeat', { loop: true, gain: 0 });
@@ -1099,7 +1251,7 @@ export class Night {
     if (!r) return;
     const prev = r.t;
     r.t += dt;
-    const lines = RADIO_NIGHT1[this.d.lang];
+    const lines = (RADIO[this.nightNo] ?? RADIO[1]!)[this.d.lang];
     const a = this.d.audio;
     if (prev < 0 && r.t >= 0) {
       a.play('radio_on', { pos: RADIO_AT, gain: 0.8 });
@@ -1136,7 +1288,7 @@ export class Night {
     const key = shownHour * 100 + Math.floor(minutes / 10);
     if (key !== this.lastHourShown) {
       this.lastHourShown = key;
-      hud.setClock(1, shownHour, minutes);
+      hud.setClock(this.nightNo, shownHour, minutes);
     }
     hud.setQuota(sim.fish, sim.cfg.quota);
     const f = sim.fishing;
@@ -1158,6 +1310,7 @@ export class Night {
       if (sim.hide === 'in') hint = S.hints.unhide;
       else if (sim.hatch.state === 'counting') hint = S.hints.hide;
       else if (sim.gulpy.canBeFed && sim.fish > 0) hint = sim.facing(YAW.bow, VIEW.bowHalfAngle) ? S.hints.throw : '';
+      else if (sim.robin?.present && !sim.blackout) hint = S.hints.robin;
       else if (f.phase === 'bite') hint = S.hints.hook;
       else if (f.phase === 'reeling') hint = S.hints.reel;
       else if (sim.molly.present || sim.gulpy.present) hint = '';

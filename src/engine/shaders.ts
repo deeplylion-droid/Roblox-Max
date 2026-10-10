@@ -270,6 +270,41 @@ void main() {
   frag = vec4(c * uGain, 0.0);
 }`;
 
+/** L'ago del voltmetro della batteria (dalla notte 2): una lancetta rosso scuro sul quadrante renderizzato.
+ *  Il quadrante è un disco (centro e due semiassi lunghi un raggio, dall'occhio). Si disegna moltiplicando
+ *  quello che c'è sotto (blend DST×SRC): l'ago prende la luce del quadrante, al buio resta buio. */
+export const GAUGE_FS = /* glsl */ `#version 300 es
+precision highp float;
+in vec2 vUv;
+out vec4 frag;
+${RAY}
+uniform vec3 uC;       // centro del quadrante (m, dall'occhio)
+uniform vec3 uRight;   // semiasse destro (lungo un raggio)
+uniform vec3 uUp;      // semiasse alto (lungo un raggio)
+uniform float uAngle;  // radianti: 0 = in alto, positivo verso destra
+uniform float uAlpha;
+void main() {
+  vec3 d = viewRay(vUv);
+  vec3 n = normalize(cross(uRight, uUp));
+  float den = dot(d, n);
+  if (abs(den) < 1e-4) discard;
+  float t = dot(uC, n) / den;
+  if (t <= 0.0) discard;
+  vec3 p = d * t - uC;
+  vec2 q = vec2(dot(p, uRight) / dot(uRight, uRight), dot(p, uUp) / dot(uUp, uUp));
+  if (length(q) > 1.0) discard;
+  vec2 dir = vec2(sin(uAngle), cos(uAngle));
+  float along = dot(q, dir);
+  float across = abs(q.x * dir.y - q.y * dir.x);
+  float aa = max(fwidth(across), 1e-3);
+  float w = 0.03 * (1.0 - 0.5 * clamp(along / 0.8, 0.0, 1.0));    // l'ago si assottiglia verso la punta
+  float needle = (1.0 - smoothstep(w - aa, w + aa, across)) * smoothstep(-0.14 - aa, -0.14 + aa, along) * (1.0 - smoothstep(0.8 - aa, 0.8 + aa, along));
+  float hub = 1.0 - smoothstep(0.075 - aa, 0.075 + aa, length(q));
+  vec3 m = mix(vec3(1.0), vec3(0.45, 0.02, 0.016), needle * uAlpha);
+  m = mix(m, vec3(0.03), hub * uAlpha);
+  frag = vec4(m, 1.0);
+}`;
+
 /** Lenza: striscia di triangoli già in coordinate clip. */
 export const LINE_VS = /* glsl */ `#version 300 es
 layout(location = 0) in vec2 aPos;

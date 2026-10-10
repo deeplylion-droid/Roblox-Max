@@ -3,7 +3,7 @@
  * atmosfera (faro, luci), schermo del sonar, lenza, bloom e composizione finale.
  */
 import { FULLSCREEN_VS, FullscreenTri, Program, Target, createGL, hdrSupported, textureFromCanvas, type GL } from './gl.ts';
-import { ATMOS_FS, BRIGHT_FS, DOWN_FS, FINAL_FS, LAYER_FS, LINE_FS, LINE_VS, OVERLAY_FS, PERSP_FS, SCREEN_FS, UP_FS } from './shaders.ts';
+import { ATMOS_FS, BRIGHT_FS, DOWN_FS, FINAL_FS, GAUGE_FS, LAYER_FS, LINE_FS, LINE_VS, OVERLAY_FS, PERSP_FS, SCREEN_FS, UP_FS } from './shaders.ts';
 import type { LoadedLayer, Manifest, Vec3 } from './assets.ts';
 import type { View } from './view.ts';
 
@@ -83,6 +83,8 @@ export interface FrameParams {
   overlay?: Overlay | null;
   sonar: HTMLCanvasElement | null;
   sonarGain: number;
+  /** l'ago del voltmetro sullo strato della batteria (radianti, 0 = in alto) */
+  gauge?: { angle: number; alpha: number } | null;
   line: { points: Vec3[]; alpha: number } | null;
 }
 
@@ -92,6 +94,7 @@ export class Renderer {
   private pLayer: Program;
   private pAtmos: Program;
   private pScreen: Program;
+  private pGauge: Program;
   private pLine: Program;
   private pBright: Program;
   private pDown: Program;
@@ -120,6 +123,7 @@ export class Renderer {
     this.pLayer = new Program(gl, FULLSCREEN_VS, LAYER_FS, 'layer');
     this.pAtmos = new Program(gl, FULLSCREEN_VS, ATMOS_FS, 'atmos');
     this.pScreen = new Program(gl, FULLSCREEN_VS, SCREEN_FS, 'screen');
+    this.pGauge = new Program(gl, FULLSCREEN_VS, GAUGE_FS, 'gauge');
     this.pLine = new Program(gl, LINE_VS, LINE_FS, 'line');
     this.pBright = new Program(gl, FULLSCREEN_VS, BRIGHT_FS, 'bright');
     this.pDown = new Program(gl, FULLSCREEN_VS, DOWN_FS, 'down');
@@ -226,6 +230,7 @@ export class Renderer {
     if (!atmosDone) this.drawAtmos(view, f);
     if (f.boatGlows?.length) this.drawGlows(view, f.boatGlows);
     if (f.sonar) this.drawScreen(view, f);
+    if (f.gauge) this.drawGauge(view, f.gauge);
     if (f.line) this.drawLine(view, f.line);
     if (f.overlay && f.overlay.alpha > 0.001) this.drawOverlay(f.overlay);
     gl.disable(gl.BLEND);
@@ -321,6 +326,25 @@ export class Renderer {
       .f1('uRound', this.man.points.sonarRound ? 1 : 0)
       .f1('uGain', f.sonarGain)
       .tex('uTex', 0, this.sonarTex);
+    this.tri.draw();
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+  }
+
+  private drawGauge(view: View, g: { angle: number; alpha: number }): void {
+    const face = this.man.layers['battery']?.gauge;
+    if (!face || g.alpha <= 0) return;
+    const [c, right, up] = face;
+    const gl = this.gl;
+    gl.blendFunc(gl.ZERO, gl.SRC_COLOR);
+    this.pGauge
+      .use()
+      .m3('uRot', new Float32Array(view.boatRot))
+      .f2('uTan', view.tanX, view.tanY)
+      .f3('uC', ...c)
+      .f3('uRight', ...right)
+      .f3('uUp', ...up)
+      .f1('uAngle', g.angle)
+      .f1('uAlpha', g.alpha);
     this.tri.draw();
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
   }

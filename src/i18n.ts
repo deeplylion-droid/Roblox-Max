@@ -27,12 +27,16 @@ const IT = {
     hide: 'C o clic sul telone: nasconditi',
     unhide: 'C per uscire dal telone',
     turn: 'S per voltarti',
+    // ⚠️ da approvare (notte 2)
+    robin: 'Robin! Guardalo con la lampara al massimo (E)',
   },
   denied: {
     noFish: 'Il secchio è vuoto.',
     noTarget: 'Non c’è nessuno da sfamare.',
     busy: 'Non adesso.',
     notFacing: 'Devi guardare da quella parte.',
+    // ⚠️ da approvare (notte 2)
+    dark: 'La batteria è morta.',
   },
   caught: 'Hai preso',
   newEntry: 'Nuova voce nel Catalogo',
@@ -56,6 +60,7 @@ const IT = {
     lullaby: 'La lampara si è spenta e la canzone è finita prima dell’alba. La Madre è salita a prenderti.',
   },
   retry: 'Riprova',
+  nextNight: 'Notte successiva',
   menu: 'Menu principale',
   demoEnd: 'Fine della demo. Le altre notti arrivano presto.',
   optionsTitle: 'Opzioni',
@@ -151,6 +156,14 @@ const IT = {
     bell: 'la campana del paese',
     left: 'sinistra',
     right: 'destra',
+    // ⚠️ da approvare (notte 2)
+    robinClimb: 'zampette sul bordo',
+    robinRattle: 'il secchio tintinna',
+    robinSteal: 'un pesce strappato dal secchio',
+    robinScared: 'qualcosa scappa in acqua',
+    lampSick: 'la lampara sfrigola',
+    lampDead: 'la lampara si spegne',
+    lullaby: 'un carillon, dal fondo del mare',
   },
   hatchCount: ['Uno…', 'Due…', 'Tre…', 'Quattro…', 'Cinque…', 'Sei…', 'Sette…', 'Otto…', 'Nove…', 'Dieci!'],
   hatchReady: 'Chi c’è c’è, chi non c’è non c’è!',
@@ -183,12 +196,14 @@ const EN: typeof IT = {
     hide: 'C or click the tarp: hide',
     unhide: 'C to come out from under the tarp',
     turn: 'S to turn around',
+    robin: 'Robin! Face him with the lamp on high (E)',
   },
   denied: {
     noFish: 'The bucket is empty.',
     noTarget: 'Nobody to feed.',
     busy: 'Not now.',
     notFacing: 'You have to look that way.',
+    dark: 'The battery is dead.',
   },
   caught: 'You caught',
   newEntry: 'New Catalogue entry',
@@ -210,6 +225,7 @@ const EN: typeof IT = {
     lullaby: 'The lamp went dark and the song ended before dawn. The Mother came up for you.',
   },
   retry: 'Try again',
+  nextNight: 'Next night',
   menu: 'Main menu',
   demoEnd: 'End of the demo. More nights are coming.',
   optionsTitle: 'Options',
@@ -305,6 +321,13 @@ const EN: typeof IT = {
     bell: 'the village bell',
     left: 'left',
     right: 'right',
+    robinClimb: 'little legs on the gunwale',
+    robinRattle: 'the bucket rattles',
+    robinSteal: 'a fish yanked from the bucket',
+    robinScared: 'something scurries into the water',
+    lampSick: 'the lamp sputters',
+    lampDead: 'the lamp goes out',
+    lullaby: 'a music box, from the bottom of the sea',
   },
   hatchCount: ['One…', 'Two…', 'Three…', 'Four…', 'Five…', 'Six…', 'Seven…', 'Eight…', 'Nine…', 'Ten!'],
   hatchReady: 'Ready or not, here I come!',
@@ -358,6 +381,33 @@ export const RADIO_NIGHT1: Record<Lang, RadioLine[]> = {
     { at: 19.2, text: '' },
   ],
 };
+
+/** ⚠️ da approvare: la chiamata della seconda notte (la batteria e Robin). */
+export const RADIO_NIGHT2: Record<Lang, RadioLine[]> = {
+  it: [
+    { at: 0.0, text: 'Pronto? Seconda notte.' },
+    { at: 1.8, text: 'Dieci pesci, stavolta. E la lampara va a batteria.' },
+    { at: 5.2, text: 'L’ago della batteria è sul banco, accanto al secchio.' },
+    { at: 8.7, text: 'Se scende a zero resti al buio, e al buio lei canta.' },
+    { at: 12.2, text: 'Robin ruba dal secchio: sparagli in faccia la lampara al massimo.' },
+    { at: 16.5, text: 'Ma la luce alta si mangia la batteria.' },
+    { at: 19.1, text: 'Buona pesca.' },
+    { at: 20.5, text: '' },
+  ],
+  en: [
+    { at: 0.0, text: 'Hello? Second night.' },
+    { at: 1.8, text: 'Ten fish this time. And the lamp runs on a battery.' },
+    { at: 5.2, text: 'The battery’s needle is on the bench, by the bucket.' },
+    { at: 8.7, text: 'If it hits zero you’re in the dark, and in the dark she sings.' },
+    { at: 12.2, text: 'Robin steals from the bucket: blast the lamp on high in his face.' },
+    { at: 16.5, text: 'But high light eats the battery.' },
+    { at: 19.1, text: 'Good fishing.' },
+    { at: 20.5, text: '' },
+  ],
+};
+
+/** La chiamata alla radio di ogni notte. */
+export const RADIO: Record<number, Record<Lang, RadioLine[]>> = { 1: RADIO_NIGHT1, 2: RADIO_NIGHT2 };
 
 export const STRINGS: Record<Lang, typeof IT> = { it: IT, en: EN };
 

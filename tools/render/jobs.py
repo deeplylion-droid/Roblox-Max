@@ -266,18 +266,33 @@ def render_sprite(q, key, objs, space='boat', margin=12, holdout_boat=True, samp
 
 
 def job_props(q):
+    """Oggetti di scena come strati. Variabile d'ambiente PROPS=fish,rod,battery per renderne solo alcuni."""
+    only = [k for k in os.environ.get('PROPS', '').split(',') if k]
     info, parts, mats = build_scene(fish=0, rod=False)
     panorama_camera()
     # pesci nel secchio
-    for n in (2, 5, 9):
-        fish = boat.build_bucket(mats, n, name=f'Fish{n}', with_body=False)
-        render_sprite(q, f'fish{n}', fish)
-        for o in fish:
-            o.hide_render = True
+    if not only or 'fish' in only:
+        for n in (2, 5, 9):
+            fish = boat.build_bucket(mats, n, name=f'Fish{n}', with_body=False)
+            render_sprite(q, f'fish{n}', fish)
+            for o in fish:
+                o.hide_render = True
     # canna: riposo, abboccata, recupero
-    for bend, key in ((0.0, 'rod0'), (1.0, 'rod1'), (2.0, 'rod2')):
-        obs, tip = boat.build_rod(mats, bend=bend, name=key)
-        render_sprite(q, key, obs, extra={'tip': [round(float(tip[i] - EYE[i]), 4) for i in range(3)]})
+    if not only or 'rod' in only:
+        for bend, key in ((0.0, 'rod0'), (1.0, 'rod1'), (2.0, 'rod2')):
+            obs, tip = boat.build_rod(mats, bend=bend, name=key)
+            render_sprite(q, key, obs, extra={'tip': [round(float(tip[i] - EYE[i]), 4) for i in range(3)]})
+            for o in obs:
+                o.hide_render = True
+    # la batteria della lampara (dalla notte 2): il quadrante senza ago, l'ago lo disegna il gioco
+    if not only or 'battery' in only:
+        import batteria
+        obs = batteria.build_battery(needle=None)
+        c, n, right, up = batteria.battery_frame()
+        face = c + n * 0.0025 - np.array(EYE)
+        r = batteria.GAUGE_R
+        gauge = [[round(float(v[i]), 4) for i in range(3)] for v in (face, right * r, up * r)]
+        render_sprite(q, 'battery', obs, extra={'gauge': gauge})
         for o in obs:
             o.hide_render = True
 

@@ -18,7 +18,7 @@ const canvas = document.getElementById('scene') as HTMLCanvasElement;
 const ui = document.getElementById('ui') as HTMLDivElement;
 
 /** Strati della notte, nell'ordine in cui vanno caricati (le pose delle creature possono mancare). */
-const GAME_LAYERS = ['world', 'boat', 'rod0', 'rod1', 'rod2', 'fish2', 'fish5', 'fish9', 'gulpy_sale', 'hatch_conta', 'gulpy_pretende', 'molly_destra', 'molly_sinistra'];
+const GAME_LAYERS = ['world', 'boat', 'rod0', 'rod1', 'rod2', 'fish2', 'fish5', 'fish9', 'gulpy_sale', 'hatch_conta', 'gulpy_pretende', 'molly_destra', 'molly_sinistra', 'battery', 'robin_secchio'];
 
 /** ?speed=N accelera il tempo di gioco (per le prove automatiche nel browser senza GPU). */
 const SPEED = Math.max(0.1, Number(new URLSearchParams(location.search).get('speed') ?? 1) || 1);

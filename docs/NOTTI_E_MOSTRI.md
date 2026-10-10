@@ -27,22 +27,37 @@ grigia e bagnata e la stessa melma. **Non parlano** (l'unica eccezione resta la 
 
 ## Notte 2 — La batteria
 
-- Sul pagliolo, ai piedi del pescatore, una **batteria d'auto** con un voltmetro ad ago: la vedi in basso
-  girandoti, come il sonar. Niente barre sullo schermo. Sta fuori da tutti i fotogrammi dei jumpscare già
-  renderizzati (nota dell'utente: niente oggetti nuovi dove si vedono i jumpscare), che inquadrano solo
-  la creatura, quasi in orizzontale.
+- Una **batteria d'auto** con un voltmetro ad ago. Per la nota dell'utente (niente oggetti nuovi dove si
+  vedono i jumpscare già renderizzati) non sta più sul pagliolo ma **sul banco di prua, a destra del
+  secchio** (circa 26° a destra), con i cavi che corrono lungo lo scafo fino al palo della lampara e il
+  voltmetro su una staffa girato verso il pescatore: la vedi guardando il secchio. Niente barre sullo
+  schermo. *Da approvare*: `docs/concept/batteria_anteprima.jpg` e `batteria_vicino.jpg`.
+- **Nel gioco** l'ago lo disegna il motore sopra il quadrante renderizzato: nel rosso esattamente quando la
+  carica scende sotto la soglia bassa (15%), cala un poco con la lampara alta (la batteria sotto sforzo),
+  trema appena; a batteria morta batte sul fermo.
 - La **lampara** consuma secondo il livello (spenta niente, bassa poco, alta molto); il **sonar** aperto
   consuma un po'. La carica basta per tenere la lampara bassa tutta la notte, non alta.
 - Quando l'ago scende nel rosso la lampara comincia a tremolare.
 - **Quando la batteria muore** si spengono lampara e sonar. Dal fondo, piano, sale la ninna nanna della
   Madre (quella del menu, al carillon). Se suonano le sei prima che la canzone finisca, sei salvo; se
   finisce prima, la Madre sale. È il momento di Freddy quando salta la corrente in FNAF, con la nostra
-  canzone.
+  canzone. Nel gioco la canzone è proprio `mus_title` (64 secondi, quanto il tempo che ti resta): parte
+  ovattata e si apre salendo; se finisce, un tonfo enorme sotto la barca, la barca che sobbalza, il tema
+  della Madre e il buio.
 - **La scelta di ogni minuto**: la luce attira i pesci (serve per la quota) e scaccia Robin, ma costa. Al
   buio si pesca poco e le creature arrivano più vicine prima che te ne accorga.
 - **Quota 10 pesci** (prima notte 8). Gulpy, Molly e Hatch tornano più spesso; Hatch può arrivare mentre
   c'è Molly.
 - La radio spiega la batteria e Robin in poche frasi; due o tre oggetti di lore nuovi da pescare.
+
+### Stato nel gioco (10 ottobre)
+
+La notte 2 si gioca: dal menu con **Continua** dopo aver vinto la prima, con **Notte successiva** alla fine
+della prima, o con `?notte=2` nell'indirizzo (prove). C'è tutto tranne **Robin visibile**: finché non è
+scelta la testa e fatto il modello, Robin si sente soltanto (suoni provvisori fatti con i file di scena:
+zampette, secchio che tintinna, pesce strappato, fuga in acqua) e si vede sul sonar; il jumpscare è un urlo
+sintetizzato. *Da approvare*: la chiamata alla radio della notte 2, i sottotitoli dei suoni nuovi, il
+suggerimento per Robin, il messaggio «La batteria è morta.» (`src/i18n.ts`, segnati ⚠️).
 
 ## I quattro mostri nuovi
 

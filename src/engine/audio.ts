@@ -31,6 +31,8 @@ export interface Voice {
   setGain(g: number, ramp?: number): void;
   setRate(r: number): void;
   setPos(p: Vec3): void;
+  /** sposta il passa-basso (solo se la voce è partita con lowpass) */
+  setLowpass(hz: number, ramp?: number): void;
   readonly ended: boolean;
 }
 
@@ -200,8 +202,9 @@ export class AudioEngine {
       g.gain.linearRampToValueAtTime(target, now + o.fadeIn);
     } else g.gain.value = target;
     let node: AudioNode = src;
+    let lp: BiquadFilterNode | null = null;
     if (o.lowpass) {
-      const lp = ctx.createBiquadFilter();
+      lp = ctx.createBiquadFilter();
       lp.type = 'lowpass';
       lp.frequency.value = o.lowpass;
       node.connect(lp);
@@ -244,6 +247,9 @@ export class AudioEngine {
       },
       setPos(p: Vec3) {
         if (panner) setPannerPos(panner, p);
+      },
+      setLowpass(hz: number, ramp = 0.3) {
+        lp?.frequency.setTargetAtTime(hz, ctx.currentTime, ramp);
       },
       get ended() {
         return ended;

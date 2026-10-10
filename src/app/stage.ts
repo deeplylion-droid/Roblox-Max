@@ -40,6 +40,8 @@ export class Stage {
   lampTarget = 1;
   /** calo improvviso della lampara (sfarfallio) */
   lampDip = 0;
+  /** batteria quasi scarica (dalla notte 2): la reticella trema e ronza di più (0..1) */
+  lampSick = 0;
   /** luminosità scelta nelle opzioni */
   brightness = 1;
 
@@ -65,7 +67,8 @@ export class Stage {
     const t = this.time;
     const l = this.lampShown;
     const base = l <= 1 ? l : 1 + (l - 1) * 0.7;
-    const flicker = 1 + 0.03 * Math.sin(t * 31) * Math.sin(t * 17.3);
+    const sick = this.lampSick;
+    const flicker = 1 + (0.03 + 0.09 * sick) * Math.sin(t * 31) * Math.sin(t * 17.3) - 0.07 * sick * Math.abs(Math.sin(t * 61.7) * Math.sin(t * 7.1));
     return Math.max(0, base * flicker * (1 - 0.75 * this.lampDip));
   }
 

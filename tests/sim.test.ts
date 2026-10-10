@@ -277,6 +277,26 @@ describe('Notte 2', () => {
     expect(sim.playing).toBe(true);
   });
 
+  it('quando canta la Madre i mostri se ne vanno e non tornano finché la canzone non finisce', () => {
+    const r = N2.robin!;
+    const sim = new NightSim(quiet2(10), 6);
+    sim.fish = 5;
+    sim.setView(YAW.rod, false);
+    run(sim, 10 + r.climb + 0.5);
+    expect(sim.robin!.state).toBe('stealing');
+    // la batteria muore mentre Robin ruba
+    sim.battery = 1e-6;
+    const ev = run(sim, 2);
+    expect(sim.blackout).toBe(true);
+    expect(ev.some((e) => e.t === 'robin' && e.e === 'scared')).toBe(true);
+    // per tutta la canzone nessuno sale a bordo: si muore solo per la Madre
+    const ev2 = run(sim, N2.battery!.lullaby);
+    expect(ev2.some((e) => e.t === 'robin' && (e.e === 'climb' || e.e === 'steal'))).toBe(false);
+    expect(ev2.some((e) => e.t === 'gulpy' || e.t === 'molly' || e.t === 'hatch')).toBe(false);
+    expect(sim.fish).toBe(5);
+    expect(sim.outcome).toEqual({ kind: 'dead', killer: 'mother', cause: 'lullaby' });
+  });
+
   it('un bot esperto supera quasi sempre la seconda notte', () => {
     let wins = 0;
     for (let seed = 1; seed <= 30; seed++) {

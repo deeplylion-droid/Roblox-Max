@@ -301,6 +301,13 @@ export class NightSim {
       this.emit({ t: 'battery', e: 'dead' });
       this.lullaby = b.lullaby;
       this.emit({ t: 'lullaby', e: 'start' });
+      // ⚠️ da approvare: quando canta la Madre i bambini scappano (come in FNAF, quando salta la corrente
+      // resta solo Freddy): niente più visite fino alla fine della canzone
+      const w = this.world;
+      this.gulpy.retreat(w);
+      this.molly.retreat();
+      this.hatch.retreat(w);
+      this.robin?.retreat(w);
     }
   }
 
@@ -371,8 +378,9 @@ export class NightSim {
       if (who === a && this.active(b)) return false;
       if (who === b && this.active(a)) return false;
     }
-    // niente nuovi eventi negli ultimi secondi prima dell'alba
+    // niente nuovi eventi negli ultimi secondi prima dell'alba, né mentre canta la Madre
     if (this.nightLength - this.time < 12) return false;
+    if (this.blackout) return false;
     return true;
   }
 
