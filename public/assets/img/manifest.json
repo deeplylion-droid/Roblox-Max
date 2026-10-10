@@ -442,7 +442,7 @@
     "ambient": {
      "file": "hatch_bocca_chiusa_ambient.webp",
      "res": 1.0,
-     "scale": 0.77
+     "scale": 6.0
     },
     "lamp": {
      "file": "hatch_bocca_chiusa_lamp.webp",
