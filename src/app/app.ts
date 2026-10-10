@@ -15,6 +15,10 @@ type Mode = 'warning' | 'title' | 'intro' | 'night' | 'paused' | 'static' | 'end
 
 const isElectron = navigator.userAgent.includes('Electron');
 
+/** La pagina del gioco su Steam (per il tasto «Aggiungi alla lista dei desideri» alla fine della demo): si
+ *  mette quando la pagina esiste. In Electron i link si aprono nel browser (electron/main.cjs). */
+const STEAM_URL: string | null = null;
+
 /** Fino a che notte arriva questa build: VITE_ULTIMA_NOTTE=1 per la demo della sola prima notte. */
 const NIGHT_LIMIT = Number(import.meta.env.VITE_ULTIMA_NOTTE) || Infinity;
 
@@ -246,6 +250,7 @@ export class App {
         lore: r.stats.lore.length,
         demoEnd: r.kind === 'won' && this.nightNo >= lastNight(),
         onNext: r.kind === 'won' && this.nightNo < lastNight() ? () => this.intro(this.nightNo + 1) : null,
+        onWishlist: STEAM_URL ? () => window.open(STEAM_URL, '_blank') : null,
         onRetry: () => this.intro(),
         onMenu: () => this.title(),
       });

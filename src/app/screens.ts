@@ -412,7 +412,7 @@ export class Screens {
     this.clear();
   }
 
-  results(o: { won: boolean; text: string; caught: number; fed: number; lore: number; demoEnd: boolean; onNext?: (() => void) | null; onRetry: () => void; onMenu: () => void }): void {
+  results(o: { won: boolean; text: string; caught: number; fed: number; lore: number; demoEnd: boolean; onNext?: (() => void) | null; onWishlist?: (() => void) | null; onRetry: () => void; onMenu: () => void }): void {
     const S = this.S;
     const stats = h(
       'div',
@@ -424,6 +424,7 @@ export class Screens {
     const menu = h('div', { class: 'menu' });
     if (!o.won) menu.append(button(S.retry, o.onRetry, 'start'));
     if (o.won && o.onNext) menu.append(button(S.nextNight, o.onNext, 'start'));
+    if (o.demoEnd && o.onWishlist) menu.append(button(S.wishlist, o.onWishlist, 'start'));
     menu.append(button(S.menu, o.onMenu, 'back'));
     const el = h('div', { class: `screen ${o.won ? 'dawn' : 'death'} fade-in` }, h('h2', {}, o.won ? `${S.sixAm} · ${S.survived}` : S.deathTitle), h('p', {}, o.text), stats);
     if (o.demoEnd) el.append(h('p', { class: 'muted' }, S.demoEnd));
