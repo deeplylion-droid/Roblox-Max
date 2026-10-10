@@ -18,12 +18,18 @@ dissolto sopra lo strato principale (vedi jobs.job_creature: le opzioni 'visibil
     molly_sinistra_secondo
     hatch_bocca_mezza        Hatch con la bocca mezza chiusa (hatch.build(bocca=0,5)) …
     hatch_bocca_chiusa       … e chiusa, resta una fessura (bocca=0): da alternare a ogni numero della conta
+    archie_trombetta_mezza   Archie (notte 3) che prende fiato nella trombetta: la carta si srotola a metà
+                             (archie.build(srotolata=0,5)) …
+    archie_trombetta_tutta   … e tutta, distesa sulla lampara con la piuma in punta (srotolata=1): sulla barca il gioco
+                             la srotola a metà e la riavvolge (la posa, archie_soffia, la tiene arrotolata); quella tutta
+                             distesa è il soffio
 
 Ogni funzione costruisce la creatura nella STESSA posizione della posa di gioco e restituisce (tutti gli oggetti
 della creatura, gli oggetti della testa da tenere visibili). La sistemazione è copiata da scena_creature
 (gulpy_pretende, molly, hatch_conta), che non accettano i parametri nuovi: se la posa cambia là va cambiata anche
 qui. Se la posa principale è già stata costruita nella stessa sessione (scena_creature.LAST_M), le funzioni
-controllano che la trasformazione sia la stessa e si fermano se non lo è.
+controllano che la trasformazione sia la stessa e si fermano se non lo è. Archie fa eccezione: la sua posa
+(scena_creature.archie_soffia) accetta già i parametri delle varianti, e qui si usa quella.
 Con i parametri a riposo i modelli sono identici a prima, e nelle varianti cambiano solo i pezzi della testa
 (GULPY_TESTA, MOLLY_TESTA, HATCH_TESTA): il corpo resta lo stesso, quindi le maschere combaciano.
 
@@ -37,11 +43,12 @@ era mascella: una toppa con la sola testa, disegnata sopra lo strato principale,
 vecchia. Dietro quella striscia c'è quasi solo il corpo (collo, petto, spalle): basta rendere visibile nella toppa
 anche il corpo (GULPY_CORPO, HATCH_CORPO) tenendo il riquadro sulla sola testa (jobs.render_sprite ha già rect_objs),
 e nel gioco far sfumare lo strato principale dentro il riquadro mentre entra la toppa. La mascella di Gulpy più chiusa
-(−10°) invece copre di più e non scopre niente.
+(−10°) invece copre di più e non scopre niente. Lo stesso per la trombetta di Archie: srotolandosi lascia vuoto il
+posto della spirale, quindi nelle sue toppe si vede anche il collo (ARCHIE_CORPO) col riquadro sulla testa.
 
 Anteprime, dall'occhio del pescatore e strette sulla testa, la posa di base accanto alle varianti:
-    nice -n 10 tools/.venv/bin/python tools/render/pose_animate.py [gulpy] [molly] [hatch] [--fast] [--tavole]
-    → docs/concept/animazioni/gulpy_mascella.jpg, molly_occhi.jpg (i due lati), hatch_bocca.jpg
+    nice -n 10 tools/.venv/bin/python tools/render/pose_animate.py [gulpy] [molly] [hatch] [archie] [--fast] [--tavole]
+    → docs/concept/animazioni/gulpy_mascella.jpg, molly_occhi.jpg (i due lati), hatch_bocca.jpg, archie_trombetta.jpg
 """
 from __future__ import annotations
 
@@ -65,6 +72,7 @@ FAST = '--fast' in sys.argv
 GULPY_MASCELLA = {'chiusa': -10.0, 'aperta': 10.0}   # gradi attorno alla cerniera (+ apre)
 MOLLY_PRIMO = 0                                      # l'occhio che si chiude per primo (molly.EYES): quello che ti fissa
 HATCH_BOCCA = {'mezza': 0.5, 'chiusa': 0.0}          # apertura (1 com'è)
+ARCHIE_TROMBETTA = {'mezza': 0.5, 'tutta': 1.0}      # quanto è srotolata la trombetta (0 com'è, arrotolata)
 
 # gli oggetti della testa: quello che cambia e quello che sta dentro la faccia (così la toppa non ha buchi);
 # il resto della creatura fa da maschera
@@ -74,6 +82,9 @@ HATCH_TESTA = ('HatchHead', 'HatchEye*', 'HatchTeeth', 'HatchSlime')
 # il corpo dietro le mascelle (vedi sopra, «Attenzione, le mascelle»)
 GULPY_CORPO = ('GulpyBody',)
 HATCH_CORPO = ('HatchBody',)
+# Archie: la testa con la trombetta, e il collo dietro (scena_creature.ARCHIE_TESTA e ARCHIE_CORPO)
+ARCHIE_TESTA = SC.ARCHIE_TESTA
+ARCHIE_CORPO = SC.ARCHIE_CORPO
 
 
 def _base(name):
@@ -186,6 +197,21 @@ def hatch_bocca_chiusa():
     return hatch_conta(bocca=HATCH_BOCCA['chiusa'])
 
 
+def archie_soffia(srotolata=0.0):
+    """Come scena_creature.archie_soffia (accanto alla lampara), con la trombetta srotolata per 'srotolata': la posa
+    accetta già il parametro, quindi qui non c'è niente da copiare."""
+    obs = SC.archie_soffia(srotolata=srotolata)
+    return obs, _testa(obs, ARCHIE_TESTA)
+
+
+def archie_trombetta_mezza():
+    return archie_soffia(srotolata=ARCHIE_TROMBETTA['mezza'])
+
+
+def archie_trombetta_tutta():
+    return archie_soffia(srotolata=ARCHIE_TROMBETTA['tutta'])
+
+
 def _toppa(fn, base, testa, corpo=()):
     """La voce di una toppa. Con corpo (le mascelle): nella toppa si vede anche il corpo dietro la testa, perché la
     mascella che si sposta scopre una striscia che nello strato principale era mascella; il riquadro resta sulla
@@ -207,6 +233,8 @@ TOPPE = {
     'molly_sinistra_secondo': _toppa(molly_sinistra_secondo, 'molly_sinistra', MOLLY_TESTA),
     'hatch_bocca_mezza': _toppa(hatch_bocca_mezza, 'hatch_conta', HATCH_TESTA, HATCH_CORPO),
     'hatch_bocca_chiusa': _toppa(hatch_bocca_chiusa, 'hatch_conta', HATCH_TESTA, HATCH_CORPO),
+    'archie_trombetta_mezza': _toppa(archie_trombetta_mezza, 'archie_soffia', ARCHIE_TESTA, ARCHIE_CORPO),
+    'archie_trombetta_tutta': _toppa(archie_trombetta_tutta, 'archie_soffia', ARCHIE_TESTA, ARCHIE_CORPO),
 }
 
 
@@ -226,7 +254,9 @@ def _posa_di_gioco(fn, testa):
 
 
 # su che cosa si stringe la camera, se non su tutta la testa (la pelle della testa di Gulpy arriva fino al salvagente)
-INQUADRA = {'gulpy': ('GulpyEye*', 'GulpyTeeth', 'GulpyThroat', 'GulpySlimeMouth')}
+INQUADRA = {'gulpy': ('GulpyEye*', 'GulpyTeeth', 'GulpyThroat', 'GulpySlimeMouth'),
+            # Archie: la testa e la trombetta, che nella prima variante costruita (tutta distesa) arriva alla lampara
+            'archie': ('ArchieHead', 'ArchieMouthpiece', 'ArchieBlower', 'ArchieFeather')}
 
 # per ogni anteprima: (nome del file, righe, nota); ogni riga è (titolo della riga, [(titolo, funzione che costruisce
 # la posa, colonna)]); la base si costruisce per prima (la camera si punta su di lei)
@@ -250,6 +280,14 @@ ANTEPRIME = {
               (f'bocca mezza chiusa ({_num(HATCH_BOCCA["mezza"])}) · hatch_bocca_mezza', hatch_bocca_mezza, 1),
               (f'bocca chiusa ({_num(HATCH_BOCCA["chiusa"])}) · hatch_bocca_chiusa', hatch_bocca_chiusa, 2)]),
     ], 'La mascella sale ruotando dietro la testa; i denti di vetro di sotto si ripiegano dentro la bocca.'),
+    # la variante tutta distesa si costruisce per prima: la camera deve tenere dentro la trombetta fino alla lampara
+    'archie': ('archie_trombetta', [
+        ('', [(f'tutta srotolata ({_num(ARCHIE_TROMBETTA["tutta"])}) · archie_trombetta_tutta', archie_trombetta_tutta, 2),
+              ('posa di base, arrotolata · archie_soffia', _posa_di_gioco(SC.archie_soffia, ARCHIE_TESTA), 0),
+              (f'srotolata a metà ({_num(ARCHIE_TROMBETTA["mezza"])}) · archie_trombetta_mezza', archie_trombetta_mezza, 1),
+              ('prende fiato, la gola gonfia · archie_fiato', _posa_di_gioco(lambda: SC.archie_soffia(fiato=1.0), ARCHIE_TESTA), 3)]),
+    ], 'Sulla barca prende fiato nella trombetta: la carta si srotola a metà e si riavvolge, piano. Tutta distesa sulla '
+       'lampara è il soffio; la gola gonfia (archie_fiato, in scena_creature) è il risucchio lungo prima di soffiare.'),
 }
 
 

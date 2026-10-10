@@ -5,9 +5,10 @@ Sono fotogrammi a tutto schermo (non strati del panorama), visti dall'occhio del
 lo sfondo (mondo + barca) si rende una volta sola, la creatura in ogni fotogramma con il resto della
 scena come maschera; poi si compongono e si codificano come gli altri render (overlays.json → jumpscares).
 Molly si rende sul lato destro: per il sinistro il motore specchia l'immagine.
+Archie (notte 3) arriva dopo che il vetro della lampara è esploso: nella sua scena la lampara è spenta.
 
 Uso: tools/.venv/bin/python tools/render/jobs.py jumpscare --quality preview   (JUMPSCARES=gulpy,molly,hatch,robin;
-JS_ANTEPRIMA=1 per lasciare i fotogrammi in cache senza toccare il gioco)
+JS_ANTEPRIMA=1 per lasciare i fotogrammi in cache senza toccare il gioco; Archie si chiede a parte: JUMPSCARES=archie)
 """
 from __future__ import annotations
 
@@ -18,7 +19,7 @@ import time
 
 import bpy
 import numpy as np
-from mathutils import Matrix, Vector
+from mathutils import Matrix, Quaternion, Vector
 
 import scena_creature as sc
 from common import CACHE, EYE, OUT_IMG, log, perspective_camera, render
@@ -106,12 +107,72 @@ def robin_attack():
     return obs, M0, M1, aim
 
 
-ATTACKS = {'gulpy': gulpy_attack, 'molly': molly_attack, 'hatch': hatch_attack, 'robin': robin_attack}
+def _lampara_esplosa():
+    """La lampara è appena esplosa: il vetro non c'è più, la reticella e la lampadina di servizio sono spente, e con
+    loro tutto quello che illumina la lampara (le sue luci, il bagliore sul mare). Restano la luna e la lanterna."""
+    for o in bpy.data.objects:
+        if o.name.startswith('LampGlass') or o.lightgroup == 'lamp':
+            o.hide_render = True
+
+
+def _occhi_accesi(obs, forza=2.5):
+    """Gli occhi che brillano al buio, come nel gioco a lampara spenta (la stessa tinta verdognola)."""
+    for o in obs:
+        if o.type != 'MESH' or 'Eye' not in o.name or not o.data.materials:
+            continue
+        m = o.data.materials[0].copy()
+        m.name = o.data.materials[0].name + 'Buio'
+        for n in m.node_tree.nodes:
+            if n.type == 'BSDF_PRINCIPLED':
+                n.inputs['Emission Color'].default_value = (0.55, 0.70, 0.62, 1.0)
+                n.inputs['Emission Strength'].default_value = forza
+        o.data.materials[0] = m
+
+
+def archie_attack():
+    import archie as ar
+    # ha soffiato con la lampara accesa e il vetro è esploso: nel buio la trombetta si è riavvolta di scatto, gli occhi
+    # brillano; si stacca dalla lampara e ti viene addosso. La testa gira appena verso di te (il muso ti passa accanto,
+    # a sinistra: si vedono di tre quarti i denti e l'occhio) e alza il muso; il collo resta dietro la testa
+    _lampara_esplosa()
+    M0, kw = sc.archie_posa()
+    sc.LAST_M['archie_soffia'] = M0
+    obs = sc.place(ar.build(**kw), M0)
+    _occhi_accesi(obs)
+    fr = ar.testa_frame(kw['lampara'])
+    R0 = M0.to_3x3()
+    h0 = M0 @ Vector(tuple(map(float, ar.HEAD)))
+    f0 = (R0 @ Vector(tuple(map(float, fr.dir((0.0, -1.0, 0.0)))))).normalized()
+    v = (h0 - Vector(EYE)).normalized()
+    vh = Vector((v.x, v.y, 0.0)).normalized()
+    left = Vector((0.0, 0.0, 1.0)).cross(vh)
+    side = math.radians(ARCHIE_JS['lato'])
+    want = (-vh * math.cos(side) + left * math.sin(side)).normalized()
+    turn = math.atan2(want.y, want.x) - math.atan2(f0.y, f0.x)
+    q = Quaternion((0.0, 0.0, 1.0), turn)
+    f1 = q @ f0
+    axis = f1.cross(Vector((0.0, 0.0, 1.0))).normalized()
+    q = Quaternion(axis, math.radians(ARCHIE_JS['muso']) - math.asin(max(-1.0, min(1.0, f1.z)))) @ q
+    target = Vector(EYE) + v * ARCHIE_JS['dist']
+    M1 = Matrix.Translation(target) @ q.to_matrix().to_4x4() @ Matrix.Translation(-h0) @ M0
+    # la camera mira un po' sotto il centro della testa: alla fine nel quadro restano le mascelle coi denti
+    aim = M0 @ Vector(tuple(float(x) for x in ar.HEAD + np.array((0.0, 0.0, -0.05))))
+    return obs, M0, M1, aim
+
+
+# Archie alla fine del jumpscare: a quanti metri dall'occhio arriva il centro della testa, di quanti gradi il muso passa
+# a sinistra della camera e quanto guarda in giù (gradi, negativo)
+ARCHIE_JS = {'dist': 0.50, 'lato': 35.0, 'muso': -8.0}
+
+ATTACKS = {'gulpy': gulpy_attack, 'molly': molly_attack, 'hatch': hatch_attack, 'robin': robin_attack,
+           'archie': archie_attack}
 
 # Una luce calda vicino all'occhio, dalla parte della lanterna, che illumina soltanto la creatura (si accende dopo lo
 # sfondo): Robin ha la lampara alle spalle e da vicino la sua faccia sarebbe nera; così esce dal buio man mano che
 # arriva addosso. energia in watt, dist in metri dall'occhio verso la lanterna
-FILL = {'robin': {'energy': 3.0, 'dist': 0.35}}
+FILL = {'robin': {'energy': 3.0, 'dist': 0.35},
+        # Archie arriva nel buio (la lampara è esplosa): lo illuminano la lanterna, la luna alle spalle e questa luce
+        'archie': {'energy': 3.0, 'dist': 0.35}}
 
 
 def _fill_light(cfg):

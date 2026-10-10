@@ -13,6 +13,9 @@ mare nasconde la parte sott'acqua.
     robin_secchio    Robin steso sul bordo sinistro verso prua, il braccio lunghissimo nel secchio (notte 2)
     robin_strizza    toppa di robin_secchio: la sola testa, che strizza gli occhi nella luce della lampara
     robin_chiusi     toppa di robin_secchio: la sola testa a occhi chiusi (il battito di ciglia)
+    archie_soffia    Archie che sale dal mare a destra della lampara, il collo dritto, la testa piegata sul vetro
+                     con la trombetta puntata (notte 3; la trombetta arrotolata)
+    archie_fiato     toppa di archie_soffia: la testa con la gola gonfia, il risucchio prima di soffiare
 
 Le «toppe» sono pose uguali a quella principale con la sola parte che cambia visibile (il resto della creatura
 fa da maschera, come la barca): il gioco le dissolve sopra lo strato principale. Le opzioni (quarto elemento
@@ -133,6 +136,14 @@ def hatch_conta():
 ROBIN_TESTA = ('RobinHead', 'RobinEye*', 'RobinLid*', 'RobinThroat', 'RobinTeeth', 'RobinSlime')
 ROBIN_TOPPA = {'visibili': ROBIN_TESTA, 'occhi': False, 'yaw_di': 'robin_secchio'}
 
+# La testa di Archie nelle toppe: la pelle della testa, gli occhi, i denti, la bava e la trombetta (bocchino, carta e
+# piuma). La trombetta che si srotola lascia vuoto il posto dove nello strato principale c'era la spirale: nella toppa
+# si vede anche il collo ('ArchieSkin'), con il riquadro sulla sola testa, e il gioco sfuma lo strato principale dove
+# la toppa è vuota (come le mascelle di Gulpy e Hatch, pose_animate.py).
+ARCHIE_TESTA = ('ArchieHead', 'ArchieEye*', 'ArchieTeeth', 'ArchieSlime', 'ArchieMouthpiece', 'ArchieBlower', 'ArchieFeather')
+ARCHIE_CORPO = ('ArchieSkin',)
+ARCHIE_TOPPA = {'visibili': ARCHIE_TESTA + ARCHIE_CORPO, 'riquadro': ARCHIE_TESTA, 'occhi': False, 'yaw_di': 'archie_soffia'}
+
 # chiave → (funzione, spazio, mare[, opzioni]): vedi jobs.job_creature
 POSES = {
     'gulpy_sale': (gulpy_sale, 'world', False),
@@ -145,6 +156,9 @@ POSES = {
     # sbatte le palpebre
     'robin_strizza': (lambda: robin_secchio(palpebre=0.75, aggrotta=1.0), 'boat', True, ROBIN_TOPPA),
     'robin_chiusi': (lambda: robin_secchio(palpebre=1.0, aggrotta=0.0), 'boat', True, ROBIN_TOPPA),
+    # notte 3: Archie accanto alla lampara; prima di soffiare prende fiato e la gola si gonfia (toppa)
+    'archie_soffia': (lambda: archie_soffia(), 'boat', True),
+    'archie_fiato': (lambda: archie_soffia(fiato=1.0), 'boat', True, ARCHIE_TOPPA),
 }
 
 
@@ -232,3 +246,42 @@ def robin_secchio(palpebre=0.0, aggrotta=0.0):
     M, kw = robin_posa()
     LAST_M['robin_secchio'] = M
     return place(ro.build(**kw, palpebre=palpebre, aggrotta=aggrotta), M)
+
+
+# ───────────────────────── notte 3 ─────────────────────────
+
+# Archie (archie.py) sale dal mare a destra della lampara e appena oltre (più lontano dal pescatore): il collo dritto
+# esce da dietro la prua, in cima fa l'arco e la testa guarda giù sul vetro, con la trombetta puntata su di lui.
+# Dall'occhio sta tra la lampara (0°) e la canna (31°), dove nelle altre notti non c'è nessuno: Gulpy e Robin sono a
+# sinistra della prua, Molly sui fianchi, Hatch a poppa, e la lenza va verso il largo a destra della canna (40°).
+# La testa sta più in alto del vetro di ARCHIE_SU gradi, così la trombetta distesa passa sotto il cappello della
+# lampara; ARCHIE_LATO la porta un po' dietro la lampara: dal pescatore la faccia si vede di tre quarti (di fianco,
+# a 0°, si vedrebbe di profilo; più dietro, la trombetta distesa verrebbe verso di lui e si accorcerebbe).
+ARCHIE_LATO = 35.0     # gradi attorno alla lampara, da destra (0) verso il largo (90)
+ARCHIE_SU = 16.0       # gradi sopra il vetro
+ARCHIE_DIST = 0.90     # metri dal centro della testa al vetro (la trombetta distesa ci arriva a pochi centimetri)
+
+
+def archie_posa():
+    """La trasformazione della posa archie_soffia e i parametri di archie.build() in coordinate locali (servono
+    anche alla vetrina di archie.py e al jumpscare). Il collo sta in verticale: la creatura gira solo attorno a Z,
+    con la faccia (−y locale) verso la lampara."""
+    import archie as ar
+    L = np.array(boat.LAMP_POS, F)
+    b, e = math.radians(ARCHIE_LATO), math.radians(ARCHIE_SU)
+    H = L + ARCHIE_DIST * np.array((math.cos(e) * math.cos(b), math.cos(e) * math.sin(b), math.sin(e)), F)
+    yaw = ARCHIE_LATO - 90.0
+    t = math.radians(yaw)
+    hx, hy, hz = (float(v) for v in ar.HEAD)
+    o = (float(H[0]) - (hx * math.cos(t) - hy * math.sin(t)), float(H[1]) - (hx * math.sin(t) + hy * math.cos(t)), float(H[2]) - hz)
+    M = M_of(o, yaw=yaw)
+    loc = lambda p: tuple(round(float(v), 4) for v in to_local(M, p))
+    return M, {'lampara': loc(L), 'viewer': loc(EYE)}
+
+
+def archie_soffia(srotolata=0.0, fiato=0.0):
+    """La posa archie_soffia; con srotolata e fiato (archie.build) le varianti delle toppe, nella stessa posa."""
+    import archie as ar
+    M, kw = archie_posa()
+    LAST_M['archie_soffia'] = M
+    return place(ar.build(**kw, srotolata=srotolata, fiato=fiato), M)
