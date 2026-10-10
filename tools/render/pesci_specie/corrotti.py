@@ -1002,7 +1002,7 @@ SPECIE['luciferna'] = Specie(
 # orlate di chiaro sul dorso; dentro la bocca è nero. «Una bocca nera, poi un'altra sul fianco, poi
 # un'altra ancora»: due bocche in più sul fianco, tagli a mezzaluna nel corpo (campo) con il dentro nero e
 # lucido (pittura), le file di denti piccoli e la bava di pece che cola dal labbro (extra).
-_BOCCHE_NERE = ((0.33, 0.12, 0.045, 0.012), (0.58, 0.02, 0.038, 0.0105))   # (t, v, mezza larghezza, mezza apertura)
+_BOCCHE_NERE = ((0.33, 0.12, 0.05, 0.0135), (0.58, 0.02, 0.043, 0.0118))   # (t, v, mezza larghezza, mezza apertura)
 
 
 def _bocche_geometria(c):
@@ -1361,15 +1361,15 @@ SPECIE['sciabola_di_carbone'] = Specie(
              (1, 0.005)],
         bot=[(0, -0.009), (0.03, -0.019), (0.08, -0.03), (0.15, -0.034), (0.4, -0.036), (0.7, -0.03), (0.9, -0.014), (1, -0.005)],
         w=[(0, 0.003), (0.05, 0.011), (0.15, 0.013), (0.5, 0.011), (0.8, 0.006), (1, 0.002)],
-        eye_t=0.068, eye_z=0.011, eye_r=0.021, mouth_t=0.07, mouth_z0=-0.008, mouth_z1=-0.006, gill_t=0.14,
+        eye_t=0.07, eye_z=0.011, eye_r=0.024, mouth_t=0.07, mouth_z0=-0.008, mouth_z1=-0.006, gill_t=0.14,
         fins=[Fin('dorsal', 0.11, 0.56, [(0, 0), (0.01, 0.8), (0.5, 0.9), (0.95, 0.6), (1, 0.15)], 0.018, 80, spiny=True),
               Fin('dorsal', 0.58, 0.97, [(0, 0.2), (0.05, 0.9), (0.5, 1.0), (0.95, 0.8), (1, 0.2)], 0.024, 50),
               Fin('anal', 0.62, 0.95, [(0, 0), (0.1, 0.6), (0.9, 0.5), (1, 0.1)], 0.01, 30),
               Fin('caudal', 1.0, 1.0, coda_forcuta(1.4, 0.3), 0.045, 12),
               Fin('pectoral', 0.135, 0.145, PETTORALE, 0.035, 8)],
         piega=[(0, 0), (0.35, 5), (0.7, -5), (1, 3)]),
-    aspetto=Look(back=(0.02, 0.016, 0.014), flank=(0.05, 0.038, 0.032), belly=(0.06, 0.05, 0.045), fin=(0.035, 0.026, 0.022),
-                 iris=(0.6, 0.45, 0.18), iris_dark=(0.1, 0.07, 0.03), metal=0.65, irid=0.6, squame=0.0, linea_laterale=0.0,
+    aspetto=Look(back=(0.025, 0.018, 0.015), flank=(0.07, 0.05, 0.04), belly=(0.08, 0.062, 0.052), fin=(0.04, 0.03, 0.025),
+                 iris=(0.6, 0.45, 0.18), iris_dark=(0.1, 0.07, 0.03), metal=0.75, irid=0.8, squame=0.0, linea_laterale=0.0,
                  lucido=0.8),
     extra=_occhi_lampara,
     famiglia='corrupt', piano='nastriforme',

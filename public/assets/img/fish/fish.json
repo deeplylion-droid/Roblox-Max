@@ -5,6 +5,12 @@
   "h": 800,
   "family": "bleeding"
  },
+ "lanzardo_riavvolto": {
+  "file": "lanzardo_riavvolto.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "glitch"
+ },
  "orrata": {
   "file": "orrata.webp",
   "w": 1600,
