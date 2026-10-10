@@ -521,7 +521,8 @@ export class Night {
     this.updateAudio(dt);
     this.updateRadio(dt);
     this.updateHud(dt);
-    this.sonar.update(dt, sim);
+    // a batteria morta il sonar tace: niente ping, niente avvisi
+    if (!sim.blackout) this.sonar.update(dt, sim);
 
     // fine della notte: la scena finisce di raccontare, poi si passa allo schermo dei risultati
     if (this.finished && this.endResult) {
@@ -812,7 +813,9 @@ export class Night {
             a.play('mus_madre', { gain: 1 });
             this.d.stage.view.shake = this.d.options.reduceFlash ? 0.4 : 1.6;
           } else {
-            // le campane della festa, ovattate, e sotto la Madre che si sveglia
+            // le campane della festa, ovattate, e sotto la Madre che si sveglia (se cantava, la canzone sfuma)
+            this.lullabyV?.stop(2);
+            this.lullabyV = null;
             a.play('bell_dawn', { pos: dirPos(BELL_YAW, 5, 4), gain: 0.35, lowpass: 900 });
             a.play('mus_madre', { gain: 0.9 });
             this.hud.toast(S.sixAm, S.quotaMissed, 4);
@@ -1223,6 +1226,11 @@ export class Night {
       this.loops.reel?.setRate(0.85 + f.progress * 0.4);
       this.loops.tension?.setGain(Math.max(0, f.tension - 0.35) * 1.4, 0.05);
       this.loops.tension?.setRate(0.8 + f.tension * 0.6);
+    }
+    // la ninna nanna: negli ultimi secondi il carillon si scarica e rallenta, come la molla che finisce
+    if (this.lullabyV && sim.blackout && sim.cfg.battery) {
+      const left = sim.lullaby;
+      this.lullabyV.setRate(left < 6 ? 0.55 + 0.45 * Math.max(0, left / 6) : 1);
     }
     // battito del cuore quando qualcosa sta per prenderti
     let danger = 0;

@@ -2,6 +2,7 @@
  * Sonar della console: cerchio con la barca al centro, fascio che gira, pesci e ombre delle creature.
  * Disegnato su un canvas che il renderer mappa sullo schermo tondo (e a tutto schermo con Tab).
  */
+import { YAW } from '../game/config.ts';
 import type { NightSim } from '../game/sim.ts';
 
 interface Blip {
@@ -40,6 +41,8 @@ export class Sonar {
     else if (g.state === 'climbing' || g.state === 'demanding' || g.state === 'eating') out.push({ a: 0, r: 0.18 });
     const m = sim.molly;
     if (m.state === 'knocking' || m.present) out.push({ a: m.side === 'left' ? -75 : 75, r: m.state === 'knocking' ? 0.3 : 0.16 });
+    const rb = sim.robin;
+    if (rb?.present) out.push({ a: YAW.robin, r: rb.state === 'climbing' ? 0.3 : 0.15 });
     const h = sim.hatch;
     if (h.state === 'counting') out.push({ a: 180, r: 0.85 - 0.6 * h.countProgress });
     else if (h.state === 'boarding' || h.state === 'searching') out.push({ a: 180 + (h.lureX ?? 0) * 25, r: 0.12 });
