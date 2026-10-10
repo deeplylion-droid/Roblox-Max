@@ -6,10 +6,12 @@ lo sfondo (mondo + barca) si rende una volta sola, la creatura in ogni fotogramm
 scena come maschera; poi si compongono e si codificano come gli altri render (overlays.json → jumpscares).
 Molly si rende sul lato destro: per il sinistro il motore specchia l'immagine.
 
-Uso: tools/.venv/bin/python tools/render/jobs.py jumpscare --quality preview   (JUMPSCARES=gulpy,molly,hatch)
+Uso: tools/.venv/bin/python tools/render/jobs.py jumpscare --quality preview   (JUMPSCARES=gulpy,molly,hatch,robin;
+JS_ANTEPRIMA=1 per lasciare i fotogrammi in cache senza toccare il gioco)
 """
 from __future__ import annotations
 
+import json
 import math
 import os
 import time
@@ -90,7 +92,20 @@ def hatch_attack():
     return obs, M0, M1, aim
 
 
-ATTACKS = {'gulpy': gulpy_attack, 'molly': molly_attack, 'hatch': hatch_attack}
+def robin_attack():
+    import robin as ro
+    # il secchio è vuoto: la mano esce dal secchio senza pesce, le arcate aggrottate; si stacca dal bordo e ti
+    # salta in faccia (la testa, larga quasi mezzo metro, si ferma a una spanna dall'occhio)
+    M0, kw = sc.robin_posa()
+    sc.LAST_M['robin_secchio'] = M0
+    obs = sc.place(ro.build(**kw, fish=False, aggrotta=1.0), M0)
+    head = ro.HEAD
+    M1 = _toward_eye(M0, head, 0.40, extra_pitch=12.0)
+    aim = M0 @ Vector(tuple(map(float, head)))
+    return obs, M0, M1, aim
+
+
+ATTACKS = {'gulpy': gulpy_attack, 'molly': molly_attack, 'hatch': hatch_attack, 'robin': robin_attack}
 
 
 # ───────────────────────── render ─────────────────────────
@@ -123,6 +138,10 @@ def run(q, who, post_mod, overlays_path, build_scene, coll_objects, renderable):
     samples = q.samples if q.name == 'final' else min(q.samples, 32)
     out_dir = os.path.join(CACHE, q.name, 'jumpscare')
     os.makedirs(out_dir, exist_ok=True)
+    # JS_ANTEPRIMA=1: i fotogrammi restano in cache (da approvare), senza toccare il gioco
+    anteprima = bool(os.environ.get('JS_ANTEPRIMA'))
+    out_img = os.path.join(out_dir, 'anteprima') if anteprima else OUT_IMG
+    os.makedirs(out_img, exist_ok=True)
 
     # sfondo: tutto tranne la creatura
     for o in meshes:
@@ -155,7 +174,12 @@ def run(q, who, post_mod, overlays_path, build_scene, coll_objects, renderable):
         comp = fg + bg_lin * (1 - np.clip(a, 0, 1))
         scale = post_mod.pick_scale(comp)
         fn = f'js_{who}_{i:02d}.webp'
-        post_mod.save_webp(post_mod.encode_light_pass(comp, scale), os.path.join(OUT_IMG, fn), quality=88)
+        post_mod.save_webp(post_mod.encode_light_pass(comp, scale), os.path.join(out_img, fn), quality=88)
         frames.append({'file': fn, 'scale': scale})
         log(f'jumpscare {who} fotogramma {i}', round(time.time() - t, 1), 's')
+    if anteprima:
+        with open(os.path.join(out_img, f'{who}.json'), 'w') as f:
+            json.dump({'frames': frames, 'fps': FPS, 'aspect': round(W / H, 4)}, f, indent=1)
+        log(f'jumpscare {who}: anteprima in', out_img, '(il gioco non la vede)')
+        return
     post_mod.update_manifest(overlays_path, f'jumpscares.{who}', {'frames': frames, 'fps': FPS, 'aspect': round(W / H, 4)})

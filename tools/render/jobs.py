@@ -489,9 +489,9 @@ def job_tarp(q):
 
 
 def job_jumpscare(q):
-    """I jumpscare delle creature (vedi jumpscare.py). JUMPSCARES=gulpy,molly,hatch per sceglierli."""
+    """I jumpscare delle creature (vedi jumpscare.py). JUMPSCARES=gulpy,molly,hatch,robin per sceglierli."""
     import jumpscare
-    who = [k for k in os.environ.get('JUMPSCARES', 'gulpy,molly,hatch').split(',') if k]
+    who = [k for k in os.environ.get('JUMPSCARES', 'gulpy,molly,hatch,robin').split(',') if k]
     for w in who:
         jumpscare.run(q, w, post, OVERLAYS, build_scene, coll_objects, renderable)
 
