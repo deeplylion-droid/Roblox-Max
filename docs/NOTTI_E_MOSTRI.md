@@ -27,7 +27,9 @@ stessa melma. **Non parlano** (l'unica eccezione resta la conta di Hatch).
 
 **Colori** (richiesta dell'utente, 10 ottobre: «i mostri tutti dello stesso colore non piacciono, dobbiamo
 differenziarli come su FNAF dove ognuno ha un colore»): Gulpy, Molly e Hatch restano grigi come sono; i
-quattro nuovi hanno ognuno un colore netto. *Proposta da approvare*:
+quattro nuovi hanno ognuno un colore netto. Confermato poco dopo: «un colore diverso ciascuno: rosso, giallo
+eccetera, un po' come gli animatronics», quindi tinte sature e iconiche, riconoscibili anche al buio. Le tinte
+esatte si giudicano sulle tavole delle teste (*da approvare*):
 
 | Mostro | Colore | Perché |
 |---|---|---|
