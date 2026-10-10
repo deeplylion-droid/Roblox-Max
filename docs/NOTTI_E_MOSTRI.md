@@ -44,7 +44,7 @@ esatte si giudicano sulle tavole delle teste (*da approvare*):
   vedono i jumpscare già renderizzati) non sta più sul pagliolo ma **sul banco di prua, a destra del
   secchio** (circa 26° a destra), con i cavi che corrono lungo lo scafo fino al palo della lampara e il
   voltmetro su una staffa girato verso il pescatore: la vedi guardando il secchio. Niente barre sullo
-  schermo. *Da approvare*: `docs/concept/batteria_anteprima.jpg` e `batteria_vicino.jpg`.
+  schermo. **Approvata** il 10 ottobre (`docs/concept/batteria_anteprima.jpg` e `batteria_vicino.jpg`).
 - **Nel gioco** l'ago lo disegna il motore sopra il quadrante renderizzato: nel rosso esattamente quando la
   carica scende sotto la soglia bassa (15%), cala un poco con la lampara alta (la batteria sotto sforzo),
   trema appena; a batteria morta batte sul fermo.
@@ -74,8 +74,8 @@ La notte 2 si gioca: dal menu con **Continua** dopo aver vinto la prima, con **N
 della prima, o con `?notte=2` nell'indirizzo (prove). C'è tutto tranne **Robin visibile**: finché non è
 scelta la testa e fatto il modello, Robin si sente soltanto (suoni provvisori fatti con i file di scena:
 zampette, secchio che tintinna, pesce strappato, fuga in acqua) e si vede sul sonar; il jumpscare è un urlo
-sintetizzato. *Da approvare*: i testi della notte 2 (radio, le due morti, sottotitoli, suggerimento,
-«Batteria morta.»), accorciati e resi più criptici come chiesto (`src/i18n.ts`, segnati ⚠️).
+sintetizzato. I testi della notte 2 (radio, le due morti, sottotitoli, suggerimento, «Batteria morta.»),
+accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`).
 
 ## I quattro mostri nuovi
 

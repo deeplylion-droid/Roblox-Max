@@ -27,7 +27,7 @@ const IT = {
     hide: 'C o clic sul telone: nasconditi',
     unhide: 'C per uscire dal telone',
     turn: 'S per voltarti',
-    // ⚠️ da approvare (notte 2): accorciato, come chiesto
+    // notte 2: approvato il 10 ottobre
     robin: 'Robin: luce piena in faccia (E)',
   },
   denied: {
@@ -35,7 +35,7 @@ const IT = {
     noTarget: 'Non c’è nessuno da sfamare.',
     busy: 'Non adesso.',
     notFacing: 'Devi guardare da quella parte.',
-    // ⚠️ da approvare (notte 2): accorciato, come chiesto
+    // notte 2: approvato il 10 ottobre
     dark: 'Batteria morta.',
   },
   caught: 'Hai preso',
@@ -53,10 +53,10 @@ const IT = {
     gulpy: 'Gulpy aveva fame. Il secchio era vuoto.',
     molly: 'Molly voleva solo che la guardassi.',
     hatch: '«Chi c’è c’è, chi non c’è non c’è.» Ti ha trovato.',
-    // ⚠️ da approvare (notte 2): accorciati e più criptici, come chiesto
+    // notte 2: approvati il 10 ottobre (accorciati e più criptici, come chiesto)
     robin: 'Robin ha svuotato il secchio. Poi te.',
     mother: 'Alle sei il secchio non era pieno. Stanotte la Madre si prenderà un altro bambino.',
-    // ⚠️ da approvare (notte 2), accorciato: la batteria è morta e la ninna nanna è finita prima delle sei
+    // notte 2 (approvato il 10 ottobre): la batteria è morta e la ninna nanna è finita prima delle sei
     lullaby: 'La canzone è finita prima dell’alba.',
   },
   retry: 'Riprova',
@@ -159,7 +159,7 @@ const IT = {
     bell: 'la campana del paese',
     left: 'sinistra',
     right: 'destra',
-    // ⚠️ da approvare (notte 2): accorciati e più criptici, come chiesto
+    // notte 2: approvati il 10 ottobre (accorciati e più criptici, come chiesto)
     robinClimb: 'zampette sul bordo',
     robinRattle: 'il secchio tintinna',
     robinSteal: 'un pesce in meno',
@@ -388,7 +388,7 @@ export const RADIO_NIGHT1: Record<Lang, RadioLine[]> = {
   ],
 };
 
-/** ⚠️ da approvare: la chiamata della seconda notte (la batteria e Robin), accorciata e più criptica. */
+/** La chiamata della seconda notte (la batteria e Robin), accorciata e più criptica: approvata il 10 ottobre. */
 export const RADIO_NIGHT2: Record<Lang, RadioLine[]> = {
   it: [
     { at: 0.0, text: 'Seconda notte. Dieci pesci.' },
