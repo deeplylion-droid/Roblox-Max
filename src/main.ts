@@ -28,8 +28,9 @@ function loop(step: (dt: number) => void): void {
   const frame = (now: number) => {
     const dt = Math.min(0.05, (now - last) / 1000) * SPEED;
     last = now;
-    step(dt);
+    // il prossimo fotogramma si chiede prima: un errore in un fotogramma non deve fermare il gioco
     requestAnimationFrame(frame);
+    step(dt);
   };
   requestAnimationFrame(frame);
 }

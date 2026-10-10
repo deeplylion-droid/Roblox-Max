@@ -116,7 +116,7 @@ Un piccolo ecoscandaglio portatile appoggiato sul ponte di poppa. È soprattutto
 
 ## 10. Flusso dei menu
 
-Avvertenza (jumpscare, luci, cuffie consigliate) → Titolo (render animato, ninna nanna al carillon) → Nuova partita / Continua / Extra (Il Diario: frammenti di lore trovati) / Opzioni / Esci → Intro notte ("Notte 1 · 00:00 · Quota 8") → Gioco → Alba / Game over.
+Avvertenza (jumpscare, luci, cuffie consigliate; la ninna nanna al carillon parte già qui, appena si apre il gioco) → Titolo (render animato, la ninna nanna continua) → Nuova partita / Continua / Extra (Il Diario: frammenti di lore trovati) / Opzioni / Esci → Intro notte ("Notte 1 · 00:00 · Quota 8") → Gioco → Alba / Game over.
 
 ## 11. Opzioni e accessibilità
 
@@ -144,7 +144,7 @@ Volume generale/musica/effetti, lingua (italiano, inglese), luminosità, schermo
 - Ambiente: sciabordio sullo scafo, legno che scricchiola, vento, campana delle ore, sirena lontana, ronzio della lampara.
 - Pesca: lancio, plop, campanellino, cricchetto del mulinello, tensione della lenza, schiocco, pesce nel secchio.
 - Ogni creatura ha una firma sonora riconoscibile e **spazializzata** (HRTF): si capisce da che lato arriva, meglio in cuffia.
-- Musica: ninna nanna della Madre al carillon (menu), rintocchi e gabbiani (alba).
+- Musica: ninna nanna della Madre al carillon (dall'avvertenza all'avvio fino al menu: è anche la musica dei titoli iniziali, scelta del 10 ottobre), rintocchi e gabbiani (alba).
 
 ## 14. Piattaforme e tecnologia
 

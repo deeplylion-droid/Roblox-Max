@@ -341,6 +341,7 @@ ${NOISE}
 uniform sampler2D uHdr, uBloom;
 uniform float uExposure, uBloomAmt, uTime, uGrain, uVignette, uAberration, uFade, uFlash;
 uniform float uGlitch;   // 0..1: nastro VHS rovinato (jumpscare)
+uniform float uSnow;     // 0..1: segnale perso, la neve del televisore al posto dell'immagine
 uniform float uBino;     // 0..1: binocolo alzato (i due cerchi)
 uniform vec3 uFlashColor;
 uniform vec2 uRes;
@@ -442,6 +443,20 @@ void main() {
     float dc = min(length(bp - vec2(-0.21, 0.0)), length(bp + vec2(-0.21, 0.0)));
     float lens = 1.0 - smoothstep(0.405, 0.43, dc);
     col *= mix(1.0, lens * (1.0 - 0.35 * smoothstep(0.25, 0.42, dc)), uBino);
+  }
+  if (uSnow > 0.0) {
+    // segnale perso: neve a grana grossa che cambia 30 volte al secondo, righe più chiare o più scure
+    // mentre il ricevitore cerca il segnale, la banda di sincronismo che rotola, il bordo del tubo
+    float sf = floor(uTime * 30.0);
+    vec2 px = floor(uv * uRes / max(2.0, uRes.y / 540.0));
+    float n = hash12(px + vec2(sf * 17.0, sf * 31.0));
+    float sr = floor(uv.y * uRes.y / max(3.0, uRes.y / 360.0));
+    n *= 0.7 + 0.6 * hash12(vec2(sr, sf + 50.0));
+    n = pow(n, 1.4);
+    float roll = fract(uv.y + uTime * 1.3);
+    n *= 1.0 - 0.6 * smoothstep(0.0, 0.04, roll) * (1.0 - smoothstep(0.06, 0.16, roll));
+    vec3 snow = vec3(n) * vec3(0.90, 0.94, 1.0) * 0.8 * (1.0 - 0.45 * smoothstep(0.12, 0.62, r2));
+    col = mix(col, snow, uSnow);
   }
   col = mix(col, uFlashColor, uFlash);
   col *= uFade;

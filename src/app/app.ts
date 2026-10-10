@@ -46,6 +46,10 @@ export class App {
 
   begin(): void {
     this.mode = 'warning';
+    // la ninna nanna parte già sull'avvertenza e continua nel menu (dove il browser la blocca, al primo tasto)
+    void this.audio.preload('mus_title').then(() => {
+      if (this.mode === 'warning' || this.mode === 'title') this.titleMusic(true);
+    });
     this.screens.warning(() => {
       void this.audio.start().then(() => {
         this.applyOptions();
@@ -58,7 +62,7 @@ export class App {
 
   // ───────────────────────── schermate ─────────────────────────
 
-  /** La ninna nanna della Madre al carillon, nel menu (si avvia solo se non suona già). */
+  /** La ninna nanna della Madre al carillon, dall'avvertenza al menu (si avvia solo se non suona già). */
   private titleMusic(on: boolean): void {
     if (on && !this.music) this.music = this.audio.play('mus_title', { loop: true, fadeIn: 2.5 });
     if (!on && this.music) {
@@ -228,10 +232,13 @@ export class App {
       });
     };
     if (r.kind === 'dead' && r.killer !== 'mother') {
+      // il segnale salta: la notte si spegne di colpo, resta la neve del televisore, poi i risultati
       this.mode = 'static';
+      this.night?.destroy();
+      this.night = null;
       this.screens.static();
-      this.audio.play('static_burst', { gain: 0.6 });
-      this.timer = 1.1;
+      this.audio.play('static_burst', { gain: 0.85 });
+      this.timer = 1.2;
       this.afterStatic = show;
     } else show();
   }
@@ -246,7 +253,10 @@ export class App {
     switch (this.mode) {
       case 'night':
         this.night!.update(dt);
-        this.night!.render();
+        // la notte può finire dentro l'aggiornamento (alba, la Madre, il segnale che salta): allora
+        // si disegna subito quello che viene dopo
+        if (this.mode === 'night' && this.night) this.night.render();
+        else this.frame(0);
         return;
       case 'paused':
         this.night!.render();
@@ -264,8 +274,12 @@ export class App {
           const f = this.afterStatic;
           this.afterStatic = null;
           f();
+          break;
         }
-        break;
+        // segnale perso: solo neve (più scura se l'utente ha chiesto meno lampi)
+        st.update(dt);
+        st.frame({ layers: ['world'], snow: 1, fade: this.save.options.reduceFlash ? 0.55 : 1 });
+        return;
       default:
         break;
     }

@@ -48,12 +48,28 @@ export class AudioEngine {
     this.manifest = r.ok ? ((await r.json()) as Record<string, SoundInfo>) : {};
   }
 
-  /** Va chiamato dopo un gesto dell'utente (policy dei browser). */
+  private loading: Promise<void> | null = null;
+
+  /** Carica tutti i suoni. Va chiamato dopo un gesto dell'utente (policy dei browser): riattiva il contesto
+   *  se il browser l'aveva creato sospeso. */
   async start(): Promise<void> {
-    if (this.ctx) {
-      if (this.ctx.state === 'suspended') await this.ctx.resume();
-      return;
-    }
+    const ctx = this.open();
+    if (ctx.state === 'suspended') void ctx.resume().catch(() => {});
+    this.loading ??= Promise.all(Object.keys(this.manifest).map((id) => this.decode(id))).then(() => {});
+    await this.loading;
+  }
+
+  /** Carica subito un suono solo, anche prima di un gesto dell'utente (la ninna nanna dell'avvio). Dove il
+   *  browser non lascia partire l'audio da solo il contesto resta sospeso: quello che si suona parte, dal
+   *  principio, al primo tasto. In Electron parte subito. */
+  async preload(id: string): Promise<void> {
+    const ctx = this.open();
+    if (ctx.state === 'suspended') void ctx.resume().catch(() => {});
+    await this.decode(id);
+  }
+
+  private open(): AudioContext {
+    if (this.ctx) return this.ctx;
     const ctx = (this.ctx = new AudioContext({ latencyHint: 'interactive' }));
     this.master = ctx.createGain();
     // un leggero compressore evita che i jumpscare saturino
@@ -78,7 +94,7 @@ export class AudioEngine {
       l.positionY.value = 0;
       l.positionZ.value = 0;
     }
-    await Promise.all(Object.keys(this.manifest).map((id) => this.decode(id)));
+    return ctx;
   }
 
   applyVolumes(): void {
@@ -87,8 +103,19 @@ export class AudioEngine {
     for (const [k, g] of Object.entries(this.buses)) g.gain.value = (this.volumes as Record<string, number>)[k] ?? 1;
   }
 
-  private async decode(id: string): Promise<AudioBuffer | null> {
-    if (this.buffers.has(id)) return this.buffers.get(id)!;
+  private decoding = new Map<string, Promise<AudioBuffer | null>>();
+
+  /** Scarica e decodifica un suono (una volta sola, anche se lo chiedono in due insieme). */
+  private decode(id: string): Promise<AudioBuffer | null> {
+    let p = this.decoding.get(id);
+    if (!p) {
+      p = this.fetchDecode(id);
+      this.decoding.set(id, p);
+    }
+    return p;
+  }
+
+  private async fetchDecode(id: string): Promise<AudioBuffer | null> {
     const info = this.manifest[id];
     if (!info || !this.ctx) return null;
     try {

@@ -68,6 +68,8 @@ export interface FrameParams {
   flashColor: Vec3;
   /** nastro VHS rovinato, 0..1 (jumpscare) */
   glitch?: number;
+  /** segnale perso, 0..1: la neve del televisore al posto dell'immagine (dopo il jumpscare) */
+  snow?: number;
   /** binocolo alzato: quanto (0..1) e i luoghi ad alta risoluzione da disegnare sopra al mondo */
   bino?: { amount: number; places: BinoPlace[] } | null;
   beamAngle: number;
@@ -420,6 +422,7 @@ export class Renderer {
       .f1('uFade', f.fade)
       .f1('uFlash', f.flash)
       .f1('uGlitch', f.glitch ?? 0)
+      .f1('uSnow', f.snow ?? 0)
       .f1('uBino', f.bino?.amount ?? 0)
       .f3('uFlashColor', ...f.flashColor)
       .f2('uRes', this.canvas.width, this.canvas.height);

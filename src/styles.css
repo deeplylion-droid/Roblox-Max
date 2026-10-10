@@ -114,9 +114,6 @@ html, body {
 .journal .empty { color: var(--dim); }
 
 /* ── fine della notte ── */
-.static { background: #111; animation: staticNoise .08s steps(2) infinite; }
-.static::after { content: ''; position: absolute; inset: 0; background-image: repeating-linear-gradient(0deg, rgba(255,255,255,.08) 0 1px, transparent 1px 3px); }
-@keyframes staticNoise { 0% { background: #0c0c0c; } 50% { background: #262626; } 100% { background: #161616; } }
 .dawn { background: radial-gradient(ellipse at center, rgba(40,28,20,.45), rgba(5,8,13,.92)); }
 .dawn h2 { color: var(--amber); }
 .stats { display: flex; gap: 34px; margin: 6px 0 4px; }

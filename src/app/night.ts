@@ -164,7 +164,7 @@ export class Night {
   // stato visivo (morbido)
   private v = { gSale: 0, gRise: 0, gPret: 0, mR: 0, mL: 0, hConta: 0, hRise: 0, tarp: 0, toy: 0, toyX: -1, dawn: 0, rock: 0, dark: 0 };
   private gulpyDive = 0;
-  private js: { killer: MonsterId; t: number; yaw: number } | null = null;
+  private js: { killer: MonsterId; t: number; yaw: number; scream: Voice | null } | null = null;
   private lineSway = 0;
   // audio
   private loops: Record<string, Voice | null> = {};
@@ -506,6 +506,8 @@ export class Night {
       if (this.endTimer <= 0) {
         const r = this.endResult;
         this.endResult = null;
+        // il segnale salta: l'urlo si tronca insieme all'immagine, poi c'è solo la statica
+        this.js?.scream?.stop(0.03);
         this.d.onEnd(r);
       }
     }
@@ -730,7 +732,9 @@ export class Night {
         } else {
           this.startJumpscare(e.killer);
           this.endResult = { kind: 'dead', killer: e.killer, stats: this.stats() };
-          this.endTimer = 1.9;
+          // il segnale salta appena finisce l'assalto, prima che l'immagine resti ferma
+          const seq = this.d.assets.jumpscares[e.killer];
+          this.endTimer = seq ? seq.frames.length / seq.fps : 1.2;
         }
         break;
       case 'won':
@@ -760,14 +764,12 @@ export class Night {
     // la camera si gira dove la creatura parte (la posa di gioco da cui partono i fotogrammi)
     const L = this.d.stage.man.layers;
     const yaw = killer === 'gulpy' ? (L[POSE.gulpyPretende]?.yaw ?? 0) : killer === 'molly' ? this.sim.molly.yaw : (L[POSE.hatchConta]?.yaw ?? 180);
-    this.js = { killer, t: 0, yaw };
     this.binoUp = false;
     this.bino = 0;
     this.d.stage.view.swayYaw = this.d.stage.view.swayPitch = this.d.stage.view.steady = 0;
     if (this.sonarOpen) this.toggleSonar(false);
     const reduce = this.d.options.reduceFlash;
-    this.d.sfx.jumpscare(killer);
-    setTimeout(() => this.d.audio.play('static_burst', { gain: 0.45 }), 900);
+    this.js = { killer, t: 0, yaw, scream: this.d.sfx.jumpscare(killer) };
     this.d.stage.view.shake = reduce ? 0.6 : 3.2;
     this.loops.heart?.stop(0.1);
     this.loops.heart = null;
@@ -854,8 +856,6 @@ export class Night {
         else v.mL = 1;
       }
       if (t < 0.12 && !this.d.options.reduceFlash) st.lampDip = 1;
-      // reazione: lo sguardo sobbalza
-      if (t > 1.2) view.shake = Math.max(view.shake, 0.6);
     }
     st.update(dt);
   }
@@ -1026,7 +1026,7 @@ export class Night {
       sonar: binoOn ? null : this.sonar.canvas,
       sonarGain: 0.9 + 0.2 * Math.sin(st.time * 2.3),
       ambient: 1 + v.dawn * 1.6,
-      exposure: st.brightness + dawnExposure * 0.5 - (js && js.t > 1.4 ? (js.t - 1.4) * 6 : 0),
+      exposure: st.brightness + dawnExposure * 0.5,
       flash,
       flashColor,
       glitch,

@@ -254,11 +254,13 @@ export class Sfx {
 
   // ───────────────────────── jumpscare ─────────────────────────
 
-  /** L'urlo del jumpscare di ciascuna creatura (in faccia, non spazializzato). */
-  jumpscare(who: Creature): void {
+  /** L'urlo del jumpscare di ciascuna creatura (in faccia, non spazializzato); la voce serve a troncarlo
+   *  quando il segnale salta. */
+  jumpscare(who: Creature): Voice | null {
     this.stopLoops();
-    if (this.audio.play(`js_${who}`)) return;
-    this.synthScream(1, who === 'molly' ? 1.35 : who === 'hatch' ? 0.85 : 0.7);
+    const v = this.audio.play(`js_${who}`);
+    if (!v) this.synthScream(1, who === 'molly' ? 1.35 : who === 'hatch' ? 0.85 : 0.7);
+    return v;
   }
 
   /**

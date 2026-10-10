@@ -398,8 +398,9 @@ export class Screens {
   }
 
   /** Statica tra il jumpscare e il game over. */
+  /** Segnale perso dopo il jumpscare: la neve la disegna la scena (WebGL), sopra non c'è niente. */
   static(): void {
-    this.show(h('div', { class: 'screen static' }));
+    this.clear();
   }
 
   results(o: { won: boolean; text: string; caught: number; fed: number; lore: number; demoEnd: boolean; onRetry: () => void; onMenu: () => void }): void {
