@@ -218,6 +218,7 @@ SPECIE['lanzardo_riavvolto'] = Specie(
                  disegni=[Disegno('barre', colore=(0.02, 0.05, 0.06), forza=0.92, n=7, v0=0.12, onda=1.2),
                           Disegno('macchie', colore=(0.2, 0.22, 0.24), forza=0.8, scala=55, r=0.22, u0=0.12, u1=0.85,
                                   v0=-0.85, v1=-0.12, seme=2)]),
+    ritocco=_riavvolto,
     famiglia='glitch', piano='fusiforme',
     ritratto=Ritratto(yaw=168.0, pitch=-4.0, riquadro=(0.66, 0.62), centro=(0.4, 0.47)),
     opzioni=dict(seed=31))
@@ -291,13 +292,49 @@ SPECIE['donzella_saturata'] = Specie(
                                   onda=0.06, u0=0.13, u1=0.95),
                           Disegno('macchia', colore=(0.01, 0.015, 0.03), forza=0.95, u=0.255, v=0.02, r=0.013,
                                   allungamento=0.75)]),
+    ritocco=_sbavata,
     famiglia='glitch', piano='fusiforme',
-    opzioni=dict(seed=41))
+    ritratto=Ritratto(riquadro=(0.74, 0.66), centro=(0.46, 0.46)),
+    opzioni=dict(seed=41, saturazione=2.1))
 
 
 # ── Castagnola Sgranata (castagnola, Chromis chromis) ──
 # Piccola, ovale e alta; la coda forcuta profonda con i lobi lunghi; dorsale lunga (spinosa e poi molle, più
 # alta dietro), anale corta e alta, le pelviche col filamento; bruno-blu scuro con le squame orlate.
+# Il glitch: «da vicino è tutta puntini, come una foto ingrandita troppo. Più ti avvicini, meno pesce c'è» →
+# retinatura a puntini (ritocco), fitta sul bordo e sempre più rada verso il centro del pesce, dove i puntini
+# rimpiccioliscono e mancano.
+def _retinata(img, c):
+    """ritocco: una cella ogni ~1/95 della larghezza; in ogni cella un puntino del colore medio, grande quanto la
+    luce e la copertura della cella; verso il centro della sagoma (ellisse del riquadro) i puntini calano e mancano."""
+    rng = np.random.default_rng(52)
+    H, W = img.shape[:2]
+    cel = max(4, int(round(W / 95)))
+    x0, x1, y0, y1 = _sagoma(img)
+    cx, cy, rx, ry = (x0 + x1) / 2, (y0 + y1) / 2, (x1 - x0) / 2, (y1 - y0) / 2
+    nh, nw = (H + cel - 1) // cel, (W + cel - 1) // cel
+    pad = np.zeros((nh * cel, nw * cel, 4), np.float32)
+    pad[:H, :W] = img
+    blocchi = pad.reshape(nh, cel, nw, cel, 4)
+    cop = blocchi[..., 3].mean(axis=(1, 3))
+    col = (blocchi[..., :3] * blocchi[..., 3:4]).sum(axis=(1, 3)) / np.maximum(blocchi[..., 3].sum(axis=(1, 3)), 1e-5)[..., None]
+    lum = col @ np.array((0.299, 0.587, 0.114), np.float32)
+    # quanto è lontana dal centro ogni cella (0 al centro, 1 sul bordo dell'ellisse)
+    gy, gx = np.mgrid[0:nh, 0:nw].astype(np.float32)
+    rn = np.hypot((gx * cel + cel / 2 - cx) / max(rx, 1), (gy * cel + cel / 2 - cy) / max(ry, 1))
+    rada = np.clip(rn / 0.85, 0, 1) ** 1.3
+    raggio = cel * 0.5 * np.sqrt(np.clip(0.35 + lum * 2.2, 0, 1.15)) * np.clip(cop * 1.4, 0, 1) * (0.3 + 0.7 * rada)
+    raggio *= rng.random((nh, nw)) < 0.25 + 0.8 * rada           # al centro ne mancano
+    # i puntini, con il bordo morbido di mezzo pixel
+    yy, xx = np.mgrid[0:nh * cel, 0:nw * cel].astype(np.float32)
+    dist = np.hypot(yy % cel - cel / 2 + 0.5, xx % cel - cel / 2 + 0.5)
+    r_pix = np.repeat(np.repeat(raggio, cel, axis=0), cel, axis=1)
+    alfa = np.clip(r_pix - dist + 0.5, 0, 1)
+    col_pix = np.repeat(np.repeat(np.clip(col * 1.35, 0, 1), cel, axis=0), cel, axis=1)
+    out = np.concatenate([col_pix, alfa[..., None]], axis=2)[:H, :W]
+    return out.astype(np.float32)
+
+
 SPECIE['castagnola_sgranata'] = Specie(
     forma=Shape(
         top=[(0, -0.012), (0.03, 0.028), (0.08, 0.08), (0.15, 0.13), (0.25, 0.168), (0.38, 0.185), (0.5, 0.176), (0.65, 0.13),
@@ -316,6 +353,7 @@ SPECIE['castagnola_sgranata'] = Specie(
                  iris=(0.4, 0.5, 0.7), iris_dark=(0.05, 0.06, 0.1), metal=0.25, irid=0.7,
                  disegni=[Disegno('reticolo', colore=(0.03, 0.025, 0.025), forza=0.55, scala=26, larghezza=0.05),
                           Disegno('sfumatura', colore=(0.07, 0.12, 0.26), forza=0.55, v0=0.3, larghezza=0.25)]),
+    ritocco=_retinata,
     famiglia='glitch', piano='alto',
     opzioni=dict(seed=51))
 
@@ -323,6 +361,42 @@ SPECIE['castagnola_sgranata'] = Specie(
 # ── Pagello Pixelato (pagello fragolino, Pagellus erythrinus) ──
 # Lo sparide rosa fragola: ovale allungato, muso un poco appuntito, occhio grande, dorsale lunga, coda forcuta;
 # il dorso più rosso con i puntini azzurri, il ventre argento-rosa.
+# Il glitch: «ha gli spigoli… e qualche quadratino in meno» → pixel grossi con la sagoma a scalini, netta
+# (ogni quadretto o c'è o non c'è), qualche quadretto sparito e qualcuno fuori posto (ritocco); poi le righe.
+def _pixelato(img, c):
+    """ritocco: quadretti di ~1/70 della larghezza, ciascuno del colore medio; pieni o vuoti (gli spigoli);
+    uno su quindici dentro il pesce sparisce, qualcuno scivola di un quadretto; le righe di sempre sopra."""
+    rng = np.random.default_rng(62)
+    H, W = img.shape[:2]
+    q = max(5, int(round(W / 70)))
+    nh, nw = (H + q - 1) // q, (W + q - 1) // q
+    pad = np.zeros((nh * q, nw * q, 4), np.float32)
+    pad[:H, :W] = img
+    b = pad.reshape(nh, q, nw, q, 4)
+    cop = b[..., 3].mean(axis=(1, 3))
+    col = (b[..., :3] * b[..., 3:4]).sum(axis=(1, 3)) / np.maximum(b[..., 3].sum(axis=(1, 3)), 1e-5)[..., None]
+    pieno = cop > 0.42
+    # i quadratini in meno: più spesso vicino al bordo della sagoma, qualcuno anche in mezzo
+    from scipy.ndimage import binary_erosion
+    bordo = pieno & ~binary_erosion(pieno, iterations=2)
+    via = pieno & (rng.random((nh, nw)) < np.where(bordo, 0.14, 0.05))
+    pieno &= ~via
+    alfa = pieno.astype(np.float32)
+    # qualcuno fuori posto: un quadretto copiato una casella più in là
+    ys, xs = np.nonzero(pieno)
+    for i in rng.choice(len(ys), size=min(6, len(ys)), replace=False):
+        y, x = ys[i], min(nw - 1, xs[i] + int(rng.choice((-2, -1, 1, 2))))
+        col[y, x], alfa[y, x] = col[ys[i], xs[i]], 1.0
+    out = np.concatenate([np.repeat(np.repeat(col, q, axis=0), q, axis=1),
+                          np.repeat(np.repeat(alfa, q, axis=0), q, axis=1)[..., None]], axis=2)[:H, :W].copy()
+    # il bordo di ogni quadretto appena più scuro (si vedono gli spigoli anche dentro) e le righe
+    yy, xx = np.mgrid[0:H, 0:W]
+    griglia = ((yy % q) == q - 1) | ((xx % q) == q - 1)
+    out[griglia, :3] *= 0.86
+    out[::3, :, :3] *= 0.9
+    return out.astype(np.float32)
+
+
 SPECIE['pagello_pixelato'] = Specie(
     forma=Shape(
         top=[(0, -0.015), (0.03, 0.02), (0.08, 0.06), (0.15, 0.1), (0.25, 0.13), (0.38, 0.142), (0.52, 0.135), (0.7, 0.095),
@@ -340,6 +414,7 @@ SPECIE['pagello_pixelato'] = Specie(
                  iris=(0.85, 0.65, 0.4), iris_dark=(0.35, 0.12, 0.08), metal=0.5, irid=0.4,
                  disegni=[Disegno('macchie', colore=(0.3, 0.62, 1.0), forza=0.95, scala=55, r=0.16, u0=0.12, u1=0.85, v0=0.1,
                                   seme=3)]),
+    ritocco=_pixelato,
     famiglia='glitch', piano='fusiforme',
     opzioni=dict(seed=61))
 
@@ -347,6 +422,30 @@ SPECIE['pagello_pixelato'] = Specie(
 # ── Menola Neve (menola, Spicara maena) ──
 # Come lo zerro ma più alta: muso appuntito con la bocca protrattile, occhio grande, la dorsale lunga
 # continua, coda forcuta; grigio-azzurro argentato, e la macchia scura rettangolare sul fianco.
+# Il glitch: «coperta di neve bianca e nera che sfrigola. Se avvicini l'orecchio, sotto la neve senti un canale
+# lontano» → neve televisiva dentro la sagoma (ritocco), a granelli appena allungati come quelli del
+# televisore, con le righe più chiare e più scure; sotto, il pesce si vede ancora, come il canale lontano.
+def _neve_tv(img, c):
+    """ritocco: neve in bianco e nero dentro la sagoma, a granelli larghi il doppio che alti (un pixel ogni 800
+    di larghezza), righe che sfrigolano più forte; il pesce sotto resta a metà."""
+    rng = np.random.default_rng(72)
+    H, W = img.shape[:2]
+    g = max(1, int(round(W / 800)))
+    n = rng.random(((H + g - 1) // g, (W + 2 * g - 1) // (2 * g))).astype(np.float32)
+    n = np.repeat(np.repeat(n, g, axis=0), 2 * g, axis=1)[:H, :W]
+    # righe che sfrigolano: ogni riga di granelli un poco più chiara o più scura, qualcuna bianca
+    riga = np.repeat(rng.normal(0, 0.12, (H + g - 1) // g), g)[:H].astype(np.float32)
+    riga += np.repeat((rng.random((H + g - 1) // g) < 0.04) * 0.35, g)[:H].astype(np.float32)
+    n = np.clip(n * 1.1 - 0.05 + riga[:, None], 0, 1)
+    out = img.copy()
+    luce = img[..., :3] @ np.array((0.299, 0.587, 0.114), np.float32)
+    k = 0.62 * img[..., 3]
+    # la neve si somma alla luce del pesce (il canale lontano sotto la neve), in bianco e nero
+    neve = np.clip(n * 0.85 + luce * 0.35, 0, 1)
+    out[..., :3] = img[..., :3] * (1 - k[..., None]) + neve[..., None] * k[..., None]
+    return out
+
+
 SPECIE['menola_neve'] = Specie(
     forma=Shape(
         top=[(0, -0.01), (0.03, 0.02), (0.08, 0.056), (0.15, 0.092), (0.25, 0.118), (0.38, 0.128), (0.52, 0.12), (0.7, 0.084),
@@ -368,6 +467,7 @@ SPECIE['menola_neve'] = Specie(
                                   larghezza=0.012),
                           Disegno('strisce', colore=(0.3, 0.45, 0.7), forza=0.35, n=3, v0=0.1, v1=0.75, larghezza=0.05,
                                   u0=0.25, u1=0.85)]),
+    ritocco=_neve_tv,
     famiglia='glitch', piano='fusiforme',
     opzioni=dict(seed=71))
 
@@ -376,6 +476,29 @@ SPECIE['menola_neve'] = Specie(
 # Compresso e alto, con la fronte a picco come una lama e la boccuccia in basso, gli occhi alti; la dorsale
 # lunga da sopra l'occhio alla coda (le prime due spine appena staccate), l'anale lunga, la coda tronca;
 # rosato madreperla, con le righe azzurre verticali sul muso.
+# Il glitch: «si muove a scatti, saltando dei fotogrammi. Ogni volta che salta è un po' più vicino al bordo» →
+# dietro il pesce (a destra) i fotogrammi di prima, a scatti in su e in giù, sempre più tenui e con le righe
+# mancanti, e un buco dove manca un fotogramma (ritocco); il pesce vero è il più avanti, verso il bordo.
+def _a_scatti(img, c):
+    """ritocco: quattro fotogrammi di prima (il terzo saltato), spostati a destra a passi uguali e a scatti in
+    verticale, con qualche fascia di righe che manca; sotto il pesce vero."""
+    rng = np.random.default_rng(82)
+    H, W = img.shape[:2]
+    dietro = np.zeros_like(img)
+    passi = [(1, -0.035, 0.5), (2, 0.03, 0.34), (4, -0.02, 0.18)]       # (fotogramma, scatto in su/giù, opacità)
+    for k, dy, op in reversed(passi):
+        copia = _sposta(img, W * 0.085 * k, H * dy)
+        # le righe che mancano: fasce sottili vuote, sempre di più nei fotogrammi vecchi
+        y = 0
+        while y < H:
+            h = max(1, int(H * rng.uniform(0.006, 0.02)))
+            if rng.random() < 0.18 * k:
+                copia[y:y + h] = 0
+            y += h
+        dietro = _sopra(_velato(copia, op), dietro)
+    return _sopra(img, dietro)
+
+
 SPECIE['pettine_a_scatti'] = Specie(
     forma=Shape(
         top=[(0, -0.05), (0.008, -0.012), (0.02, 0.04), (0.04, 0.088), (0.07, 0.122), (0.13, 0.146), (0.28, 0.156), (0.45, 0.148),
@@ -394,13 +517,48 @@ SPECIE['pettine_a_scatti'] = Specie(
                  iris=(0.85, 0.55, 0.3), iris_dark=(0.35, 0.12, 0.06), metal=0.3, irid=0.65, squame=0.7,
                  disegni=[Disegno('bande', colore=(0.28, 0.45, 0.85), forza=0.85, n=5, u0=0.0, u1=0.13, larghezza=0.22,
                                   inclinazione=0.02, v0=-0.85, v1=0.95)]),
+    ritocco=_a_scatti,
     famiglia='glitch', piano='alto',
+    ritratto=Ritratto(riquadro=(0.58, 0.58), centro=(0.34, 0.48)),
     opzioni=dict(seed=81))
 
 
 # ── Re di Triglie a Righe (re di triglie, Apogon imberbis) ──
 # Piccolo e robusto, la testa e gli occhi grandissimi, la bocca larga e obliqua; due dorsali separate, l'anale
 # sotto la seconda, la coda appena forcuta; rosso-arancio, con il punto scuro sul peduncolo.
+# Il glitch: «fatto di righe orizzontali, una sì e una no. Nelle righe che mancano c'è un altro pesce, che non
+# riesci mai a vedere bene» → interlacciato (ritocco): nelle righe pari il re di triglie, nelle dispari un altro
+# pesce, scuro e sfocato, più lungo e girato dall'altra parte, con un occhio chiaro.
+def _altro_pesce(img, c):
+    """ritocco: righe alte mezzo centesimo dell'immagine, una sì e una no; nelle dispari l'altro pesce, fatto
+    dalla sagoma di questo girata, allungata, schiacciata, scura e sfocata, con l'occhio che riflette."""
+    H, W = img.shape[:2]
+    x0, x1, y0, y1 = _sagoma(img)
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+    # l'altro pesce: il punto (sx, sy) di questo finisce in (cx + D − (sx − cx)·S, cy − E + (sy − cy)·K): girato a
+    # specchio, S volte più lungo, K volte più basso, appena spostato; per ogni pixel si prende il punto da cui viene
+    S, K, D, E = 1.12, 0.72, W * 0.03, H * 0.035
+    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+    sx = np.clip(cx - (xx - cx - D) / S, 0, W - 1).astype(int)
+    sy = np.clip(cy + (yy - cy + E) / K, 0, H - 1).astype(int)
+    altro = img[sy, sx].copy()
+    luce = altro[..., :3] @ np.array((0.299, 0.587, 0.114), np.float32)
+    altro[..., :3] = luce[..., None] * np.array((0.35, 0.45, 0.48), np.float32) + 0.02
+    altro = _sfoca(altro, W * 0.004)
+    altro[..., 3] *= 0.85
+    # l'occhio dell'altro: dove finisce l'occhio di questo, un punto chiaro che riflette
+    ex, ey = _proietta(c, c.body.occhi_lista()[0][0])
+    ox, oy = cx + D - (float(ex[0]) - cx) * S, cy - E + (float(ey[0]) - cy) * K
+    occhio = np.exp(-((xx - ox) ** 2 + (yy - oy) ** 2) / (2 * (W * 0.005) ** 2))
+    altro[..., :3] += occhio[..., None] * np.array((0.75, 0.8, 0.7), np.float32)
+    altro[..., 3] = np.maximum(altro[..., 3], occhio * 0.9)
+    hl = max(1, H // 200)
+    dispari = ((np.arange(H) // hl) % 2 == 1)
+    out = img.copy()
+    out[dispari] = altro[dispari]
+    return np.clip(out, 0, 1)
+
+
 SPECIE['re_di_triglie_a_righe'] = Specie(
     forma=Shape(
         top=[(0, -0.02), (0.03, 0.024), (0.07, 0.062), (0.13, 0.096), (0.22, 0.118), (0.35, 0.124), (0.5, 0.112), (0.65, 0.084),
@@ -418,13 +576,63 @@ SPECIE['re_di_triglie_a_righe'] = Specie(
     aspetto=Look(back=(0.6, 0.12, 0.06), flank=(0.86, 0.32, 0.12), belly=(0.9, 0.56, 0.4), fin=(0.85, 0.36, 0.16),
                  iris=(0.9, 0.75, 0.4), iris_dark=(0.4, 0.15, 0.05), metal=0.2, irid=0.3,
                  disegni=[Disegno('macchia', colore=(0.08, 0.02, 0.02), forza=0.9, u=0.9, v=0.05, r=0.02)]),
+    ritocco=_altro_pesce,
     famiglia='glitch', piano='fusiforme',
+    ritratto=Ritratto(riquadro=(0.68, 0.6), centro=(0.48, 0.47)),
     opzioni=dict(seed=91))
 
 
 # ── Occhialone Veloce (occhialone, Pagellus bogaraveo) ──
 # Lo sparide ovale con l'occhio grandissimo (un terzo della testa) e il muso corto e tondo; la macchia nera
 # all'inizio della linea laterale, sopra l'opercolo; grigio-rosato argento, le pinne rossicce, coda forcuta.
+# Il glitch: «vive tutto più in fretta. Quando lo tiri su è giovane, quando lo metti nel secchio è vecchio, e
+# domattina sarà polvere» → l'avanti veloce lungo il corpo (ritocco): la testa fresca, a metà invecchia (si
+# sbiadisce e ingiallisce), la coda si sbriciola in polvere che vola via; due righe dell'avanti veloce.
+def _avanti_veloce(img, c):
+    """ritocco: lungo la sagoma (u = 0 al muso, 1 in punta alla coda) i colori invecchiano da u 0.3 a 0.75; da
+    u 0.66 la sagoma si sbriciola a granelli, e i granelli tolti volano via a destra e in su, sempre più tenui."""
+    rng = np.random.default_rng(102)
+    H, W = img.shape[:2]
+    x0, x1, y0, y1 = _sagoma(img)
+    u = np.clip((np.arange(W, dtype=np.float32) - x0) / max(x1 - x0, 1), 0, 1)[None, :]
+    out = img.copy()
+    # vecchio: sbiadito, ingiallito, un po' più scuro, con le macchie dell'età
+    eta = np.clip((u - 0.3) / 0.45, 0, 1)
+    luce = img[..., :3] @ np.array((0.299, 0.587, 0.114), np.float32)
+    seppia = luce[..., None] * np.array((1.0, 0.86, 0.66), np.float32) * 0.85
+    out[..., :3] = img[..., :3] * (1 - eta[..., None]) + seppia * eta[..., None]
+    g = max(1, int(round(W / 400)))
+    grana = np.repeat(np.repeat(rng.random(((H + g - 1) // g, (W + g - 1) // g)), g, axis=0), g, axis=1)[:H, :W]
+    out[..., :3] *= (1 - 0.25 * eta * (grana > 0.93))[..., None]
+    # polvere: la sagoma si sbriciola (a granelli) sempre di più verso la coda
+    sbriciola = np.clip((u - 0.66) / 0.3, 0, 1)
+    via = (grana < sbriciola ** 0.8 * 1.05) & (img[..., 3] > 0.05)
+    out[..., 3] *= ~via
+    # i granelli tolti volano via: a destra e un poco in su, piccoli, color polvere, sempre più tenui
+    ys, xs = np.nonzero(via)
+    if len(xs):
+        scelti = rng.choice(len(xs), size=min(len(xs), 2600), replace=False)
+        ys, xs = ys[scelti], xs[scelti]
+        dist = rng.exponential(W * 0.05, len(xs))
+        nx = (xs + dist + rng.normal(0, W * 0.006, len(xs))).astype(int)
+        ny = (ys - dist * rng.uniform(0.05, 0.35, len(xs)) + rng.normal(0, H * 0.012, len(xs))).astype(int)
+        ok = (nx >= 0) & (nx < W - g) & (ny >= 0) & (ny < H - g)
+        tono = rng.uniform(0.45, 0.8, len(xs))[:, None] * np.array((0.78, 0.72, 0.62), np.float32)
+        op = np.clip(1.0 - dist / (W * 0.16), 0.0, 1.0) * 0.85
+        for i in np.nonzero(ok)[0]:
+            blk = out[ny[i]:ny[i] + g, nx[i]:nx[i] + g]
+            blk[..., :3] = blk[..., :3] * (1 - op[i]) * blk[..., 3:4] + tono[i] * op[i]
+            blk[..., :3] /= np.maximum(blk[..., 3:4] * (1 - op[i]) + op[i], 1e-5)
+            blk[..., 3] = blk[..., 3] + op[i] * (1 - blk[..., 3])
+    # l'avanti veloce: due righe chiare e sfrangiate che attraversano il pesce
+    for _ in range(2):
+        y = int(rng.uniform(y0 + 0.2 * (y1 - y0), y1 - 0.2 * (y1 - y0)))
+        h = max(1, int(H * 0.008))
+        riga = out[y:y + h]
+        riga[..., :3] = riga[..., :3] * 0.5 + rng.random(riga.shape[:2])[..., None] * 0.6
+    return np.clip(out, 0, 1)
+
+
 SPECIE['occhialone_veloce'] = Specie(
     forma=Shape(
         top=[(0, -0.02), (0.03, 0.025), (0.07, 0.068), (0.13, 0.108), (0.22, 0.136), (0.36, 0.146), (0.5, 0.138), (0.68, 0.098),
@@ -441,7 +649,9 @@ SPECIE['occhialone_veloce'] = Specie(
     aspetto=Look(back=(0.42, 0.24, 0.24), flank=(0.68, 0.55, 0.53), belly=(0.82, 0.75, 0.72), fin=(0.7, 0.38, 0.33),
                  iris=(0.75, 0.68, 0.55), iris_dark=(0.15, 0.1, 0.08), metal=0.55, irid=0.35, linea_v=(0.62, -0.42),
                  disegni=[Disegno('macchia', colore=(0.02, 0.015, 0.015), forza=0.95, u=0.275, v=0.52, r=0.022)]),
+    ritocco=_avanti_veloce,
     famiglia='glitch', piano='fusiforme',
+    ritratto=Ritratto(riquadro=(0.7, 0.64), centro=(0.44, 0.47)),
     opzioni=dict(seed=101))
 
 
