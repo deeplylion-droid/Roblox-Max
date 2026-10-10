@@ -490,10 +490,12 @@ def build_lampara(mats):
     return obs + [mantle, bulb]
 
 
-def build_rod(mats, bend=0.0, name='Rod', tilt=0.0, flex=0.0):
+def build_rod(mats, bend=0.0, name='Rod', tilt=0.0, flex=0.0, solo_base=False):
     """bend: 0 = a riposo, 1 = abboccata, 2 = recupero sotto sforzo. Per il lancio: tilt (gradi) alza la canna
     ruotandola nel portacanna (positivo = punta su e indietro), flex piega la cima (positivo = la punta resta
-    indietro e su, caricata; negativo = scatta in avanti e giù, la frustata)."""
+    indietro e su, caricata; negativo = scatta in avanti e giù, la frustata). solo_base: solo quello che non si
+    muove (impugnatura, mulinello e il fusto fino al portacanna): il resto della canna lo disegna il gioco, che la
+    piega in continuo (src/app/rod.ts, stessa geometria)."""
     butt = np.array(ROD_BUTT)
     gun = np.array(ROD_GUNWALE)
     tip = np.array(ROD_TIP)
@@ -509,6 +511,25 @@ def build_rod(mats, bend=0.0, name='Rod', tilt=0.0, flex=0.0):
         p = p + flex * u ** 2.4 * np.array((-0.06, -0.30, 0.26))
         pts.append(p)
     path = np.vstack([butt, pts])
+    if solo_base:
+        # il fusto fino a poco sopra il portacanna, con la stessa rastremazione che ha nella canna intera
+        path = np.vstack([butt, gun + d * 0.02])
+        blank = tube(name, path, 0.011, n=10, taper=1.0 - 0.75 * 1.5 / 25)
+        blank.data.materials.append(mats['carbon'])
+        obs = [blank]
+        grip = tube(name + 'Grip', [butt, butt + (gun - butt) * 0.85], 0.017, n=10)
+        grip.data.materials.append(mats['cork'])
+        obs.append(grip)
+        rp = butt + (gun - butt) * 0.6 + np.array((0.0, 0.0, -0.06))
+        spool = cylinder(name + 'Spool', 0.032, 0.05, tuple(rp), rot=(math.radians(90), 0, math.radians(-25)), verts=20)
+        spool.data.materials.append(mats['grey_plastic'])
+        obs.append(spool)
+        handle = tube(name + 'Handle', [rp + np.array((0.04, 0.0, 0.0)), rp + np.array((0.09, 0.0, 0.03))], 0.004, n=6)
+        handle.data.materials.append(mats['black_plastic'])
+        obs.append(handle)
+        for ob in obs:
+            set_lightgroup(ob, 'ambient')
+        return obs, gun
     if tilt:
         # la canna ruota nel portacanna, nel piano verticale che la contiene (la punta su e indietro)
         h = np.array((d[0], d[1], 0.0))

@@ -317,6 +317,19 @@ void main() {
 }`;
 
 /** Lenza: striscia di triangoli già in coordinate clip. */
+/** Tubo sottile (la canna disegnata dal motore): triangoli già proiettati, colore premoltiplicato per vertice. */
+export const TUBE_VS = /* glsl */ `#version 300 es
+layout(location = 0) in vec2 aPos;
+layout(location = 1) in vec4 aCol;
+out vec4 vCol;
+void main() { vCol = aCol; gl_Position = vec4(aPos, 0.0, 1.0); }`;
+
+export const TUBE_FS = /* glsl */ `#version 300 es
+precision highp float;
+in vec4 vCol;
+out vec4 frag;
+void main() { frag = vCol; }`;
+
 export const LINE_VS = /* glsl */ `#version 300 es
 layout(location = 0) in vec2 aPos;
 layout(location = 1) in float aAlpha;

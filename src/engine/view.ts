@@ -126,6 +126,13 @@ export class View {
     return [0.5 + (c[0] / c[1] / this.tanX) * 0.5, 0.5 + (c[2] / c[1] / this.tanY) * 0.5];
   }
 
+  /** Come project (spazio barca), con anche la profondità davanti alla camera (metri, per un punto dall'occhio). */
+  projectDepth(p: [number, number, number]): [number, number, number] | null {
+    const c = apply(transpose(this.boatRot), p);
+    if (c[1] <= 1e-4) return null;
+    return [0.5 + (c[0] / c[1] / this.tanX) * 0.5, 0.5 + (c[2] / c[1] / this.tanY) * 0.5, c[1]];
+  }
+
   /** Coordinate schermo 0..1 (y in su) → direzione nello spazio barca. */
   unproject(u: number, v: number): [number, number, number] {
     const x = (u * 2 - 1) * this.tanX;

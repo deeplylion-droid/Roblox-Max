@@ -6,7 +6,7 @@
  */
 import type { LayerInfo, Vec3 } from '../engine/assets.ts';
 import { dirPos, type AudioEngine, type Voice } from '../engine/audio.ts';
-import type { BinoPlace, LayerDraw, LightGlow, Overlay, Stroke } from '../engine/renderer.ts';
+import type { BinoPlace, LayerDraw, LightGlow, Overlay, Stroke, TubeDraw } from '../engine/renderer.ts';
 import { CHILD, RADIO_VOICE, speak, type Utterance } from '../engine/voice.ts';
 import { FISHING, HOUR_SECONDS, NIGHTS, VIEW, YAW, type LampLevel, type MonsterId } from '../game/config.ts';
 import type { GameEvent } from '../game/events.ts';
@@ -17,6 +17,7 @@ import { Hud } from './hud.ts';
 import type { Options } from './save.ts';
 import type { Sfx } from './sfx.ts';
 import { Sonar } from './sonar.ts';
+import { Rod } from './rod.ts';
 import type { Stage } from './stage.ts';
 
 export interface OverlayTex {
@@ -90,7 +91,17 @@ const FLOAT_LIGHT: Vec3 = [1.5, 0.42, 0.12];
 /** il lancio (FISHING.castTime): la canna si carica fino a CAST_LOAD, poi la frustata (sul picco del fruscio del
  *  suono 'cast') fino a CAST_WHIP, poi il galleggiante vola fino al tonfo */
 const CAST_LOAD = 0.12;
-const CAST_WHIP = 0.24;
+const CAST_WHIP = 0.27;
+/** la canna nel lancio (gradi, + punta su e indietro): si alza caricandosi, scatta avanti, torna; la cima la segue
+ *  con la sua inerzia (rod.ts), ed è lei a fare la frustata */
+function castTilt(ct: number): number {
+  if (ct < 0.13) return 10 * smooth01(ct / 0.13);
+  if (ct < 0.25) return 10 - 16 * smooth01((ct - 0.13) / 0.12);
+  if (ct < 0.6) return -6 * (1 - smooth01((ct - 0.25) / 0.35));
+  return 0;
+}
+/** il galleggiante appeso alla punta (metri di filo) */
+const HANG = 0.42;
 /** la canna nel lancio, fotogramma per fotogramma ([fino a quale istante, strato]; pose renderizzate a parte,
  *  jobs.py props con PROPS=lancio): si alza e si carica, la frustata in avanti (il galleggiante parte con
  *  rod_f2) e la cima che torna */
@@ -237,6 +248,12 @@ export class Night {
    *  sollevata col pesce, o persa col filo spezzato */
   private lastFloat: Vec3 | null = null;
   private retrieve: { t: number; from: Vec3; kind: 'reel' | 'lift' | 'lost' } | null = null;
+  /** la canna disegnata dal motore (se c'è lo strato rod_base), il galleggiante che le pende dalla punta come un
+   *  pendolo, da dove è partito nel lancio, e la ferrata (secondi da quando hai ferrato) */
+  private rod = new Rod();
+  private bob: { p: Vec3; q: Vec3 } | null = null;
+  private castFrom: Vec3 | null = null;
+  private strikeT = -1;
   /** i battiti di ciglia delle creature: attesa fino al prossimo, e quanto manca alla fine di quello in corso */
   private blinks: Record<string, { wait: number; t: number }> = {};
   // audio
@@ -640,6 +657,7 @@ export class Night {
       case 'bite':
         a.play(Math.random() < 0.5 ? 'rod_bell_1' : 'rod_bell_2', { pos: this.d.stage.man.points.rodTip });
         this.ripple(0.6, 0);
+        this.rod.kick(4);
         break;
       case 'baitStolen':
         a.play('splash_s1', { pos: this.floatPos(), gain: 0.5 });
@@ -648,6 +666,7 @@ export class Night {
         this.hud.toast(S.baitStolen, '', 1.8);
         break;
       case 'hooked':
+        this.strikeT = 0;
         this.loops.reel = a.play('reel_loop', { loop: true, gain: 0, pos: [0.86, 0.85, -0.6] });
         this.loops.tension = a.play('line_tension', { loop: true, gain: 0, pos: [1.6, 2.6, 0.1] });
         break;
@@ -655,16 +674,20 @@ export class Night {
         a.play(['splash_s1', 'splash_s2', 'splash_s3'][Math.floor(Math.random() * 3)]!, { pos: this.floatPos(), gain: 0.7 });
         this.lineSway = (Math.random() < 0.5 ? -1 : 1) * (0.4 + Math.random() * 0.4);
         this.ripple(0.9, 0);
+        this.rod.kick(5, -2);
         break;
       case 'lineSnap':
         a.play('line_snap', { pos: this.d.stage.man.points.rodTip });
         this.retrieveFloat('lost');
+        // il carico se ne va di colpo: la punta scatta su e vibra
+        this.rod.kick(-14, 6);
         this.hud.toast(S.lineSnap, '', 1.8);
         this.stopReel();
         break;
       case 'fishEscaped':
         a.play('splash_s2', { pos: this.floatPos(), gain: 0.5 });
         this.ripple(1, 0);
+        this.rod.kick(-6, 2);
         this.retrieveFloat('reel');
         this.hud.toast(S.escaped, '', 1.8);
         this.stopReel();
@@ -1022,6 +1045,7 @@ export class Night {
     v.robinBlink = this.blinker('robin', dt, [2.5, 6]);
 
     this.updateBattery(dt);
+    this.updateRod(dt);
 
     // la lenza: il lancio, il tonfo, i cerchi sull'acqua
     if (this.castT >= 0) this.castT = this.castT > 4 ? -1 : this.castT + dt;
@@ -1155,7 +1179,8 @@ export class Night {
       // il voltmetro retroilluminato (lo stesso strato col quadrante acceso, dissolto sopra)
       if (has('battery_lit') && this.gaugeGlow > 0.002) layers.push({ key: 'battery_lit', opacity: this.gaugeGlow * GAUGE_LIGHT });
     }
-    layers.push(this.rodKey());
+    // la canna: il manico e il mulinello sono uno strato, il fusto lo disegna il motore (render: tubes)
+    layers.push(has('rod_base') ? 'rod_base' : this.rodKey());
     const n = sim.fish;
     if (n > 0) layers.push(n <= 3 ? 'fish2' : n <= 6 ? 'fish5' : 'fish9');
     layers.push(...aboard);
@@ -1244,6 +1269,75 @@ export class Night {
     return bend >= 1.4 ? 'rod2' : bend >= 0.5 ? 'rod1' : 'rod0';
   }
 
+  /** La canna disegnata dal motore: quanto si piega e quanto ruota nel portacanna secondo la pesca; e il
+   *  galleggiante appeso alla punta, che le dondola dietro come un pendolo. */
+  private updateRod(dt: number): void {
+    const f = this.sim.fishing;
+    const t = this.d.stage.time;
+    let bend = 0;
+    if (f.phase === 'waiting') bend = 0.06 + 0.03 * Math.sin(t * 1.3);
+    else if (f.phase === 'bite') bend = 0.3 + 0.8 * Math.max(0, Math.sin(t * 10.5)) ** 4;  // gli strattoni dell'abboccata
+    else if (f.phase === 'reeling') bend = 1 + 1.2 * Math.min(1, f.tension) + (f.pulling ? 0.25 * (0.5 + 0.5 * Math.sin(t * 19)) : 0);
+    else if (f.phase === 'landing') bend = 0.7;
+    let tilt = 0;
+    if (f.phase === 'casting' && this.castT >= 0) tilt = castTilt(this.castT);
+    if (this.strikeT >= 0) {
+      // la ferrata: un colpo secco verso l'alto
+      this.strikeT += dt;
+      if (this.strikeT < 0.35) tilt += 7 * Math.sin((Math.PI * this.strikeT) / 0.35);
+      else this.strikeT = -1;
+    }
+    if (f.phase === 'landing') tilt += 5;
+    // la barca che dondola muove appena la cima
+    bend += 0.04 * this.d.stage.view.roll * Math.sin(t * 0.8);
+    this.rod.update(dt, bend, tilt);
+
+    // il galleggiante appeso (Verlet, con il filo lungo HANG)
+    const tip = this.rod.tip();
+    if (!this.bob || f.phase === 'waiting' || f.phase === 'bite' || f.phase === 'reeling') {
+      const p: Vec3 = [tip[0], tip[1], tip[2] - HANG];
+      this.bob = { p, q: [p[0], p[1], p[2]] };
+    } else {
+      const b = this.bob;
+      const k = Math.exp(-1.1 * dt);
+      const n: Vec3 = [b.p[0] + (b.p[0] - b.q[0]) * k, b.p[1] + (b.p[1] - b.q[1]) * k, b.p[2] + (b.p[2] - b.q[2]) * k - 9.8 * dt * dt];
+      const dx = n[0] - tip[0], dy = n[1] - tip[1], dz = n[2] - tip[2];
+      const d = Math.hypot(dx, dy, dz) || 1;
+      b.q = b.p;
+      b.p = [tip[0] + (dx / d) * HANG, tip[1] + (dy / d) * HANG, tip[2] + (dz / d) * HANG];
+    }
+    // nel lancio il galleggiante parte da dov'è all'istante della frustata
+    if (f.phase === 'casting' && this.castT >= CAST_WHIP && !this.castFrom) this.castFrom = [...this.bob.p] as Vec3;
+    if (f.phase !== 'casting') this.castFrom = null;
+  }
+
+  /** Il fusto della canna da disegnare (e la campanella in punta), se c'è lo strato del manico. */
+  private rodTubes(): TubeDraw[] {
+    if (!this.d.stage.man.layers['rod_base']) return [];
+    const st = this.d.stage;
+    const lw = st.lampWeight();
+    const tip = this.rod.tip();
+    // carbonio scuro: il riflesso caldo della lampara su un lato, la luna appena sull'altro
+    const blank: TubeDraw = {
+      points: this.rod.points(),
+      radius: this.rod.radii(),
+      lit: [0.085 * lw + 0.014, 0.06 * lw + 0.016, 0.038 * lw + 0.02],
+      mid: [0.012 * lw + 0.004, 0.009 * lw + 0.0045, 0.007 * lw + 0.005],
+      dark: [0.004, 0.004, 0.005],
+      light: LAMP_AT,
+    };
+    // la campanella d'ottone appesa sotto la punta
+    const bell: TubeDraw = {
+      points: [[tip[0], tip[1], tip[2] - 0.012], [tip[0], tip[1], tip[2] - 0.04]],
+      radius: [0.006, 0.013],
+      lit: [0.55 * lw + 0.05, 0.38 * lw + 0.04, 0.12 * lw + 0.03],
+      mid: [0.16 * lw + 0.01, 0.1 * lw + 0.01, 0.03 * lw + 0.008],
+      dark: [0.01, 0.008, 0.004],
+      light: LAMP_AT,
+    };
+    return [blank, bell];
+  }
+
   /** La frustata del lancio nella vista (gradi di yaw e pitch): caricando si alza un poco, col colpo scatta giù. */
   private castKick(): [number, number] {
     const ct = this.castT;
@@ -1316,23 +1410,28 @@ export class Night {
     const f = this.sim.fishing;
     const man = this.d.stage.man;
     const t = this.d.stage.time;
-    const tip = man.layers[this.rodKey()]?.tip ?? man.points.rodTip;
-    const hang: Vec3 = [tip[0], tip[1], tip[2] - 0.42];
+    const live = !!man.layers['rod_base'];
+    const tip = live ? this.rod.tip() : man.layers[this.rodKey()]?.tip ?? man.points.rodTip;
+    // appeso alla punta: dondola come un pendolo dietro alla canna che si muove
+    const hang: Vec3 = live && this.bob ? this.bob.p : [tip[0], tip[1], tip[2] - HANG];
     let end: Vec3 | null = null;
     let sag = 0;
     let light = 1;
     if (f.phase === 'casting' && this.castT >= 0) {
       const ct = this.castT;
       if (ct < CAST_WHIP) {
-        const k = ct < CAST_LOAD ? smooth01(ct / CAST_LOAD) : 1 - smooth01((ct - CAST_LOAD) / (CAST_WHIP - CAST_LOAD));
-        end = [hang[0] - 0.05 * k, hang[1] - 0.32 * k, hang[2] + 0.18 * k];
+        if (live) end = hang;
+        else {
+          const k = ct < CAST_LOAD ? smooth01(ct / CAST_LOAD) : 1 - smooth01((ct - CAST_LOAD) / (CAST_WHIP - CAST_LOAD));
+          end = [hang[0] - 0.05 * k, hang[1] - 0.32 * k, hang[2] + 0.18 * k];
+        }
       } else {
         // il volo rallenta verso l'arrivo (il filo che corre via frena il galleggiante); dietro, una scia della sua luce
         const u = Math.min(1, (ct - CAST_WHIP) / (FISHING.castTime - CAST_WHIP));
         const land = this.floatAt(FLOAT_FAR);
-        // parte da dove l'ha lasciato la frustata (la punta della posa rod_f2), anche se la canna intanto torna
+        // parte da dove l'ha lasciato la frustata, anche se la canna intanto torna
         const rt = man.layers['rod_f2']?.tip ?? tip;
-        const from: Vec3 = [rt[0], rt[1], rt[2] - 0.42];
+        const from: Vec3 = live && this.castFrom ? this.castFrom : [rt[0], rt[1], rt[2] - HANG];
         const fly = (u: number): Vec3 => {
           const s = 1 - (1 - Math.max(0, u)) ** 1.8;
           return [from[0] + (land[0] - from[0]) * s, from[1] + (land[1] - from[1]) * s, from[2] + (land[2] - from[2]) * s + CAST_ARC * 4 * s * (1 - s)];
@@ -1381,7 +1480,7 @@ export class Night {
       }
     } else if (f.phase === 'idle') {
       // pronto per il lancio: pende dalla punta e dondola
-      end = [hang[0] + 0.03 * Math.sin(t * 1.3), hang[1] + 0.04 * Math.sin(t * 0.9 + 1), hang[2]];
+      end = live ? hang : [hang[0] + 0.03 * Math.sin(t * 1.3), hang[1] + 0.04 * Math.sin(t * 0.9 + 1), hang[2]];
     }
     if (end) {
       const pts: Vec3[] = [];
@@ -1579,6 +1678,7 @@ export class Night {
       overlay: this.overlay(),
       line: tk?.line ?? null,
       strokes: tk?.strokes,
+      tubes: tk ? this.rodTubes() : [],
       // a batteria morta lo schermo del sonar è nero
       sonar: binoOn || this.sim.blackout ? null : this.sonar.canvas,
       gauge: this.sim.cfg.battery && !binoOn ? { angle: this.needleAngle(), alpha: 1 } : null,

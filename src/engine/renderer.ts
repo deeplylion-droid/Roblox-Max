@@ -3,7 +3,7 @@
  * atmosfera (faro, luci), schermo del sonar, lenza, bloom e composizione finale.
  */
 import { FULLSCREEN_VS, FullscreenTri, Program, Target, createGL, hdrSupported, textureFromCanvas, type GL } from './gl.ts';
-import { ATMOS_FS, BRIGHT_FS, DOWN_FS, FINAL_FS, GAUGE_FS, LAYER_FS, LINE_FS, LINE_VS, OVERLAY_FS, PERSP_FS, SCREEN_FS, UP_FS } from './shaders.ts';
+import { ATMOS_FS, BRIGHT_FS, DOWN_FS, FINAL_FS, GAUGE_FS, LAYER_FS, LINE_FS, LINE_VS, OVERLAY_FS, PERSP_FS, SCREEN_FS, TUBE_FS, TUBE_VS, UP_FS } from './shaders.ts';
 import type { LoadedLayer, Manifest, Vec3 } from './assets.ts';
 import type { View } from './view.ts';
 
@@ -42,6 +42,19 @@ export interface Stroke {
   width?: number;
   /** stessa intensità lungo tutto il tratto (la lenza invece sfuma verso l'acqua) */
   even?: boolean;
+}
+
+/** Un tubo sottile in 3D (spazio barca, dall'occhio), ombreggiato come un cilindro: la canna disegnata dal motore. */
+export interface TubeDraw {
+  points: Vec3[];
+  /** raggio (metri) punto per punto */
+  radius: number[];
+  /** colori lineari: il lato verso la luce, il mezzo, il lato in ombra */
+  lit: Vec3;
+  mid: Vec3;
+  dark: Vec3;
+  /** dove sta la luce che fa il riflesso (dall'occhio, spazio barca): il lato in luce guarda lì */
+  light: Vec3;
 }
 
 /** Immagine a tutto schermo dentro la scena (vista dal telone, jumpscare). */
@@ -108,6 +121,8 @@ export interface FrameParams {
   line: Stroke | null;
   /** altri tratti sottili, sotto la lenza (i cerchi del galleggiante sull'acqua) */
   strokes?: Stroke[];
+  /** la canna disegnata dal motore (sopra gli strati, sotto la lenza) */
+  tubes?: TubeDraw[];
 }
 
 export class Renderer {
@@ -118,6 +133,9 @@ export class Renderer {
   private pScreen: Program;
   private pGauge: Program;
   private pLine: Program;
+  private pTube: Program;
+  private tubeVao: WebGLVertexArrayObject;
+  private tubeBuf: WebGLBuffer;
   private pBright: Program;
   private pDown: Program;
   private pUp: Program;
@@ -147,6 +165,7 @@ export class Renderer {
     this.pScreen = new Program(gl, FULLSCREEN_VS, SCREEN_FS, 'screen');
     this.pGauge = new Program(gl, FULLSCREEN_VS, GAUGE_FS, 'gauge');
     this.pLine = new Program(gl, LINE_VS, LINE_FS, 'line');
+    this.pTube = new Program(gl, TUBE_VS, TUBE_FS, 'tube');
     this.pBright = new Program(gl, FULLSCREEN_VS, BRIGHT_FS, 'bright');
     this.pDown = new Program(gl, FULLSCREEN_VS, DOWN_FS, 'down');
     this.pUp = new Program(gl, FULLSCREEN_VS, UP_FS, 'up');
@@ -161,6 +180,15 @@ export class Renderer {
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 12, 0);
     gl.enableVertexAttribArray(1);
     gl.vertexAttribPointer(1, 1, gl.FLOAT, false, 12, 8);
+    gl.bindVertexArray(null);
+    this.tubeVao = gl.createVertexArray()!;
+    this.tubeBuf = gl.createBuffer()!;
+    gl.bindVertexArray(this.tubeVao);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.tubeBuf);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 24, 0);
+    gl.enableVertexAttribArray(1);
+    gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 24, 8);
     gl.bindVertexArray(null);
   }
 
@@ -255,6 +283,7 @@ export class Renderer {
     if (f.boatGlows?.length) this.drawGlows(view, f.boatGlows);
     if (f.sonar) this.drawScreen(view, f);
     if (f.gauge) this.drawGauge(view, f.gauge);
+    for (const t of f.tubes ?? []) this.drawTube(view, t);
     for (const s of f.strokes ?? []) this.drawLine(view, s);
     if (f.line) this.drawLine(view, f.line);
     if (f.overlay && f.overlay.alpha > 0.001) this.drawOverlay(f.overlay);
@@ -396,6 +425,55 @@ export class Renderer {
       .f1('uRoll', o.roll ?? 0)
       .f1('uAlpha', o.alpha);
     this.tri.draw();
+  }
+
+  /** Il tubo (la canna): ogni punto proiettato con la sua profondità, largo quanto il raggio visto da lì; tre file
+   *  di vertici (lato in luce, mezzo, lato in ombra) danno l'ombreggiatura del cilindro. Sotto il pixel di
+   *  larghezza sfuma, invece di sfarfallare. */
+  private drawTube(view: View, t: TubeDraw): void {
+    const gl = this.gl;
+    const W = this.w, H = this.h;
+    const fx = W / 2 / view.tanX;
+    const P: { x: number; y: number; hw: number }[] = [];
+    for (let i = 0; i < t.points.length; i++) {
+      const s = view.projectDepth(t.points[i]!);
+      if (!s) return;
+      P.push({ x: s[0] * W, y: s[1] * H, hw: (t.radius[i]! / s[2]) * fx });
+    }
+    const L = view.projectDepth(t.light);
+    const data: number[] = [];
+    const vert = (x: number, y: number, c: Vec3, a: number) => data.push((x / W) * 2 - 1, (y / H) * 2 - 1, c[0] * a, c[1] * a, c[2] * a, a);
+    const n = P.length;
+    const rows: { lx: number; ly: number; mx: number; my: number; dx: number; dy: number; a: number }[] = [];
+    for (let i = 0; i < n; i++) {
+      const a = P[Math.max(0, i - 1)]!, b = P[Math.min(n - 1, i + 1)]!, p = P[i]!;
+      let tx = b.x - a.x, ty = b.y - a.y;
+      const l = Math.hypot(tx, ty) || 1;
+      tx /= l;
+      ty /= l;
+      let nx = -ty, ny = tx;
+      if (L && (L[0] * W - p.x) * nx + (L[1] * H - p.y) * ny < 0) {
+        nx = -nx;
+        ny = -ny;
+      }
+      const hw = Math.max(0.55, p.hw);
+      rows.push({ lx: p.x + nx * hw, ly: p.y + ny * hw, mx: p.x, my: p.y, dx: p.x - nx * hw, dy: p.y - ny * hw, a: Math.min(1, Math.max(0.3, p.hw * 1.8)) });
+    }
+    for (let i = 0; i < n - 1; i++) {
+      const r0 = rows[i]!, r1 = rows[i + 1]!;
+      // lato in luce → mezzo
+      vert(r0.lx, r0.ly, t.lit, r0.a); vert(r0.mx, r0.my, t.mid, r0.a); vert(r1.lx, r1.ly, t.lit, r1.a);
+      vert(r1.lx, r1.ly, t.lit, r1.a); vert(r0.mx, r0.my, t.mid, r0.a); vert(r1.mx, r1.my, t.mid, r1.a);
+      // mezzo → lato in ombra
+      vert(r0.mx, r0.my, t.mid, r0.a); vert(r0.dx, r0.dy, t.dark, r0.a); vert(r1.mx, r1.my, t.mid, r1.a);
+      vert(r1.mx, r1.my, t.mid, r1.a); vert(r0.dx, r0.dy, t.dark, r0.a); vert(r1.dx, r1.dy, t.dark, r1.a);
+    }
+    gl.bindVertexArray(this.tubeVao);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.tubeBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.DYNAMIC_DRAW);
+    this.pTube.use();
+    gl.drawArrays(gl.TRIANGLES, 0, data.length / 6);
+    gl.bindVertexArray(null);
   }
 
   /** Lenza (e altri tratti): polilinea 3D (spazio barca) proiettata e disegnata come nastro sottile. */

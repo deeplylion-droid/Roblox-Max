@@ -565,6 +565,33 @@
    ],
    "yaw": 34.5552
   },
+  "rod_base": {
+   "passes": {
+    "ambient": {
+     "file": "rod_base_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "rod_base_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "rod_base_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    4018,
+    1209,
+    4172,
+    1634
+   ],
+   "space": "boat",
+   "yaw": 43.2888
+  },
   "rod_c1": {
    "passes": {
     "ambient": {

@@ -299,6 +299,13 @@ def job_props(q):
             render_sprite(q, key, obs, extra={'tip': [round(float(tip[i] - EYE[i]), 4) for i in range(3)]})
             for o in obs:
                 o.hide_render = True
+    # la canna che il gioco piega in continuo: qui solo quello che non si muove (impugnatura, mulinello, il fusto
+    # fino al portacanna). PROPS=rodbase
+    if 'rodbase' in only:
+        obs, gun = boat.build_rod(mats, name='rod_base', solo_base=True)
+        render_sprite(q, 'rod_base', obs)
+        for o in obs:
+            o.hide_render = True
     # la canna nel lancio: si alza e si carica, poi la frustata in avanti (il gioco le sfoglia; vedi rodKey in
     # src/app/night.ts). PROPS=lancio
     if 'lancio' in only:
