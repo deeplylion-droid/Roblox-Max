@@ -129,6 +129,10 @@ const POSE = {
   gulpyJawShut: 'gulpy_mascella_chiusa',
   hatchMouthHalf: 'hatch_bocca_mezza',
   hatchMouthShut: 'hatch_bocca_chiusa',
+  /** notte 3: Archie fuori dall'acqua davanti alla prua, e le toppe della trombetta srotolata a metà e tutta */
+  archie: 'archie_soffia',
+  archieHornHalf: 'archie_trombetta_mezza',
+  archieHornFull: 'archie_trombetta_tutta',
 } as const;
 
 /** le toppe degli occhi di Molly sui due lati: il primo occhio (quello che ti fissa) e il secondo */
@@ -251,7 +255,7 @@ export class Night {
   private hoverTarget: Target = null;
   // stato visivo (morbido)
   private v = { gSale: 0, gRise: 0, gPret: 0, mR: 0, mL: 0, hRise: 0, robin: 0, robinFear: 0, robinBlink: 0,
-    gJaw: 0, gJawPhase: 0, gJawAmp: 0, mBlink1: 0, mBlink2: 0, hMouth: 0, hMouthT: 99, tarp: 0, toy: 0, toyX: -1, dawn: 0, rock: 0, dark: 0 };
+    gJaw: 0, gJawPhase: 0, gJawAmp: 0, mBlink1: 0, mBlink2: 0, hMouth: 0, hMouthT: 99, aRise: 0, aHornT: 0, aHornHalf: 0, aHornFull: 0, tarp: 0, toy: 0, toyX: -1, dawn: 0, rock: 0, dark: 0 };
   private gulpyDive = 0;
   private js: { killer: MonsterId; t: number; yaw: number; scream: Voice | null } | null = null;
   private lineSway = 0;
@@ -1097,6 +1101,22 @@ export class Night {
     const counting = h.state === 'counting';
     v.hRise = toward(v.hRise, counting ? 1 : 0, 1.6, 0.9, dt);
 
+    // Archie: il collo esce dall'acqua davanti alla prua e ci torna quando si rituffa. Mentre sale e mentre aspetta
+    // al buio prende fiato nella trombetta, che si srotola a metà e si riavvolge; mentre fa il risucchio la tiene
+    // arrotolata stretta; quando soffia si distende tutta
+    const ar = sim.archie;
+    const archieT = ar && (ar.present || ar.state === 'attack') ? 1 : 0;
+    const cfgA = sim.cfg.archie;
+    v.aRise = toward(v.aRise, archieT, cfgA?.rise ?? 3, cfgA?.dive ?? 2, dt);
+    const idle = ar && (ar.state === 'rising' || ar.state === 'waiting');
+    if (idle) v.aHornT += dt;
+    else v.aHornT = 0;
+    // un respiro ogni 3,4 s: la trombetta si srotola in 0,6 s, resta un attimo, si riavvolge in 0,9 s
+    const hb = v.aHornT % 3.4;
+    const breath = !idle ? 0 : hb < 0.6 ? smooth01(hb / 0.6) : hb < 0.9 ? 1 : hb < 1.8 ? 1 - smooth01((hb - 0.9) / 0.9) : 0;
+    v.aHornHalf = approach(v.aHornHalf, breath, 18, dt);
+    v.aHornFull = approach(v.aHornFull, ar && (ar.state === 'blowing' || ar.state === 'attack') ? 1 : 0, 25, dt);
+
     // Robin: sale dal mare sul bordo mentre arriva e ruba; scacciato scivola giù in mare. La luce in faccia cresce
     // mentre lo scacci, e se ne va ancora abbagliato
     const rb = sim.robin;
@@ -1161,6 +1181,7 @@ export class Night {
         if (this.js.killer === 'gulpy') v.gPret = 1;
         else if (this.js.killer === 'hatch') v.hRise = 1;
         else if (this.js.killer === 'robin') v.robin = 1;
+        else if (this.js.killer === 'archie') v.aRise = 1;
         else if (this.sim.molly.side === 'right') v.mR = 1;
         else v.mL = 1;
       }
@@ -1239,6 +1260,18 @@ export class Night {
       if (half) layers.push(half);
       const shut = rise(POSE.hatchMouthShut, kShut, hr);
       if (shut) layers.push(shut);
+    }
+    // Archie davanti alla prua, e le toppe della trombetta (a metà nel respiro, tutta quando soffia)
+    const arr = ease(v.aRise);
+    const kHorn = has(POSE.archieHornHalf) ? v.aHornHalf : 0;
+    const kFull = has(POSE.archieHornFull) ? v.aHornFull : 0;
+    const ac = rise(POSE.archie, v.aRise > 0.002 ? 1 : 0, arr, [{ key: POSE.archieHornHalf, k: kHorn }, { key: POSE.archieHornFull, k: kFull }]);
+    if (ac) {
+      layers.push(ac);
+      const half = rise(POSE.archieHornHalf, kHorn * (1 - kFull), arr, [{ key: POSE.archieHornFull, k: kFull }]);
+      if (half) layers.push(half);
+      const full = rise(POSE.archieHornFull, kFull, arr);
+      if (full) layers.push(full);
     }
     // creature sulla barca: salgono e scendono dietro il bordo. Mentre si muovono, la parte che nella posa si
     // vedeva contro il mare passa sotto la barca, che la copre; le mani sul bordo restano sopra e mollano la
@@ -1750,6 +1783,7 @@ export class Night {
     const shown: [string, number, number, number][] = [
       [POSE.gulpySale, v.gSale, this.wavePx(POSE.gulpySale, v.gRise), 0],
       [POSE.hatchConta, v.hRise > 0.002 ? 1 : 0, this.wavePx(POSE.hatchConta, ease(v.hRise)), 0],
+      [POSE.archie, v.aRise > 0.002 ? 1 : 0, this.wavePx(POSE.archie, ease(v.aRise)), 0],
       ...this.aboard().map((a): [string, number, number, number] => {
         const d = this.sinkPx(a.key, a.p);
         return [a.key, a.p > 0.002 ? a.opacity ?? 1 : 0, d, a.out * d];
