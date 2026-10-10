@@ -53,7 +53,7 @@ SPECIE['san_pietrificato'] = Specie(
                  iris=(0.8, 0.65, 0.3), iris_dark=(0.25, 0.18, 0.06), metal=0.35, irid=0.25, squame=0.3,
                  disegni=[Disegno('vermi', colore=(0.16, 0.13, 0.08), forza=0.4, scala=40),
                           Disegno('ocello', colore=(0.02, 0.02, 0.02), colore2=(0.78, 0.62, 0.28), u=0.46, v=0.05, r=0.042)]),
-    famiglia='normale', piano='alto')
+    famiglia='skeletal', piano='alto')
 
 
 def _denti_sciabola(c):
@@ -80,7 +80,7 @@ SPECIE['sciabola_spolpata'] = Specie(
                  iris=(0.85, 0.82, 0.7), iris_dark=(0.15, 0.15, 0.12), metal=0.92, irid=0.3, squame=0.0,
                  linea_laterale=0.5, linea_v=(0.0, 0.0), lucido=0.8),
     extra=_denti_sciabola,
-    famiglia='normale', piano='nastriforme')
+    famiglia='skeletal', piano='nastriforme', opzioni=dict(vertebre=70, costole_fino=1.0, emali_da=1.0))
 
 
 # ── Spadossa (pesce spada, Xiphias gladius) — PROVA DEL PIANO 'rostro': forma normale, ancora da trasformare
@@ -106,7 +106,7 @@ SPECIE['spadossa'] = Specie(
     aspetto=Look(back=(0.05, 0.04, 0.07), flank=(0.2, 0.18, 0.22), belly=(0.55, 0.53, 0.52), fin=(0.07, 0.06, 0.09),
                  iris=(0.3, 0.35, 0.4), iris_dark=(0.05, 0.06, 0.08), metal=0.35, irid=0.15, squame=0.0, linea_laterale=0.0,
                  lucido=0.5),
-    famiglia='normale', piano='rostro')
+    famiglia='skeletal', piano='rostro')
 
 
 # ── Ossaguglia (aguglia, Belone belone) — PROVA DEL BECCO (piano 'rostro'): forma normale, ancora da
@@ -133,7 +133,7 @@ SPECIE['ossaguglia'] = Specie(
                  iris=(0.75, 0.72, 0.55), iris_dark=(0.1, 0.1, 0.08), metal=0.7, irid=0.45, squame=0.25,
                  linea_laterale=0.0,
                  disegni=[Disegno('ventre', colore=(0.8, 0.82, 0.84), forza=0.6, v1=-0.3)]),
-    famiglia='normale', piano='rostro')
+    famiglia='skeletal', piano='rostro', opzioni=dict(vertebre=50, osso=(0.55, 0.95, 0.7)))
 
 
 # ── Cavalluccio d'Osso (cavalluccio marino, Hippocampus guttulatus) — PROVA DEL PIANO 'cavalluccio': forma
@@ -160,7 +160,7 @@ SPECIE['cavalluccio_dosso'] = Specie(
     aspetto=Look(back=(0.24, 0.17, 0.09), flank=(0.3, 0.21, 0.12), belly=(0.36, 0.27, 0.15), fin=(0.4, 0.33, 0.24),
                  iris=(0.75, 0.6, 0.3), iris_dark=(0.2, 0.12, 0.04), metal=0.05, irid=0.1, squame=0.0, linea_laterale=0.0,
                  disegni=[Disegno('punti', colore=(0.82, 0.8, 0.72), forza=0.85, scala=150, r=0.17)]),
-    famiglia='normale', piano='cavalluccio')
+    famiglia='skeletal', piano='cavalluccio')
 
 
 # ── Lanternossa (pesce lanterna, Myctophum punctatum) — PROVA DEI FOTOFORI (piano 'fusiforme'): forma normale,
@@ -184,7 +184,7 @@ SPECIE['lanternossa'] = Specie(
               Fin('pelvic', 0.38, 0.39, PELVICA, 0.05, 6)]),
     aspetto=Look(back=(0.03, 0.04, 0.06), flank=(0.3, 0.33, 0.38), belly=(0.42, 0.44, 0.47), fin=(0.18, 0.2, 0.22),
                  iris=(0.4, 0.45, 0.5), iris_dark=(0.04, 0.05, 0.06), metal=0.7, irid=0.3, squame=1.0),
-    famiglia='normale', piano='fusiforme')
+    famiglia='skeletal', piano='fusiforme')
 
 
 # ── Sega d'Ossa (pesce sega, Pristis pectinata) — PROVA DEL ROSTRO A SEGA SU UNA RAZZA (piano 'razza'): forma
@@ -210,4 +210,4 @@ SPECIE['sega_dossa'] = Specie(
     aspetto=Look(back=(0.26, 0.25, 0.2), flank=(0.32, 0.31, 0.26), belly=(0.82, 0.8, 0.76), fin=(0.24, 0.23, 0.19),
                  iris=(0.6, 0.55, 0.35), iris_dark=(0.12, 0.1, 0.05), metal=0.0, irid=0.0, squame=0.0, linea_laterale=0.0,
                  lucido=0.35, ruvido=0.5, tinta_rostro=0.4),
-    famiglia='normale', piano='razza')
+    famiglia='skeletal', piano='razza', opzioni=dict(cranio_t=0.15, osso=(1.0, 0.85, 0.55)))

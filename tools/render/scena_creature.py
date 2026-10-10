@@ -10,6 +10,7 @@ mare nasconde la parte sott'acqua.
     molly_destra     Molly aggrappata al bordo destro, accanto al pescatore
     molly_sinistra   Molly aggrappata al bordo sinistro
     hatch_conta      Hatch in acqua dietro la poppa, alto fino alla vita, col pesciolino luminoso
+    robin_secchio    Robin steso sul bordo sinistro verso prua, il braccio lunghissimo nel secchio (notte 2)
 
 Uso: tools/.venv/bin/python tools/render/jobs.py creature --quality preview
 """
@@ -124,4 +125,80 @@ POSES = {
     'molly_destra': (lambda: molly(+1), 'boat', False),
     'molly_sinistra': (lambda: molly(-1), 'boat', False),
     'hatch_conta': (hatch_conta, 'world', False),
+    'robin_secchio': (lambda: robin_secchio(), 'boat', True),
 }
+
+
+# ───────────────────────── notte 2 ─────────────────────────
+
+# Robin (robin.py) sul capodibanda di sinistra verso prua. La faccia sta a ROBIN_YAW dall'occhio (YAW.robin nel
+# gioco) ed è girata verso il pescatore; il busto, girato a metà tra lui e il secchio, si appoggia al bordo e la
+# coda scende in acqua. Il braccio lunghissimo passa davanti al banco di prua, sopra il telone, la bambola e la
+# borraccia, e tira fuori un pesce dal secchio (boat.BUCKET_POS) dalla parte del pescatore, davanti al manico:
+# la batteria resta a destra, il braccio non ci arriva. Le zampe dalla parte della prua stanno lontane dal punto
+# dove si aggrappa Gulpy in gulpy_pretende (capodibanda di sinistra a y = 1,2): nella notte 2 ci sono insieme.
+ROBIN_YAW = -38.0
+ROBIN_BODY = 50.0      # yaw del busto: 38° guarderebbe il pescatore, 83° dritto dentro la barca, 100° il secchio
+
+
+def _robin_M(y):
+    """La trasformazione di Robin col busto appoggiato al capodibanda di sinistra alla coordinata y."""
+    import robin as ro
+    xc, ztop = gunwale_at(y, -1)
+    return M_of((xc, y, ztop - ro.GUN), yaw=ROBIN_BODY)
+
+
+def _bordo(y, dentro=0.0):
+    """Un punto sopra il capodibanda di sinistra alla coordinata y (dentro > 0: verso l'interno della barca)."""
+    x, z = gunwale_at(y, -1)
+    return (x + dentro, y, z)
+
+
+def _fiancata_fuori(y, z):
+    """Un punto sulla fiancata di sinistra, dalla parte del mare, alla quota z."""
+    t = y / boat.HALF
+    K, S = float(boat.keel(t)), float(boat.sheer(t))
+    x, _, _ = boat.hull_point(t, min((z - K) / (S - K), 1.0), -1)
+    return (float(x) - 0.012, y, z)
+
+
+def robin_posa():
+    """La trasformazione della posa robin_secchio e i parametri di robin.build() in coordinate locali (servono
+    anche alla vetrina di robin.py)."""
+    import robin as ro
+    from mathutils import Vector
+
+    def face_yaw(y):
+        h = _robin_M(y) @ Vector(tuple(map(float, ro.HEAD)))
+        return math.degrees(math.atan2(h.x - EYE[0], h.y - EYE[1]))
+    # dove si appoggia il busto perché la faccia stia a ROBIN_YAW (andando verso prua lo yaw cresce)
+    a, b = -0.4, 1.4
+    for _ in range(36):
+        m = (a + b) / 2
+        a, b = (m, b) if face_yaw(m) < ROBIN_YAW else (a, m)
+    y0 = (a + b) / 2
+    M = _robin_M(y0)
+    R = np.array(M.to_3x3(), F)
+    x0, _ = gunwale_at(y0 - 0.01, -1)
+    x1, _ = gunwale_at(y0 + 0.01, -1)
+    lungo = R.T @ np.array((x1 - x0, 0.02, 0.0), F)
+    bx, by, bz = boat.BUCKET_POS
+    rim = (bx, by, bz + 0.285)
+    # la mano stringe il pesce sopra la bocca del secchio, dalla parte del pescatore e davanti al manico
+    fist = (bx - 0.075, by - 0.075, bz + 0.40)
+    bench_x = -(boat.half_width_at(by, boat.BENCH_TOP) - 0.07)
+    # le punte delle zampe: dal lato della poppa due sul capodibanda e una fuori, sulla fiancata; dal lato della
+    # prua una sul banco (tra la fiancata e il telone), una sul capodibanda prima di y = 1 e una fuori
+    feet = [_bordo(y0 - 0.62, 0.02), _bordo(y0 - 0.40, -0.03), _fiancata_fuori(y0 - 0.12, 0.42),
+            (bench_x, by - 0.07, boat.BENCH_TOP), _bordo(y0 + 0.30), _fiancata_fuori(y0 + 0.28, 0.46)]
+    grip = _bordo(y0 - 0.22)
+    loc = lambda p: tuple(float(v) for v in to_local(M, p))
+    return M, {'viewer': loc(EYE), 'bucket': loc(rim), 'reach': loc(fist), 'feet': [loc(p) for p in feet],
+               'grip': loc(grip), 'lungo': tuple(float(v) for v in lungo)}
+
+
+def robin_secchio():
+    import robin as ro
+    M, kw = robin_posa()
+    LAST_M['robin_secchio'] = M
+    return place(ro.build(**kw), M)
