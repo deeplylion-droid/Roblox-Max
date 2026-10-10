@@ -900,16 +900,16 @@ def _rabbiglio(c):
     # agli incisivi), e tre fili di bava schiumosa che pendono dal mento
     rng = np.random.default_rng(8)
     C, Rr = [], []
-    for _ in range(150):
-        x = rng.uniform(0.012, sh.mouth_t + 0.016)
+    for _ in range(300):
+        x = rng.uniform(0.01, sh.mouth_t + 0.04)
         zl = float(body.mouth_line(np.array([min(x, sh.mouth_t)], F))[0])
-        z = zl + rng.normal(0, 0.0065)
+        z = zl + rng.normal(0, 0.009) - 0.004 * max(x - sh.mouth_t, 0.0) / 0.04
         y = -float(body.surface_y(min(max(x, 0.002), 1.0), z)) - rng.uniform(-0.0008, 0.0035)
         C.append((x, y, z))
-        Rr.append(rng.uniform(0.0011, 0.0021) if rng.uniform() < 0.75 else rng.uniform(0.0026, 0.0042))
-    for k in range(3):
-        x0 = 0.012 + 0.014 * k
-        for j in range(7):
+        Rr.append(rng.uniform(0.0012, 0.0024) if rng.uniform() < 0.7 else rng.uniform(0.0028, 0.0048))
+    for k in range(4):
+        x0 = 0.012 + 0.016 * k
+        for j in range(9):
             C.append((x0 + rng.normal(0, 0.0012), -0.011 - 0.002 * k + rng.normal(0, 0.001), sh.mouth_z1 - 0.022 - 0.0055 * j - 0.006 * k))
             Rr.append(max(0.0032 - 0.0003 * j, 0.0012))
     C, Rr = np.array(C, F), np.array(Rr, F)
@@ -1550,35 +1550,39 @@ SPECIE['pilota_sanguinante'] = Specie(
 
 def _remora(c):
     """Il lembo di pelle grigia di Gulpy rimasto attaccato alla ventosa: un foglio sottile che segue il capo, scende
-    sul fianco verso la camera e dietro si stacca e si arriccia, con l'orlo strappato. Sangue attorno all'orlo."""
+    sul fianco verso la camera e dietro si stacca e si arriccia; sotto, un po' più largo, il bordo strappato in carne
+    viva (un secondo foglio rosso che sporge dall'orlo). Sangue attorno all'orlo."""
     P, body = c.P, c.body
     base = body.base()
     n3 = P.sdf.Noise3(41)
 
-    def lembo(p):
+    def foglio(p, dist, spess, largo):
         x = p[:, 0]
-        alza = 0.02 * np.clip((x - 0.215) / 0.06, 0, 1) ** 2
-        guscio = np.abs(base(p) - 0.0022 - alza) - 0.0013
+        alza = 0.022 * np.clip((x - 0.215) / 0.06, 0, 1) ** 2
+        guscio = np.abs(base(p) - dist - alza) - spess
         zc, _, _ = body.section(np.clip(x, 0, 1))
         ang = np.arctan2(-p[:, 1], p[:, 2] - zc)              # 0 in cima, + verso il fianco sinistro
         frast = n3(p, scale=0.012, octaves=3)
-        dentro = np.maximum(np.abs(x - 0.2) - 0.066 - 0.016 * frast, (np.abs(ang - 0.3) - 0.85 - 0.3 * frast) * 0.045)
+        dentro = np.maximum(np.abs(x - 0.2) - 0.074 - largo - 0.016 * frast,
+                            (np.abs(ang - 0.35) - 0.95 - 0.3 * frast) * 0.045 - largo)
         return np.maximum(guscio, dentro).astype(F)
     m, g = P.material('PelleDiGulpy')
     co = g.texcoord('Object')
     big = g.noise(co, scale=40.0, detail=6.0, rough=0.6, distortion=0.4)
-    col = g.mix(g.smoothstep(0.42, 0.68, big.fac), (0.1, 0.11, 0.1), (0.03, 0.036, 0.032))
+    col = g.mix(g.smoothstep(0.42, 0.68, big.fac), (0.24, 0.255, 0.235), (0.09, 0.1, 0.092))
     mid = g.noise(co, scale=160.0, detail=4.0)
-    col = g.mix(g.mul(g.smoothstep(0.55, 0.72, mid.fac), 0.55), col, (0.2, 0.21, 0.19))
+    col = g.mix(g.mul(g.smoothstep(0.55, 0.72, mid.fac), 0.55), col, (0.4, 0.42, 0.39))
     pori = g.noise(co, scale=900.0, detail=2.0)
     g.output_material(g.principled(color=col, rough=0.62, coat=0.35, coat_rough=0.1, sss=0.1, sss_radius=(1, 0.38, 0.22),
                                    sss_scale=0.002, normal=g.bump(g.add(pori.fac, g.mul(mid.fac, 0.5)), strength=0.35, distance=0.0008)))
     lo = np.array((0.02, -0.08, -0.02), F)
-    hi = np.array((0.3, 0.06, 0.1), F)
-    c.obs.append(P.oggetto_sdf('LemboGulpy', lembo, lo, hi, m, res=_res(c, 0.0005)))
+    hi = np.array((0.32, 0.06, 0.12), F)
+    c.obs.append(P.oggetto_sdf('LemboGulpy', lambda p: foglio(p, 0.0024, 0.0012, 0.0), lo, hi, m, res=_res(c, 0.0005)))
+    c.obs.append(P.oggetto_sdf('LemboCarne', lambda p: foglio(p, 0.0016, 0.001, 0.003), lo, hi,
+                               P.flesh_material('CarneLembo', (0.5, 0.06, 0.06)), res=_res(c, 0.0005)))
     # il sangue sotto l'orlo strappato e sul capo
-    orlo = [body.superficie(t, v, -1)[0] for t, v in ((0.135, 0.45), (0.16, 0.25), (0.2, 0.15), (0.24, 0.3), (0.27, 0.6))]
-    _dipingi(c, 'blood', _colature([(p, 0.007, 0.06, 1.0) for p in orlo]))
+    orlo = [body.superficie(t, v, -1)[0] for t, v in ((0.12, 0.5), (0.15, 0.2), (0.2, 0.05), (0.25, 0.2), (0.28, 0.6))]
+    _dipingi(c, 'blood', _colature([(p, 0.008, 0.07, 1.0) for p in orlo]))
 
 
 # ── Remora Strappata (remora, Remora remora) — la prova della ventosa, trasformata ──
@@ -1733,9 +1737,9 @@ def _aguglia(c):
     xo = -0.105
     asse_z = float(r.z)
     H = np.array((xo, 0.0, asse_z + 0.003), F)
-    cm = np.array((xo - 0.014, 0.003, asse_z + 0.047), F)
-    mantello = P.sdf.rotate(P.sdf.ellipsoid(cm, (0.034, 0.029, 0.044)), P.sdf.rot_matrix('y', 25.0), center=cm)
-    testa = P.sdf.ellipsoid(H, (0.025, 0.024, 0.022))
+    cm = np.array((xo - 0.016, 0.003, asse_z + 0.054), F)
+    mantello = P.sdf.rotate(P.sdf.ellipsoid(cm, (0.04, 0.034, 0.052)), P.sdf.rot_matrix('y', 25.0), center=cm)
+    testa = P.sdf.ellipsoid(H, (0.029, 0.028, 0.025))
     rng = np.random.default_rng(6)
     braccia = []
     # due braccia a spirale strette attorno al rostro, verso la punta

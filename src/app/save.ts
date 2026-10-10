@@ -7,6 +7,8 @@ export interface Options {
   sfx: number;
   brightness: number;
   subtitles: boolean;
+  /** didascalie degli eventi e dei suoni («Molly si affaccia», «toc toc sullo scafo»): spente di default */
+  captions: boolean;
   reduceFlash: boolean;
   /** velocità di rotazione dello sguardo */
   sensitivity: number;
@@ -32,7 +34,7 @@ export interface SaveData {
 const KEY = 'splashland.save.v1';
 
 export function defaultOptions(): Options {
-  return { master: 0.9, music: 0.7, sfx: 0.9, brightness: 1, subtitles: true, reduceFlash: false, sensitivity: 1, quality: 1 };
+  return { master: 0.9, music: 0.7, sfx: 0.9, brightness: 1, subtitles: true, captions: false, reduceFlash: false, sensitivity: 1, quality: 1 };
 }
 
 function fresh(): SaveData {

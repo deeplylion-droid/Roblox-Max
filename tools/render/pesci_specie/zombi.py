@@ -453,6 +453,7 @@ def _lembi_suro(c):
     def piastre(q):
         d = np.full(len(q), 10.0, F32)
         sotto = np.zeros(len(q), F32)
+        nz = n3(q, scale=0.006, octaves=2)          # i bordi sbrindellati (uguale per tutti i lembi: una volta sola)
         for p0, n0, e1, e2, L, W, tg, kk in lembi:
             r = q - p0
             s, u, h = r @ e1, r @ e2, r @ n0
@@ -460,15 +461,17 @@ def _lembi_suro(c):
             alt = sc * tg + kk * sc * sc
             pend = tg + 2 * kk * sc
             dh = (h - alt) / np.sqrt(1 + pend * pend)
-            nz = n3(q, scale=0.006, octaves=2)
             ell = (np.hypot((s - L * 0.5) / (L * 0.5), u / (W * 0.5)) - 1.0 - 0.25 * nz) * min(L, W) * 0.5
             dk = np.maximum(np.abs(dh) - th, ell)
             vicino = dk < d
             sotto = np.where(vicino, (dh < 0).astype(F32), sotto)
             d = np.minimum(d, dk)
         return d, sotto
-    A = np.array([l[0] for l in lembi], F32)
-    lo, hi = A.min(0) - 0.09, A.max(0) + 0.09
+    # il riquadro: gli angoli di ogni lembo (in fondo è più staccato dalla pelle), con un margine
+    angoli = [p0 + e1 * s + e2 * u + n0 * (s * tg + kk * s * s)
+              for p0, n0, e1, e2, L, W, tg, kk in lembi for s in (0.0, L) for u in (-W * 0.6, W * 0.6)]
+    A = np.array(angoli, F32)
+    lo, hi = A.min(0) - 0.012, A.max(0) + 0.012
     m, g = P.material('LemboSuro')
     co = g.texcoord('Object')
     n = g.noise(co, scale=60.0, detail=4.0)

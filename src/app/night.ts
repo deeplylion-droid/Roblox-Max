@@ -114,6 +114,9 @@ interface Aboard {
   hands: number;
   /** quanto va in fuori mentre scende (frazione della discesa, in pixel di yaw del panorama) */
   out: number;
+  /** la parte davanti alla barca (le mani sul bordo) resta ferma mentre svanisce: se scendesse col resto
+   *  passerebbe attraverso lo scafo */
+  handsStay?: boolean;
   /** spostamento in più (pixel del panorama) */
   recoil?: [number, number];
   light?: [number, number, number];
@@ -603,7 +606,8 @@ export class Night {
     const a = this.d.audio;
     const fx = this.d.sfx;
     const S = this.S;
-    const cap = (t: string) => this.d.options.subtitles && this.hud.caption(t);
+    // le didascalie degli eventi («Molly si affaccia») sono un'opzione a parte, spenta di default
+    const cap = (t: string) => this.d.options.captions && this.hud.caption(t);
     const sideName = (side: 'left' | 'right') => (side === 'left' ? S.captions.left : S.captions.right);
     const molly = this.sim.molly;
     const mollyAt = () => dirPos(molly.yaw, 1.15, -18);
@@ -1132,7 +1136,8 @@ export class Night {
       }
       layers.push({ key: a.key, shift, part: 'back', opacity: k, light: a.light });
       const hands = smooth01((a.p - a.hands) / (1 - a.hands));
-      if (hands > 0.002) aboard.push({ key: a.key, shift, part: 'front', opacity: hands * k, light: a.light });
+      const handsShift: [number, number] = a.handsStay ? [a.recoil?.[0] ?? 0, a.recoil?.[1] ?? 0] : shift;
+      if (hands > 0.002) aboard.push({ key: a.key, shift: handsShift, part: 'front', opacity: hands * k, light: a.light });
     }
     layers.push('boat');
     if (sim.cfg.battery && has('battery')) {
@@ -1151,9 +1156,9 @@ export class Night {
   private aboard(): Aboard[] {
     const v = this.v;
     const out: Aboard[] = [
-      { key: POSE.gulpyPretende, p: v.gPret, hands: 0.75, out: 0 },
-      { key: POSE.mollyRight, p: v.mR, hands: 0.75, out: 0 },
-      { key: POSE.mollyLeft, p: v.mL, hands: 0.75, out: 0 },
+      { key: POSE.gulpyPretende, p: v.gPret, hands: 0.8, out: 0, handsStay: true },
+      { key: POSE.mollyRight, p: v.mR, hands: 0.8, out: 0, handsStay: true },
+      { key: POSE.mollyLeft, p: v.mL, hands: 0.8, out: 0, handsStay: true },
     ];
     // Robin è steso sul bordo: testa, braccio e zampe stanno sopra la barca. Sale e scende di lato, dal mare, e
     // quello che sta sopra la barca compare e svanisce mentre si muove. Nella luce piena trema e si ritrae un poco,

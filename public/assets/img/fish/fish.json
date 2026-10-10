@@ -5,6 +5,12 @@
   "h": 800,
   "family": "bleeding"
  },
+ "donzella_saturata": {
+  "file": "donzella_saturata.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "glitch"
+ },
  "lanzardo_riavvolto": {
   "file": "lanzardo_riavvolto.webp",
   "w": 1600,

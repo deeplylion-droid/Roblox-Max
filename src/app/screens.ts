@@ -131,6 +131,7 @@ export class Screens {
     slider(S.brightness, 'brightness', 0.5, 1.6, 0.05);
     slider(S.sensitivity, 'sensitivity', 0.4, 2, 0.05);
     toggle(S.subtitles, 'subtitles');
+    toggle(S.captionsOption, 'captions');
     toggle(S.reduceFlash, 'reduceFlash');
     // qualità grafica: sui PC più deboli la scena si disegna a risoluzione ridotta (l'interfaccia resta nitida)
     const steps = [1, 0.75, 0.5];
