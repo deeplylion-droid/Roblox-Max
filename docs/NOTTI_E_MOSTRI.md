@@ -165,8 +165,21 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
   esce dal buio man mano che arriva.
 - **Render finali** (10 ottobre, in attesa dell'approvazione ma già usabili): `archie_soffia` con gli occhi nel
   manifest (al buio brillano come quelli degli altri), e le toppe `archie_fiato`, `archie_trombetta_mezza`,
-  `archie_trombetta_tutta`, in `public/assets/img` con le chiavi che il gioco già aspetta. Manca il jumpscare finale
-  (`JUMPSCARES=archie jobs.py jumpscare --quality final`).
+  `archie_trombetta_tutta`, in `public/assets/img` con le chiavi che il gioco già aspetta. Il jumpscare finale si
+  rende dopo quello di Robin (`JUMPSCARES=archie jobs.py jumpscare --quality final`).
+- **Nel gioco** (10 ottobre, notte del lavoro; tutto *da approvare*): la notte 3 si gioca (`?notte=3`, o Alt + 3 sul
+  titolo nelle build di prova). Archie sale dall'acqua in 3 s (il sonar lo annuncia davanti alla prua), poi il
+  risucchio dura 4,5 s: la gola si gonfia, la trombetta resta arrotolata, si sente il fiato al contrario. Se alla
+  fine la lampara è accesa (anche bassa) soffia: la trombetta si distende sul vetro, il vetro esplode (la lampara
+  non si riaccende più: «Il vetro è rotto.») e un attimo dopo il jumpscare. Se l'hai spenta, la gola si sgonfia in
+  un sospiro e aspetta al buio 7 s, l'occhio acceso, prendendo fiato a metà nella trombetta; poi si rituffa. Se la
+  riaccendi prima riprende fiato più in fretta (2,2 s). Quando canta la Madre si rituffa anche lui. Robin e Archie
+  non vengono mai insieme (vogliono il contrario dalla luce). Quota 11 pesci. Giocatori simulati
+  (`npm run sim -- 3 300`): esperto 100%, medio 71%, maldestro 50% (la seconda notte 100/81/58). Suoni provvisori
+  sintetizzati (l'acqua che si apre, il risucchio, la trombetta che si sgonfia, il soffio e il vetro, il tuffo).
+  La chiamata alla radio: «Terza notte. Undici pesci. / Archie viene per la lampara. / Se lo senti prendere fiato,
+  spegni. / E resta al buio finché non va giù. / Buona pesca.» La frase della morte: «Archie ha spento la tua
+  candelina.» (da bambino spegneva le candeline degli altri).
 
 ### Notte 4 · Lampy — *NON FERRARE*
 
