@@ -738,7 +738,7 @@ def _dita_gallincubo(c):
         for i in range(3):
             base, nr = body.superficie(pinna.a - 0.012 - 0.03 * i, -0.74, s)
             k = 1.0 - 0.08 * i                         # le dita dietro un poco più corte
-            ap = -0.45 + 0.42 * i                      # a ventaglio: la prima avanti, l'ultima indietro
+            ap = 0.39 - 0.42 * i                       # a ventaglio: quella dietro punta indietro, quella davanti avanti
             dirs = [(ap, 0.9, -1.0), (ap - 0.55, 0.35, -0.6), (ap * 0.3 - 0.12, 0.15, -1.0)]
             lung = [0.066 * k, 0.048 * k, 0.036 * k]
             rag = [0.0098, 0.009, 0.0082, 0.0067]
@@ -1182,21 +1182,21 @@ def _melma_missina(c):
     def spessore(p):
         nz = n3(p, scale=0.03, octaves=3)
         sotto = np.clip(0.5 - np.clip(body.norm_v(p), -1.2, 1.2), 0, 1.5)    # la melma scende: più sotto che sopra
-        return np.clip((nz + 0.22 * sotto - 0.02) * 4.0, 0, 1) * (0.0028 + 0.0028 * sotto)
+        return np.clip((nz + 0.3 * sotto + 0.06) * 4.0, 0, 1) * (0.003 + 0.003 * sotto)
 
     def f(p):
         return base(p) - spessore(p) + 0.0015
     lo, hi = body.bounds(pad=0.012)
     c.obs.append(P.oggetto_sdf('MelmaNera', f, lo, hi, P.tar_material(), res=0.0013 if c.fast else 0.0008))
     rng = np.random.default_rng(5)
-    for k, t in enumerate((0.12, 0.25, 0.36, 0.5, 0.63, 0.76, 0.88)):
+    for k, t in enumerate((0.1, 0.19, 0.27, 0.36, 0.45, 0.53, 0.62, 0.71, 0.8, 0.89)):
         p, _ = body.superficie(t, -0.97, -1)
-        _goccia(c, f'GocciaMelma{k}', p + np.array((0, 0.002, 0.001), np.float32), float(rng.uniform(0.025, 0.06)),
-                r0=0.0034, r1=float(rng.uniform(0.0055, 0.0085)), dir=(float(rng.uniform(-0.1, 0.1)), -0.05, -1.0))
-    for k, (t0, t1, cad) in enumerate(((0.15, 0.23, 0.03), (0.4, 0.48, 0.04), (0.66, 0.73, 0.03))):
+        _goccia(c, f'GocciaMelma{k}', p + np.array((0, 0.002, 0.001), np.float32), float(rng.uniform(0.025, 0.08)),
+                r0=0.0036, r1=float(rng.uniform(0.0055, 0.009)), dir=(float(rng.uniform(-0.1, 0.1)), -0.05, -1.0))
+    for k, (t0, t1, cad) in enumerate(((0.14, 0.23, 0.035), (0.31, 0.4, 0.05), (0.48, 0.57, 0.04), (0.66, 0.75, 0.045))):
         a, _ = body.superficie(t0, -0.9, -1)
         b, _ = body.superficie(t1, -0.85, -1)
-        _filo(c, f'FiloMelma{k}', a, b, cad, r=0.0024)
+        _filo(c, f'FiloMelma{k}', a, b, cad, r=0.0026)
     a, _ = body.superficie(0.02, -0.5, -1)
     _goccia(c, 'BavaMelma', a, 0.05, r0=0.0028, r1=0.0065, dir=(-0.15, -0.1, -1.0))
 
@@ -1306,7 +1306,7 @@ SPECIE['specchio_nero'] = Specie(
         bot=[(0, -0.05), (0.04, -0.1), (0.1, -0.15), (0.2, -0.19), (0.32, -0.205), (0.45, -0.2), (0.6, -0.16), (0.75, -0.1),
              (0.88, -0.055), (1, -0.038)],
         w=[(0, 0.012), (0.06, 0.04), (0.2, 0.06), (0.4, 0.058), (0.65, 0.04), (0.85, 0.022), (1, 0.014)],
-        eye_t=0.12, eye_z=0.06, eye_r=0.04, mouth_t=0.12, mouth_z0=0.0, mouth_z1=-0.07, gill_t=0.3,
+        eye_t=0.125, eye_z=0.065, eye_r=0.046, mouth_t=0.15, mouth_z0=0.012, mouth_z1=-0.09, gill_t=0.36,
         spine=[Spine(0.42, 0.78, -1.0, -1.0, 12, lunghezza=0.012, raggio=0.0045, lati='centro', inclinazione=0.7, fila=True)],
         fins=[Fin('dorsal', 0.42, 0.72, [(0, 0), (0.08, 0.7), (0.2, 0.95), (0.4, 1.0), (0.75, 0.85), (1, 0.08)], 0.13, 22,
                   spiny=True),
@@ -1314,8 +1314,8 @@ SPECIE['specchio_nero'] = Specie(
               Fin('caudal', 1.0, 1.0, coda_forcuta(1.6, 0.3), 0.25, 20),
               Fin('pectoral', 0.32, 0.335, PETTORALE, 0.14, 11),
               Fin('pelvic', 0.36, 0.375, PELVICA, 0.08, 7, spiny=True)]),
-    aspetto=Look(back=(0.42, 0.14, 0.1), flank=(0.62, 0.36, 0.3), belly=(0.72, 0.55, 0.48), fin=(0.6, 0.25, 0.18),
-                 iris=(0.72, 0.62, 0.42), iris_dark=(0.12, 0.08, 0.05), metal=0.45, irid=0.3, squame=0.9,
+    aspetto=Look(back=(0.42, 0.14, 0.1), flank=(0.66, 0.42, 0.37), belly=(0.74, 0.6, 0.54), fin=(0.55, 0.2, 0.15),
+                 iris=(0.72, 0.62, 0.42), iris_dark=(0.12, 0.08, 0.05), metal=0.55, irid=0.3, squame=0.9, bocca_col=(0.02, 0.015, 0.02),
                  disegni=[Disegno('reticolo', colore=(0.2, 0.05, 0.04), forza=0.6, scala=22, larghezza=0.12, u1=0.3)]),
     extra=_specchio_nero,
     famiglia='corrupt', piano='alto',
@@ -1508,10 +1508,10 @@ SPECIE['vipera_degli_abissi'] = Specie(
 # (campo ed extra), la pece che le cola dagli occhi. Gli occhi in più della famiglia starebbero sul dorso,
 # che qui non si vede: li mette l'extra, sul ventre.
 _DUE_FACCE = dict(narici=(0.17, 0.058, 0.0095, 0.016),          # t, |z| del centro, mezze misure dell'ovale in x e z
-                  sorriso=(0.232, 0.075, 0.034, 0.0055),        # t del centro, mezza larghezza, quanto curva, mezza apertura
-                  branchie=(0.286, 0.018, 0.098),               # t della prima, passo, |z|
-                  occhi=(0.39, 0.058, 0.02),                    # t, |z|, raggio
-                  smorfia=(0.462, 0.07, 0.03, 0.0095))          # come il sorriso, ma storta all'ingiù
+                  sorriso=(0.232, 0.08, 0.036, 0.006),          # t del centro, mezza larghezza, quanto curva, mezza apertura
+                  branchie=(0.29, 0.018, 0.102),                # t della prima, passo, |z|
+                  occhi=(0.39, 0.06, 0.025),                    # t, |z|, raggio
+                  smorfia=(0.468, 0.078, 0.032, 0.0115))        # come il sorriso, ma storta all'ingiù
 _CONTORNO_RAZZA_BIANCA = [(0, 0.0), (0.04, 0.02), (0.08, 0.045), (0.12, 0.085), (0.17, 0.15), (0.22, 0.24), (0.27, 0.33),
                           (0.3, 0.36), (0.34, 0.33), (0.4, 0.23), (0.46, 0.12), (0.5, 0.08), (0.55, 0.09), (0.6, 0.06),
                           (0.64, 0.02), (0.67, 0.0), (1.0, 0.0)]
@@ -1605,13 +1605,16 @@ def _due_facce(c):
         return np.clip(1 - (sp - 0.003) / 0.005, 0, 1) * (p[:, 1] > 0) * (np.abs(p[:, 2]) > body.section(t)[1])
     _pittura(c, 'bordo_ventre', bordo, (0.12, 0.11, 0.12), ruvido=0.45)
 
-    # la pece che cola dagli occhi della seconda faccia: sul ventre, verso +z (in giù nel ritratto)
+    # la pece attorno agli occhi della seconda faccia e che ne cola: sul ventre, verso +z (in giù nel ritratto)
+    occhi = [_occhio_ventre(c, to, s * zo, ro) for s in (-1, 1)]
+
     def lacrime(p):
         w = np.zeros(len(p), np.float32)
-        for s in (-1, 1):
+        for s, ce in zip((-1, 1), occhi):
+            w = np.maximum(w, np.clip(1 - (np.linalg.norm(p - ce, axis=1) - ro * 1.25) / 0.005, 0, 1))
             z0 = s * zo + ro * 0.9
-            corsia = np.exp(-((p[:, 0] - to - 0.002 * np.sin(p[:, 2] * 300)) / 0.004) ** 2)
-            w = np.maximum(w, corsia * (p[:, 2] > z0) * (p[:, 2] < z0 + 0.075 - 0.025 * (s > 0)))
+            corsia = np.exp(-((p[:, 0] - to - 0.0025 * np.sin(p[:, 2] * 260)) / 0.0052) ** 2)
+            w = np.maximum(w, corsia * (p[:, 2] > z0) * (p[:, 2] < z0 + 0.085 - 0.03 * (s > 0)))
         return w * (p[:, 1] > 0)
     _pittura(c, 'lacrime', lacrime, (0.006, 0.006, 0.008), ruvido=0.05)
 
@@ -1693,7 +1696,7 @@ SPECIE['pesce_angelo_caduto'] = Specie(
                                       (0.6, -0.9), (0.12, -0.15)], 0.16, 40, carnosa=True, spessore=0.005)]),
     aspetto=Look(back=(0.07, 0.06, 0.045), flank=(0.09, 0.075, 0.055), belly=(0.8, 0.78, 0.72), fin=(0.02, 0.02, 0.025),
                  iris=(0.6, 0.55, 0.35), iris_dark=(0.12, 0.1, 0.05), metal=0.0, irid=0.0, squame=0.0, linea_laterale=0.0,
-                 lucido=0.3, ruvido=0.5, tinta_pinne=0.0,
+                 lucido=0.12, ruvido=0.55, tinta_pinne=0.0,
                  disegni=[Disegno('punti', colore=(0.025, 0.02, 0.015), forza=0.7, scala=170, r=0.15),
                           Disegno('macchie', colore=(0.2, 0.17, 0.12), forza=0.5, scala=45, r=0.16, seme=4)]),
     extra=_ali_nere,
@@ -1710,7 +1713,7 @@ SPECIE['pesce_angelo_caduto'] = Specie(
 # qui nero come la pece (con le macchie chiare appena visibili e le pinne rosso cupo). «Al posto della corona
 # ha una bocca»: sulla nuca, davanti alla dorsale, una bocca aperta verso l'alto (campo) con le labbra e una
 # corona di denti dritti attorno, lunghi e corti alternati (extra), la gola rosso scuro.
-_CORONA = (0.2, 0.9, 0.075, 0.027)        # t, v del centro della bocca sulla nuca, mezza lunghezza, mezza larghezza
+_CORONA = (0.2, 0.9, 0.085, 0.032)        # t, v del centro della bocca sulla nuca, mezza lunghezza, mezza larghezza
 
 
 def _corona_geometria(c):
@@ -1755,8 +1758,8 @@ def _corona_re(c):
         lungo = k % 2 == 0
         d = n * 0.9 + rad * 0.3
         A.append(base)
-        B.append(base + d / np.linalg.norm(d) * (0.045 if lungo else 0.024))
-        R1.append(0.0078 if lungo else 0.0056)
+        B.append(base + d / np.linalg.norm(d) * (0.058 if lungo else 0.03))
+        R1.append(0.0088 if lungo else 0.0062)
         R2.append(0.0006)
     f, lo, hi = P.campo_coni(A, B, R1, R2)
     c.obs.append(P.oggetto_sdf('CoronaDenti', f, lo, hi, P.dirty_teeth_material(), res=0.0007 if c.fast else 0.0004))

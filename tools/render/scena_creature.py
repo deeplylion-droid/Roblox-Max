@@ -133,10 +133,11 @@ POSES = {
 
 # Robin (robin.py) sul capodibanda di sinistra verso prua. La faccia sta a ROBIN_YAW dall'occhio (YAW.robin nel
 # gioco) ed è girata verso il pescatore; il busto, girato a metà tra lui e il secchio, si appoggia al bordo e la
-# coda scende in acqua. Il braccio lunghissimo passa davanti al banco di prua, sopra il telone, la bambola e la
-# borraccia, e tira fuori un pesce dal secchio (boat.BUCKET_POS) dalla parte del pescatore, davanti al manico:
-# la batteria resta a destra, il braccio non ci arriva. Le zampe dalla parte della prua stanno lontane dal punto
-# dove si aggrappa Gulpy in gulpy_pretende (capodibanda di sinistra a y = 1,2): nella notte 2 ci sono insieme.
+# coda scende in acqua. Il braccio lunghissimo passa alto davanti al banco di prua (dall'occhio sopra il telone,
+# la bambola e la borraccia, senza toccarli) e tira fuori un pesce dal secchio (boat.BUCKET_POS) dalla parte del
+# pescatore, davanti al manico: la batteria resta a destra, il braccio non ci arriva. Le zampe dalla parte della
+# prua stanno lontane dal punto dove si aggrappa Gulpy in gulpy_pretende (capodibanda di sinistra a y = 1,2):
+# nella notte 2 possono esserci insieme.
 ROBIN_YAW = -38.0
 ROBIN_BODY = 50.0      # yaw del busto: 38° guarderebbe il pescatore, 83° dritto dentro la barca, 100° il secchio
 
@@ -152,6 +153,13 @@ def _bordo(y, dentro=0.0):
     """Un punto sopra il capodibanda di sinistra alla coordinata y (dentro > 0: verso l'interno della barca)."""
     x, z = gunwale_at(y, -1)
     return (x + dentro, y, z)
+
+
+def _tra_ordinate(y):
+    """La y più vicina a metà tra due ordinate (boat.build_structure le mette ogni 0,27 m a partire da −2,25):
+    lì le dita che scendono lungo la fiancata di dentro non toccano il legno."""
+    k = round((y + 2.25) / 0.27 - 0.5)
+    return -2.25 + 0.27 * (k + 0.5)
 
 
 def _fiancata_fuori(y, z):
@@ -186,14 +194,14 @@ def robin_posa():
     rim = (bx, by, bz + 0.285)
     # la mano ha appena tirato fuori il pesce: lo stringe per la coda sopra la bocca del secchio, dalla parte del
     # pescatore e davanti al manico, e il pesce pende fuori, con la testa che lascia ora il bordo
-    fist = (bx - 0.075, by - 0.075, bz + 0.54)
+    fist = (bx - 0.075, by - 0.075, bz + 0.57)
     bench_x = -(boat.half_width_at(by, boat.BENCH_TOP) - 0.07)
-    # le punte delle zampe: dal lato della poppa una sul capodibanda, oltre la mano, e due fuori sulla fiancata;
-    # dal lato della prua una sul banco (tra la fiancata e il telone), una sul capodibanda prima di y = 1 e una
-    # fuori. L'altra mano si tiene al capodibanda verso poppa, tra la spalla e la zampa
-    feet = [_bordo(y0 - 0.66, 0.02), _fiancata_fuori(y0 - 0.30, 0.50), _fiancata_fuori(y0 - 0.08, 0.40),
+    # le punte delle zampe: dal lato della poppa una sul capodibanda, tra la spalla e la mano, e due fuori sulla
+    # fiancata; dal lato della prua una sul banco (tra la fiancata e il telone), una sul capodibanda prima di
+    # y = 1 e una fuori. L'altra mano si tiene al capodibanda più verso poppa, a metà tra due ordinate
+    feet = [_bordo(y0 - 0.27, 0.02), _fiancata_fuori(y0 - 0.40, 0.50), _fiancata_fuori(y0 - 0.10, 0.40),
             (bench_x, by - 0.07, boat.BENCH_TOP), _bordo(y0 + 0.30), _fiancata_fuori(y0 + 0.28, 0.46)]
-    grip = _bordo(y0 - 0.40)
+    grip = _bordo(_tra_ordinate(y0 - 0.55))
     loc = lambda p: tuple(float(v) for v in to_local(M, p))
     return M, {'viewer': loc(EYE), 'bucket': loc(rim), 'reach': loc(fist), 'feet': [loc(p) for p in feet],
                'grip': loc(grip), 'lungo': tuple(float(v) for v in lungo)}

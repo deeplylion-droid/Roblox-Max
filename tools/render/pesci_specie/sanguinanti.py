@@ -433,15 +433,17 @@ SPECIE['trafittina'] = Specie(
 
 
 # i morsi del pesce serra: (t, v, raggio, verso). Sul bordo del profilo (|v| = 1) il morso porta via un pezzo da
-# parte a parte, a mezzaluna smerlata; sul fianco resta l'impronta della bocca: un arco a U di fori dei denti
-# (verso = dove si apre la U, in gradi: 0 verso la coda, 90 verso il dorso).
-_MORSI_SERRA = [(0.22, 1.0, 0.044, 0), (0.425, -1.0, 0.042, 0), (0.88, 1.0, 0.03, 0), (0.38, 0.3, 0.036, 200),
-                (0.55, -0.2, 0.034, 150), (0.69, 0.42, 0.03, 250), (0.79, -0.34, 0.027, 120)]
+# parte a parte, a mezzaluna smerlata (solo dove non ci sono pinne); sul fianco è una mezzaluna scavata nella carne
+# con i fori dei denti lungo l'arco di fuori (verso = dove guarda la gobba della mezzaluna, in gradi: 0 verso la
+# coda, 90 verso il dorso).
+_MORSI_SERRA = [(0.2, 1.0, 0.042, 0), (0.42, -1.0, 0.04, 0), (0.86, 1.0, 0.03, 0), (0.9, -1.0, 0.026, 0),
+                (0.38, 0.3, 0.036, 210), (0.56, -0.25, 0.034, 150), (0.7, 0.4, 0.03, 250)]
 
 
 def _geo_serrasangue(c):
     """I morsi: sul profilo una tacca tonda passante con il bordo smerlato dai denti (cilindri lungo y); sul fianco
-    l'impronta della bocca: un arco a U (ellisse, 230 gradi) di fori conici dei denti, uniti da un solco strappato."""
+    una mezzaluna (una sfera meno la stessa spostata) scavata nella carne, con i fori conici dei denti in fila
+    lungo l'arco di fuori."""
     P, body = c.P, c.body
     s = _Scavi(P)
     rng = np.random.default_rng(31)
@@ -462,30 +464,33 @@ def _geo_serrasangue(c):
                 return np.min(np.linalg.norm(q[:, None, :] - C2[None], axis=2) - Rc[None], axis=1).astype(F)
             s.aggiungi(g, (t - R * 1.4, -0.2, cz - R * 1.4), (t + R * 1.4, 0.2, cz + R * 1.4))
             p_basso, _ = _pelle_tz(c, t, (cz - R * 0.95) if v > 0 else zb + 0.004, -1)
-            fondo.append((p_basso, p_basso, R, None))
+            fondo.append((p_basso, p_basso, R))
             continue
         p0, n0 = body.superficie(t, v, -1)
         e1, e2 = _telaio(n0)
         b = math.radians(verso)
-        u1 = math.cos(b) * e1 + math.sin(b) * e2          # verso l'apertura della U
-        u2 = -math.sin(b) * e1 + math.cos(b) * e2
-        arco, piu_basso = [], None
-        for j in range(24):
-            phi = math.radians(65 + 230 * j / 23)
-            q = p0 + R * (math.cos(phi) * u1 * 0.8 + math.sin(phi) * u2)
+        u1 = (math.cos(b) * e1 + math.sin(b) * e2).astype(F)        # verso la gobba della mezzaluna
+        ra, prof = R * 0.62, 0.0085
+        ca = p0 + n0 * (ra - prof)
+        cb = ca - u1 * ra * 0.62 + n0 * 0.002
+
+        def g(q, ca=ca, cb=cb, ra=ra):
+            return np.maximum(np.linalg.norm(q - ca, axis=1) - ra, -(np.linalg.norm(q - cb, axis=1) - ra * 0.98)).astype(F)
+        s.aggiungi(g, ca - ra - 0.004, ca + ra + 0.004)
+        piu_basso = None
+        u2 = np.cross(n0, u1).astype(F)
+        for j in range(9):
+            phi = math.radians(-80 + 160 * j / 8)
+            q = p0 + R * 0.56 * (math.cos(phi) * u1 + math.sin(phi) * u2)
             p, n = _pelle_tz(c, float(q[0]), float(q[2]), -1)
-            arco.append((p, n))
-            if piu_basso is None or p[2] < piu_basso[2]:
-                piu_basso = p
-        Q = [p - n * 0.0012 for p, n in arco]
-        s.solco(Q, [0.0021 + 0.0008 * rng.uniform() for _ in Q])
-        for p, n in arco[1::3]:
             A.append(p + n * 0.002)
             B.append(p - n * rng.uniform(0.007, 0.01))
-            r = rng.uniform(0.0036, 0.0046)
+            r = rng.uniform(0.0034, 0.0044)
             R1.append(r)
             R2.append(r * 0.22)
-        fondo.append((p0, piu_basso, R, (u1, u2)))
+            if piu_basso is None or p[2] < piu_basso[2]:
+                piu_basso = p
+        fondo.append((p0, piu_basso, R))
     s.coni(A, B, R1, R2)
     s.fondo = fondo
     return s
@@ -496,26 +501,13 @@ def _campo_serrasangue(c, f):
 
 
 def _serrasangue(c):
-    """La carne viva nei morsi e nei fori dei denti, il livido dentro ogni impronta, il sangue che cola da ciascuno,
-    le gocce."""
+    """La carne viva nei morsi e nei fori dei denti, il sangue che cola da ciascuno, le gocce."""
     s = _cache(c, 'scavi', _geo_serrasangue)
     _dipingi(c, 'wound', s.carne)
-
-    def lividi(V):
-        out = np.zeros(len(V), F)
-        for p0, _, R, assi in s.fondo:
-            if assi is None:
-                continue
-            u1, u2 = assi
-            q = V - p0
-            a, b = q @ u1, q @ u2
-            dentro = (a / (R * 0.8)) ** 2 + (b / R) ** 2
-            out = np.maximum(out, np.clip(1.15 - dentro, 0, 1) * 0.6 * (np.abs(q @ np.cross(u1, u2)) < 0.02))
-        return out
-    _dipingi(c, 'blood', lividi)
-    _dipingi(c, 'blood', _colature([(lo, 0.0045, 0.06 + R, 0.95) for _, lo, R, _ in s.fondo]))
-    for k in (0, 3, 4, 6):
-        _, lo, R, _ = s.fondo[k]
+    _dipingi(c, 'blood', _colature([(lo, 0.0055, 0.06 + R, 0.95) for _, lo, R in s.fondo] +
+                                   [(p0, R * 0.45, R * 0.8, 0.4) for p0, _, R in s.fondo[4:]]))
+    for k in (0, 1, 4, 5):
+        _, lo, R = s.fondo[k]
         c.obs.append(_goccia(c, f'GocciaMorso{k}', lo, 0.026 + 0.008 * (k % 3), r0=0.0016, r1=0.0038))
 
 
@@ -552,12 +544,12 @@ def _geo_squartotta(c):
     due punte come un colpo di lama; sta sopra la pettorale lunga."""
     P = c.P
     s = _Scavi(P)
-    a, b, mezza = np.array((0.47, 0.18), F), np.array((0.63, -0.055), F), 0.021
+    a, b, mezza = np.array((0.47, 0.18), F), np.array((0.63, -0.055), F), 0.026
     ab = b - a
 
     def g(p):
         # la lastra è inclinata come lo sguardo della camera (yaw del ritratto): attraverso il taglio si vede il fondo
-        q = np.stack([p[:, 0] - 0.13 * p[:, 1], p[:, 2]], axis=1)
+        q = np.stack([p[:, 0] - 0.04 * p[:, 1], p[:, 2]], axis=1)
         tt = np.clip(((q - a) @ ab) / float(ab @ ab), 0, 1)
         d = np.linalg.norm(q - (a + tt[:, None] * ab), axis=1)
         return (d - mezza * (0.3 + 0.7 * np.clip(np.sin(np.pi * tt), 0, 1) ** 0.5)).astype(F)
@@ -637,24 +629,37 @@ def _campo_pagro(c, f):
 
 
 def _pagro(c):
-    """Sangue dal bordo dell'opercolo: la cavità rossa, le colature lunghe che scendono dal bordo verso il ventre e
-    la scia che il fiato porta indietro sul fianco, due rivoli e le gocce alla gola."""
+    """Sangue dal bordo dell'opercolo, come se respirasse sangue: la cavità rossa, un velo di sangue appena dietro il
+    bordo che sfuma verso la coda (il fiato lo porta indietro), le colature che scendono, quattro rivoli grossi fino
+    al ventre e le gocce alla gola."""
     s = _cache(c, 'scavi', _geo_pagro)
-    sh = c.forma
+    sh, body = c.forma, c.body
     _dipingi(c, 'wound', s.carne)
+    n3 = c.P.sdf.Noise3(4)
+
+    def velo(V):
+        x = V[:, 0]
+        zc, h, _ = body.section(np.clip(x, 0, 1))
+        v = np.clip((V[:, 2] - zc) / h, -1, 1)
+        dx = x - (sh.gill_t - 0.035 * v * v)
+        lungo = 0.05 + 0.03 * (n3(V, scale=0.02, octaves=2) + 0.5)
+        k = np.clip(1 - dx / lungo, 0, 1) ** 1.2 * (dx > -0.003) * np.clip((0.55 - v) / 0.3, 0, 1)
+        return (k * (V[:, 1] < 0.004)).astype(F)
+    _dipingi(c, 'blood', velo)
     arco = [p for p, _ in s.arco]
-    _dipingi(c, 'blood', _colature([(p + np.array((0.008, 0.0, 0.0), F), 0.016, 0.26, 1.0) for p in arco]))
-    for k, p in enumerate(arco[2:8]):
-        _dipingi(c, 'blood', _lungo([p, p + np.array((0.07 + 0.02 * k, 0.0, -0.025 - 0.006 * k), F)], 0.013, 0.85))
-    for k, v0 in enumerate((-0.15, -0.5)):
-        x0 = sh.gill_t - 0.035 * v0 * v0 + 0.004
+    _dipingi(c, 'blood', _colature([(p + np.array((0.008, 0.0, 0.0), F), 0.012, 0.26, 1.0) for p in arco[::2]]))
+    for k, v0 in enumerate((0.25, -0.1, -0.4, -0.65)):
+        x0 = sh.gill_t - 0.035 * v0 * v0 + 0.005
         zc, h, _ = _sezione(c, x0)
         z0 = zc + h * v0
-        tz = [(x0 + 0.006 * i, z0 - 0.022 * i) for i in range(8)]
-        tz = [(t, max(z, _sezione(c, t)[0] - _sezione(c, t)[1] * 0.97)) for t, z in tz]
-        c.obs.append(_rivolo(c, f'RivoloBranchie{k}', _sul_fianco(c, tz, 0.004), 0.0028, 0.0046, goccia=0.032 + 0.012 * k))
+        tz = []
+        for i in range(12):
+            t = x0 + 0.005 * i + 0.002 * k * i
+            zc_t, h_t, _ = _sezione(c, t)
+            tz.append((t, max(z0 - 0.024 * i, zc_t - h_t * 0.97)))
+        c.obs.append(_rivolo(c, f'RivoloBranchie{k}', _sul_fianco(c, tz, 0.0045), 0.003, 0.005, goccia=0.03 + 0.01 * k))
     gola, _ = c.body.superficie(sh.gill_t - 0.03, -0.97, -1)
-    c.obs.append(_goccia(c, 'GocciaGola', gola, 0.04, r0=0.002, r1=0.0046))
+    c.obs.append(_goccia(c, 'GocciaGola', gola, 0.045, r0=0.0022, r1=0.005))
 
 
 # ── Pagro Sanguigno (pagro, Pagrus pagrus) ──
@@ -683,6 +688,120 @@ SPECIE['pagro_sanguigno'] = Specie(
     opzioni=dict(ferite=[], denti=6))
 
 
+# ── le spine della razza chiodata (le stesse della prova del piano): diventano chiodi ──
+_SPINE_RAZZA = [Spine(0.1, 0.94, 0.0, 0.0, 28, lunghezza=0.011, raggio=0.0042, lati='sinistro', inclinazione=0.55, fila=True),
+                Spine(0.14, 0.42, -3.4, 3.4, 16, lunghezza=0.009, raggio=0.005, lati='sinistro', inclinazione=0.45, seme=3)]
+# gli strappi nelle ali, dove si è staccata da sola: (t, z dentro l'ala, t, z al bordo, mezza larghezza)
+_STRAPPI_RAZZA = [((0.215, -0.2), (0.235, -0.33), 0.012), ((0.26, 0.17), (0.3, 0.3), 0.011), ((0.37, -0.13), (0.4, -0.19), 0.008)]
+
+
+def _posti_chiodi(c):
+    """Dove stavano le spine della prova: la fila sulla linea di mezzo (una sì e una no, fino all'attacco della
+    coda) e quelle sparse sul disco (con lo stesso generatore della prova)."""
+    fila, sparse = _SPINE_RAZZA
+    tv = [(float(t), 0.0) for t in np.linspace(fila.t0, fila.t1, fila.n)[:14:2]]
+    rng = np.random.default_rng(sparse.seme)
+    ts, vs = rng.uniform(sparse.t0, sparse.t1, sparse.n), rng.uniform(sparse.v0, sparse.v1, sparse.n)
+    tv += [(float(t), float(v)) for t, v in zip(ts, vs)][:12]
+    return tv
+
+
+def _geo_razza(c):
+    """Gli strappi passanti nelle ali (fessure frastagliate da dentro l'ala fino al bordo) e i buchi dove entrano i
+    chiodi."""
+    P, body = c.P, c.body
+    s = _Scavi(P)
+    n3 = P.sdf.Noise3(17)
+    for (t0, z0), (t1, z1), mezza in _STRAPPI_RAZZA:
+        a, b = np.array((t0, z0), F), np.array((t1, z1), F)
+        ab = b - a
+
+        def g(p, a=a, ab=ab, mezza=mezza):
+            q = p[:, (0, 2)]
+            tt = np.clip(((q - a) @ ab) / float(ab @ ab), 0, 1)
+            d = np.linalg.norm(q - (a + tt[:, None] * ab), axis=1)
+            frast = 0.35 + 0.65 * np.clip(tt * 1.6, 0, 1) + 0.5 * n3(p, scale=0.006, octaves=2)
+            return (d - mezza * frast).astype(F)
+        lo = (min(t0, t1) - 0.03, -0.1, min(z0, z1) - 0.03)
+        hi = (max(t0, t1) + 0.03, 0.1, max(z0, z1) + 0.03)
+        s.aggiungi(g, lo, hi)
+    return s
+
+
+def _campo_razza(c, f):
+    return _cache(c, 'scavi', _geo_razza).scava(f, k=0.001)
+
+
+def _razza(c):
+    """I chiodi arrugginiti al posto delle spine (qualcuno storto, qualcuno mezzo tirato fuori), il sangue attorno a
+    ciascuno, la carne viva negli strappi delle ali e il sangue che ne esce."""
+    P, body = c.P, c.body
+    s = _cache(c, 'scavi', _geo_razza)
+    _dipingi(c, 'wound', s.carne)
+    rng = np.random.default_rng(23)
+    ruggine = _ruggine(c)
+    campi, los, his, macchie = [], [], [], []
+    for k, (t, v) in enumerate(_posti_chiodi(c)):
+        p, n = body.superficie(t, v, -1)
+        centro = abs(v) < 0.1
+        fuori = rng.uniform(0.02, 0.034) * (1.2 if centro else 1.0) * (1.0 - 0.4 * t)
+        asse = n + np.array((rng.normal(0, 0.25), 0.0, rng.normal(0, 0.25)), F)
+        piega = None
+        if k in (3, 9, 15):
+            piega = (0.45, n * 0.3 + np.array((rng.choice((-1, 1)) * 0.9, 0.0, rng.normal(0, 0.5)), F))
+        f, lo, hi = _chiodo(P, p, asse, fuori, r=0.0036 * (1.15 if centro else 1.0), testa=0.0095 * (1.15 if centro else 1.0), piega=piega)
+        campi.append(f)
+        los.append(lo)
+        his.append(hi)
+        macchie.append((p, 0.009, 0.03, 0.9))
+    lo, hi = np.min(los, axis=0), np.max(his, axis=0)
+    c.obs.append(P.oggetto_sdf('Chiodi', P.sdf.union(*campi), lo, hi, ruggine, res=_res(c, 0.0006)))
+    # il sangue: attorno ai chiodi e agli strappi (sulla razza sdraiata il sangue si allarga, non cola lontano)
+    _dipingi(c, 'blood', _colature(macchie, lato=0))
+    for (t0, z0), (t1, z1), mezza in _STRAPPI_RAZZA:
+        scia = []
+        for u in np.linspace(0, 1, 5):
+            t, z = t0 + (t1 - t0) * u, z0 + (z1 - z0) * u
+            zc, h, _ = _sezione(c, t)
+            scia.append(body.superficie(t, (z - zc) / h, -1)[0])
+        _dipingi(c, 'blood', _lungo(scia, mezza * 1.6, 0.95, lato=0))
+
+
+# ── Razza Inchiodata (razza chiodata, Raja clavata) — la prova del piano 'razza', trasformata ──
+# Costruita con il dorso verso la camera (−Y): z è l'apertura delle ali, y lo spessore. I profili top/bot/w
+# sono il tronco (la gobba al centro e la coda), il disco delle pettorali è Shape.disco. Le spine della prova
+# (_SPINE_RAZZA) sono diventate chiodi veri, arrugginiti (extra), e nelle ali ci sono gli strappi passanti di
+# quando si è staccata da sola (campo); niente bocca (bocca='nessuna': la famiglia la lascia chiusa).
+SPECIE['razza_inchiodata'] = Specie(
+    forma=Shape(
+        top=[(0, 0.0), (0.05, 0.03), (0.15, 0.058), (0.3, 0.068), (0.45, 0.055), (0.55, 0.034), (0.65, 0.017), (0.8, 0.011),
+             (0.95, 0.007), (1, 0.005)],
+        bot=[(0, 0.0), (0.05, -0.03), (0.15, -0.058), (0.3, -0.068), (0.45, -0.055), (0.55, -0.034), (0.65, -0.017), (0.8, -0.011),
+             (0.95, -0.007), (1, -0.005)],
+        w=[(0, 0.003), (0.05, 0.011), (0.15, 0.024), (0.3, 0.03), (0.45, 0.025), (0.55, 0.017), (0.65, 0.011), (0.8, 0.008),
+           (0.95, 0.006), (1, 0.005)],
+        eye_t=0.13, eye_z=0.0, eye_r=0.011,
+        occhi=[(0.125, 0.03, 0.0105, -1), (0.125, -0.03, 0.0105, -1)], spiracoli=0.0055,
+        bocca='nessuna', branchie='nessuna',
+        disco=Disco(contorno=[(0, 0.0), (0.03, 0.05), (0.1, 0.15), (0.18, 0.26), (0.245, 0.34), (0.275, 0.35), (0.32, 0.315),
+                              (0.39, 0.21), (0.45, 0.115), (0.5, 0.08), (0.555, 0.088), (0.6, 0.064), (0.64, 0.025), (0.68, 0.0),
+                              (1.0, 0.0)],
+                    spessore=[(0, 0.003), (0.12, 0.012), (0.3, 0.015), (0.45, 0.013), (0.6, 0.008), (0.68, 0.002), (1.0, 0.001)]),
+        spine=[Spine(0.6, 0.94, 0.0, 0.0, 10, lunghezza=0.009, raggio=0.0036, lati='sinistro', inclinazione=0.55, fila=True)],
+        fins=[Fin('dorsal', 0.82, 0.86, [(0, 0), (0.25, 0.9), (0.55, 1.0), (0.8, 0.5), (1, 0.05)], 0.028, 16, carnosa=True, spessore=0.004),
+              Fin('dorsal', 0.88, 0.92, [(0, 0), (0.25, 0.9), (0.55, 1.0), (0.8, 0.5), (1, 0.05)], 0.026, 16, carnosa=True, spessore=0.004),
+              Fin('caudal', 1.0, 1.0, [(0, 0.5), (0.5, 0.7), (1.0, 0.0), (0.5, -0.5), (0, -0.4)], 0.03, 16, carnosa=True, spessore=0.003)]),
+    aspetto=Look(back=(0.20, 0.155, 0.11), flank=(0.26, 0.21, 0.16), belly=(0.84, 0.82, 0.78), fin=(0.18, 0.14, 0.1),
+                 iris=(0.55, 0.5, 0.3), iris_dark=(0.1, 0.09, 0.05), metal=0.0, irid=0.0, squame=0.0, linea_laterale=0.0,
+                 lucido=0.35, ruvido=0.5,
+                 disegni=[Disegno('marmo', colore=(0.11, 0.08, 0.055), forza=0.7, scala=30, r=0.45),
+                          Disegno('macchie', colore=(0.05, 0.035, 0.025), forza=0.85, scala=45, r=0.2),
+                          Disegno('macchie', colore=(0.62, 0.55, 0.42), forza=0.7, scala=70, r=0.13, seme=5)]),
+    campo=_campo_razza, extra=_razza,
+    famiglia='bleeding', piano='razza',
+    opzioni=dict(ferite=[((0.2, 1.6), (0.24, 0.9)), ((0.33, -1.0), (0.3, -1.9))], bocca=0))
+
+
 def _scorticano(c):
     """Senza pelle: la famiglia lo fa tutto di carne viva (opzione carne=1); qui si ridisegnano sulla carne i
     miosetti, le linee a «<» della carne dei pesci (pallide, il colore di Look sotto la carne), il setto lungo il
@@ -697,14 +816,16 @@ def _scorticano(c):
         v = (z - zc) / h
         s = (x - 0.06 * np.abs(v - 0.05) ** 0.8 - 0.36) / 0.038
         fr = np.abs(s - np.round(s))
-        linee = np.exp(-(fr / 0.07) ** 2) * (x > 0.35) * (x < 0.97) * (np.abs(v) < 0.92)
+        linee = np.exp(-(fr / 0.1) ** 2) * (x > 0.35) * (x < 0.97) * (np.abs(v) < 0.92)
         setto = np.exp(-((v - 0.05) / 0.03) ** 2) * (x > 0.34) * (x < 0.97)
         # le placche d'osso della testa: l'opercolo e il preopercolo, pallidi, dove la pelle è stata tirata via
         n3 = P.sdf.Noise3(12)
         osso = np.clip((n3(V, scale=0.02, octaves=3) + 0.15) * 3.0, 0, 1)
         dist_op = np.abs(x - (sh.gill_t - 0.03 - 0.03 * v * v))
         placche = (x < sh.gill_t + 0.005) * (x > 0.16) * np.clip(1 - dist_op / 0.022, 0, 1) * osso
-        w = 1.0 - 0.48 * np.maximum(linee, 0.7 * setto) - 0.55 * placche
+        ec = body.occhi_lista()[0][0]
+        orbita = np.exp(-((np.linalg.norm(V - ec, axis=1) - sh.eye_r * 1.25) / 0.0035) ** 2)
+        w = 1.0 - 0.58 * np.maximum(linee, 0.7 * setto) - 0.55 * placche - 0.7 * orbita
         w = np.where(fs(V) < 0.0018, 0.0, w)
         return np.minimum(vecchio, w)
     _dipingi(c, 'wound', carne, modo='nuovo')
@@ -768,21 +889,22 @@ def _rabbiglio(c):
                 f0 = P.sdf.rotate(f0, R, center=cerniera)
                 c0 = (c0 - cerniera) @ R.T + cerniera
             c.obs.append(P.oggetto_sdf(f'Incisivo{jaw}{s}', f0, c0 - 0.02, c0 + 0.02, giallo, res=_res(c, 0.0004)))
-    # la schiuma: tante bollicine di raggio diverso, rosa e bianche, attorno alla bocca e giù dal mento
+    # la schiuma: tante bollicine piccole e qualcuna grande sulle labbra e agli angoli della bocca (non davanti
+    # agli incisivi), e tre fili di bava schiumosa che pendono dal mento
     rng = np.random.default_rng(8)
     C, Rr = [], []
-    for _ in range(80):
-        x = rng.uniform(0.008, sh.mouth_t + 0.016)
-        zl = float(body.mouth_line(np.array([min(max(x, 0.0), sh.mouth_t)], F))[0])
-        z = zl + rng.normal(0, 0.01)
-        y = -float(body.surface_y(min(max(x, 0.002), 1.0), z)) - rng.uniform(0.0, 0.006)
+    for _ in range(150):
+        x = rng.uniform(0.007, sh.mouth_t + 0.014)
+        zl = float(body.mouth_line(np.array([min(x, sh.mouth_t)], F))[0])
+        z = zl + rng.normal(0, 0.0065)
+        y = -float(body.surface_y(min(max(x, 0.002), 1.0), z)) - rng.uniform(-0.0008, 0.0035)
         C.append((x, y, z))
-        Rr.append(rng.uniform(0.0016, 0.0042))
-    for k in range(5):
-        x = rng.uniform(0.0, 0.03)
-        for j in range(4):
-            C.append((x + rng.normal(0, 0.002), -0.012 - rng.uniform(0, 0.006), sh.mouth_z1 - 0.025 - 0.009 * j - 0.01 * k * 0.3))
-            Rr.append(0.0032 - 0.0005 * j)
+        Rr.append(rng.uniform(0.0011, 0.0021) if rng.uniform() < 0.75 else rng.uniform(0.0026, 0.0042))
+    for k in range(3):
+        x0 = 0.012 + 0.014 * k
+        for j in range(7):
+            C.append((x0 + rng.normal(0, 0.0012), -0.011 - 0.002 * k + rng.normal(0, 0.001), sh.mouth_z1 - 0.022 - 0.0055 * j - 0.006 * k))
+            Rr.append(max(0.0032 - 0.0003 * j, 0.0012))
     C, Rr = np.array(C, F), np.array(Rr, F)
     from scipy.spatial import cKDTree
     albero = cKDTree(C)
@@ -790,8 +912,13 @@ def _rabbiglio(c):
     def schiuma(p):
         d, i = albero.query(p, k=4, workers=-1)
         return np.min(d - Rr[i], axis=1).astype(F)
-    rosa = P.materiale('SchiumaRosa', (0.92, 0.62, 0.64), rough=0.15, coat=1.0, sss=0.5)
-    c.obs.append(P.oggetto_sdf('Schiuma', schiuma, C.min(0) - 0.006, C.max(0) + 0.006, rosa, res=_res(c, 0.0005)))
+    m, g = P.material('SchiumaRosa')
+    co = g.texcoord('Object')
+    n = g.noise(co, scale=260.0, detail=2.0)
+    col = g.mix(g.smoothstep(0.5, 0.64, n.fac), (0.97, 0.76, 0.78), (0.72, 0.16, 0.2))
+    g.output_material(g.principled(color=col, rough=0.1, coat=1.0, coat_rough=0.02, sss=0.6, sss_radius=(1, 0.4, 0.4),
+                                   sss_scale=0.002, transmission=0.15))
+    c.obs.append(P.oggetto_sdf('Schiuma', schiuma, C.min(0) - 0.006, C.max(0) + 0.006, m, res=_res(c, 0.00035)))
 
 
 # ── Rabbiglio (pesce coniglio, Siganus luridus) ──
@@ -1034,7 +1161,7 @@ def _dentiera(c):
                 x = 0.01 + (sh.mouth_t - 0.026) * k / (n - 1) + rng.normal(0, 0.0015)
                 zl = float(body.mouth_line(np.array([x], F))[0])
                 y = s * float(body.surface_y(x, zl)) * 0.7
-                radice = np.array((x, y, zl - verso * 0.004), F)
+                radice = np.array((x, y, zl - verso * (0.004 if verso > 0 else 0.0015)), F)
                 sc = rng.uniform(0.95, 1.7) * (1.1 if tipo == 'molare' else 1.0)
                 f0 = _dente_umano(P, tipo, radice, verso, sc)
                 # storti: ognuno girato un po' attorno alla sua radice
@@ -1104,7 +1231,7 @@ SPECIE['dentiera'] = Specie(
                  disegni=[Disegno('macchie', colore=(0.16, 0.38, 0.85), forza=1.0, scala=50, r=0.18, v0=0.15, u0=0.12, u1=0.85)]),
     extra=_dentiera,
     famiglia='bleeding', piano='fusiforme',
-    opzioni=dict(ferite=[((0.5, 0.4), (0.56, -0.05)), ((0.68, 0.3), (0.71, -0.2))], denti=0, bocca=32.0))
+    opzioni=dict(ferite=[((0.5, 0.4), (0.56, -0.05)), ((0.68, 0.3), (0.71, -0.2))], denti=0, bocca=36.0))
 
 
 def _grondongo(c):
@@ -1159,194 +1286,6 @@ SPECIE['grondongo'] = Specie(
     famiglia='bleeding', piano='anguilliforme',
     opzioni=dict(ferite=[((0.22, 0.6), (0.27, -0.2)), ((0.42, 0.5), (0.47, -0.4)), ((0.63, 0.55), (0.67, -0.25)),
                          ((0.82, 0.4), (0.85, -0.3))], denti=7))
-
-
-def _geo_pilota(c):
-    """Il morso grande: una sfera che porta via un pezzo del dorso e del fianco (spostata verso la camera, così la
-    carne si vede), con il bordo smerlato dai denti triangolari di chi l'ha morso."""
-    P, body = c.P, c.body
-    s = _Scavi(P)
-    t0, R = 0.36, 0.1
-    ztop = float(body.top(np.array([t0], F))[0])
-    centro = np.array((t0, -0.042, ztop + 0.018), F)
-    s.sfera(centro, R)
-    # le tacche dei denti lungo l'orlo (dove la sfera taglia la pelle): coni corti che entrano nella carne
-    rng = np.random.default_rng(3)
-    A, B, R1, R2 = [], [], [], []
-    orlo = []
-    for a in np.linspace(0.0, 2 * math.pi, 64, endpoint=False):
-        q = centro + R * np.array((math.cos(a), 0.0, math.sin(a)), F) * 0.98
-        if q[2] > ztop + 0.002:
-            continue
-        p, n = _pelle_tz(c, float(q[0]), float(q[2]), -1)
-        if np.linalg.norm(p - centro) > R * 1.05:
-            continue
-        orlo.append(p)
-    for k, p in enumerate(orlo[::3]):
-        d = (centro - p) / (np.linalg.norm(centro - p) + 1e-9)
-        A.append(p - d * 0.006)
-        B.append(p + d * 0.01)
-        R1.append(rng.uniform(0.0045, 0.006))
-        R2.append(0.0008)
-    if A:
-        s.coni(B, A, R2, R1)
-    s.orlo = orlo
-    s.centro = centro
-    return s
-
-
-def _campo_pilota(c, f):
-    return _cache(c, 'scavi', _geo_pilota).scava(f, k=0.0015)
-
-
-def _pilota(c):
-    """La carne viva nel morso, il sangue che cola dall'orlo di sotto lungo il fianco, le gocce."""
-    s = _cache(c, 'scavi', _geo_pilota)
-    _dipingi(c, 'wound', s.carne)
-    bassi = sorted(s.orlo, key=lambda p: p[2])[:8]
-    _dipingi(c, 'blood', _colature([(p, 0.007, 0.11, 1.0) for p in bassi[::2]]))
-    for k, p in enumerate(bassi[::3]):
-        c.obs.append(_goccia(c, f'GocciaMorso{k}', p, 0.028 + 0.012 * k, r0=0.0018, r1=0.0042))
-
-
-# ── Pilota Sanguinante (pesce pilota, Naucrates ductor) ──
-# Affusolato, il muso corto e tondo con la boccuccia; la prima dorsale ridotta a spinette (qui le ha portate
-# via il morso), la seconda dorsale e l'anale con il lobo davanti, la coda forcuta con le punte bianche;
-# argento azzurrato con 6 larghe bande verticali blu-nere. Un morso enorme gli ha portato via un pezzo del
-# dorso (campo + extra), e quello che lo accompagna lo morde ancora.
-SPECIE['pilota_sanguinante'] = Specie(
-    forma=Shape(
-        top=[(0, -0.015), (0.02, 0.012), (0.05, 0.04), (0.1, 0.068), (0.18, 0.096), (0.3, 0.115), (0.42, 0.118), (0.55, 0.108),
-             (0.7, 0.08), (0.84, 0.045), (0.94, 0.024), (1, 0.02)],
-        bot=[(0, -0.035), (0.03, -0.06), (0.1, -0.088), (0.2, -0.108), (0.33, -0.118), (0.48, -0.112), (0.62, -0.09), (0.76, -0.06),
-             (0.88, -0.032), (1, -0.02)],
-        w=[(0, 0.01), (0.05, 0.035), (0.18, 0.055), (0.4, 0.058), (0.65, 0.045), (0.85, 0.024), (1, 0.012)],
-        eye_t=0.085, eye_z=0.018, eye_r=0.019, mouth_t=0.06, mouth_z0=-0.025, mouth_z1=-0.035, gill_t=0.22,
-        fins=[Fin('dorsal', 0.47, 0.82, [(0, 0), (0.06, 0.9), (0.15, 1.0), (0.3, 0.6), (0.7, 0.45), (1, 0.08)], 0.09, 24),
-              Fin('anal', 0.58, 0.82, [(0, 0), (0.08, 0.9), (0.2, 0.95), (0.35, 0.55), (0.7, 0.42), (1, 0.08)], 0.075, 18),
-              Fin('caudal', 1.0, 1.0, coda_forcuta(1.75, 0.28), 0.25, 20, bordo=(0.8, 0.8, 0.78)),
-              Fin('pectoral', 0.23, 0.245, PETTORALE, 0.1, 10),
-              Fin('pelvic', 0.3, 0.315, PELVICA, 0.07, 6, colore=(0.05, 0.06, 0.09))]),
-    aspetto=Look(back=(0.12, 0.15, 0.22), flank=(0.44, 0.48, 0.54), belly=(0.7, 0.72, 0.74), fin=(0.12, 0.13, 0.18),
-                 iris=(0.65, 0.65, 0.6), iris_dark=(0.08, 0.08, 0.1), metal=0.5, irid=0.3,
-                 disegni=[Disegno('bande', colore=(0.03, 0.04, 0.08), forza=0.92, n=6, u0=0.2, u1=0.97, larghezza=0.5, onda=0.04)]),
-    campo=_campo_pilota, extra=_pilota,
-    famiglia='bleeding', piano='fusiforme',
-    opzioni=dict(ferite=[((0.62, 0.2), (0.66, -0.3))], denti=5))
-
-
-# ── le spine della razza chiodata (le stesse della prova del piano): diventano chiodi ──
-_SPINE_RAZZA = [Spine(0.1, 0.94, 0.0, 0.0, 28, lunghezza=0.011, raggio=0.0042, lati='sinistro', inclinazione=0.55, fila=True),
-                Spine(0.14, 0.42, -3.4, 3.4, 16, lunghezza=0.009, raggio=0.005, lati='sinistro', inclinazione=0.45, seme=3)]
-# gli strappi nelle ali, dove si è staccata da sola: (t, z dentro l'ala, t, z al bordo, mezza larghezza)
-_STRAPPI_RAZZA = [((0.215, -0.2), (0.235, -0.33), 0.012), ((0.26, 0.17), (0.3, 0.3), 0.011), ((0.37, -0.13), (0.4, -0.19), 0.008)]
-
-
-def _posti_chiodi(c):
-    """Dove stavano le spine della prova: la fila sulla linea di mezzo (una sì e una no, fino all'attacco della
-    coda) e quelle sparse sul disco (con lo stesso generatore della prova)."""
-    fila, sparse = _SPINE_RAZZA
-    tv = [(float(t), 0.0) for t in np.linspace(fila.t0, fila.t1, fila.n)[:14:2]]
-    rng = np.random.default_rng(sparse.seme)
-    ts, vs = rng.uniform(sparse.t0, sparse.t1, sparse.n), rng.uniform(sparse.v0, sparse.v1, sparse.n)
-    tv += [(float(t), float(v)) for t, v in zip(ts, vs)][:12]
-    return tv
-
-
-def _geo_razza(c):
-    """Gli strappi passanti nelle ali (fessure frastagliate da dentro l'ala fino al bordo) e i buchi dove entrano i
-    chiodi."""
-    P, body = c.P, c.body
-    s = _Scavi(P)
-    n3 = P.sdf.Noise3(17)
-    for (t0, z0), (t1, z1), mezza in _STRAPPI_RAZZA:
-        a, b = np.array((t0, z0), F), np.array((t1, z1), F)
-        ab = b - a
-
-        def g(p, a=a, ab=ab, mezza=mezza):
-            q = p[:, (0, 2)]
-            tt = np.clip(((q - a) @ ab) / float(ab @ ab), 0, 1)
-            d = np.linalg.norm(q - (a + tt[:, None] * ab), axis=1)
-            frast = 0.35 + 0.65 * np.clip(tt * 1.6, 0, 1) + 0.5 * n3(p, scale=0.006, octaves=2)
-            return (d - mezza * frast).astype(F)
-        lo = (min(t0, t1) - 0.03, -0.1, min(z0, z1) - 0.03)
-        hi = (max(t0, t1) + 0.03, 0.1, max(z0, z1) + 0.03)
-        s.aggiungi(g, lo, hi)
-    return s
-
-
-def _campo_razza(c, f):
-    return _cache(c, 'scavi', _geo_razza).scava(f, k=0.001)
-
-
-def _razza(c):
-    """I chiodi arrugginiti al posto delle spine (qualcuno storto, qualcuno mezzo tirato fuori), il sangue attorno a
-    ciascuno, la carne viva negli strappi delle ali e il sangue che ne esce."""
-    P, body = c.P, c.body
-    s = _cache(c, 'scavi', _geo_razza)
-    _dipingi(c, 'wound', s.carne)
-    rng = np.random.default_rng(23)
-    ruggine = _ruggine(c)
-    campi, los, his, macchie = [], [], [], []
-    for k, (t, v) in enumerate(_posti_chiodi(c)):
-        p, n = body.superficie(t, v, -1)
-        centro = abs(v) < 0.1
-        fuori = rng.uniform(0.02, 0.034) * (1.2 if centro else 1.0) * (1.0 - 0.4 * t)
-        asse = n + np.array((rng.normal(0, 0.25), 0.0, rng.normal(0, 0.25)), F)
-        piega = None
-        if k in (3, 9, 15):
-            piega = (0.45, n * 0.3 + np.array((rng.choice((-1, 1)) * 0.9, 0.0, rng.normal(0, 0.5)), F))
-        f, lo, hi = _chiodo(P, p, asse, fuori, r=0.0036 * (1.15 if centro else 1.0), testa=0.0095 * (1.15 if centro else 1.0), piega=piega)
-        campi.append(f)
-        los.append(lo)
-        his.append(hi)
-        macchie.append((p, 0.009, 0.03, 0.9))
-    lo, hi = np.min(los, axis=0), np.max(his, axis=0)
-    c.obs.append(P.oggetto_sdf('Chiodi', P.sdf.union(*campi), lo, hi, ruggine, res=_res(c, 0.0006)))
-    # il sangue: attorno ai chiodi e agli strappi (sulla razza sdraiata il sangue si allarga, non cola lontano)
-    _dipingi(c, 'blood', _colature(macchie, lato=0))
-    for (t0, z0), (t1, z1), mezza in _STRAPPI_RAZZA:
-        scia = []
-        for u in np.linspace(0, 1, 5):
-            t, z = t0 + (t1 - t0) * u, z0 + (z1 - z0) * u
-            zc, h, _ = _sezione(c, t)
-            scia.append(body.superficie(t, (z - zc) / h, -1)[0])
-        _dipingi(c, 'blood', _lungo(scia, mezza * 1.6, 0.95, lato=0))
-
-
-# ── Razza Inchiodata (razza chiodata, Raja clavata) — la prova del piano 'razza', trasformata ──
-# Costruita con il dorso verso la camera (−Y): z è l'apertura delle ali, y lo spessore. I profili top/bot/w
-# sono il tronco (la gobba al centro e la coda), il disco delle pettorali è Shape.disco. Le spine della prova
-# (_SPINE_RAZZA) sono diventate chiodi veri, arrugginiti (extra), e nelle ali ci sono gli strappi passanti di
-# quando si è staccata da sola (campo); niente bocca (bocca='nessuna': la famiglia la lascia chiusa).
-SPECIE['razza_inchiodata'] = Specie(
-    forma=Shape(
-        top=[(0, 0.0), (0.05, 0.03), (0.15, 0.058), (0.3, 0.068), (0.45, 0.055), (0.55, 0.034), (0.65, 0.017), (0.8, 0.011),
-             (0.95, 0.007), (1, 0.005)],
-        bot=[(0, 0.0), (0.05, -0.03), (0.15, -0.058), (0.3, -0.068), (0.45, -0.055), (0.55, -0.034), (0.65, -0.017), (0.8, -0.011),
-             (0.95, -0.007), (1, -0.005)],
-        w=[(0, 0.003), (0.05, 0.011), (0.15, 0.024), (0.3, 0.03), (0.45, 0.025), (0.55, 0.017), (0.65, 0.011), (0.8, 0.008),
-           (0.95, 0.006), (1, 0.005)],
-        eye_t=0.13, eye_z=0.0, eye_r=0.011,
-        occhi=[(0.125, 0.03, 0.0105, -1), (0.125, -0.03, 0.0105, -1)], spiracoli=0.0055,
-        bocca='nessuna', branchie='nessuna',
-        disco=Disco(contorno=[(0, 0.0), (0.03, 0.05), (0.1, 0.15), (0.18, 0.26), (0.245, 0.34), (0.275, 0.35), (0.32, 0.315),
-                              (0.39, 0.21), (0.45, 0.115), (0.5, 0.08), (0.555, 0.088), (0.6, 0.064), (0.64, 0.025), (0.68, 0.0),
-                              (1.0, 0.0)],
-                    spessore=[(0, 0.003), (0.12, 0.012), (0.3, 0.015), (0.45, 0.013), (0.6, 0.008), (0.68, 0.002), (1.0, 0.001)]),
-        spine=[Spine(0.6, 0.94, 0.0, 0.0, 10, lunghezza=0.009, raggio=0.0036, lati='sinistro', inclinazione=0.55, fila=True)],
-        fins=[Fin('dorsal', 0.82, 0.86, [(0, 0), (0.25, 0.9), (0.55, 1.0), (0.8, 0.5), (1, 0.05)], 0.028, 16, carnosa=True, spessore=0.004),
-              Fin('dorsal', 0.88, 0.92, [(0, 0), (0.25, 0.9), (0.55, 1.0), (0.8, 0.5), (1, 0.05)], 0.026, 16, carnosa=True, spessore=0.004),
-              Fin('caudal', 1.0, 1.0, [(0, 0.5), (0.5, 0.7), (1.0, 0.0), (0.5, -0.5), (0, -0.4)], 0.03, 16, carnosa=True, spessore=0.003)]),
-    aspetto=Look(back=(0.20, 0.155, 0.11), flank=(0.26, 0.21, 0.16), belly=(0.84, 0.82, 0.78), fin=(0.18, 0.14, 0.1),
-                 iris=(0.55, 0.5, 0.3), iris_dark=(0.1, 0.09, 0.05), metal=0.0, irid=0.0, squame=0.0, linea_laterale=0.0,
-                 lucido=0.35, ruvido=0.5,
-                 disegni=[Disegno('marmo', colore=(0.11, 0.08, 0.055), forza=0.7, scala=30, r=0.45),
-                          Disegno('macchie', colore=(0.05, 0.035, 0.025), forza=0.85, scala=45, r=0.2),
-                          Disegno('macchie', colore=(0.62, 0.55, 0.42), forza=0.7, scala=70, r=0.13, seme=5)]),
-    campo=_campo_razza, extra=_razza,
-    famiglia='bleeding', piano='razza',
-    opzioni=dict(ferite=[((0.2, 1.6), (0.24, 0.9)), ((0.33, -1.0), (0.3, -1.9))], bocca=0))
 
 
 def _lampreda(c):
@@ -1524,6 +1463,80 @@ SPECIE['pesce_violento'] = Specie(
     ritratto=Ritratto(yaw=4.0, pitch=0.0, roll=-30.0),
     famiglia='bleeding', piano='razza',
     opzioni=dict(ferite=[], bocca=0))
+
+
+def _geo_pilota(c):
+    """Il morso grande: una sfera che porta via un pezzo del dorso e del fianco (spostata verso la camera, così la
+    carne si vede), con il bordo smerlato dai denti triangolari di chi l'ha morso."""
+    P, body = c.P, c.body
+    s = _Scavi(P)
+    t0, R = 0.36, 0.1
+    ztop = float(body.top(np.array([t0], F))[0])
+    centro = np.array((t0, -0.042, ztop + 0.018), F)
+    s.sfera(centro, R)
+    # le tacche dei denti lungo l'orlo (dove la sfera taglia la pelle): coni corti che entrano nella carne
+    rng = np.random.default_rng(3)
+    A, B, R1, R2 = [], [], [], []
+    orlo = []
+    for a in np.linspace(0.0, 2 * math.pi, 64, endpoint=False):
+        q = centro + R * np.array((math.cos(a), 0.0, math.sin(a)), F) * 0.98
+        if q[2] > ztop + 0.002:
+            continue
+        p, n = _pelle_tz(c, float(q[0]), float(q[2]), -1)
+        if np.linalg.norm(p - centro) > R * 1.05:
+            continue
+        orlo.append(p)
+    for k, p in enumerate(orlo[::3]):
+        d = (centro - p) / (np.linalg.norm(centro - p) + 1e-9)
+        A.append(p - d * 0.006)
+        B.append(p + d * 0.01)
+        R1.append(rng.uniform(0.0045, 0.006))
+        R2.append(0.0008)
+    if A:
+        s.coni(B, A, R2, R1)
+    s.orlo = orlo
+    s.centro = centro
+    return s
+
+
+def _campo_pilota(c, f):
+    return _cache(c, 'scavi', _geo_pilota).scava(f, k=0.0015)
+
+
+def _pilota(c):
+    """La carne viva nel morso, il sangue che cola dall'orlo di sotto lungo il fianco, le gocce."""
+    s = _cache(c, 'scavi', _geo_pilota)
+    _dipingi(c, 'wound', s.carne)
+    bassi = sorted(s.orlo, key=lambda p: p[2])[:8]
+    _dipingi(c, 'blood', _colature([(p, 0.007, 0.11, 1.0) for p in bassi[::2]]))
+    for k, p in enumerate(bassi[::3]):
+        c.obs.append(_goccia(c, f'GocciaMorso{k}', p, 0.028 + 0.012 * k, r0=0.0018, r1=0.0042))
+
+
+# ── Pilota Sanguinante (pesce pilota, Naucrates ductor) ──
+# Affusolato, il muso corto e tondo con la boccuccia; la prima dorsale ridotta a spinette (qui le ha portate
+# via il morso), la seconda dorsale e l'anale con il lobo davanti, la coda forcuta con le punte bianche;
+# argento azzurrato con 6 larghe bande verticali blu-nere. Un morso enorme gli ha portato via un pezzo del
+# dorso (campo + extra), e quello che lo accompagna lo morde ancora.
+SPECIE['pilota_sanguinante'] = Specie(
+    forma=Shape(
+        top=[(0, -0.015), (0.02, 0.012), (0.05, 0.04), (0.1, 0.068), (0.18, 0.096), (0.3, 0.115), (0.42, 0.118), (0.55, 0.108),
+             (0.7, 0.08), (0.84, 0.045), (0.94, 0.024), (1, 0.02)],
+        bot=[(0, -0.035), (0.03, -0.06), (0.1, -0.088), (0.2, -0.108), (0.33, -0.118), (0.48, -0.112), (0.62, -0.09), (0.76, -0.06),
+             (0.88, -0.032), (1, -0.02)],
+        w=[(0, 0.01), (0.05, 0.035), (0.18, 0.055), (0.4, 0.058), (0.65, 0.045), (0.85, 0.024), (1, 0.012)],
+        eye_t=0.085, eye_z=0.018, eye_r=0.019, mouth_t=0.06, mouth_z0=-0.025, mouth_z1=-0.035, gill_t=0.22,
+        fins=[Fin('dorsal', 0.47, 0.82, [(0, 0), (0.06, 0.9), (0.15, 1.0), (0.3, 0.6), (0.7, 0.45), (1, 0.08)], 0.09, 24),
+              Fin('anal', 0.58, 0.82, [(0, 0), (0.08, 0.9), (0.2, 0.95), (0.35, 0.55), (0.7, 0.42), (1, 0.08)], 0.075, 18),
+              Fin('caudal', 1.0, 1.0, coda_forcuta(1.75, 0.28), 0.25, 20, bordo=(0.8, 0.8, 0.78)),
+              Fin('pectoral', 0.23, 0.245, PETTORALE, 0.1, 10),
+              Fin('pelvic', 0.3, 0.315, PELVICA, 0.07, 6, colore=(0.05, 0.06, 0.09))]),
+    aspetto=Look(back=(0.12, 0.15, 0.22), flank=(0.44, 0.48, 0.54), belly=(0.7, 0.72, 0.74), fin=(0.12, 0.13, 0.18),
+                 iris=(0.65, 0.65, 0.6), iris_dark=(0.08, 0.08, 0.1), metal=0.5, irid=0.3,
+                 disegni=[Disegno('bande', colore=(0.03, 0.04, 0.08), forza=0.92, n=6, u0=0.2, u1=0.97, larghezza=0.5, onda=0.04)]),
+    campo=_campo_pilota, extra=_pilota,
+    famiglia='bleeding', piano='fusiforme',
+    opzioni=dict(ferite=[((0.62, 0.2), (0.66, -0.3))], denti=5))
 
 
 def _remora(c):

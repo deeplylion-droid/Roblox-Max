@@ -443,11 +443,11 @@ SPECIE['ossiuga'] = Specie(
               Fin('pelvic', 0.44, 0.45, PELVICA, 0.05, 6)]),
     aspetto=Look(back=(0.012, 0.06, 0.075), flank=(0.05, 0.15, 0.17), belly=(0.7, 0.7, 0.68), fin=(0.3, 0.32, 0.32),
                  iris=(0.7, 0.7, 0.66), iris_dark=(0.12, 0.12, 0.12), metal=0.35, irid=0.45,
-                 disegni=[Disegno('strisce', colore=(0.9, 0.92, 0.94), forza=1.0, v0=0.14, v1=0.42, n=1, larghezza=0.24),
+                 disegni=[Disegno('strisce', colore=(0.9, 0.92, 0.94), forza=1.0, v0=0.12, v1=0.46, n=1, larghezza=0.3),
                           Disegno('linea', colore=(0.01, 0.04, 0.05), forza=0.7, v=0.45, larghezza=0.05)]),
     extra=_lisca_ossiuga,
     famiglia='skeletal', piano='fusiforme',
-    opzioni=dict(vertebre=1, striscia_v=0.2))      # la lisca la fa l'extra (vertebre=1: la famiglia quasi niente)
+    opzioni=dict(vertebre=1, striscia_v=0.17))     # la lisca la fa l'extra (vertebre=1: la famiglia quasi niente)
 
 
 # ── Spratteschio (spratto, Sprattus sprattus) ──
@@ -946,8 +946,8 @@ SPECIE['sciabola_spolpata'] = Specie(
 # le lucine della pelle no (elementi=False): ne fa altre l'extra, attaccate alle ossa (in fondo e a metà di
 # ogni costola, in punta e a metà di ogni spina di sotto, due sul cranio), di tanti colori come le lampadine
 # di un luna park.
-_COLORI_LUNAPARK = [(1.0, 0.8, 0.42), (1.0, 0.1, 0.06), (1.0, 0.7, 0.06), (0.12, 1.0, 0.3), (0.18, 0.45, 1.0),
-                    (1.0, 0.22, 0.68)]
+_COLORI_LUNAPARK = [(1.0, 0.62, 0.2), (1.0, 0.03, 0.02), (1.0, 0.55, 0.0), (0.02, 1.0, 0.12), (0.03, 0.25, 1.0),
+                    (1.0, 0.04, 0.5)]
 
 
 def _extra_lanternossa(c):
@@ -970,7 +970,7 @@ def _extra_lanternossa(c):
     for k, C in gruppi.items():
         f, lo, hi = P.campo_sfere(C, r)
         col = _COLORI_LUNAPARK[k]
-        mat = P.materiale(f'Lampadina{k}', col, rough=0.15, coat=1.0, emissione=col, forza=3.2)
+        mat = P.materiale(f'Lampadina{k}', col, rough=0.15, coat=1.0, emissione=col, forza=1.6)
         c.obs.append(P.oggetto_sdf(f'Lampadine{k}', f, lo, hi, mat, res=0.0011))
 
 
@@ -1289,6 +1289,7 @@ def _ossa_umane(c, y0=-0.006, nome='OssaUmane'):
         oss.nodo(b, r * testa)
 
     lastre = []          # le ossa piatte (scapole, bacino): poligoni nel piano XZ, con lo spessore
+    fori = []            # i buchi nelle ossa piatte (x, z, raggio): i fori otturatori del bacino
     contorno = body.disco.top
     for s in (1.0, -1.0):
         # clavicola a S, dallo sterno alla spalla
@@ -1322,12 +1323,15 @@ def _ossa_umane(c, y0=-0.006, nome='OssaUmane'):
                 rr = 0.0031 - 0.0004 * j
                 oss.cono(giunti[j], giunti[j + 1], rr, rr * 0.8)
                 oss.nodo(giunti[j + 1], rr * 1.15)
-        # il bacino: l'ala dell'ileo, e il femore che entra nella pinna pelvica
-        lastre.append([(0.322, s * 0.006), (0.318, s * 0.026), (0.33, s * 0.043), (0.352, s * 0.048), (0.368, s * 0.035),
-                       (0.37, s * 0.012)])
-        osso_lungo(pt(0.364, s * 0.034), pt(0.402, s * 0.05), 0.0034, 1.6)
-    # l'osso sacro, fra le due ali del bacino
-    lastre.append([(0.326, -0.007), (0.326, 0.007), (0.372, 0.004), (0.372, -0.004)])
+        # il bacino visto da dietro (la testa dell'uomo sarebbe verso −X): l'ala dell'ileo che si apre verso la
+        # testa, sotto l'ischio e il pube attorno al foro otturatore; il femore che entra nella pinna pelvica
+        lastre.append([(0.33, s * 0.008), (0.316, s * 0.03), (0.318, s * 0.046), (0.332, s * 0.053), (0.35, s * 0.047),
+                       (0.36, s * 0.037), (0.376, s * 0.032), (0.382, s * 0.018), (0.378, s * 0.004), (0.364, s * 0.004),
+                       (0.35, s * 0.01)])
+        fori.append((0.369, s * 0.021, 0.0055))
+        osso_lungo(pt(0.36, s * 0.038), pt(0.402, s * 0.052), 0.0034, 1.6)
+    # l'osso sacro, il cuneo fra le due ali del bacino
+    lastre.append([(0.322, -0.009), (0.322, 0.009), (0.352, 0.0035), (0.352, -0.0035)])
     fo, lo_o, hi_o = P.campo_coni(oss.A, oss.B, oss.R1, oss.R2, k=6)
     polig = [np.array(v, F) for v in lastre]
 
@@ -1339,6 +1343,8 @@ def _ossa_umane(c, y0=-0.006, nome='OssaUmane'):
             dy = np.abs(p[:, 1] - y0) - 0.0016
             lastra = np.minimum(np.maximum(d2, dy), 0) + np.sqrt(np.maximum(d2, 0) ** 2 + np.maximum(dy, 0) ** 2) - 0.0008
             d = np.minimum(d, lastra)
+        for x, z, r in fori:
+            d = np.maximum(d, -(np.sqrt((p[:, 0] - x) ** 2 + (p[:, 2] - z) ** 2) - r))
         return d.astype(F)
     tutti = np.concatenate([np.stack([np.array((v[0], y0, v[1]), F) for v in V]) for V in lastre])
     lo = np.minimum(lo_o, tutti.min(0) - 0.006)
@@ -1363,7 +1369,7 @@ def _membrana_ali(c, y0=0.004, nome='Membrana'):
         corda = math.hypot(x2 - x1, z2 - z1)
         freccia = corda * 0.22
         R = (corda * corda / 4 + freccia * freccia) / (2 * freccia)
-        nx, nz = (z2 - z1) / corda, -(x2 - x1) / corda          # la normale verso fuori (indietro e in fuori)
+        nx, nz = -(z2 - z1) / corda, (x2 - x1) / corda          # la normale verso fuori (indietro e in fuori)
         archi.append(((x1 + x2) / 2 + nx * (R - freccia), (z1 + z2) / 2 + nz * (R - freccia), R))
 
     def f(p):
@@ -1490,7 +1496,22 @@ def _braccialetto(c, x=-0.215, raggio=0.0042, inclinato=32.0, nome='Braccialetto
     return P.oggetto_sdf(nome, f, centro - m, centro + m, _plastica(c, 'PlasticaFucsia', (1.0, 0.02, 0.32)), res=0.0006)
 
 
+def _senza_rostro(c, f):
+    """campo: toglie dal cranio quello che sta davanti al muso (il rostro): lo rifà un extra a parte, intero."""
+    def g(p):
+        return np.maximum(f(p), -(p[:, 0] + 0.003)).astype(F)
+    return g
+
+
+def _rostro_intero(c, nome='Rostro'):
+    """Il rostro della forma (la spada) come osso a parte, liscio e con la griglia fine: il cranio della famiglia
+    lo erode e la punta, sottile un paio di millimetri, sparisce («la spada intatta»)."""
+    f, lo, hi = c.P.rostro_campo(c.body)
+    return c.P.oggetto_sdf(nome, f, lo, hi, _osso(c), res=0.0006)
+
+
 def _extra_spadossa(c):
+    c.obs.append(_rostro_intero(c, 'Spada'))
     _togli(c, 'Spine')
     c.obs.append(_lisca(c, vertebre=26, spessore=1.2, minimo=0.0024, pterigiofori=True, ipurale=True)[0])
     c.obs.append(_braccialetto(c))
@@ -1501,7 +1522,7 @@ SPECIE['spadossa'] = Specie(
     aspetto=Look(back=(0.05, 0.04, 0.07), flank=(0.2, 0.18, 0.22), belly=(0.55, 0.53, 0.52), fin=(0.07, 0.06, 0.09),
                  iris=(0.3, 0.35, 0.4), iris_dark=(0.05, 0.06, 0.08), metal=0.35, irid=0.15, squame=0.0, linea_laterale=0.0,
                  lucido=0.5),
-    extra=_extra_spadossa,
+    campo=_senza_rostro, extra=_extra_spadossa,
     famiglia='skeletal', piano='rostro', opzioni=dict(vertebre=1, striscia=False, peduncolo=None))
 
 

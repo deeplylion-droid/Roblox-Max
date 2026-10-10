@@ -728,7 +728,7 @@ SPECIE['tordo_torbido'] = Specie(
 # srotolata e pende, e dove stava il pesce non c'è più (campo: una finestra da parte a parte).
 
 _BENDE = [(0.25, 0.021), (0.37, 0.02), (0.61, 0.019), (0.73, 0.017), (0.85, 0.014)]   # (t, mezza larghezza)
-_BENDA_SCIOLTA = (0.49, 0.026)
+_BENDA_SCIOLTA = (0.49, 0.03)
 _BENDA_INCL = -0.025        # in cima le bende pendono appena in avanti
 
 
@@ -761,7 +761,9 @@ def _mat_bende(c):
     trama = g.mul(g.smoothstep(0.3, 0.7, w1), g.smoothstep(0.3, 0.7, w2))
     n = g.noise(co, scale=25.0, detail=5.0, rough=0.6)
     col = g.mix(g.smoothstep(0.4, 0.75, n.fac), (0.014, 0.013, 0.012), (0.04, 0.036, 0.031))
-    col = g.mix(g.mul(trama, 0.45), col, (0.065, 0.06, 0.052))
+    col = g.mix(g.mul(trama, 0.6), col, (0.08, 0.074, 0.064))
+    polvere = g.noise(co, scale=60.0, detail=3.0)
+    col = g.mix(g.mul(g.smoothstep(0.6, 0.75, polvere.fac), 0.5), col, (0.16, 0.15, 0.13))      # la polvere della tomba
     nrm = g.bump(g.add(trama, g.mul(n.fac, 0.5)), strength=0.35, distance=0.0012)
     g.output_material(g.principled(color=col, rough=0.9, normal=nrm, spec=0.25, sheen=0.25, sheen_tint=(0.35, 0.33, 0.3)))
     return m
@@ -779,11 +781,12 @@ def _bende_sarcofago(c):
         x = q[:, 0]
         zc, h, _ = b.section(np.clip(x, 0, 1))
         v = (q[:, 2] - zc) / h
-        nz = n3(q, scale=0.008, octaves=2)
+        nz = n3(q, scale=0.006, octaves=3)
         fin = np.full(len(q), 10.0, F32)
         for t, hw in _BENDE:
-            fin = np.minimum(fin, np.abs(x - t - _BENDA_INCL * v) - (hw + 0.003 * nz))
-        return np.maximum(np.abs(base(q) - 0.0022) - 0.0013, fin).astype(F32)
+            # i bordi sfilacciati e appena ondulati, come una fascia avvolta a mano
+            fin = np.minimum(fin, np.abs(x - t - _BENDA_INCL * v - 0.003 * np.sin(v * 7.0 + t * 40.0)) - (hw + 0.004 * nz))
+        return np.maximum(np.abs(base(q) - 0.0024 - 0.0008 * nz) - 0.0014, fin).astype(F32)
     lo, hi = b.bounds(pad=0.01, solo_corpo=True)
     c.obs.append(P.oggetto_sdf('Bende', bende, lo, hi, mat, res=_res(c, 0.0008, 0.0014)))
     # la benda sciolta: un nastro che pende dal bordo di sotto della finestra
@@ -799,7 +802,7 @@ def _bende_sarcofago(c):
         # cade ondeggiando, si scosta dal corpo verso la camera e si gira su sé stesso, come una stoffa
         xc = x0 + 0.012 * np.sin(s * 4.0) + 0.02 * s
         yc = y_su - 0.035 * s * s
-        phi = 1.5 * s
+        phi = 0.45 * s
         dx, dy = x - xc, y - yc
         a = dx * np.cos(phi) + dy * np.sin(phi)
         bb = -dx * np.sin(phi) + dy * np.cos(phi) - 0.003 * np.sin(s * 22.0) * np.cos(a * 90.0)
@@ -846,7 +849,7 @@ SPECIE['sarcofago'] = Specie(
 def _gatto_cucitura(c):
     """La cucitura sul fianco destro, bassa, vicino alla pancia: una spezzata fitta sulla pelle."""
     b = c.body
-    pts = [b.superficie(float(t), float(-0.52 + 0.07 * math.sin(t * 23.0)), 1)[0] for t in np.linspace(0.23, 0.5, 160)]
+    pts = [b.superficie(float(t), float(-0.4 + 0.07 * math.sin(t * 23.0)), 1)[0] for t in np.linspace(0.23, 0.5, 160)]
     return np.array(pts, F32)
 
 
@@ -888,7 +891,7 @@ SPECIE['gattomorto'] = Specie(
                           Disegno('macchie', colore=(0.05, 0.035, 0.025), forza=0.85, scala=55, r=0.22, v0=-0.35, seme=2),
                           Disegno('punti', colore=(0.75, 0.7, 0.6), forza=0.4, scala=160, r=0.12, v0=-0.2, seme=5)]),
     campo=_campo_gatto, extra=_gatto_morto,
-    ritratto=Ritratto(yaw=12.0, pitch=-4.0, roll=150.0),
+    ritratto=Ritratto(yaw=12.0, pitch=-4.0, roll=160.0),
     famiglia='zombie', piano='squalo',
     opzioni=dict(seed=28, cucitura=None, occhi=None, marcio=0.46))
 
@@ -946,10 +949,12 @@ SPECIE['corvina_becchina'] = Specie(
         eye_t=0.1, eye_z=0.028, eye_r=0.02, mouth_t=0.065, mouth_z0=-0.03, mouth_z1=-0.04, gill_t=0.26,
         fins=[Fin('dorsal', 0.3, 0.45, [(0, 0), (0.1, 0.9), (0.25, 1.0), (0.6, 0.65), (0.9, 0.25), (1, 0.18)], 0.12, 10, spiny=True),
               Fin('dorsal', 0.45, 0.86, [(0, 0.18), (0.05, 0.6), (0.3, 0.65), (0.8, 0.55), (1, 0.05)], 0.07, 26),
-              Fin('anal', 0.66, 0.78, [(0, 0), (0.12, 0.9), (0.5, 0.85), (1, 0.06)], 0.07, 9, colore=(0.025, 0.022, 0.02)),
+              Fin('anal', 0.66, 0.78, [(0, 0), (0.12, 0.9), (0.5, 0.85), (1, 0.06)], 0.07, 9, colore=(0.025, 0.022, 0.02),
+                  bordo=(0.62, 0.6, 0.55)),
               Fin('caudal', 1.0, 1.0, coda_tronca(1.5, 0.0, 0.9), 0.18, 18),
               Fin('pectoral', 0.27, 0.285, PETTORALE, 0.11, 12),
-              Fin('pelvic', 0.3, 0.315, PELVICA, 0.08, 6, spiny=True, colore=(0.025, 0.022, 0.02))]),
+              # le pelviche e l'anale nere orlate di bianco
+              Fin('pelvic', 0.3, 0.315, PELVICA, 0.08, 6, spiny=True, colore=(0.025, 0.022, 0.02), bordo=(0.62, 0.6, 0.55))]),
     aspetto=Look(back=(0.06, 0.045, 0.028), flank=(0.15, 0.105, 0.055), belly=(0.3, 0.25, 0.17), fin=(0.06, 0.045, 0.035),
                  iris=(0.75, 0.6, 0.3), metal=0.6, irid=0.4, squame=1.0, linea_laterale=0.6, linea_v=(0.5, -0.45),
                  disegni=[Disegno('sfumatura', colore=(0.3, 0.2, 0.08), forza=0.45, v0=-0.3, v1=0.4, larghezza=0.3)]),
@@ -1022,8 +1027,8 @@ def _campo_pastinaca(c, f):
         q = p.copy()
         q[:, 1] -= cade
         d = f(q)
-        # i buchi del marcio, fitti verso il bordo
-        nz = n3(p, scale=0.014, octaves=3)
+        # i buchi del marcio, fitti verso il bordo (il rumore e il suo specchio: buchi su tutte e due le ali)
+        nz = np.maximum(n3(p, scale=0.014, octaves=3), n3(p * np.array((1, 1, -1), F32) + 0.37, scale=0.014, octaves=3))
         soglia = 0.24 + 0.5 * (1 - np.clip((z - 0.1) / 0.08, 0, 1))
         return np.maximum(d, (nz - soglia) * 0.03).astype(F32)
     return g
@@ -1061,7 +1066,7 @@ def _pungiglione(c):
     fd, _, _ = P.campo_coni(A, B, R1, R2)
     ends = np.array([o, o + e1 * L], F32)
     lo, hi = ends.min(0) - 0.014, ends.max(0) + 0.014
-    mat = P.materiale('Pungiglione', (0.3, 0.26, 0.19), rough=0.1, coat=1.0, metal=0.25, sss=0.1)
+    mat = P.materiale('Pungiglione', (0.42, 0.37, 0.27), rough=0.1, coat=1.0, metal=0.25, sss=0.1)
     c.obs.append(P.oggetto_sdf('Pungiglione', lambda q: np.minimum(lama(q), fd(q)).astype(F32), lo, hi, mat,
                                res=_res(c, 0.0003, 0.0005)))
 
@@ -1525,8 +1530,8 @@ SPECIE['raccapricciola'] = Specie(
               Fin('caudal', 1.0, 1.0, coda_forcuta(1.95, 0.24), 0.28, 20),
               Fin('pectoral', 0.25, 0.265, PETTORALE, 0.1, 11),
               Fin('pelvic', 0.3, 0.315, PELVICA, 0.08, 6)]),
-    aspetto=Look(back=(0.1, 0.12, 0.13), flank=(0.48, 0.47, 0.44), belly=(0.72, 0.71, 0.68), fin=(0.2, 0.2, 0.2),
-                 iris=(0.75, 0.68, 0.45), metal=0.55, irid=0.35, squame=0.8,
+    aspetto=Look(back=(0.24, 0.26, 0.26), flank=(0.52, 0.52, 0.48), belly=(0.74, 0.73, 0.7), fin=(0.2, 0.2, 0.2),
+                 iris=(0.75, 0.68, 0.45), metal=0.5, irid=0.35, squame=0.8,
                  disegni=[Disegno('linea', colore=(0.17, 0.075, 0.018), forza=1.0, v=0.04, inclinazione=3.4, larghezza=0.26,
                                   u0=0.06, u1=0.27),
                           Disegno('strisce', colore=(0.6, 0.4, 0.08), forza=0.65, n=1, v0=-0.14, v1=0.14, larghezza=0.16, u0=0.1),

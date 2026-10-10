@@ -60,7 +60,7 @@ SPALLA = {s: V(s * 0.085, -0.285, 0.895) for s in (-1, 1)}
 # le basi delle zampe-raggio sui fianchi del busto (davanti, in mezzo, dietro), come nella tavola
 BASI = {s: [V(s * 0.10, -0.09, 0.93), V(s * 0.11, 0.09, 0.935), V(s * 0.10, 0.25, 0.905)] for s in (-1, 1)}
 CODA = list(T.TAIL) + [V(0, 0.75, -0.34)]     # la coda della tavola, che scende un po' di più in acqua
-L_ALTRO = 0.54                            # braccio e avambraccio dell'altro braccio, in tutto: corto, piegato a chela
+L_ALTRO = 0.62                            # braccio e avambraccio dell'altro braccio, in tutto: piegato a chela
 PESCE_L = 0.28                            # il pesce rubato
 VENTAGLI_YAW = 28.0                       # i ventagli della tavola girati all'indietro: le braccia passano davanti
 
@@ -69,10 +69,10 @@ VENTAGLI_YAW = 28.0                       # i ventagli della tavola girati all'i
 POSA = {
     'viewer': (-0.216, -1.517, 1.252),
     'bucket': (1.277, -0.916, 0.707),
-    'reach': (1.172, -0.907, 0.962),
-    'feet': [(-0.511, -0.417, 0.737), (-0.214, -0.211, 0.502), (-0.011, -0.111, 0.402),
+    'reach': (1.172, -0.907, 0.992),
+    'feet': [(-0.207, -0.173, 0.741), (-0.294, -0.272, 0.502), (-0.028, -0.123, 0.402),
              (0.410, 0.008, 0.422), (0.254, 0.164, 0.767), (0.281, 0.101, 0.462)],
-    'grip': (-0.323, -0.237, 0.738),
+    'grip': (-0.436, -0.329, 0.737),
     'lungo': (0.84, 0.54, 0.0),
 }
 
@@ -181,8 +181,8 @@ def presa_bordo(polso, presa, lungo, dentro):
     kn, tp, cv = [], [], []
     for dx, L in ((-0.048, 0.85), (-0.016, 1.0), (0.016, 0.95), (0.048, 0.8)):
         kn.append(presa + lungo * dx + dentro * 0.020 + V(0, 0, 0.034))
-        tp.append(presa + lungo * dx * 1.25 + dentro * 0.068 + V(0, 0, -0.15 * L))
-        cv.append(dentro * 0.026 + V(0, 0, 0.03))
+        tp.append(presa + lungo * dx * 1.25 + dentro * 0.085 + V(0, 0, -0.15 * L))
+        cv.append(dentro * 0.03 + V(0, 0, 0.03))
     hand = T.mano(polso, kn, tp, r0=0.0125, r1=0.0058, palmata=0.6, curve=cv)
     th, _ = T.tubo([polso - lungo * 0.03, presa - lungo * 0.075 + dentro * 0.03 + V(0, 0, 0.02),
                     presa - lungo * 0.085 + dentro * 0.06 + V(0, 0, -0.05)], 0.0115, 0.0065, n=5, nodi=0.12)
@@ -369,7 +369,7 @@ def ventagli():
 
 # ───────────────────────── i biglietti ─────────────────────────
 
-TICKET = 0.052          # lunghezza di un biglietto lungo la striscia (larga 3 cm)
+TICKET = 0.052          # lunghezza di un biglietto lungo la striscia (larga 3,4 cm)
 
 
 def biglietto_texture(path):
@@ -494,12 +494,13 @@ def biglietti(A, P):
     j, jw = T.libero([h3[-1], el2 + V(0, 0, 0.05), h4[0]], w3[-1], n=4)
     add(j[1:-1], jw[1:-1])
     add(h4, w4)
-    # il resto: scavalca il capodibanda accanto alla mano e scende lungo la fiancata di dentro
+    # il resto: passa sopra il capodibanda accanto alla mano e ricade fuori bordo, fino in mare (dentro, lungo la
+    # fiancata, avrebbe toccato le ordinate)
     e = h4[-1]
     lg, dn = A['bordo'], A['dentro']
     g = A['grip']
-    rest = [e, g + lg * 0.10 + V(0, 0, 0.03), g + lg * 0.13 + dn * 0.07 + V(0, 0, -0.03), g + lg * 0.16 + dn * 0.09 + V(0, 0, -0.20),
-            g + lg * 0.11 + dn * 0.13 + V(0, 0, -0.38), g + lg * 0.18 + dn * 0.20 + V(0, 0, -0.52)]
+    rest = [e, g + lg * 0.10 + V(0, 0, 0.026), g + lg * 0.12 - dn * 0.05 + V(0, 0, 0.012), g + lg * 0.13 - dn * 0.075 + V(0, 0, -0.06),
+            g + lg * 0.11 - dn * 0.09 + V(0, 0, -0.30), g + lg * 0.16 - dn * 0.12 + V(0, 0, -0.62), g + lg * 0.12 - dn * 0.16 + V(0, 0, -0.80)]
     p5, w5 = T.libero(rest, w4[-1], n=8, torsione=2.0)
     add(p5[1:], w5[1:])
     ob = T.nastro('Tickets', np.concatenate(out_P), np.concatenate(out_W), larghezza=0.034)
@@ -526,7 +527,7 @@ def pesce_rubato(A, P):
     return obs
 
 
-def melma(A, P):
+def melma(A, P, pesce=True):
     """Melma vera (rossa): gocce dalle dita e dal pesce, una pozza sul capodibanda sotto la pancia, colature
     che pendono dallo spigolo di dentro del bordo."""
     rng = np.random.default_rng(21)
@@ -535,10 +536,12 @@ def melma(A, P):
         if rng.random() < 0.6:
             gocce.append((pts[-2] + V(0, 0, -0.012), rng.uniform(0.02, 0.05)))
     fist = A['fist']
-    gocce += [(fist + V(0.0, 0.0, -0.035) + A['a'] * 0.02, 0.05), (fist + V(0, 0, -PESCE_L * 0.9), 0.04)]
+    gocce.append((fist + V(0.0, 0.0, -0.035) + A['a'] * 0.02, 0.05))
+    if pesce:
+        gocce.append((fist + V(0, 0, -PESCE_L * 0.9), 0.04))
     g, lg, dn = A['grip'], A['bordo'], A['dentro']
     for dx in (-0.045, 0.0, 0.04):
-        gocce.append((g + lg * dx * 1.25 + dn * 0.07 + V(0, 0, -0.14), rng.uniform(0.02, 0.04)))
+        gocce.append((g + lg * dx * 1.25 + dn * 0.088 + V(0, 0, -0.15), rng.uniform(0.02, 0.04)))
     # sotto la pancia: colature dallo spigolo di dentro del capodibanda
     c = V(0, 0, GUN)
     for t in (-0.10, -0.03, 0.06):
@@ -582,7 +585,7 @@ def build(viewer=None, bucket=None, reach=None, feet=None, grip=None, lungo=None
     obs += biglietti(A, P)
     if fish:
         obs += pesce_rubato(A, P)
-    obs += melma(A, P)
+    obs += melma(A, P, pesce=fish)
     return obs
 
 
@@ -605,9 +608,10 @@ def _set_barca():
 SHOTS = {
     # (riferimento, camera, bersaglio, lente): camera e bersaglio rispetto alla testa o al pugno, nelle
     # coordinate della barca
-    'insieme': ('testa', (1.05, -0.80, 0.50), (0.52, 0.36, -0.04), 24),
+    'insieme': ('testa', (1.20, -1.00, 0.55), (0.36, 0.36, -0.06), 22),
     'testa': ('testa', (0.50, -0.46, 0.16), (0.0, 0.0, -0.03), 50),
     'mano': ('pugno', (-0.38, -0.52, 0.16), (0.0, 0.0, -0.08), 45),
+    'fuori': ('testa', (-1.70, -0.55, 0.62), (-0.34, 0.30, -0.16), 26),
 }
 
 
@@ -637,7 +641,7 @@ def scena_vetrina():
     return {'testa': h, 'pugno': p}
 
 
-def showcase(shots=('insieme', 'testa', 'mano')):
+def showcase(shots=('insieme', 'testa', 'mano', 'fuori')):
     """La vetrina: tools/render/cache/vetrina/robin_<inquadratura>.png."""
     from mathutils import Vector
     out = []
@@ -671,39 +675,66 @@ def showcase(shots=('insieme', 'testa', 'mano')):
 
 # ───────────────────────── la posa nella scena del gioco ─────────────────────────
 
+def _angoli(pts):
+    """Yaw e pitch (gradi) dei punti visti dall'occhio: yaw positivo a destra, come nel gioco."""
+    d = np.atleast_2d(np.asarray(pts, float)) - np.array(EYE)
+    return np.degrees(np.arctan2(d[:, 0], d[:, 1])), np.degrees(np.arctan2(d[:, 2], np.hypot(d[:, 0], d[:, 1])))
+
+
+def _span(pts):
+    y, p = _angoli(pts)
+    return {'yaw': [round(float(y.min()), 1), round(float(y.max()), 1)], 'pitch': [round(float(p.min()), 1), round(float(p.max()), 1)]}
+
+
+def _dir(p):
+    y, pt = _angoli([tuple(p)])
+    return [round(float(y[0]), 1), round(float(pt[0]), 1)]
+
+
 def ingombro(obs):
-    """Dove sta la posa vista dall'occhio del pescatore: yaw e pitch minimi e massimi (gradi, yaw positivo a
-    destra come nel gioco) dei vertici di tutti i pezzi, e la direzione della testa e degli occhi."""
+    """Dove sta la posa vista dall'occhio del pescatore (per la regia del gioco): yaw e pitch minimi e massimi di
+    tutti i pezzi ('tutto') e della parte che si vede davvero ('visibile': senza quello che lo scafo e il mare
+    nascondono, cioè la coda in acqua e le zampe sulla fiancata di fuori), dei pezzi principali, e dove stanno
+    la testa e gli occhi (gradi, e metri dall'occhio)."""
     import jobs
     from mathutils import Vector
-    pts = np.array(jobs.dense_points([o for o in obs if o.type == 'MESH'], n=4000))
-    d = pts - np.array(EYE)
-    yaw = np.degrees(np.arctan2(d[:, 0], d[:, 1]))
-    pitch = np.degrees(np.arctan2(d[:, 2], np.hypot(d[:, 0], d[:, 1])))
-
-    def ang(p):
-        q = np.array(p) - np.array(EYE)
-        return [round(math.degrees(math.atan2(q[0], q[1])), 1), round(math.degrees(math.atan2(q[2], math.hypot(q[0], q[1]))), 1)]
-    sk = bpy.data.objects['RobinSkin']
-    eyes = [o for o in obs if o.type == 'MESH' and 'Eye' in o.name]
-    head = sk.matrix_world @ Vector(tuple(map(float, HEAD)))
+    meshes = [o for o in obs if o.type == 'MESH']
+    pts = np.array(jobs.dense_points(meshes, n=2500))
+    # visibile: il primo oggetto che il raggio dall'occhio incontra è Robin stesso (si parte 15 cm avanti,
+    # fuori dal corpo invisibile del pescatore, che fa solo ombra)
+    dg = bpy.context.evaluated_depsgraph_get()
+    sc = bpy.context.scene
+    nomi = {o.name for o in meshes}
+    eye = np.array(EYE)
+    vis = []
+    for p in pts:
+        d = p - eye
+        L = float(np.linalg.norm(d))
+        d /= L
+        hit, _, _, _, ob, _ = sc.ray_cast(dg, Vector(tuple(eye + d * 0.15)), Vector(tuple(d)), distance=L - 0.15 - 0.003)
+        vis.append((not hit) or (ob is not None and ob.name in nomi))
+    vis = np.array(vis)
+    head = bpy.data.objects['RobinSkin'].matrix_world @ Vector(tuple(map(float, HEAD)))
+    eyes = [o for o in meshes if 'Eye' in o.name]
     out = {
-        'yaw': [round(float(yaw.min()), 1), round(float(yaw.max()), 1)],
-        'pitch': [round(float(pitch.min()), 1), round(float(pitch.max()), 1)],
-        'testa': ang(head),
+        'tutto': _span(pts),
+        'visibile': _span(pts[vis]),
+        'testa': _dir(head),
         'testa_m': [round(float(head[i] - EYE[i]), 3) for i in range(3)],
-        'occhi': [ang(o.matrix_world.translation) for o in eyes],
-        'occhi_m': [[round(float(o.matrix_world.translation[i] - EYE[i]), 4) for i in range(3)] for o in eyes],
         'distanza_testa': round(float(math.dist(tuple(head), EYE)), 2),
+        'occhi': [_dir(o.matrix_world.translation) for o in eyes],
+        'occhi_m': [[round(float(o.matrix_world.translation[i] - EYE[i]), 4) for i in range(3)] for o in eyes],
     }
-    parti = {'corpo': 'RobinSkin', 'biglietti': 'Tickets'}
-    for k, n in parti.items():
+    for k, n in (('testa_mesh', 'RobinHead'), ('braccio', 'RobinArm'), ('mano_bordo', 'RobinGrip'), ('corpo', 'RobinSkin'),
+                 ('biglietti', 'Tickets'), ('pesce', 'StolenFish')):
         o = bpy.data.objects.get(n)
         if o:
-            q = np.array(jobs.dense_points([o], n=3000)) - np.array(EYE)
-            y_ = np.degrees(np.arctan2(q[:, 0], q[:, 1]))
-            p_ = np.degrees(np.arctan2(q[:, 2], np.hypot(q[:, 0], q[:, 1])))
-            out[k] = {'yaw': [round(float(y_.min()), 1), round(float(y_.max()), 1)], 'pitch': [round(float(p_.min()), 1), round(float(p_.max()), 1)]}
+            out[k] = _span(jobs.dense_points([o], n=2500))
+    # quanto resta lontano dalla mano di Gulpy sul capodibanda di sinistra (gulpy_pretende, y = 1,2)
+    import scena_creature as SC
+    xg, zg = SC.gunwale_at(1.2, -1)
+    out['da_gulpy_m'] = round(float(np.min(np.linalg.norm(pts - np.array((xg + 0.02, 1.2, zg)), axis=1))), 2)
+    out['gulpy_mano'] = _dir((xg + 0.02, 1.2, zg))
     return out
 
 
@@ -732,15 +763,18 @@ def anteprima_posa():
     sc.render.image_settings.file_format = 'PNG'
     sc.render.resolution_percentage = 100
     out = []
-    for name, (yaw, pitch, lens, size) in {
-        'pose_robin': (-12.0, -12.0, 18.0, (960, 540) if FAST else (1600, 900)),
-        'pose_robin_vicino': (-16.0, -14.0, 32.0, (960, 540) if FAST else (1600, 900)),
+    # la vista del gioco (90° di campo, 16:9) girata un po' a sinistra della prua: dentro ci sono la faccia e il
+    # secchio; poi una più stretta sul mostro. Con --fast le mesh sono grossolane e i campioni pochi
+    for name, (yaw, pitch, lens) in {
+        'pose_robin': (-12.0, -12.0, 18.0),
+        'pose_robin_vicino': (-31.0, -11.0, 32.0),
     }.items():
+        size = (1600, 900)
         t = (EYE[0] + math.sin(math.radians(yaw)) * math.cos(math.radians(pitch)),
              EYE[1] + math.cos(math.radians(yaw)) * math.cos(math.radians(pitch)), EYE[2] + math.sin(math.radians(pitch)))
         perspective_camera(EYE, t, lens=lens, name='RobinCam_' + name)
         sc.render.resolution_x, sc.render.resolution_y = size
-        sc.cycles.samples = 24 if FAST else 64
+        sc.cycles.samples = 32 if FAST else 64
         path = os.path.join(CACHE, f'{name}.png')
         sc.render.filepath = path
         bpy.ops.render.render(write_still=True)

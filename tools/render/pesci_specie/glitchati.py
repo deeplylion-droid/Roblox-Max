@@ -81,6 +81,24 @@ def _gira_tinta(iq, gradi):
     return np.stack([iq[..., 0] * ca - iq[..., 1] * sa, iq[..., 0] * sa + iq[..., 1] * ca], axis=-1)
 
 
+def _neve(img, rng, k, chiara=0.0):
+    """Neve televisiva in bianco e nero dentro la sagoma (aiuto dei ritocchi): granelli larghi il doppio che alti,
+    righe che sfrigolano; k = quanta (0..1), chiara = quanto la neve prende la luce del pesce sotto."""
+    H, W = img.shape[:2]
+    g = max(1, int(round(W / 800)))
+    n = rng.random(((H + g - 1) // g, (W + 2 * g - 1) // (2 * g))).astype(np.float32)
+    n = np.repeat(np.repeat(n, g, axis=0), 2 * g, axis=1)[:H, :W]
+    riga = np.repeat(rng.normal(0, 0.12, (H + g - 1) // g), g)[:H].astype(np.float32)
+    riga += np.repeat((rng.random((H + g - 1) // g) < 0.04) * 0.35, g)[:H].astype(np.float32)
+    n = np.clip(n * 1.1 - 0.05 + riga[:, None], 0, 1)
+    luce = img[..., :3] @ np.array((0.299, 0.587, 0.114), np.float32)
+    neve = np.clip((n - 0.5) * 0.9 + luce * 1.1 * chiara + (1 - chiara) * 0.5, 0, 1)
+    a = k * img[..., 3]
+    out = img.copy()
+    out[..., :3] = img[..., :3] * (1 - a[..., None]) + neve[..., None] * a[..., None]
+    return out
+
+
 def _proietta(c, punti):
     """Punti nelle coordinate del pesce dritto (N, 3) → pixel dell'immagine finita (x da sinistra, y dall'alto),
     con la posa e l'inquadratura del ritratto (quelle del corpo, c.obs[0]). Non vale per i pesci con la piega."""
@@ -370,8 +388,9 @@ SPECIE['castagnola_sgranata'] = Specie(
 # Il glitch: «ha gli spigoli… e qualche quadratino in meno» → pixel grossi con la sagoma a scalini, netta
 # (ogni quadretto o c'è o non c'è), qualche quadretto sparito e qualcuno fuori posto (ritocco); poi le righe.
 def _pixelato(img, c):
-    """ritocco: quadretti di ~1/70 della larghezza, ciascuno del colore medio; pieni o vuoti (gli spigoli);
-    uno su quindici dentro il pesce sparisce, qualcuno scivola di un quadretto; le righe di sempre sopra."""
+    """ritocco: quadretti di ~1/76 della larghezza, ciascuno del colore medio (azzurro dove c'era un puntino
+    azzurro); pieni o vuoti (gli spigoli); qualcuno sparisce (più spesso sul bordo), qualcuno scivola di una o
+    due caselle; l'occhio da videogioco, nero col riflesso; la griglia appena scura e le righe sopra."""
     rng = np.random.default_rng(62)
     H, W = img.shape[:2]
     q = max(5, int(round(W / 76)))
@@ -450,24 +469,9 @@ SPECIE['pagello_pixelato'] = Specie(
 # lontano» → neve televisiva dentro la sagoma (ritocco), a granelli appena allungati come quelli del
 # televisore, con le righe più chiare e più scure; sotto, il pesce si vede ancora, come il canale lontano.
 def _neve_tv(img, c):
-    """ritocco: neve in bianco e nero dentro la sagoma, a granelli larghi il doppio che alti (un pixel ogni 800
-    di larghezza), righe che sfrigolano più forte; il pesce sotto resta a metà."""
-    rng = np.random.default_rng(72)
-    H, W = img.shape[:2]
-    g = max(1, int(round(W / 800)))
-    n = rng.random(((H + g - 1) // g, (W + 2 * g - 1) // (2 * g))).astype(np.float32)
-    n = np.repeat(np.repeat(n, g, axis=0), 2 * g, axis=1)[:H, :W]
-    # righe che sfrigolano: ogni riga di granelli un poco più chiara o più scura, qualcuna bianca
-    riga = np.repeat(rng.normal(0, 0.12, (H + g - 1) // g), g)[:H].astype(np.float32)
-    riga += np.repeat((rng.random((H + g - 1) // g) < 0.04) * 0.35, g)[:H].astype(np.float32)
-    n = np.clip(n * 1.1 - 0.05 + riga[:, None], 0, 1)
-    out = img.copy()
-    luce = img[..., :3] @ np.array((0.299, 0.587, 0.114), np.float32)
-    k = 0.5 * img[..., 3]
-    # la neve si somma alla luce del pesce (il canale lontano sotto la neve), in bianco e nero
-    neve = np.clip((n - 0.5) * 0.9 + luce * 1.1, 0, 1)
-    out[..., :3] = img[..., :3] * (1 - k[..., None]) + neve[..., None] * k[..., None]
-    return out
+    """ritocco: neve in bianco e nero a metà dentro la sagoma, che prende tutta la luce del pesce sotto (il canale
+    lontano): si vedono ancora la sagoma, l'occhio e la macchia."""
+    return _neve(img, np.random.default_rng(72), 0.5, chiara=1.0)
 
 
 SPECIE['menola_neve'] = Specie(
@@ -505,19 +509,19 @@ SPECIE['menola_neve'] = Specie(
 # mancanti; uno manca (il salto, ritocco). Il pesce vero è l'ultimo, il più vicino al bordo di sopra (il
 # bordo del secchio), e l'inquadratura lo mette in alto a sinistra.
 def _a_scatti(img, c):
-    """ritocco: tre fotogrammi di prima (il primo, il secondo e il quarto: il terzo è saltato), spostati a destra
-    e in giù a passi uguali, con fasce di righe che mancano, sempre di più nei vecchi; sopra il pesce vero."""
+    """ritocco: due fotogrammi di prima (quello appena prima e il terzo: il secondo è saltato), spostati a
+    destra e in giù a passi uguali, con fasce di righe che mancano, di più nel vecchio; sopra il pesce vero."""
     rng = np.random.default_rng(82)
     H, W = img.shape[:2]
     dietro = np.zeros_like(img)
-    passi = [(1, 0.55), (2, 0.36), (4, 0.2)]          # (quanti fotogrammi fa, opacità)
+    passi = [(1, 0.5), (3, 0.24)]                     # (quanti fotogrammi fa, opacità): il secondo è saltato
     for k, op in reversed(passi):
-        copia = _sposta(img, W * 0.07 * k, H * 0.095 * k)
+        copia = _sposta(img, W * 0.075 * k, H * 0.11 * k)
         # le righe che mancano: fasce sottili vuote, sempre di più nei fotogrammi vecchi
         y = 0
         while y < H:
             h = max(1, int(H * rng.uniform(0.006, 0.02)))
-            if rng.random() < 0.12 * k:
+            if rng.random() < 0.15 * k:
                 copia[y:y + h] = 0
             y += h
         dietro = _sopra(_velato(copia, op), dietro)
@@ -553,10 +557,10 @@ SPECIE['pettine_a_scatti'] = Specie(
 # sotto la seconda, la coda appena forcuta; rosso-arancio, con il punto scuro sul peduncolo.
 # Il glitch: «fatto di righe orizzontali, una sì e una no. Nelle righe che mancano c'è un altro pesce, che non
 # riesci mai a vedere bene» → interlacciato (ritocco): nelle righe pari il re di triglie, nelle dispari un altro
-# pesce, scuro e sfocato, più lungo e girato dall'altra parte, con un occhio chiaro.
+# pesce, pallido e sfocato, più lungo e girato dall'altra parte, con un occhio che riflette.
 def _altro_pesce(img, c):
     """ritocco: righe alte mezzo centesimo dell'immagine, una sì e una no; nelle dispari l'altro pesce, fatto
-    dalla sagoma di questo girata, allungata, schiacciata, scura e sfocata, con l'occhio che riflette."""
+    dalla sagoma di questo girata, allungata, schiacciata, grigio-azzurra e sfocata, con l'occhio che riflette."""
     H, W = img.shape[:2]
     x0, x1, y0, y1 = _sagoma(img)
     cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
@@ -612,10 +616,11 @@ SPECIE['re_di_triglie_a_righe'] = Specie(
 # all'inizio della linea laterale, sopra l'opercolo; grigio-rosato argento, le pinne rossicce, coda forcuta.
 # Il glitch: «vive tutto più in fretta. Quando lo tiri su è giovane, quando lo metti nel secchio è vecchio, e
 # domattina sarà polvere» → l'avanti veloce lungo il corpo (ritocco): la testa fresca, a metà invecchia (si
-# sbiadisce e ingiallisce), la coda si sbriciola in polvere che vola via; due righe dell'avanti veloce.
+# sbiadisce e ingiallisce), la coda si sbriciola in polvere che vola via; una riga dell'avanti veloce.
 def _avanti_veloce(img, c):
-    """ritocco: lungo la sagoma (u = 0 al muso, 1 in punta alla coda) i colori invecchiano da u 0.3 a 0.75; da
-    u 0.66 la sagoma si sbriciola a granelli, e i granelli tolti volano via a destra e in su, sempre più tenui."""
+    """ritocco: lungo la sagoma (u = 0 al muso, 1 in punta alla coda) i colori invecchiano da u 0.25 a 0.7; da
+    u 0.7 la sagoma si sbriciola a zolle e granelli, e i granelli tolti volano via a destra e in su, sempre più
+    tenui; una riga dell'avanti veloce."""
     rng = np.random.default_rng(102)
     H, W = img.shape[:2]
     x0, x1, y0, y1 = _sagoma(img)
@@ -631,7 +636,8 @@ def _avanti_veloce(img, c):
     out[..., :3] *= (1 - 0.35 * eta * (grana > 0.9))[..., None]          # le macchie dell'età
     # polvere: la sagoma si sbriciola sempre di più verso la coda, a zolle (rumore grosso) e a granelli
     from scipy.ndimage import zoom
-    zolle = zoom(rng.random((H // 12 + 2, W // 12 + 2)).astype(np.float32), 12, order=1)[:H, :W]
+    zb = max(4, int(round(W / 66)))
+    zolle = zoom(rng.random((H // zb + 2, W // zb + 2)).astype(np.float32), zb, order=1)[:H, :W]
     sbriciola = np.clip((u - 0.7) / 0.3, 0, 1)
     via = (zolle * 0.65 + grana * 0.35 < sbriciola ** 1.1 * 1.05) & (img[..., 3] > 0.05)
     out[..., 3] *= ~via
@@ -757,26 +763,10 @@ SPECIE['balestra_sfocata'] = Specie(
 # ── Torpedine Statica (torpedine marmorata, Torpedo marmorata) ──
 # Come la razza (costruita con il dorso verso la camera): il disco quasi tondo e spesso, gli occhietti con gli
 # spiracoli dietro, la coda corta e carnosa con due dorsali e la caudale grande a paletta; bruna marmorizzata.
+# Le dorsali e la caudale della coda sono verticali (di taglio, viste dall'alto): il ritratto inclinato le fa
+# vedere, ma piastra() le taglia all'altezza del tronco; il campo le rifà intere (_lastra_razza).
 # Il glitch: «fa la neve come un televisore acceso su un canale vuoto. Se la tocchi… la radio si accende» →
 # neve sul disco e scintille azzurre (è una torpedine: la scarica) che scappano dal bordo (ritocco).
-def _neve(img, rng, k, chiara=0.0):
-    """Neve televisiva in bianco e nero dentro la sagoma (aiuto dei ritocchi): granelli larghi il doppio che alti,
-    righe che sfrigolano; k = quanta (0..1), chiara = quanto la neve prende la luce del pesce sotto."""
-    H, W = img.shape[:2]
-    g = max(1, int(round(W / 800)))
-    n = rng.random(((H + g - 1) // g, (W + 2 * g - 1) // (2 * g))).astype(np.float32)
-    n = np.repeat(np.repeat(n, g, axis=0), 2 * g, axis=1)[:H, :W]
-    riga = np.repeat(rng.normal(0, 0.12, (H + g - 1) // g), g)[:H].astype(np.float32)
-    riga += np.repeat((rng.random((H + g - 1) // g) < 0.04) * 0.35, g)[:H].astype(np.float32)
-    n = np.clip(n * 1.1 - 0.05 + riga[:, None], 0, 1)
-    luce = img[..., :3] @ np.array((0.299, 0.587, 0.114), np.float32)
-    neve = np.clip((n - 0.5) * 0.9 + luce * 1.1 * chiara + (1 - chiara) * 0.5, 0, 1)
-    a = k * img[..., 3]
-    out = img.copy()
-    out[..., :3] = img[..., :3] * (1 - a[..., None]) + neve[..., None] * a[..., None]
-    return out
-
-
 def _lastra_razza(c, fin):
     """Il campo di una pinna carnosa sulla coda di una razza, come piastra() di pesci.py ma con il controllo del
     riquadro nelle coordinate del telaio delle pinne: in piastra() la funzione del campo vede il riquadro già
@@ -1003,12 +993,19 @@ def _in_loop(img, c):
     # le due pose insieme: la seconda velata sopra la prima, appena spostata e più fredda; e attorno alla bocca
     # strisce orizzontali alternate dell'una e dell'altra, come il nastro inceppato fra due fotogrammi
     (bx,), (by,) = _proietta(c, [(0.02, 0.0, c.forma.mouth_z1)])
-    fredda = _sposta(seconda, W * 0.006, -H * 0.01)
+    ex, ey, _ = _occhio_img(c)
+    # la testa della seconda posa (a bocca aperta), staccata un poco in basso e indietro, velata e più fredda: si
+    # vedono due teste, una a bocca chiusa e una aperta; sfuma dietro l'occhio
+    testa = np.clip((ex + W * 0.1 - np.arange(W, dtype=np.float32)) / (W * 0.05), 0, 1)[None, :]
+    fredda = seconda.copy()
+    fredda[..., 3] *= testa
+    fredda = _sposta(fredda, -W * 0.02, H * 0.035)
     fredda[..., :3] *= np.array((0.82, 1.0, 1.15), np.float32)
-    out = _sopra(_velato(fredda, 0.45), img)
+    out = _sopra(img, _velato(fredda, 0.75))
+    # attorno alla bocca, strisce alternate delle due pose (il nastro inceppato fra i due fotogrammi)
     h = max(2, int(H * 0.011))
-    xa = int(min(W, bx + W * 0.13))
-    for k, y in enumerate(range(int(by - H * 0.09), int(by + H * 0.12), h)):
+    xa = int(min(W, bx + W * 0.08))
+    for k, y in enumerate(range(int(by - H * 0.05), int(by + H * 0.1), h)):
         if k % 2 == 0 and 0 <= y < H:
             out[y:y + h, :xa] = seconda[y:y + h, :xa]
     return out
@@ -1041,12 +1038,12 @@ SPECIE['pappagallo_in_loop'] = Specie(
 # Grande, compressa e ovale-allungata, il muso appuntito con la bocca larga; la linea laterale ondulata ben
 # visibile; la prima dorsale di spine corte staccate, la seconda dorsale e l'anale falcate e opposte, coda
 # forcuta profonda; dorso grigio-oliva scuro, fianchi e ventre d'argento, le punte delle pinne scure.
-# Il glitch: «compare e scompare come un canale che non prende» → fasce orizzontali sparite, altre di neve o
-# dell'azzurro del videoregistratore senza segnale, altre che scorrono di lato (ritocco); l'occhio resta.
+# Il glitch: «compare e scompare come un canale che non prende» → fasce orizzontali sparite, una di neve, altre
+# che scorrono di lato (ritocco); l'occhio, la linea laterale e le punte delle pinne restano.
 def _senza_segnale(img, c):
-    """ritocco: fasce disegnate in frazioni dell'altezza della sagoma (pinne comprese): sparite, di neve,
-    dell'azzurro del canale vuoto, scorse di lato; lasciano intere la testa con l'occhio e la linea laterale
-    davanti, che dicono che pesce è; la fascia che passa per l'occhio resta comunque intera."""
+    """ritocco: fasce disegnate in frazioni dell'altezza della sagoma (pinne comprese): sparite, di neve, scorse
+    di lato; lasciano intere la testa con l'occhio, la linea laterale e le punte delle pinne falcate, che dicono
+    che pesce è; la fascia che passa per l'occhio resta comunque intera."""
     rng = np.random.default_rng(152)
     H, W = img.shape[:2]
     x0, x1, y0, y1 = _sagoma(img)
@@ -1054,8 +1051,8 @@ def _senza_segnale(img, c):
     alt = y1 - y0
     out = img.copy()
     neve = _neve(img, rng, 0.9)
-    fasce = [(0.02, 0.12, 'via'), (0.17, 0.23, 'scorre'), (0.5, 0.545, 'via'), (0.575, 0.62, 'neve'), (0.65, 0.7, 'blu'),
-             (0.76, 0.86, 'via'), (0.9, 0.97, 'scorre')]
+    fasce = [(0.08, 0.14, 'scorre'), (0.3, 0.335, 'via'), (0.5, 0.545, 'via'), (0.575, 0.62, 'neve'), (0.65, 0.71, 'via'),
+             (0.75, 0.8, 'scorre'), (0.88, 0.97, 'via')]
     for a, b, cosa in fasce:
         ya, yb = int(y0 + a * alt), int(y0 + b * alt)
         if ya - er < ey < yb + er:
@@ -1064,8 +1061,6 @@ def _senza_segnale(img, c):
             out[ya:yb, :, 3] = 0
         elif cosa == 'neve':
             out[ya:yb] = neve[ya:yb]
-        elif cosa == 'blu':
-            out[ya:yb, :, :3] = np.array((0.08, 0.2, 0.75), np.float32)
         else:
             out[ya:yb] = _sposta(out[ya:yb], W * rng.choice((-1, 1)) * rng.uniform(0.03, 0.06), 0)
     return out
@@ -1137,7 +1132,7 @@ SPECIE['civetta_fuori_quadro'] = Specie(
         spine=[Spine(0.03, 0.18, 0.25, 0.95, 16, lunghezza=0.006, raggio=0.003, inclinazione=0.6, seme=4)],
         fins=[Fin('pectoral', 0.2, 0.24, [(0, 0.05), (0.3, 0.5), (0.7, 0.62), (1.0, 0.4), (1.08, 0.0), (0.95, -0.35), (0.6, -0.45),
                                          (0.25, -0.3), (0, -0.08)], 0.5, 26, z=-0.05, dir=(0.55, 0.8, -0.1), su=(1.0, 0.0, 0.25),
-                  colore=(0.03, 0.035, 0.05), bordo=(0.05, 0.17, 0.5), macchie=0.45, colore_macchie=(0.12, 0.42, 0.95)),
+                  colore=(0.025, 0.03, 0.045), bordo=(0.015, 0.05, 0.16), macchie=0.5, colore_macchie=(0.1, 0.4, 0.95)),
               Fin('dorsal', 0.22, 0.36, [(0, 0), (0.1, 0.9), (0.4, 0.7), (1, 0.1)], 0.06, 9, spiny=True),
               Fin('dorsal', 0.5, 0.7, [(0, 0), (0.1, 0.85), (0.6, 0.6), (1, 0.05)], 0.05, 14),
               Fin('anal', 0.55, 0.72, [(0, 0), (0.1, 0.8), (0.6, 0.55), (1, 0.05)], 0.04, 12),
@@ -1229,11 +1224,11 @@ def _festa_di_compleanno(img, c):
     yy, xx = np.mgrid[0:H * S, 0:W * S].astype(np.float32)
     tx, ty = (cx - W * 0.04) * S, (cy + H * 0.06) * S
     luce = np.exp(-(((xx - tx) / (W * S * 0.28)) ** 2 + ((yy - ty) / (H * S * 0.45)) ** 2))
-    stanza = (luce[..., None] * np.array((150, 85, 40)) + np.array((22, 14, 10))).astype(np.uint8)
+    stanza = (luce[..., None] * np.array((80, 44, 20)) + np.array((8, 6, 5))).astype(np.uint8)
     tela = Image.fromarray(stanza)
     d = ImageDraw.Draw(tela)
     # il bordo del tavolo e la torta: corpo, glassa, decorazioni
-    d.rectangle([0, ty + H * S * 0.07, W * S, H * S], fill=(70, 40, 26))
+    d.rectangle([0, ty + H * S * 0.07, W * S, H * S], fill=(26, 16, 11))
     lt, ht = W * S * 0.1, H * S * 0.075
     d.rectangle([tx - lt, ty - ht * 0.2, tx + lt, ty + ht], fill=(205, 160, 150))
     d.ellipse([tx - lt, ty + ht * 0.7, tx + lt, ty + ht * 1.3], fill=(205, 160, 150))
@@ -1336,28 +1331,29 @@ SPECIE['alaccia_registrata_sopra'] = Specie(
 # sono fermi, muti: gocce sospese attorno alla coda e al muso (extra); il glitch di sempre è discreto.
 def _gocce_ferme(c):
     """Gli spruzzi fermi: gocce d'acqua immobili sui due ventagli dello schizzo della coda (sopra e sotto) e
-    qualcuna davanti al muso; ogni goccia è un cono arrotondato allungato lungo il suo volo, d'acqua lucida."""
+    qualcuna davanti al muso; ogni goccia è un cono arrotondato appena allungato lungo il suo volo, d'acqua
+    trasparente e lucida (si vede dal riflesso e dal bordo chiaro)."""
     P = c.P
     rng = np.random.default_rng(9)
     A, B, R1, R2 = [], [], [], []
-    for centro, n, ang0, ang1, d0, d1 in (((1.0, 0.0, 0.02), 14, 20, 80, 0.07, 0.24), ((1.0, 0.0, -0.02), 10, -75, -20, 0.06, 0.2),
-                                         ((0.05, 0.0, 0.02), 6, 110, 160, 0.05, 0.14)):
+    for centro, n, ang0, ang1, d0, d1 in (((1.0, 0.0, 0.02), 9, 20, 80, 0.08, 0.24), ((1.0, 0.0, -0.02), 7, -75, -20, 0.07, 0.2),
+                                         ((0.05, 0.0, 0.02), 5, 110, 160, 0.05, 0.13)):
         C = np.array(centro, np.float32)
         for _ in range(n):
             a = np.radians(rng.uniform(ang0, ang1))
             dist = rng.uniform(d0, d1)
             dirz = np.array((np.cos(a), 0.0, np.sin(a)), np.float32)
-            p = C + dirz * dist + np.array((0.0, rng.uniform(-0.07, 0.04), 0.0), np.float32)
-            r = rng.uniform(0.004, 0.0085)
+            p = C + dirz * dist + np.array((0.0, rng.uniform(-0.07, 0.03), 0.0), np.float32)
+            r = rng.uniform(0.0055, 0.011)
             A.append(p)
-            B.append(p - dirz * r * rng.uniform(0.6, 1.8))
+            B.append(p - dirz * r * rng.uniform(0.6, 1.4))
             R1.append(r)
-            R2.append(r * 0.35)
+            R2.append(r * 0.45)
     f, lo, hi = P.campo_coni(A, B, R1, R2)
     m, g = P.material('AcquaFerma')
-    g.output_material(g.principled(color=(0.86, 0.93, 1.0), rough=0.03, ior=1.33, transmission=0.45, coat=1.0, coat_rough=0.0,
-                                   spec=0.8, sss=0.2))
-    c.obs.append(P.oggetto_sdf('GocceFerme', f, lo, hi, m, res=0.0006))
+    g.output_material(g.principled(color=(0.88, 0.95, 1.0), rough=0.02, ior=1.33, transmission=0.92, coat=1.0, coat_rough=0.0,
+                                   spec=0.9))
+    c.obs.append(P.oggetto_sdf('GocceFerme', f, lo, hi, m, res=0.0009 if c.fast else 0.0006))
 
 
 SPECIE['cheppia_senza_audio'] = Specie(
