@@ -4,7 +4,7 @@
  * bordo, e se ne vanno scendendo, secondo lo stato della simulazione; la vista da sotto il telone e i jumpscare sono immagini a
  * tutto schermo disegnate dentro la scena (prendono bloom, grana e vignetta come il resto).
  */
-import type { Vec3 } from '../engine/assets.ts';
+import type { LayerInfo, Vec3 } from '../engine/assets.ts';
 import { dirPos, type AudioEngine, type Voice } from '../engine/audio.ts';
 import type { BinoPlace, LayerDraw, LightGlow, Overlay, Stroke } from '../engine/renderer.ts';
 import { CHILD, RADIO_VOICE, speak, type Utterance } from '../engine/voice.ts';
@@ -109,6 +109,7 @@ const POSE = {
   /** notte 2: Robin steso sul bordo col braccio nel secchio, e la sua testa con gli occhi strizzati (nella luce) */
   robin: 'robin_secchio',
   robinSquint: 'robin_strizza',
+  robinBlink: 'robin_chiusi',
 } as const;
 
 /** Una creatura sulla barca (vedi Night.aboard). */
@@ -222,7 +223,7 @@ export class Night {
   private reelByMouse = false;
   private hoverTarget: Target = null;
   // stato visivo (morbido)
-  private v = { gSale: 0, gRise: 0, gPret: 0, mR: 0, mL: 0, hRise: 0, robin: 0, robinFear: 0, tarp: 0, toy: 0, toyX: -1, dawn: 0, rock: 0, dark: 0 };
+  private v = { gSale: 0, gRise: 0, gPret: 0, mR: 0, mL: 0, hRise: 0, robin: 0, robinFear: 0, robinBlink: 0, tarp: 0, toy: 0, toyX: -1, dawn: 0, rock: 0, dark: 0 };
   private gulpyDive = 0;
   private js: { killer: MonsterId; t: number; yaw: number; scream: Voice | null } | null = null;
   private lineSway = 0;
@@ -236,6 +237,8 @@ export class Night {
    *  sollevata col pesce, o persa col filo spezzato */
   private lastFloat: Vec3 | null = null;
   private retrieve: { t: number; from: Vec3; kind: 'reel' | 'lift' | 'lost' } | null = null;
+  /** i battiti di ciglia delle creature: attesa fino al prossimo, e quanto manca alla fine di quello in corso */
+  private blinks: Record<string, { wait: number; t: number }> = {};
   // audio
   private loops: Record<string, Voice | null> = {};
   private radio: { t: number; next: number; utt: Utterance | null; hiss: Voice | null } | null = null;
@@ -1016,6 +1019,7 @@ export class Night {
     v.robin = toward(v.robin, robinT, 1.2, 0.7, dt);
     const fearT = rb ? (rb.state === 'fleeing' ? 1 : rb.present ? rb.fear : 0) : 0;
     v.robinFear = approach(v.robinFear, fearT, 10, dt);
+    v.robinBlink = this.blinker('robin', dt, [2.5, 6]);
 
     this.updateBattery(dt);
 
@@ -1119,8 +1123,8 @@ export class Night {
     const has = (k: string) => !!man.layers[k];
     // creature nel mondo: emergono dal pelo dell'acqua (lo strato scende e si taglia al galleggiamento)
     const rise = (key: string, opacity: number, r: number): LayerDraw | null => {
-      const info = man.layers[key];
-      if (!info || opacity < 0.002) return null;
+      const info = this.baseOf(key);
+      if (!info || !has(key) || opacity < 0.002) return null;
       return { key, opacity, shift: [0, this.wavePx(key, r)], clipY: info.rect[3] - 3 };
     };
     const gs = rise(POSE.gulpySale, v.gSale, v.gRise);
@@ -1174,20 +1178,43 @@ export class Night {
     const t = this.d.stage.time;
     const recoil: [number, number] = [-(9 + 3 * noise1(t * 21, 5)) * f, (12 + 3 * noise1(t * 19, 6)) * f];
     const light: [number, number, number] = [1, 1, 1 + 2.2 * f];
+    const squint = smooth01(f * 1.6);
     out.push({ key: POSE.robin, p: v.robin, hands: 0.75, out: -0.45, handsStay: true, recoil, light });
-    out.push({ key: POSE.robinSquint, p: v.robin, hands: 0.75, out: -0.45, handsStay: true, recoil, light, opacity: smooth01(f * 1.6) });
+    out.push({ key: POSE.robinSquint, p: v.robin, hands: 0.75, out: -0.45, handsStay: true, recoil, light, opacity: squint });
+    // ogni tanto sbatte gli occhi (non quando li strizza nella luce)
+    out.push({ key: POSE.robinBlink, p: v.robin, hands: 0.75, out: -0.45, handsStay: true, recoil, light, opacity: v.robinBlink * (1 - squint) });
     return out;
   }
 
   /** Di quanto (pixel del panorama) è scesa dietro il bordo una creatura sulla barca: p = 1 in posa, 0 sparita. */
   private sinkPx(key: string, p: number): number {
-    const info = this.d.stage.man.layers[key];
+    const info = this.baseOf(key);
     return info ? (1 - ease(p)) * (info.rect[3] - info.rect[1] + 8) : 0;
+  }
+
+  /** Lo strato della posa (per una toppa, quello su cui va): la toppa sale e scende insieme a lui. */
+  private baseOf(key: string): LayerInfo | undefined {
+    const L = this.d.stage.man.layers;
+    const info = L[key];
+    return info?.base ? L[info.base] ?? info : info;
+  }
+
+  /** Battito di ciglia: chiuso (fino a 1) per un attimo ogni tanto, a intervalli a caso fra every[0] e every[1] s. */
+  private blinker(id: string, dt: number, every: [number, number], len = 0.17): number {
+    const pick = () => every[0] + Math.random() * (every[1] - every[0]);
+    const b = (this.blinks[id] ??= { wait: pick(), t: 0 });
+    if (b.t > 0) {
+      b.t = Math.max(0, b.t - dt);
+      if (b.t === 0) b.wait = pick();
+    } else if ((b.wait -= dt) <= 0) {
+      b.t = len;
+    }
+    return b.t > 0 ? Math.min(1, 1.8 * Math.sin(Math.PI * (1 - b.t / len))) : 0;
   }
 
   /** Di quanto è sotto il pelo dell'acqua una creatura in mare (r = 1 tutta fuori): segue anche l'onda, di un soffio. */
   private wavePx(key: string, r: number): number {
-    const info = this.d.stage.man.layers[key];
+    const info = this.baseOf(key);
     if (!info) return 0;
     const t = this.d.stage.time;
     const bob = 1.6 * Math.sin(t * 0.9 + key.length) + 0.7 * Math.sin(t * 2.3);

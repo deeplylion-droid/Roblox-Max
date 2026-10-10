@@ -20,6 +20,8 @@ export interface LayerInfo {
   eyes?: Vec3[];
   /** batteria: il quadrante del voltmetro (centro, semiasse destro, semiasse alto, dall'occhio) */
   gauge?: [Vec3, Vec3, Vec3];
+  /** «toppa» di un'animazione (la sola testa con una variante): lo strato della posa su cui va, con lo stesso yaw */
+  base?: string;
 }
 
 export interface Manifest {
