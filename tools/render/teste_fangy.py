@@ -10,12 +10,14 @@ la testa spinta avanti, le zanne che pendono, le nocche in acqua.
 
 Colori (proposta da approvare): come gli animatronici di FNAF ogni mostro nuovo ha un colore netto. Fangy è
 blu notte saturo, blu e non nero (più scuro sul dorso, più chiaro sul ventre, come i pesci degli abissi),
-con le lucine azzurro-ciano accese; zanne pallide; gli occhialini di plastica chiara con le lenti nere.
+con le lucine azzurro-ciano accese; zanne pallide; gli occhialini di plastica gialla scolorita, come le
+altre cose del parco, con le lenti dipinte di nero (sul blu si leggono subito).
 
 Bozze di studio: non sono i modelli definitivi del gioco. Usa materiali, luci, render e tavola di
 dettagli.py, che resta com'è: la creatura si registra in D.CREATURES quando il modulo viene caricato.
 
-Uso: tools/.venv/bin/python tools/render/teste_fangy.py [--fast] [--only A|B|C]
+Uso: tools/.venv/bin/python tools/render/teste_fangy.py [--fast] [--only A|B|C | --tavola]
+(--tavola ricompone la tavola dai pannelli in cache, dopo averne rifatto uno con --only)
 """
 from __future__ import annotations
 
@@ -33,7 +35,7 @@ import dettagli as D  # noqa: E402
 import sdf  # noqa: E402
 import skin  # noqa: E402
 from common import mesh_from_arrays, set_lightgroup  # noqa: E402
-from creature import sdf_object, teeth_material  # noqa: E402
+from creature import sdf_object  # noqa: E402
 from dettagli import V, chain, mat_simple, unit  # noqa: E402
 from geo import _frames, catmull, rbox  # noqa: E402
 from nodes import material  # noqa: E402
@@ -50,16 +52,33 @@ SKIN_RES = 0.0045 if FAST else 0.003      # la pelle si estrae a fasce (sdf.mesh
 SPINE = [V(0, 0.72, -0.28), V(0, 0.61, 0.08), V(0, 0.49, 0.43), V(0, 0.35, 0.72), V(0, 0.19, 0.89), V(0, 0.05, 0.93)]
 SPINE_R = [0.125, 0.125, 0.135, 0.150, 0.142, 0.105]
 SPALLA, GOMITO, POLSO, NOCCHE = V(0.20, 0.17, 0.83), V(0.31, -0.02, 0.49), V(0.27, -0.29, 0.085), V(0.275, -0.37, 0.0)
-CAM = ((-0.95, -1.85, 0.95), (0, -0.10, 0.55), 46)
+CAM = ((-0.55, -1.60, 0.95), (0, -0.10, 0.52), 40)
+
+TESTI = {
+    'A': ('A · Sciabola', 'più pesce: il testone del pesce dente di sciabola,\nle zanne del pesce vipera fuori dalla bocca;\nfossette per sentire, occhialini affondati nella carne'),
+    'B': ('B · Molosso', 'a metà: muso da mastino che non si chiude,\nle zanne pendono dalle labbra; orecchie\numane enormi, girate in avanti ad ascoltare'),
+    'C': ('C · Bambino', 'più bambino: un bambino in piscina, frangetta\nbagnata e occhialini neri; le lentiggini accese,\nla bocca aperta a chiamare «Marco!», piena di aghi'),
+}
 
 
 class Head(D.Frame):
-    """Sistema locale della testa (faccia −Y, alto +Z): girata (yaw), china (pitch) e piegata di lato
-    (roll: la testa inclinata di chi ascolta)."""
+    """Sistema locale della testa (faccia −Y, alto +Z): girata (yaw), china (pitch), piegata di lato (roll:
+    la testa inclinata di chi ascolta) e ingrandita (scale) rispetto alle misure con cui è disegnata."""
 
-    def __init__(self, pos, yaw=0.0, pitch=0.0, roll=0.0):
+    def __init__(self, pos, yaw=0.0, pitch=0.0, roll=0.0, scale=1.0):
         self.pos = V(*pos)
         self.R = (sdf.rot_matrix('z', yaw) @ sdf.rot_matrix('x', pitch) @ sdf.rot_matrix('y', roll)).astype(F)
+        self.S = float(scale)
+
+    def field(self, f):
+        R, c, S = self.R, self.pos, self.S
+        return lambda p: f(((p - c) @ R) / S) * S
+
+    def pt(self, q):
+        return self.pos + self.R @ (V(*q) * self.S)
+
+    def local(self, p):
+        return ((p - self.pos) @ self.R) / self.S
 
 
 # ───────────────────────── aiuti ─────────────────────────
@@ -87,8 +106,11 @@ def around(f, pts, pad=0.05):
 
 
 def ellipsoid_axes(c, radii, ax, ay, az):
-    """Ellissoide con gli assi lungo tre direzioni (ortogonali)."""
-    M = np.stack([unit(ax), unit(ay), unit(az)], axis=1).astype(F)
+    """Ellissoide con gli assi lungo tre direzioni (rese ortogonali: conta la prima, poi la seconda)."""
+    ax = unit(ax)
+    ay = unit(V(*ay) - (V(*ay) @ ax) * ax)
+    az = V(*az) - (V(*az) @ ax) * ax - (V(*az) @ ay) * ay
+    M = np.stack([ax, ay, unit(az)], axis=1).astype(F)
     c = V(*c)
     e = sdf.ellipsoid(V(0, 0, 0), radii)
     return lambda p: e((p - c) @ M)
@@ -202,7 +224,38 @@ def fang(base, direction, L, r, bend=(0, 0, 0), n=8, tip=0.10):
 
 def local_curves(fr, curves):
     """Curve costruite nel sistema della testa → mondo."""
-    return [(np.array([fr.pt(p) for p in P]), R) for P, R in curves]
+    return [(np.array([fr.pt(p) for p in P]), np.asarray(R) * fr.S) for P, R in curves]
+
+
+def box_axes(c, half, ax, ay, az, rounding=0.0):
+    """Scatola smussata con gli assi lungo tre direzioni."""
+    M = np.stack([unit(ax), unit(ay), unit(az)], axis=1).astype(F)
+    c = V(*c)
+    b = sdf.box(V(0, 0, 0), half, rounding)
+    return lambda p: b((p - c) @ M)
+
+
+def ribbon(name, pts, nrms, width, thick, mat):
+    """Nastro piatto (la cinghia) steso sulla pelle lungo pts, con le normali della pelle: largo width,
+    spesso thick, con le due teste chiuse."""
+    P, N = np.asarray(pts, float), np.asarray(nrms, float)
+    T = np.gradient(P, axis=0)
+    T /= np.linalg.norm(T, axis=1, keepdims=True)
+    W = np.cross(N, T)
+    W /= np.linalg.norm(W, axis=1, keepdims=True)
+    N = np.cross(T, W)
+    prof = [(-width / 2, 0.0), (width / 2, 0.0), (width / 2, thick), (-width / 2, thick)]
+    verts = [P[i] + W[i] * a + N[i] * b for i in range(len(P)) for a, b in prof]
+    faces = []
+    for i in range(len(P) - 1):
+        for k in range(4):
+            a0, a1 = i * 4 + k, i * 4 + (k + 1) % 4
+            faces.append((a0, a0 + 4, a1 + 4, a1))
+    faces += [(0, 1, 2, 3), tuple((len(P) - 1) * 4 + k for k in (3, 2, 1, 0))]
+    ob = mesh_from_arrays(name, np.array(verts), faces, smooth=False, col='creatures')
+    ob.data.materials.append(mat)
+    set_lightgroup(ob, 'ambient')
+    return ob
 
 
 def arc(p0, p1, p2, n):
@@ -214,15 +267,17 @@ def arc(p0, p1, p2, n):
 
 # ───────────────────────── colori (proposta del 10 ottobre, da approvare) ─────────────────────────
 # Come in FNAF, ogni mostro nuovo ha un colore netto e riconoscibile anche al buio. Fangy è blu notte
-# SATURO: blu e non nero, col verde e il rosso tenuti bassi perché sotto la lampara calda non diventi grigio.
-# Più scuro sul dorso e più chiaro sul ventre (il chiaroscuro dei pesci); le lucine azzurro-ciano accese.
+# SATURO: blu e non nero, col rosso e il verde tenuti bassi perché sotto la lampara calda non diventi grigio
+# e sotto la luna e le lucine non viri al ceruleo (nel render la tinta scende di una decina di gradi verso
+# il ciano: l'albedo sta sul blu-indaco). Più scuro sul dorso e più chiaro sul ventre (il chiaroscuro dei
+# pesci); le lucine azzurro-ciano accese.
 
-DORSO = (0.005, 0.016, 0.095)
-FIANCO = (0.012, 0.040, 0.225)
-VENTRE = (0.030, 0.095, 0.340)
-MACCHIE = (0.003, 0.008, 0.045)
-LABBRA = (0.22, 0.30, 0.52)          # le labbra livide da annegato
-MELMA = (0.86, 0.95, 0.88)           # la stessa melma verdognola, appena più chiara: il blu resta blu
+DORSO = (0.007, 0.011, 0.110)
+FIANCO = (0.018, 0.030, 0.270)
+VENTRE = (0.040, 0.075, 0.380)
+MACCHIE = (0.003, 0.005, 0.050)
+LABBRA = (0.13, 0.11, 0.32)          # le labbra livide da annegato
+MELMA = (0.92, 0.96, 0.92)           # la stessa melma verdognola, ma appena velata: il blu non vira al ceruleo
 LUCE = (0.10, 0.85, 1.0)             # i fotofori
 
 
@@ -273,24 +328,26 @@ def luce_material():
 
 
 def lente_dipinta():
-    """Le lenti dipinte di nero: smalto lucido a pennellate, scrostato in qualche punto."""
+    """Le lenti dipinte di nero: vernice data a mano, a pennellate grosse che si vedono nel lucido, scrostata
+    in qualche punto (sotto, la plastica chiara della lente). Serve anche per le colature sulla guancia."""
     m = bpy.data.materials.get('GogglePaint')
     if m:
         return m
     m, g = material('GogglePaint')
     co = g.texcoord('Object')
-    strokes = g.noise(g.mapping(co, scale=(260.0, 20.0, 20.0)), scale=1.0, detail=3.0, rough=0.6)
-    chips = g.noise(co, scale=140.0, detail=2.0, rough=0.5)
-    chip = g.smoothstep(0.69, 0.72, chips.fac)
-    col = g.mix(chip, (0.008, 0.008, 0.010), (0.30, 0.40, 0.45))
-    g.output_material(g.principled(color=col, rough=g.mixf(chip, 0.10, 0.35), coat=0.9, coat_rough=0.04,
-                                   normal=g.bump(strokes.fac, strength=0.30, distance=0.0015)))
+    strokes = g.noise(g.mapping(co, scale=(30.0, 30.0, 420.0)), scale=1.0, detail=4.0, rough=0.65)
+    chips = g.noise(co, scale=150.0, detail=2.0, rough=0.5)
+    chip = g.smoothstep(0.70, 0.73, chips.fac)
+    col = g.mix(chip, (0.006, 0.006, 0.008), (0.45, 0.55, 0.58))
+    g.output_material(g.principled(color=col, rough=g.mixf(chip, 0.38, 0.5), coat=0.25, coat_rough=0.25, spec=0.4,
+                                   normal=g.bump(strokes.fac, strength=0.9, distance=0.002)))
     return m
 
 
 def plastica_occhialini():
-    """La plastica degli occhialini da bambino: chiara, un po' acquamarina, scolorita e macchiata d'alga."""
-    return D.vinyl('GoggleVinyl', (0.66, 0.86, 0.86), stain=(0.25, 0.30, 0.20))
+    """La plastica degli occhialini da bambino: gialla come le cose del parco, scolorita e macchiata
+    d'alga; sul blu stacca subito."""
+    return D.vinyl('GoggleVinyl', (0.92, 0.66, 0.10), stain=(0.30, 0.32, 0.16))
 
 
 # ───────────────────────── il corpo ─────────────────────────
@@ -373,7 +430,7 @@ class Body:
     def gills(self):
         """Tre fessure branchiali per lato, sul collo."""
         parts = []
-        i0 = int(np.searchsorted(-self.pts[:, 1], -0.17))
+        i0 = int(np.searchsorted(-self.pts[:, 1], -0.13))
         for j, t in enumerate((0.0, 0.33, 0.66)):
             i = min(len(self.pts) - 1, i0 + int(t * 8))
             c, r, tg = self.pts[i], self.r[i], self.tan[i]
@@ -384,19 +441,20 @@ class Body:
         return around(sdf.union(*parts), [p for p in self.pts[i0:i0 + 8]], pad=0.15)
 
     def light_rows(self):
-        """Le file di lucine lungo il ventre: due vicine alla linea di mezzo, due più in fuori, sfalsate.
+        """Le file di lucine lungo il ventre, a passo regolare perché si leggano come file: due vicine alla
+        linea di mezzo, dalla gola fino all'acqua, e due più in fuori, più piccole, che si fermano prima.
         Restituisce i punti di partenza (da posare sulla pelle) e i raggi."""
         z = self.pts[:, 2]
         top = int(np.argmin(np.abs(self.pts[:, 1] - 0.13)))           # fino al petto, sotto il collo
         bot = int(np.argmin(np.abs(z - 0.03)))
         want, rr = [], []
-        for xo, rad, n, ph in ((0.042, 0.0105, 12, 0.0), (0.108, 0.0085, 11, 0.5)):
-            for j in range(n):
-                i = int(round(bot + (top - bot) * (j + ph) / n))
+        for xo, rad, n, j0 in ((0.048, 0.0115, 11, 0), (0.125, 0.0090, 11, 3)):
+            for j in range(j0, n):
+                i = int(round(bot + (top - bot) * (j + 0.5) / n))
                 c, r = self.pts[i], self.r[i]
                 for s in (-1, 1):
                     want.append(c - self.dors[i] * r * 1.05 + V(s * xo, 0, 0))
-                    rr.append(rad * (0.85 + 0.15 * math.sin(j * 1.7)))
+                    rr.append(rad)
         return want, rr
 
     def ventre(self, fr, head_r):
@@ -419,7 +477,7 @@ class Body:
             d = p - P[i]
             dn = d / (np.linalg.norm(d, axis=1, keepdims=True) + 1e-9)
             body = np.clip(0.5 - 0.75 * np.einsum('ij,ij->i', dn, U[i]), 0, 1)
-            q = (p - fr.pos) @ fr.R
+            q = fr.local(p)
             head = np.clip(0.42 - 3.2 * q[:, 2], 0, 1)
             w = np.clip(1 - (np.linalg.norm(p - fr.pos, axis=1) - head_r * 0.55) / (head_r * 0.35), 0, 1)
             return (body * (1 - w) + head * w).astype(F)
@@ -432,56 +490,84 @@ def smooth(x, a, b):
 
 # ───────────────────────── occhialini ─────────────────────────
 
-def goggles(fr, head, lenses, a, b, strap_up=0.05, strap_r=0.0055, snap_field=None):
+def goggles(fr, head, lenses, a, b, strap_up=0.05, width=0.016, snap_field=None, swell=True, paint_drips=(0, 1)):
     """Gli occhialini da piscina, ormai incastrati nella faccia.
     head: campo locale della testa; lenses: i due centri (locali, vicino alla pelle); a, b: mezza larghezza
-    e mezza altezza della lente; la cinghia gira attorno alla testa e dietro sale di strap_up.
-    snap_field: dove posare la cinghia (la testa, oppure testa e capelli).
+    e mezza altezza della lente; la cinghia (larga width) gira attorno alla testa e dietro sale di strap_up.
+    snap_field: dove posare la cinghia (la testa, oppure testa e capelli); swell: la carne gonfia ai lati
+    della cinghia (no se la cinghia passa sopra i capelli); paint_drips: da quali lenti cola la vernice.
     Restituisce i campi locali da aggiungere (la carne cresciuta attorno alle coppe e alla cinghia) e da
-    togliere (gli incavi, il solco della cinghia) e gli oggetti: coppe, lenti nere, ponticello, cinghia."""
+    togliere (gli incavi, il solco della cinghia) e gli oggetti: coppe, lenti nere, linguette, ponticello,
+    cinghia, colature di vernice."""
     q, n = snap(head, lenses)
     Z = V(0, 0, 1)
-    add, cut, rims, domes, inner, outer = [], [], [], [], [], []
+    add, cut, rims, domes, lugs, inner, outer = [], [], [], [], [], [], []
+    frames = []
     for i in range(2):
         u = unit(np.cross(Z, n[i]))
         v = np.cross(n[i], u)
         s = 1.0 if q[i][0] > 0 else -1.0
-        add.append(oval_ring(q[i] - n[i] * 0.002, u, v, n[i], a + 0.012, b + 0.012, 0.0105))
-        cut.append(ellipsoid_axes(q[i] - n[i] * 0.005, (a - 0.001, b - 0.001, 0.011), u, v, n[i]))
-        rims.append(oval_ring(q[i] + n[i] * 0.002, u, v, n[i], a + 0.003, b + 0.003, 0.0055))
-        domes.append(ellipsoid_axes(q[i] + n[i] * 0.0005, (a - 0.0015, b - 0.0015, 0.0105), u, v, n[i]))
+        frames.append((u, v, s))
+        add.append(oval_ring(q[i] - n[i] * 0.002, u, v, n[i], a + 0.012, b + 0.011, 0.0105))
+        cut.append(ellipsoid_axes(q[i] - n[i] * 0.004, (a - 0.001, b - 0.001, 0.010), u, v, n[i]))
+        rims.append(oval_ring(q[i] + n[i] * 0.003, u, v, n[i], a + 0.0035, b + 0.0035, 0.0062))
+        domes.append(ellipsoid_axes(q[i] - n[i] * 0.0015, (a - 0.001, b - 0.001, 0.0075), u, v, n[i]))
+        # la linguetta dove si aggancia la cinghia, sul lato esterno della coppa
+        lc = q[i] + u * s * (a + 0.012) + n[i] * 0.002
+        lugs.append(box_axes(lc, (0.011, 0.0035, width * 0.42), u * s, n[i], v, 0.0025))
         inner.append(q[i] - u * s * (a + 0.006) + n[i] * 0.004)
-        outer.append(q[i] + u * s * (a + 0.006) + n[i] * 0.003)
+        outer.append(q[i] + u * s * (a + 0.020) + n[i] * 0.001)
     sf = snap_field or head
-    # la cinghia: dalle coppe tutt'intorno alla testa, dietro un po' più su
+    # la cinghia: dalle linguette tutt'intorno alla testa, dietro un po' più su
     sides = []
     for i in range(2):
         p0 = outer[i]
         s = 1.0 if p0[0] > 0 else -1.0
         phi0 = math.atan2(p0[0], -p0[1])
         want = []
-        for t in np.linspace(0, 1, 10)[1:]:
+        for t in np.linspace(0, 1, 12)[1:]:
             phi = phi0 + (s * math.pi - phi0) * t
             z = p0[2] + strap_up * math.sin(t * math.pi / 2)
             want.append(V(math.sin(phi) * 0.32, -math.cos(phi) * 0.32, z))
-        P, N = snap(sf, want)
-        sides.append((np.concatenate([[p0], P + N * 0.0012]), np.concatenate([[n[i]], N])))
+        P, N = snap(sf, [p0] + want)
+        sides.append((P, N))
     strap = np.concatenate([sides[0][0], sides[1][0][::-1][1:]])
     snrm = np.concatenate([sides[0][1], sides[1][1][::-1][1:]])
-    add.append(polyline(strap - snrm * 0.004, [0.0105] * len(strap)))
-    cut.append(polyline(strap, [strap_r + 0.0008] * len(strap)))
+    # la carne gonfia lungo la cinghia (un cordone appena sotto la pelle che sporge di 4 mm) e il canale
+    # in cui la cinghia affonda (un cilindro quasi tutto fuori dalla pelle, che ne scava solo il fondo)
+    if swell:
+        rs = width * 0.9
+        add.append(polyline(strap - snrm * (rs - 0.004), [rs] * len(strap)))
+    rt = width * 0.56
+    cut.append(polyline(strap + snrm * (rt - 0.0025), [rt] * len(strap)))
     # il ponticello sul naso
     mid = (inner[0] + inner[1]) / 2 + V(0, -0.03, 0)
     mq, mn = snap(head, [mid])
     bridge = [inner[0], (inner[0] + mq[0]) / 2 + mn[0] * 0.006, mq[0] + mn[0] * 0.007, (inner[1] + mq[0]) / 2 + mn[0] * 0.006, inner[1]]
     obs = []
     c0 = fr.pt((q[0] + q[1]) / 2)
-    frame_f = fr.field(sdf.union(*rims))
-    obs.append(D.mesh('GoggleFrame', frame_f, c0 - 0.12, c0 + 0.12, plastica_occhialini(), res=0.0016))
-    obs.append(D.mesh('GoggleLens', fr.field(sdf.union(*domes)), c0 - 0.12, c0 + 0.12, lente_dipinta(), res=0.0014))
-    obs.append(tubes('GoggleStrap', local_curves(fr, [(catmull(strap, 3), np.full(len(catmull(strap, 3)), strap_r)),
-                                                      (catmull(bridge, 4), np.full(len(catmull(bridge, 4)), 0.0042))]),
-                     plastica_occhialini()))
+    obs.append(D.mesh('GoggleFrame', fr.field(sdf.union(*rims, *lugs)), c0 - 0.14, c0 + 0.14, plastica_occhialini(), res=0.0016))
+    obs.append(D.mesh('GoggleLens', fr.field(sdf.union(*domes)), c0 - 0.14, c0 + 0.14, lente_dipinta(), res=0.0014))
+    Pw = np.array([fr.pt(p) for p in strap])
+    Nw = np.array([fr.dir(nn) for nn in snrm])
+    Ps = catmull(Pw, 3)
+    Ns = catmull(Nw, 3)
+    Ns /= np.linalg.norm(Ns, axis=1, keepdims=True)
+    obs.append(ribbon('GoggleStrap', Ps - Ns * 0.002 * fr.S, Ns, width * fr.S, 0.0032 * fr.S, plastica_occhialini()))
+    cb = catmull(bridge, 4)
+    obs.append(tubes('GoggleBridge', local_curves(fr, [(cb, np.full(len(cb), 0.0045))]), plastica_occhialini()))
+    # le colature: la vernice nera che è scesa dal bordo della lente sulla guancia
+    drips_c = []
+    for i in paint_drips:
+        u, v, s = frames[i]
+        for off, L in ((-0.35, 0.055), (0.25, 0.035)):
+            p0 = q[i] - v * (b + 0.012) + u * a * off
+            want = [p0] + [p0 + V(0, 0, -L * t) - n[i] * 0.004 for t in (0.25, 0.5, 0.75, 1.0)]
+            P, N = snap(sf, want)
+            P = P + N * 0.0035
+            drips_c.append((P, np.array([0.0048, 0.0042, 0.0036, 0.0034, 0.0048])))
+    if drips_c:
+        obs.append(tubes('GogglePaintDrips', local_curves(fr, drips_c), lente_dipinta(), m=8))
     return add, cut, obs
 
 
@@ -526,16 +612,29 @@ def cups(pts, nrm, radii):
     return around(holes, pts, 0.05), around(rims, pts, 0.05)
 
 
-def drips(name, field, anchors, rng, lmin=0.04, lmax=0.11):
-    """Bava che cola: gocce lunghe di melma appese ai punti (posati sulla superficie)."""
+def goo_material():
+    """La melma della bava: verdognola e lattiginosa, lucidissima (la stessa delle gocce di Lampy). Meno
+    trasparente della melma di skin.py, così nella bozza si legge come bava e non come ghiaccioli di vetro."""
+    m = bpy.data.materials.get('FangyGoo')
+    if m:
+        return m
+    m, g = material('FangyGoo')
+    g.output_material(g.principled(color=(0.62, 0.74, 0.50), rough=0.04, transmission=0.45, ior=1.36, coat=1.0, coat_rough=0.01,
+                                   sss=0.5, sss_radius=(0.6, 0.8, 0.4), sss_scale=0.01))
+    return m
+
+
+def drips(name, field, anchors, rng, lmin=0.025, lmax=0.05):
+    """Bava che cola: gocce grasse di melma appese ai punti (posati sulla superficie). Corte: sotto la bocca
+    le gocce lunghe e chiare si confondevano con le zanne."""
     pts, _ = snap(field, anchors)
     parts = []
     for q in pts:
         L = rng.uniform(lmin, lmax)
-        parts.append(skin.drip(q + V(0, 0, 0.004), L, r0=0.006, r1=rng.uniform(0.008, 0.011)))
+        parts.append(skin.drip(q + V(0, 0, 0.004), L, r0=0.0065, r1=rng.uniform(0.010, 0.013)))
     lo, hi = pts.min(0) - 0.03, pts.max(0) + 0.03
     lo[2] -= lmax + 0.03
-    return D.mesh(name, sdf.union(*parts), lo, hi, skin.slime_material(), res=0.002)
+    return D.mesh(name, sdf.union(*parts), lo, hi, goo_material(), res=0.002)
 
 
 def strands(fr, pairs, r=0.0022, sag=0.03):
@@ -550,9 +649,25 @@ def strands(fr, pairs, r=0.0022, sag=0.03):
     return out
 
 
+def water_material():
+    """Il mare di notte: nero e bagnato, con le onde lunghe e le increspature che rompono i riflessi (uno
+    specchio perfetto rifletteva il corpo e le file di lucine, e Fangy sembrava in piedi su due gambe)."""
+    m = bpy.data.materials.get('FangyWater')
+    if m:
+        return m
+    m, g = material('FangyWater')
+    co = g.texcoord('Object')
+    swell = g.noise(g.mapping(co, scale=(1.0, 2.6, 1.0)), scale=2.4, detail=2.0)
+    chop = g.noise(co, scale=14.0, detail=2.0, rough=0.5)
+    h = g.add(swell.fac, g.mul(chop.fac, 0.25))
+    # liscia ma ondulata: i riflessi si rompono in strisce, senza l'alone grigio di un'acqua ruvida
+    g.output_material(g.principled(color=(0.003, 0.009, 0.013), rough=0.05, spec=0.5, normal=g.bump(h, strength=0.32, distance=0.03)))
+    return m
+
+
 def water():
     w = rbox('Water', (120, 120, 0.01), (0, 40.0, -0.005), bevel=0.0, col='set')
-    w.data.materials.append(mat_simple('NightWater', (0.004, 0.012, 0.016), rough=0.04, spec=0.8))
+    w.data.materials.append(water_material())
     set_lightgroup(w, 'ambient')
     return w
 
@@ -575,6 +690,7 @@ def fangy_finish(fr, head, cut=None, head_r=0.30, neck=(0, 0.12, -0.04), neck_r=
     """Unisce testa e corpo, scava le branchie e le coppette delle lucine; crea la pelle, le lucine (con un
     po' di luce vera sulla pelle bagnata attorno), l'acqua e le increspature.
     head, cut: campi locali della testa; head_lights: [(punto locale, raggio)] delle lucine della testa."""
+    head_r = head_r * fr.S
     body = Body(fr.pt(neck), neck_r)
     hw = bounded(fr.field(head), fr.pos, head_r)
     f = sdf.union(body.field(), hw, k=0.05)
@@ -606,21 +722,27 @@ def fangy_finish(fr, head, cut=None, head_r=0.30, neck=(0, 0.12, -0.04), neck_r=
 # ───────────────────────── A · Sciabola ─────────────────────────
 
 def fangy_a():
-    """A · Sciabola: la testa grande del pesce dente di sciabola, ossuta, con le creste; le sciabole di sopra
-    pendono davanti alla mandibola che non si chiude più, quelle di sotto salgono fuori dal muso come nel
-    pesce vipera. Fossette in fila sulle guance e sulla mascella (il pesce sente le vibrazioni così);
-    gli occhialini affondati nella fronte, piccoli sul testone."""
-    fr = Head((0, -0.17, 0.845), yaw=-16, pitch=10, roll=7)
-    cran = sdf.ellipsoid(V(0, 0.03, 0.035), (0.128, 0.16, 0.13))
-    brow = sdf.ellipsoid(V(0, -0.085, 0.068), (0.112, 0.08, 0.068))
+    """A · Sciabola: la testa grande del pesce dente di sciabola, ossuta, con le creste e l'opercolo; la
+    bocca enorme non si chiude più: le sciabole di sopra pendono davanti alla mandibola calata, quelle di
+    sotto salgono fuori dal muso e si incrociano come nel pesce vipera. Fossette in fila sulle guance, sulla
+    mascella e sul cranio (il pesce sente le vibrazioni così); gli occhialini affondati nella carne sotto
+    la visiera ossea, piccoli sul testone."""
+    fr = Head((0, -0.19, 0.85), yaw=-7, pitch=10, roll=6, scale=1.14)
+    cran = sdf.ellipsoid(V(0, 0.03, 0.03), (0.13, 0.165, 0.115))
+    brow = sdf.ellipsoid(V(0, -0.088, 0.07), (0.118, 0.08, 0.06))
+    visor = sdf.ellipsoid(V(0, -0.118, 0.085), (0.12, 0.05, 0.03))           # la visiera ossea sopra gli occhialini
     snout = sdf.ellipsoid(V(0, -0.158, -0.018), (0.102, 0.088, 0.058))
     cheeks = sdf.union(*[sdf.ellipsoid(V(s * 0.088, -0.06, -0.03), (0.05, 0.08, 0.065)) for s in (-1, 1)])
-    jaw = sdf.union(*[chain([V(s * 0.098, 0.05, -0.07), V(s * 0.086, -0.08, -0.118), V(s * 0.05, -0.172, -0.132), V(0, -0.196, -0.132)],
-                            [0.030, 0.033, 0.031, 0.030], k=0.02) for s in (-1, 1)], k=0.02)
-    throat = sdf.ellipsoid(V(0, -0.03, -0.10), (0.09, 0.12, 0.06))
+    jaw = sdf.union(*[chain([V(s * 0.10, 0.05, -0.075), V(s * 0.09, -0.08, -0.14), V(s * 0.052, -0.178, -0.158), V(0, -0.21, -0.158)],
+                            [0.034, 0.039, 0.036, 0.034], k=0.02) for s in (-1, 1)], k=0.02)
+    throat = sdf.ellipsoid(V(0, -0.03, -0.115), (0.09, 0.12, 0.06))
     ridges = sdf.union(*[chain([V(s * 0.045, -0.13, 0.09), V(s * 0.062, -0.02, 0.152), V(s * 0.05, 0.10, 0.145)], [0.012, 0.017, 0.012], k=0.01) for s in (-1, 1)])
-    head = sdf.union(cran, brow, snout, cheeks, jaw, throat, ridges, k=0.03)
-    mouth = sdf.union(sdf.ellipsoid(V(0, -0.128, -0.090), (0.084, 0.10, 0.024)), sdf.ellipsoid(V(0, -0.055, -0.078), (0.066, 0.09, 0.034)))
+    # l'opercolo, la placca che copre le branchie dei pesci, con la fessura dietro
+    opercles = sdf.union(*[ellipsoid_axes(V(s * 0.112, 0.035, -0.05), (0.075, 0.03, 0.075), V(0, 1, 0.15), V(s, 0, 0), V(0, -0.15, 1))
+                           for s in (-1, 1)])
+    head = sdf.union(cran, brow, visor, snout, cheeks, jaw, throat, ridges, opercles, k=0.03)
+    slits = sdf.union(*[ellipsoid_axes(V(s * 0.118, 0.105, -0.055), (0.009, 0.03, 0.068), V(0, 1, 0), V(s, 0, 0), V(0, 0, 1)) for s in (-1, 1)])
+    mouth = sdf.union(sdf.ellipsoid(V(0, -0.115, -0.10), (0.092, 0.125, 0.036)), sdf.ellipsoid(V(0, -0.045, -0.09), (0.07, 0.10, 0.04)), slits)
     # le fossette della linea laterale, in fila sulle guance, sulla mascella e sulla fronte
     want = []
     for s in (-1, 1):
@@ -634,36 +756,37 @@ def fangy_a():
     cut = sdf.union(mouth, pits, *gcut)
 
     def attr_mouth(p):
-        q = (p - fr.pos) @ fr.R
-        e = np.linalg.norm((q - V(0, -0.10, -0.088)) / V(0.09, 0.13, 0.036), axis=1)
+        q = fr.local(p)
+        e = np.linalg.norm((q - V(0, -0.09, -0.10)) / V(0.095, 0.14, 0.045), axis=1)
         return np.clip((1.15 - e) / 0.2, 0, 1).astype(F)
 
-    lights = [(V(s * 0.045 + s * 0.04 * t, -0.18 + 0.20 * t, -0.152 + 0.02 * t), 0.0068) for s in (-1, 1) for t in np.linspace(0, 1, 7)]
+    lights = [(V(s * 0.06 + s * 0.05 * t, -0.17 + 0.19 * t, -0.17 + 0.02 * t), 0.0068) for s in (-1, 1) for t in np.linspace(0, 1, 7)]
     lights += [(V(s * 0.112, -0.085, -0.02), 0.011) for s in (-1, 1)]                 # la lucina grande sotto l'occhio
     obs, skin_f = fangy_finish(fr, head, cut, head_lights=lights, attrs_extra={'mouth': attr_mouth})
     obs += gobs
-    c0 = fr.pt((0, -0.07, -0.085))
-    obs.append(D.mesh('FangyThroat', fr.field(sdf.ellipsoid(V(0, -0.07, -0.085), (0.06, 0.09, 0.022))), c0 - 0.15, c0 + 0.15, D.dark_throat(), res=0.004))
+    c0 = fr.pt((0, -0.06, -0.10))
+    obs.append(D.mesh('FangyThroat', fr.field(sdf.ellipsoid(V(0, -0.06, -0.10), (0.065, 0.10, 0.03))), c0 - 0.16, c0 + 0.16, D.dark_throat(), res=0.004))
     # le zanne: sciabole di sopra che pendono davanti alla mandibola, zanne di sotto fuori dal muso, aghi in fila
     fangs = []
     for s in (-1, 1):
         fangs.append(fang((s * 0.046, -0.214, -0.055), (s * 0.06, -0.16, -1), 0.29, 0.0125, bend=(0, 0.04, 0)))
         fangs.append(fang((s * 0.078, -0.19, -0.058), (s * 0.12, -0.10, -1), 0.15, 0.0085, bend=(0, 0.02, 0)))
         fangs.append(fang((s * 0.094, -0.14, -0.066), (s * 0.15, -0.05, -1), 0.075, 0.0065))
-        fangs.append(fang((s * 0.072, -0.168, -0.112), (s * 0.40, -0.30, 1), 0.125, 0.0092, bend=(0, 0.025, 0)))
-        fangs.append(fang((s * 0.084, -0.12, -0.11), (s * 0.30, -0.20, 1), 0.07, 0.0062))
+        fangs.append(fang((s * 0.026, -0.212, -0.132), (s * 0.05, -0.45, 1), 0.17, 0.0105))       # le zanne del pesce vipera
+        fangs.append(fang((s * 0.072, -0.172, -0.13), (s * 0.40, -0.30, 1), 0.125, 0.0092, bend=(0, 0.025, 0)))
+        fangs.append(fang((s * 0.086, -0.12, -0.128), (s * 0.30, -0.20, 1), 0.07, 0.0062))
         for t in np.linspace(0.1, 0.9, 5):
             x = s * (0.02 + 0.06 * t)
-            fangs.append(fang((x, -0.205 + 0.07 * t * t, -0.066), (s * 0.1, -0.3, -1), 0.03 + 0.012 * (1 - t), 0.0034))
-            fangs.append(fang((x * 0.95, -0.186 + 0.07 * t * t, -0.113), (s * 0.1, -0.35, 1), 0.026 + 0.01 * (1 - t), 0.0032))
+            fangs.append(fang((x, -0.205 + 0.07 * t * t, -0.068), (s * 0.1, -0.3, -1), 0.034 + 0.014 * (1 - t), 0.0036))
+            fangs.append(fang((x * 0.95, -0.19 + 0.07 * t * t, -0.132), (s * 0.1, -0.35, 1), 0.03 + 0.012 * (1 - t), 0.0034))
     obs.append(tubes('FangyFangs', local_curves(fr, fangs), D.needle_teeth()))
     # la bava: fili fra le zanne, gocce dal mento e dalle punte
-    obs.append(tubes('FangyDrool', strands(fr, [((-0.046, -0.235, -0.16), (-0.05, -0.19, -0.135), 0.02),
-                                                 ((0.046, -0.235, -0.18), (0.074, -0.19, -0.105), 0.025),
-                                                 ((-0.078, -0.205, -0.12), (-0.074, -0.17, -0.112), 0.012)]), skin.slime_material()))
-    obs.append(drips('FangySlime', skin_f, [fr.pt((0.0, -0.20, -0.16)), fr.pt((-0.04, -0.18, -0.165)), fr.pt((0.06, -0.15, -0.165))],
+    obs.append(tubes('FangyDrool', strands(fr, [((-0.046, -0.235, -0.16), (-0.05, -0.20, -0.15), 0.02),
+                                                 ((0.046, -0.235, -0.18), (0.074, -0.19, -0.125), 0.025),
+                                                 ((-0.078, -0.205, -0.12), (-0.074, -0.17, -0.13), 0.012)]), goo_material()))
+    obs.append(drips('FangySlime', skin_f, [fr.pt((0.0, -0.21, -0.18)), fr.pt((-0.04, -0.19, -0.185)), fr.pt((0.06, -0.16, -0.185))],
                      np.random.default_rng(5)))
-    return obs, 'A · Sciabola', 'più pesce: il testone del pesce dente di sciabola,\nle zanne fuori dalla bocca che non si chiude;\nfossette per sentire, occhialini affondati'
+    return (obs, *TESTI['A'])
 
 
 # ───────────────────────── B · Molosso ─────────────────────────
@@ -673,15 +796,16 @@ def fangy_b():
     mastino con le labbra che pendono, la mandibola in avanti; le zanne di sopra pendono dalle labbra fin
     sotto il mento, quelle di sotto salgono davanti al labbro. Orecchie umane enormi, girate in avanti ad
     ascoltare; gli occhialini incastrati sotto la fronte grinzosa, una fila di lucine lungo le labbra."""
-    fr = Head((0, -0.16, 0.85), yaw=-18, pitch=8, roll=-7)
+    fr = Head((0, -0.18, 0.855), yaw=-9, pitch=8, roll=-7, scale=1.10)
     cran = sdf.ellipsoid(V(0, 0.035, 0.05), (0.122, 0.14, 0.125))
-    brow = sdf.ellipsoid(V(0, -0.078, 0.07), (0.10, 0.065, 0.058))
+    brow = sdf.ellipsoid(V(0, -0.078, 0.088), (0.10, 0.06, 0.05))
+    eyes_plane = sdf.ellipsoid(V(0, -0.10, 0.03), (0.11, 0.065, 0.06))       # la faccia sotto la fronte, dove stanno le lenti
     muzzle = sdf.ellipsoid(V(0, -0.142, -0.032), (0.105, 0.085, 0.07))
     flews = sdf.union(*[sdf.ellipsoid(V(s * 0.072, -0.152, -0.10), (0.05, 0.062, 0.07)) for s in (-1, 1)])
     jaw = sdf.union(sdf.ellipsoid(V(0, -0.135, -0.152), (0.088, 0.105, 0.04)), sdf.sphere(V(0, -0.212, -0.155), 0.034), k=0.02)
     nose = sdf.ellipsoid(V(0, -0.207, 0.0), (0.036, 0.03, 0.024))
     cheekbones = sdf.union(*[sdf.sphere(V(s * 0.082, -0.10, 0.005), 0.04) for s in (-1, 1)])
-    base = sdf.union(cran, brow, muzzle, flews, jaw, nose, cheekbones, k=0.035)
+    base = sdf.union(cran, brow, eyes_plane, muzzle, flews, jaw, nose, cheekbones, k=0.035)
 
     def wrinkles(p):
         """Le pieghe della fronte e del muso del mastino."""
@@ -693,25 +817,25 @@ def fangy_b():
         return (fore + 0.7 * muz).astype(F)
 
     head = sdf.displace(base, wrinkles, -0.0045)
-    ears = sdf.union(*[ear(V(s * 0.118, 0.03, -0.022), V(s, 0, 0), V(0, -1, 0), h=0.062, w=0.04, th=0.010) for s in (-1, 1)])
-    add, gcut, gobs = goggles(fr, head, [V(s * 0.052, -0.17, 0.035) for s in (-1, 1)], 0.029, 0.021, strap_up=0.05)
+    ears = sdf.union(*[ear(V(s * 0.132, -0.005, -0.03), V(s, 0, 0), V(0, -1, 0), h=0.09, w=0.06, th=0.012) for s in (-1, 1)])
+    add, gcut, gobs = goggles(fr, head, [V(s * 0.052, -0.18, 0.032) for s in (-1, 1)], 0.029, 0.021, strap_up=0.095)
     head = sdf.union(head, ears, *add, k=0.014)
     nostrils = sdf.union(*[ellipsoid_axes(V(s * 0.014, -0.234, -0.004), (0.006, 0.014, 0.011), V(1, 0, 0), V(0, 1, 0), V(0, 0, 1)) for s in (-1, 1)])
     mouth = sdf.union(sdf.ellipsoid(V(0, -0.168, -0.126), (0.074, 0.075, 0.016)), sdf.ellipsoid(V(0, -0.10, -0.12), (0.06, 0.08, 0.026)))
     cut = sdf.union(nostrils, mouth, *gcut)
 
     def attr_mouth(p):
-        q = (p - fr.pos) @ fr.R
+        q = fr.local(p)
         e = np.linalg.norm((q - V(0, -0.14, -0.126)) / V(0.08, 0.10, 0.026), axis=1)
         return np.clip((1.15 - e) / 0.2, 0, 1).astype(F)
 
     def attr_lips(p):
         """L'orlo livido delle labbra pendenti."""
-        q = (p - fr.pos) @ fr.R
+        q = fr.local(p)
         e = np.linalg.norm((q - V(0, -0.15, -0.125)) / V(0.115, 0.10, 0.04), axis=1)
         return (np.clip(1 - np.abs(e - 1.0) / 0.22, 0, 1) * smooth(-q[:, 1], 0.08, 0.14)).astype(F)
 
-    lights = [(V(s * (0.03 + 0.085 * t), -0.205 + 0.13 * t * t, -0.155 + 0.025 * t), 0.0062) for s in (-1, 1) for t in np.linspace(0.05, 1, 7)]
+    lights = [(p, 0.0066) for s in (-1, 1) for p in arc((s * 0.045, -0.23, -0.13), (s * 0.10, -0.20, -0.125), (s * 0.13, -0.12, -0.10), 6)]
     obs, skin_f = fangy_finish(fr, head, cut, head_lights=lights, attrs_extra={'mouth': attr_mouth, 'labbra': attr_lips})
     obs += gobs
     c0 = fr.pt((0, -0.12, -0.125))
@@ -725,28 +849,28 @@ def fangy_b():
             fangs.append(fang((s * (0.012 + 0.03 * t), -0.236 + 0.02 * t, -0.14), (s * 0.05, -0.2, 1), 0.022, 0.0042))
     obs.append(tubes('FangyFangs', local_curves(fr, fangs), D.needle_teeth()))
     obs.append(tubes('FangyDrool', strands(fr, [((-0.072, -0.205, -0.22), (-0.06, -0.19, -0.16), 0.03),
-                                                 ((0.072, -0.20, -0.26), (0.09, -0.16, -0.16), 0.04)]), skin.slime_material()))
+                                                 ((0.072, -0.20, -0.26), (0.09, -0.16, -0.16), 0.04)]), goo_material()))
     obs.append(drips('FangySlime', skin_f, [fr.pt((s * 0.075, -0.16, -0.17)) for s in (-1, 1)] + [fr.pt((0.0, -0.21, -0.19))],
-                     np.random.default_rng(8), lmin=0.06, lmax=0.14))
-    return obs, 'B · Molosso', 'a metà: muso da mastino che non si chiude,\nle zanne pendono dalle labbra; orecchie\numane enormi, girate in avanti ad ascoltare'
+                     np.random.default_rng(8)))
+    return (obs, *TESTI['B'])
 
 
 # ───────────────────────── C · Bambino ─────────────────────────
 
 def fangy_c():
-    """C · Bambino: la testa tonda di un bambino in piscina, piccola sul corpo enorme, con gli occhialini
-    neri e la frangetta bagnata sotto la cinghia; le orecchie a sventola, la testa piegata ad ascoltare.
-    Ride a bocca aperta, ma la bocca è piena di aghi lunghissimi che pendono fin sotto il mento; sulle
-    guance le lentiggini sono lucine accese."""
-    fr = Head((0, -0.125, 0.875), yaw=-20, pitch=6, roll=11)
+    """C · Bambino: la testa tonda di un bambino in piscina, spinta avanti su un collo lungo e sottile, con
+    gli occhialini neri (la vernice è colata sulla guancia come una lacrima) e la frangetta bagnata sotto la
+    cinghia; le orecchie a sventola, la testa piegata ad ascoltare. La bocca è aperta come a chiamare
+    «Marco!» ma è piena di aghi lunghissimi che pendono fin sotto il mento; sulle guance le lentiggini sono
+    lucine accese."""
+    fr = Head((0, -0.215, 0.85), yaw=-12, pitch=6, roll=12, scale=1.2)
     cran = sdf.sphere(V(0, 0.02, 0.045), 0.112)
     face = sdf.ellipsoid(V(0, -0.045, -0.035), (0.092, 0.08, 0.095))
     cheeks = sdf.union(*[sdf.sphere(V(s * 0.056, -0.087, -0.05), 0.040) for s in (-1, 1)])
     chin = sdf.sphere(V(0, -0.092, -0.112), 0.028)
     nose = sdf.union(sdf.sphere(V(0, -0.128, -0.006), 0.0135), sdf.round_cone(V(0, -0.112, 0.03), V(0, -0.126, -0.0), 0.010, 0.012), k=0.01)
-    lips = oval_ring(V(0, -0.112, -0.068), V(1, 0, 0), V(0, 0, 1), V(0, -1, 0), 0.040, 0.022, 0.0065)
+    lips = oval_ring(V(0, -0.121, -0.068), V(1, 0, 0), V(0, 0, 1), V(0, -1, 0), 0.040, 0.022, 0.0065)
     base = sdf.union(cran, face, cheeks, chin, nose, lips, k=0.022)
-    ears = sdf.union(*[ear(V(s * 0.108, 0.005, -0.008), V(s, 0, 0), V(0, -0.6, 0), h=0.042, w=0.029, th=0.008) for s in (-1, 1)])
     # i capelli bagnati, a scodella: un guscio sul cranio, più basso dietro, con le ciocche
     hair_shell = sdf.intersect(sdf.subtract(sdf.sphere(V(0, 0.02, 0.045), 0.124), sdf.sphere(V(0, 0.02, 0.045), 0.104)),
                                D.above(V(0, -0.10, 0.066), (0, 0.45, 1.0)))
@@ -756,21 +880,23 @@ def fangy_c():
         return ((0.5 + 0.5 * np.cos(ang * 22.0 + 6.0 * p[:, 2])) ** 2).astype(F)
 
     hair = sdf.displace(hair_shell, locks, -0.004)
+    ears = sdf.union(*[ear(V(s * 0.116, 0.0, -0.01), V(s, 0, 0), V(0, -0.5, 0), h=0.048, w=0.034, th=0.008) for s in (-1, 1)])
+    hair = sdf.subtract(hair, sdf.union(*[sdf.sphere(V(s * 0.12, 0.0, -0.01), 0.045) for s in (-1, 1)]), k=0.006)
     hair_snap = sdf.union(base, hair)
     add, gcut, gobs = goggles(fr, base, [V(s * 0.040, -0.104, 0.024) for s in (-1, 1)], 0.026, 0.019, strap_up=0.035,
-                              strap_r=0.0048, snap_field=hair_snap)
+                              width=0.013, snap_field=hair_snap, swell=False, paint_drips=(0,))
     head = sdf.union(base, ears, *add, k=0.012)
     mouth = sdf.union(sdf.ellipsoid(V(0, -0.115, -0.068), (0.034, 0.03, 0.015)), sdf.ellipsoid(V(0, -0.075, -0.066), (0.03, 0.05, 0.022)))
     nostrils = sdf.union(*[sdf.sphere(V(s * 0.0075, -0.137, -0.015), 0.0045) for s in (-1, 1)])
     cut = sdf.union(mouth, nostrils, *gcut)
 
     def attr_mouth(p):
-        q = (p - fr.pos) @ fr.R
+        q = fr.local(p)
         e = np.linalg.norm((q - V(0, -0.10, -0.068)) / V(0.036, 0.05, 0.017), axis=1)
         return np.clip((1.1 - e) / 0.2, 0, 1).astype(F)
 
     def attr_lips(p):
-        q = (p - fr.pos) @ fr.R
+        q = fr.local(p)
         e = np.sqrt((q[:, 0] / 0.040) ** 2 + ((q[:, 2] + 0.068) / 0.022) ** 2)
         return (np.clip(1 - np.abs(e - 1.0) / 0.45, 0, 1) * smooth(-q[:, 1], 0.09, 0.11)).astype(F)
 
@@ -787,31 +913,32 @@ def fangy_c():
                                attrs_extra={'mouth': attr_mouth, 'labbra': attr_lips})
     obs += gobs
     hp = fr.pos
-    obs.append(D.mesh('FangyHair', fr.field(sdf.subtract(hair, sdf.union(*gcut), k=0.002)), hp - 0.2, hp + 0.2, D.wet_hair(), res=0.0024))
+    obs.append(skin_mesh('FangyHair', fr.field(sdf.subtract(hair, sdf.union(*gcut), k=0.002)), hp - 0.27, hp + 0.27, D.wet_hair(), res=0.0024))
     # la frangetta: ciocche appiccicate alla fronte fino al bordo degli occhialini
     locks_c = []
-    for x in np.linspace(-0.07, 0.07, 9):
-        p0 = V(x * 0.8, -0.075, 0.115)
-        p1 = V(x, -0.105, 0.085)
-        p2 = V(x * 1.08, -0.116, 0.056 + 0.006 * math.cos(x * 60))
+    for x, L in ((-0.066, 0.9), (-0.04, 1.0), (-0.012, 0.8), (0.015, 1.0), (0.042, 0.85), (0.068, 0.95)):
+        p0 = V(x * 0.85, -0.07, 0.118)
+        p1 = V(x * 1.0, -0.102, 0.092)
+        p2 = V(x * 1.05 + 0.006, -0.114, 0.072 - 0.014 * L)
         q, n = snap(base, [p0, p1, p2])
-        locks_c.append((np.array([fr.pt(v) for v in q + n * 0.004]), np.array([0.0085, 0.0075, 0.0035])))
-    obs.append(tubes('FangyFringe', locks_c, D.wet_hair(), m=8))
+        P = catmull(q + n * 0.005, 4)
+        locks_c.append((np.array([fr.pt(v) for v in P]), np.linspace(0.0125, 0.004, len(P))))
+    obs.append(tubes('FangyFringe', locks_c, D.wet_hair(), m=10))
     c0 = fr.pt((0, -0.09, -0.068))
     obs.append(D.mesh('FangyThroat', fr.field(sdf.ellipsoid(V(0, -0.09, -0.068), (0.03, 0.04, 0.014))), c0 - 0.08, c0 + 0.08, D.dark_throat(), res=0.002))
     fangs = []
     for s in (-1, 1):
-        fangs.append(fang((s * 0.013, -0.108, -0.058), (s * 0.06, -0.33, -1), 0.17, 0.0055, bend=(0, 0.02, 0)))
-        fangs.append(fang((s * 0.029, -0.103, -0.060), (s * 0.15, -0.30, -1), 0.13, 0.0048, bend=(0, 0.015, 0)))
-        fangs.append(fang((s * 0.021, -0.106, -0.078), (s * 0.10, -0.32, 1), 0.07, 0.0042, bend=(0, 0.01, 0)))
+        fangs.append(fang((s * 0.013, -0.115, -0.057), (s * 0.06, -0.45, -1), 0.17, 0.0078, bend=(0, 0.025, 0)))
+        fangs.append(fang((s * 0.030, -0.112, -0.059), (s * 0.15, -0.42, -1), 0.12, 0.0062, bend=(0, 0.018, 0)))
+        fangs.append(fang((s * 0.021, -0.114, -0.080), (s * 0.10, -0.42, 1), 0.07, 0.0058, bend=(0, 0.012, 0)))
         for t in np.linspace(0.0, 1.0, 3):
             fangs.append(fang((s * (0.006 + 0.02 * t), -0.112, -0.060), (0, -0.2, -1), 0.010, 0.0030))
             fangs.append(fang((s * (0.008 + 0.02 * t), -0.112, -0.077), (0, -0.2, 1), 0.009, 0.0028))
     obs.append(tubes('FangyFangs', local_curves(fr, fangs), D.needle_teeth()))
     obs.append(tubes('FangyDrool', strands(fr, [((-0.013, -0.15, -0.20), (-0.006, -0.12, -0.085), 0.02),
-                                                 ((0.029, -0.135, -0.18), (0.02, -0.12, -0.085), 0.015)], r=0.0016), skin.slime_material()))
-    obs.append(drips('FangySlime', skin_f, [fr.pt((0.0, -0.108, -0.135)), fr.pt((0.02, -0.10, -0.13))], np.random.default_rng(3), lmin=0.03, lmax=0.07))
-    return obs, 'C · Bambino', 'più bambino: la testa tonda di un bambino in\npiscina, occhialini neri e frangetta bagnata;\nride, e la bocca è piena di aghi lunghissimi'
+                                                 ((0.029, -0.135, -0.18), (0.02, -0.12, -0.085), 0.015)], r=0.0016), goo_material()))
+    obs.append(drips('FangySlime', skin_f, [fr.pt((0.0, -0.108, -0.135)), fr.pt((0.02, -0.10, -0.13))], np.random.default_rng(3)))
+    return (obs, *TESTI['C'])
 
 
 # ───────────────────────── scena ─────────────────────────
@@ -825,6 +952,11 @@ D.CREATURES['fangy'] = {
 
 
 if __name__ == '__main__':
+    if '--tavola' in sys.argv:
+        # solo la tavola, dai pannelli già in cache (dopo aver rifatto un pannello con --only)
+        panels = [(os.path.join(D.TMP, f'fangy_{k}.png'), *TESTI[k]) for k in 'ABC']
+        print('tavola', D.compose('fangy', panels), flush=True)
+        sys.exit(0)
     only = None
     if '--only' in sys.argv:
         only = 'ABC'.index(sys.argv[sys.argv.index('--only') + 1])

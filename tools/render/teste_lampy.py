@@ -11,7 +11,8 @@ pesante (l'utente la vuole più grossa della sagoma). La lenza è nella scena co
 Bozze di studio: non sono i modelli definitivi del gioco. Usa materiali, luci, render e tavola di
 dettagli.py, che resta com'è: la creatura si registra in D.CREATURES quando il modulo viene caricato.
 
-Uso: tools/.venv/bin/python tools/render/teste_lampy.py [--fast] [--only A|B|C]
+Uso: tools/.venv/bin/python tools/render/teste_lampy.py [--fast] [--only A|B|C | --tavola]
+(--tavola ricompone la tavola dai pannelli in cache, dopo averne rifatto uno con --only)
 """
 from __future__ import annotations
 
@@ -32,9 +33,16 @@ from common import set_lightgroup  # noqa: E402
 from creature import sdf_object, skin_material, teeth_material  # noqa: E402
 from dettagli import Frame, V, chain, ellipsoid_rot, mat_simple, torus_axis, unit  # noqa: E402
 from geo import catmull, rbox, tube  # noqa: E402
+from nodes import material  # noqa: E402
 
 F = np.float32
 FAST = D.FAST
+
+TESTI = {
+    'A': ('A · Lampreda', 'più pesce: un cranio enorme e tondo, davanti\nla ventosa con gli anelli di denti gialli;\nla cuffia a fiori si è strappata dove è cresciuto'),
+    'B': ('B · Bacio', 'a metà: il cranio da neonato sotto la cuffia,\nocchi tondi senza palpebre; la ventosa è una\nbocca enorme a bacio, con anelli di denti da latte'),
+    'C': ('C · Bambina', 'più bambina: un testone da bimba piccola,\nla cuffia allacciata sotto il mento; ride a occhi\nstretti e la bocca è una O piena di dentini'),
+}
 SKIN_RES = 0.0045 if FAST else 0.003      # la pelle si estrae a fasce (sdf.mesh_banded): pori e anelli restano
 
 # ───────────────────────── la lenza ─────────────────────────
@@ -271,16 +279,28 @@ class Arch:
         return bounded(sdf.union(*rims), c, R), bounded(sdf.union(*holes), c, R)
 
 
-def drips(name, field, anchors, rng, lmin=0.05, lmax=0.13):
-    """Bava che cola dai punti più bassi (posati sulla superficie): gocce lunghe di melma."""
+def goo_material():
+    """La melma delle gocce: verdognola e lattiginosa, lucidissima. Meno trasparente della melma di skin.py,
+    così nella bozza le gocce si leggono come bava e non come spine di vetro."""
+    m = bpy.data.materials.get('LampyGoo')
+    if m:
+        return m
+    m, g = material('LampyGoo')
+    g.output_material(g.principled(color=(0.62, 0.74, 0.50), rough=0.04, transmission=0.45, ior=1.36, coat=1.0, coat_rough=0.01,
+                                   sss=0.5, sss_radius=(0.6, 0.8, 0.4), sss_scale=0.01))
+    return m
+
+
+def drips(name, field, anchors, rng, lmin=0.035, lmax=0.075):
+    """Bava che cola dai punti più bassi (posati sulla superficie): gocce grasse di melma, appese."""
     pts, _ = snap(field, anchors)
     parts = []
     for q in pts:
         L = rng.uniform(lmin, lmax)
-        parts.append(skin.drip(q + V(0, 0, 0.006), L, r0=0.0075, r1=rng.uniform(0.010, 0.014)))
+        parts.append(skin.drip(q + V(0, 0, 0.006), L, r0=0.0085, r1=rng.uniform(0.012, 0.016)))
     lo, hi = pts.min(0) - 0.03, pts.max(0) + 0.03
     lo[2] -= lmax + 0.03
-    return D.mesh(name, sdf.union(*parts), lo, hi, skin.slime_material(), res=0.0025)
+    return D.mesh(name, sdf.union(*parts), lo, hi, goo_material(), res=0.0025)
 
 
 def lampy_finish(fr, head_local, cut_local=None, head_r=0.42, neck_r=0.15, attrs_extra=None, drip_local=()):
@@ -319,12 +339,26 @@ def lampy_finish(fr, head_local, cut_local=None, head_r=0.42, neck_r=0.15, attrs
 
 # ───────────────────────── la cuffia a fiori ─────────────────────────
 
+def rubber(name, color, dirt=0.35, stain=(0.55, 0.55, 0.40)):
+    """Gomma da piscina lucida di bagnato, appena macchiata: le macchie sono leggere perché la cuffia
+    resti bianca e i fiori rosa anche in ombra, e si leggano sul viola."""
+    m = bpy.data.materials.get(name)
+    if m:
+        return m
+    m, g = material(name)
+    co = g.texcoord('Object')
+    n = g.noise(co, scale=9.0, detail=4.0, rough=0.6)
+    col = g.mix(g.mul(g.smoothstep(0.58, 0.80, n.fac), dirt), color, stain)
+    g.output_material(g.principled(color=col, rough=0.36, coat=0.5, coat_rough=0.08, spec=0.5))
+    return m
+
+
 def cap_material():
-    """Gomma bianca, ingiallita e macchiata d'alga."""
-    return D.vinyl('CapWhite', (0.80, 0.78, 0.72), stain=(0.30, 0.30, 0.18))
+    """Gomma bianca, appena ingiallita e macchiata d'alga."""
+    return rubber('CapWhite', (0.90, 0.89, 0.85))
 
 
-FLOWER_COLS = [((0.95, 0.10, 0.42), 'CapFlowerFuchsia'), ((0.98, 0.42, 0.62), 'CapFlowerRose'), ((0.92, 0.20, 0.50), 'CapFlowerPink')]
+FLOWER_COLS = [((1.0, 0.14, 0.50), 'CapFlowerFuchsia'), ((1.0, 0.50, 0.72), 'CapFlowerRose'), ((0.98, 0.27, 0.60), 'CapFlowerPink')]
 
 
 def flower(c, n, size, petals=6):
@@ -362,8 +396,8 @@ def swim_cap(fr, center, radii, plane_q, plane_n, flowers, thick=0.0045, tear=No
     for k, ((d, size, ci), q, n) in enumerate(zip(flowers, pts, nrm)):
         pf, bt = flower(q, n, size)
         col, nm = FLOWER_COLS[ci]
-        obs.append(D.mesh(f'{name}Flower{k}', pf, q - size * 1.4, q + size * 1.4, D.vinyl(nm, col, stain=(0.3, 0.3, 0.18)), res=size / 14))
-        obs.append(D.mesh(f'{name}Button{k}', bt, q - size * 0.6, q + size * 0.6, D.vinyl('CapFlowerCenter', (0.88, 0.86, 0.80), stain=(0.3, 0.3, 0.18)), res=size / 16))
+        obs.append(D.mesh(f'{name}Flower{k}', pf, q - size * 1.4, q + size * 1.4, rubber(nm, col, dirt=0.25), res=size / 14))
+        obs.append(D.mesh(f'{name}Button{k}', bt, q - size * 0.6, q + size * 0.6, rubber('CapFlowerCenter', (0.95, 0.93, 0.88), dirt=0.25), res=size / 16))
     return obs
 
 
@@ -420,8 +454,10 @@ def cap_tear(d, length=0.15):
     return oriented(c, (0.04, length, 0.032), n), oriented(c - n * 0.004, (0.034, length * 1.05, 0.036), n)
 
 
-TEAR_A = V(-0.50, 0.02, 0.87)      # dove la cuffia di A si è strappata (in alto, dalla parte di chi guarda)
-CAP_Q, CAP_N = (0, -0.03, 0.0), (0, 1.0, 0.75)   # l'orlo della cuffia: dietro gli occhi, sulla fronte
+TEAR_A = V(-0.12, 0.15, 0.98)      # dove la cuffia di A si è strappata: in cima al cranio, sul profilo, così
+                                    # da chi guarda si vedono lo strappo e la cuffia a fiori sul lato
+CAP_Q_A = (0, -0.075, 0.0)          # in A la cuffia arriva più avanti sulla fronte
+CAP_N = (0, 1.0, 0.75)              # l'orlo della cuffia, inclinato: sulla fronte davanti, sulla nuca dietro
 
 
 def lampy_a():
@@ -431,7 +467,7 @@ def lampy_a():
     cran = sdf.ellipsoid(CRAN_C, CRAN_R)
     snout = sdf.round_cone(V(0, -0.16, 0), V(0, -0.27, 0), 0.20, 0.18)
     rim, cavity = disc_funnel(-0.30, 0.150, 0.046, (0, -0.39, 0), (0.128, 0.16, 0.128), fringe=64, fringe_r=0.0105)
-    tear, bulge = cap_tear(TEAR_A)
+    tear, bulge = cap_tear(TEAR_A, length=0.12)
     head = sdf.union(cran, snout, rim, bulge, k=0.045)
     throat = sdf.capsule(V(0, -0.22, 0), V(0, 0.02, 0), 0.030)
     cut = sdf.union(cavity, throat)
@@ -459,9 +495,9 @@ def lampy_a():
     for sx in (-1, 1):
         q, n = snap(head_w, [fr.pt(CRAN_C + unit(V(sx * 0.85, -0.48, 0.15)) * 0.32)])
         obs += D.eyes(f'LampyEye{sx}', [q[0] - n[0] * 0.012], 0.025, n[0] + fr.dir((0, -0.5, 0)))
-    flowers = [f for f in cap_flowers(CRAN_C, CAP_Q, CAP_N) if unit(V(*f[0])) @ unit(TEAR_A) < 0.93]
-    obs += swim_cap(fr, CRAN_C, CRAN_R, CAP_Q, CAP_N, flowers, tear=tear)
-    return obs, 'A · Lampreda', 'più pesce: un cranio enorme e tondo, davanti\nla ventosa con gli anelli di denti gialli;\nla cuffia a fiori si è strappata dove è cresciuto'
+    flowers = [f for f in cap_flowers(CRAN_C, CAP_Q_A, CAP_N, n=52, margin=0.035) if unit(V(*f[0])) @ unit(TEAR_A) < 0.95]
+    obs += swim_cap(fr, CRAN_C, CRAN_R, CAP_Q_A, CAP_N, flowers, tear=tear)
+    return (obs, *TESTI['A'])
 
 
 # ───────────────────────── B · Bacio ─────────────────────────
@@ -524,7 +560,7 @@ def lampy_b():
     obs += D.eyes('LampyEye', [fr.pt((sx * 0.10, -0.242, 0.082)) for sx in (-1, 1)], 0.036, fr.dir((0, -1, -0.05)))
     flowers = cap_flowers(V(0, 0.03, 0.05), CAP_Q_B, CAP_N)
     obs += swim_cap(fr, V(0, 0.03, 0.05), (0.28, 0.28, 0.29), CAP_Q_B, CAP_N, flowers)
-    return obs, 'B · Bacio', 'a metà: il cranio da neonato sotto la cuffia,\nocchi tondi senza palpebre; la ventosa è una\nbocca enorme a bacio, con anelli di denti da latte'
+    return (obs, *TESTI['B'])
 
 
 CAP_Q_B = (0, -0.10, 0.0)
@@ -600,7 +636,7 @@ def lampy_c():
             strands.append(D.hair_clump(list(q + nn * 0.004), 0.0075, 0.0025))
     hp = fr.pos
     obs.append(D.mesh('LampyHair', sdf.union(*strands, k=0.004), hp - 0.36, hp + 0.36, D.wet_hair(), res=0.0026))
-    return obs, 'C · Bambina', 'più bambina: un testone da bimba piccola,\nla cuffia allacciata sotto il mento; ride a occhi\nstretti e la bocca è una O piena di dentini'
+    return (obs, *TESTI['C'])
 
 
 CAP_Q_C = (0, -0.14, 0.03)
@@ -617,6 +653,11 @@ D.CREATURES['lampy'] = {
 
 
 if __name__ == '__main__':
+    if '--tavola' in sys.argv:
+        # solo la tavola, dai pannelli già in cache (dopo aver rifatto un pannello con --only)
+        panels = [(os.path.join(D.TMP, f'lampy_{k}.png'), *TESTI[k]) for k in 'ABC']
+        print('tavola', D.compose('lampy', panels), flush=True)
+        sys.exit(0)
     only = None
     if '--only' in sys.argv:
         only = 'ABC'.index(sys.argv[sys.argv.index('--only') + 1])
