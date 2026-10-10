@@ -14,7 +14,7 @@ I pescatori devono **sfamare la Madre con i pesci**. Se non lo fanno, lei si pre
 
 - **Mama Marina's Splashland** apre nel 1989 sulla riva della baia. La mascotte è **Mama Marina**, una balena-mamma da cartone animato che abbraccia dei pesciolini, con lo slogan *"Mama Marina loves her little ones!"*: è la versione pubblicitaria della Madre. Una statua enorme di lei accoglie i visitatori.
 - **Agosto 1997**, la "Night Splash": il parco resta aperto di notte e in tre notti spariscono tre bambini. Il parco chiude per sempre; nel 2001 una mareggiata lo allaga per metà.
-- **Dopo il 1997** (10 ottobre, da approvare nel render): ogni volta che una barca non porta la quota, la Madre si prende un altro bambino della costa. Le loro foto si aggiungono a quelle del 1997 sull'edicola votiva dello scoglio; i mostri delle notti che verranno sono loro.
+- **Dopo il 1997** (10 ottobre, approvato): ogni volta che una barca non porta la quota, la Madre si prende un altro bambino della costa. Le loro foto si aggiungono a quelle del 1997 sull'edicola votiva dello scoglio; i mostri delle notti che verranno sono loro.
 - Oggi Splashland è **alle spalle del pescatore**: gli scivoli contorti, l'insegna che sfarfalla, la statua di Mama Marina scrostata e senza un occhio, la ruota panoramica ferma, le luci della piscina più profonda (la Deep End) ancora accese sott'acqua.
 
 ## Le creature
