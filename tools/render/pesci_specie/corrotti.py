@@ -355,7 +355,9 @@ def _campo_sorriso(c, f):
         x, z = p[:, 0], p[:, 2]
         hh = _sorriso_alto(x)
         banda = np.abs(z - _sorriso_z(sh, x)) - hh
-        out = c.P.sdf.smax(d, -np.maximum(banda, -(d + s['prof'])), 0.0015)
+        # il taglio sta fra gli angoli della bocca (fuori la lente ha apertura zero, ma lo smax lascerebbe un solco)
+        fuori = np.maximum(x - s['x1'], s['x0'] - x)
+        out = c.P.sdf.smax(d, -np.maximum(np.maximum(banda, fuori), -(d + s['prof'])), 0.0015)
         vicino = np.clip(1 - np.abs(d) / 0.006, 0, 1) * np.clip(hh / 0.003, 0, 1)
         return out - 0.0013 * np.exp(-((banda - 0.0012) / 0.0016) ** 2) * vicino
     return g
@@ -646,8 +648,8 @@ SPECIE['scorfano_pece'] = Specie(
 # «Le scritte si leggono: sono date. L'ultima è di stanotte»: sulla testa le date scritte a mano, a onde come
 # i ghirigori (un'immagine fatta con PIL e dipinta sul fianco della testa): le tre notti della Night Splash,
 # le altre dopo, e l'ultima, ancora fresca, rosso scuro.
-_DATE_SCRIVANO = (('14·8·1997', 0.05, 0.46, 8), ('15·8·1997', 0.52, 0.72, -3), ('16·8·1997', 0.53, 0.585, -1),
-                  ('3·11·2004', 0.53, 0.45, 1), ('21·6·2013', 0.5, 0.315, -2), ('10·10·2026', 0.42, 0.18, 3))
+_DATE_SCRIVANO = (('14·8·1997', 0.05, 0.46, 8), ('15·8·1997', 0.54, 0.665, -2), ('16·8·1997', 0.53, 0.54, -1),
+                  ('3·11·2004', 0.53, 0.415, 1), ('21·6·2013', 0.5, 0.29, -2), ('10·10·2026', 0.42, 0.165, 3))
 _TESTA_SCRIVANO = (0.015, 0.26, -0.075, 0.09)       # il riquadro della testa dove si scrive: x0, x1, z0, z1
 
 
@@ -1013,11 +1015,12 @@ def _bocche_geometria(c):
 
 
 def _bocca_lente(p, xc, zc, W, H):
-    """Distanza (in z) dalla lente della bocca: negativa dentro; la linea di mezzo scende agli angoli."""
+    """Distanza (in z) dalla lente della bocca: negativa dentro; la linea di mezzo scende agli angoli. Fuori
+    dagli angoli cresce con la distanza (se no lo smax del taglio lascerebbe un solco lungo la parabola)."""
     dx = (p[:, 0] - xc) / W
     zm = zc - 0.45 * H * dx * dx
     hh = H * np.clip(1 - dx * dx, 0, 1) ** 0.7
-    return np.abs(p[:, 2] - zm) - hh, hh
+    return np.maximum(np.abs(p[:, 2] - zm) - hh, (np.abs(dx) - 1.0) * W), hh
 
 
 def _campo_bocchenere(c, f):

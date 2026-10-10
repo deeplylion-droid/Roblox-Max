@@ -380,12 +380,18 @@ class Body:
         return d - 0.0018 * np.exp(-((rr - 1.0) / 0.07) ** 2) * vicino
 
     def mouth_attr(self, p):
-        """1 sulle superfici tagliate della bocca aperta (dentro il corpo originale), 0 sulla pelle."""
+        """1 sulle superfici tagliate della bocca aperta (dentro il corpo originale), 0 sulla pelle. Solo vicino
+        ai tagli della bocca: i solchi scavati dopo (opercolo, orbite, pori) stanno anche loro dentro il corpo
+        originale, ma restano pelle."""
+        sh = self.sh
         base = self.raw()
         du, (dl, q) = self.upper(p), self.lower(p)
         on_upper = np.abs(du) <= np.abs(dl)
         inside = np.where(on_upper, base(p), base(q))
-        return np.clip(-inside / 0.003, 0, 1).astype(F)
+        taglio_su = np.abs(np.minimum(self.mouth_line(p[:, 0]) - p[:, 2], sh.mouth_t - p[:, 0]))
+        taglio_giu = np.abs(np.maximum(q[:, 2] - self.mouth_line(q[:, 0]), q[:, 0] - sh.mouth_t))
+        vicino = np.clip(1 - (np.where(on_upper, taglio_su, taglio_giu) - 0.003) / 0.004, 0, 1)
+        return (np.clip(-inside / 0.003, 0, 1) * vicino).astype(F)
 
     def eye_center(self, side=-1):
         sh = self.sh
@@ -606,9 +612,11 @@ def piastra(body: Body, fin: Fin, side=-1):
             out[m] = np.minimum(np.maximum(d2, wy), 0) + np.sqrt(np.maximum(d2, 0) ** 2 + np.maximum(wy, 0) ** 2)
         return out
     if a_mondo is not None:
+        # il riquadro nel mondo ha nomi suoi: lo e hi restano quelli del telaio delle pinne, che il campo usa
+        # (riassegnarli tagliava le pinne carnose della coda delle razze allo spessore della coda)
         cc = np.array([[a, b, c] for a in (lo[0], hi[0]) for b in (lo[1], hi[1]) for c in (lo[2], hi[2])], F)
         cc = a_mondo(cc)
-        lo, hi = cc.min(0), cc.max(0)
+        return f, cc.min(0), cc.max(0)
     return f, lo, hi
 
 
@@ -1825,8 +1833,8 @@ def glitch_post(img, seed=11, doppio=0.035, bande=9, separa=0.006, blocchi=4, ri
         s = max(4, int(W * 0.008))
         small = blk[::s, ::s]
         out[y0:y0 + bh, x0:x0 + bw] = np.repeat(np.repeat(small, s, axis=0), s, axis=1)[:blk.shape[0], :blk.shape[1]]
-    # righe
-    out[::3, :, :3] *= righe
+    # righe (ogni 3 px nelle anteprime da 800, in proporzione nei finali)
+    out[::max(3, round(3 * W / 800)), :, :3] *= righe
     if effetti:
         out = effetti_glitch(np.clip(out, 0, 1), seed=seed + 1, **effetti)
     return np.clip(out, 0, 1)
@@ -1888,12 +1896,15 @@ def effetti_glitch(img, seed=12, saturazione=1.0, sfocatura=0.0, onda=0.0, copie
             if rng.random() < tinta_bande:
                 out[y:y + h, :, :3] = _tinta(out[y:y + h, :, :3], rng.uniform(60, 300))
             y += h
+    # le misure in pixel (pixel, puntini, la grana della neve) sono tarate sulle anteprime da 800 px: nei finali
+    # scalano con la larghezza, così vengono come nelle anteprime
+    k = W / 800.0
     if pixel:
-        p = int(pixel)
+        p = max(1, round(pixel * k))
         small = out[::p, ::p]
         out = np.repeat(np.repeat(small, p, axis=0), p, axis=1)[:H, :W]
     if puntini:
-        c = int(puntini)
+        c = max(2, round(puntini * k))
         yy, xx = np.mgrid[0:H, 0:W]
         cy, cx = (yy // c) * c + c / 2, (xx // c) * c + c / 2
         small = out[::c, ::c]
@@ -1909,7 +1920,9 @@ def effetti_glitch(img, seed=12, saturazione=1.0, sfocatura=0.0, onda=0.0, copie
         out[dispari, :, 3] *= 1 - interlacciato
         out[dispari, :, :3] *= 1 - interlacciato * 0.5
     if neve:
-        n = rng.random((H, W)).astype(np.float32)
+        g = max(1, round(k))
+        n = rng.random((-(-H // g), -(-W // g))).astype(np.float32)
+        n = np.repeat(np.repeat(n, g, axis=0), g, axis=1)[:H, :W]
         a = out[..., 3] * neve
         out[..., :3] = out[..., :3] * (1 - a[..., None]) + n[..., None] * a[..., None]
     if buchi:

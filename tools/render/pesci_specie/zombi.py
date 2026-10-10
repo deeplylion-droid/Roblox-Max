@@ -366,25 +366,30 @@ def _terzo_occhio(c):
     verso il lato cieco; guarda fuori dal bordo e un poco dall'altra parte."""
     zc, h, _ = _sezione(c, 0.12)
     r = 0.016
-    return np.array((0.12, 0.002, zc - h - r * 0.05), F32), r, (-0.3, -0.12, -1.0)
+    # lo sguardo: fuori dal bordo e dritto verso la camera, una volta coricato il pesce (roll −38 del piano)
+    return np.array((0.12, 0.002, zc - h - r * 0.05), F32), r, (-0.15, -0.75, -0.65)
 
 
 def _campo_sogliola(c, f):
-    """Il gonfiore di carne sul bordo dove spunta il terzo occhio, con la sua orbita."""
+    """Il gonfiore di carne sul bordo dove spunta il terzo occhio, con la sua orbita: il gonfiore sta dietro
+    l'occhio (dalla parte opposta allo sguardo), così l'occhio ne esce per metà."""
     sdf = c.P.sdf
-    cen, r, _ = _terzo_occhio(c)
-    sc = np.array((1.0 / 1.4, 1.0 / 1.05, 1.0), F32)
+    cen, r, sguardo = _terzo_occhio(c)
+    L = np.array(sguardo, F32)
+    L /= np.linalg.norm(L)
+    dietro = cen - L * r * 0.8
+    sc = np.array((1.0 / 1.45, 1.0 / 1.2, 1.0 / 1.2), F32)
 
     def g(p):
-        d = sdf.smin(f(p), np.linalg.norm((p - cen) * sc, axis=1) - r * 1.35, 0.01)
+        d = sdf.smin(f(p), np.linalg.norm((p - dietro) * sc, axis=1) - r * 1.25, 0.01)
         return sdf.smax(d, -(np.linalg.norm(p - cen, axis=1) - r * 1.05), 0.002).astype(F32)
     return g
 
 
 def _occhio_in_piu(c):
     cen, r, sguardo = _terzo_occhio(c)
-    mat = _mat_occhio(c, 'OcchioCieco', sclera=(0.74, 0.7, 0.62), iride=(0.5, 0.52, 0.46), pupilla=(0.24, 0.25, 0.23),
-                      iride_r=0.62, pupilla_r=0.3, capillari=1.0, velo=0.25)
+    mat = _mat_occhio(c, 'OcchioCieco', sclera=(0.74, 0.7, 0.62), iride=(0.45, 0.48, 0.42), pupilla=(0.1, 0.1, 0.095),
+                      iride_r=0.62, pupilla_r=0.34, capillari=1.0, velo=0.2)
     c.obs.append(c.P.eyeball('TerzoOcchio', tuple(map(float, cen)), r, mat, look=sguardo, col=c.P.COL))
 
 
@@ -760,10 +765,10 @@ def _mat_bende(c):
     _, w2 = g.wave(co, scale=260.0, kind='BANDS', axis='Z', distortion=0.6)
     trama = g.mul(g.smoothstep(0.3, 0.7, w1), g.smoothstep(0.3, 0.7, w2))
     n = g.noise(co, scale=25.0, detail=5.0, rough=0.6)
-    col = g.mix(g.smoothstep(0.4, 0.75, n.fac), (0.014, 0.013, 0.012), (0.04, 0.036, 0.031))
-    col = g.mix(g.mul(trama, 0.6), col, (0.08, 0.074, 0.064))
+    col = g.mix(g.smoothstep(0.4, 0.75, n.fac), (0.008, 0.008, 0.008), (0.024, 0.023, 0.021))
+    col = g.mix(g.mul(trama, 0.6), col, (0.05, 0.048, 0.044))
     polvere = g.noise(co, scale=60.0, detail=3.0)
-    col = g.mix(g.mul(g.smoothstep(0.6, 0.75, polvere.fac), 0.5), col, (0.16, 0.15, 0.13))      # la polvere della tomba
+    col = g.mix(g.mul(g.smoothstep(0.64, 0.78, polvere.fac), 0.35), col, (0.11, 0.105, 0.1))      # la polvere della tomba
     nrm = g.bump(g.add(trama, g.mul(n.fac, 0.5)), strength=0.35, distance=0.0012)
     g.output_material(g.principled(color=col, rough=0.9, normal=nrm, spec=0.25, sheen=0.25, sheen_tint=(0.35, 0.33, 0.3)))
     return m
@@ -858,8 +863,8 @@ def _campo_gatto(c, f):
 
 
 def _gatto_morto(c):
-    _occhi(c, _mat_occhio(c, 'OcchioGatto', sclera=(0.55, 0.55, 0.45), sclera2=(0.68, 0.66, 0.56), iride=(0.62, 0.62, 0.5),
-                          pupilla=(0.3, 0.31, 0.28), iride_r=0.86, pupilla_r=0.3, fessura='slit_v', velo=0.45))
+    _occhi(c, _mat_occhio(c, 'OcchioGatto', sclera=(0.55, 0.55, 0.45), sclera2=(0.68, 0.66, 0.56), iride=(0.6, 0.6, 0.46),
+                          pupilla=(0.07, 0.07, 0.065), iride_r=0.86, pupilla_r=0.34, fessura='slit_v', velo=0.3))
     _punti_cucitura(c, _gatto_cucitura(c), quanti=11, seme=28)
 
 
@@ -1023,7 +1028,7 @@ def _campo_pastinaca(c, f):
         x = p[:, 0]
         fuori = np.clip(z - 0.07, 0, None)
         # i bordi delle ali cascano verso il fondo (+Y, il lato del ventre), ondulati come uno straccio bagnato
-        cade = 1.5 * fuori ** 2 + 0.006 * np.sin(x * 34.0 + z * 20.0) * np.clip(fuori / 0.06, 0, 1)
+        cade = 2.4 * fuori ** 2 + 0.011 * np.sin(x * 30.0 + z * 18.0) * np.clip(fuori / 0.07, 0, 1)
         q = p.copy()
         q[:, 1] -= cade
         d = f(q)
@@ -1532,13 +1537,13 @@ SPECIE['raccapricciola'] = Specie(
               Fin('pelvic', 0.3, 0.315, PELVICA, 0.08, 6)]),
     aspetto=Look(back=(0.24, 0.26, 0.26), flank=(0.52, 0.52, 0.48), belly=(0.74, 0.73, 0.7), fin=(0.2, 0.2, 0.2),
                  iris=(0.75, 0.68, 0.45), metal=0.5, irid=0.35, squame=0.8,
-                 disegni=[Disegno('linea', colore=(0.17, 0.075, 0.018), forza=1.0, v=0.04, inclinazione=3.4, larghezza=0.26,
-                                  u0=0.06, u1=0.27),
+                 disegni=[Disegno('linea', colore=(0.055, 0.025, 0.008), forza=1.0, v=0.04, inclinazione=3.4, larghezza=0.34,
+                                  u0=0.02, u1=0.28),
                           Disegno('strisce', colore=(0.6, 0.4, 0.08), forza=0.65, n=1, v0=-0.14, v1=0.14, larghezza=0.16, u0=0.1),
                           Disegno('ventre', colore=(0.8, 0.8, 0.8), forza=0.5, v1=-0.35)]),
     campo=_campo_ricciola, extra=_lisca_ricciola,
     famiglia='zombie', piano='fusiforme',
-    opzioni=dict(seed=36, cucitura=(0.2, 0.42, -0.55), punti=9, marcio=0.44))
+    opzioni=dict(seed=44, cucitura=(0.2, 0.42, -0.55), punti=9, marcio=0.52))
 
 
 # ── Cernia Gemente (cernia bruna, Epinephelus marginatus) ──

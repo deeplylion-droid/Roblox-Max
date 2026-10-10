@@ -299,25 +299,24 @@ def _carne_mat(c, nome='CarneViva'):
     return c.P.flesh_material(nome, (0.5, 0.06, 0.06))
 
 
-def _pelle_y(c, x, z, lato=-1, fino=0.06):
-    """La pelle lungo y alla posizione (x, z), sul lato dato, cercata sul campo vero del corpo (con le pinne di
-    carne: serve per la coda dello squalo volpe, che non è nei profili): (punto, normale) o None se lì non c'è
-    corpo. Bisezione da fuori (y = lato · fino) a dentro (y = 0)."""
+def _pelle_y(c, X, Z, lato=-1, fino=0.2):
+    """La pelle lungo y alle posizioni (X, Z) (array), sul lato dato, cercata sul campo vero del corpo (con le pinne
+    di carne: serve per la coda dello squalo volpe, che non è nei profili). Bisezione da fuori (y = lato · fino) a
+    dentro (y = 0), per tutti i punti insieme. Restituisce (punti, normali, dove c'è corpo)."""
     f = _cache(c, 'campo_vero', lambda c: c.body.raw())
-    a = np.array((x, lato * fino, z), F)
-    b = np.array((x, 0.0, z), F)
-    if float(f(b[None])[0]) > 0:
-        return None
+    X, Z = np.asarray(X, F), np.asarray(Z, F)
+    n = len(X)
+    a = np.stack([X, np.full(n, lato * fino, F), Z], axis=1).astype(F)
+    b = np.stack([X, np.zeros(n, F), Z], axis=1).astype(F)
+    ok = f(b) <= 0
     for _ in range(18):
         m = (a + b) * 0.5
-        if float(f(m[None])[0]) > 0:
-            a = m
-        else:
-            b = m
-    p = (a + b) * 0.5
-    e = 0.0006
-    g = np.array([float(f((p + d)[None])[0] - f((p - d)[None])[0]) for d in np.eye(3, dtype=F) * e], F)
-    return p, g / (np.linalg.norm(g) + 1e-12)
+        fuori = (f(m) > 0)[:, None]
+        a = np.where(fuori, m, a)
+        b = np.where(fuori, b, m)
+    p = ((a + b) * 0.5).astype(F)
+    g = np.stack([f(p + d) - f(p - d) for d in np.eye(3, dtype=F) * 0.0006], axis=1)
+    return p, (g / (np.linalg.norm(g, axis=1, keepdims=True) + 1e-12)).astype(F), ok
 
 
 def _cicatrici(c, segmenti, raggio, mat, nome='Cicatrici', passo=0.004):
@@ -326,21 +325,77 @@ def _cicatrici(c, segmenti, raggio, mat, nome='Cicatrici', passo=0.004):
     A, B, R1, R2 = [], [], [], []
     for (x0, z0), (x1, z1) in segmenti:
         n = max(3, int(math.hypot(x1 - x0, z1 - z0) / passo))
-        punti = []
-        for i in range(n + 1):
-            u = i / n
-            q = _pelle_y(c, x0 + (x1 - x0) * u, z0 + (z1 - z0) * u)
-            if q is not None:
-                punti.append((q[0] + q[1] * raggio * 0.15, raggio * (0.55 + 0.45 * math.sin(math.pi * u) ** 0.5)))
-        for (pa, ra), (pb, rb) in zip(punti[:-1], punti[1:]):
-            A.append(pa)
-            B.append(pb)
-            R1.append(ra)
-            R2.append(rb)
+        u = np.linspace(0, 1, n + 1)
+        pts, nrm, ok = _pelle_y(c, x0 + (x1 - x0) * u, z0 + (z1 - z0) * u)
+        r = raggio * (0.55 + 0.45 * np.sin(np.pi * u) ** 0.5)
+        Q = pts + nrm * (r * 0.15)[:, None]
+        for i in range(n):
+            if ok[i] and ok[i + 1]:
+                A.append(Q[i])
+                B.append(Q[i + 1])
+                R1.append(r[i])
+                R2.append(r[i + 1])
     if not A:
         return None
     f, lo, hi = c.P.campo_coni(A, B, R1, R2)
     return c.P.oggetto_sdf(nome, f, lo, hi, mat, res=_res(c, max(raggio * 0.3, 0.0005)))
+
+
+def _pinne_razza(c):
+    """Le pinne di carne delle specie viste dall'alto (piano 'razza': dorsali e caudale sulla coda), rifatte qui.
+    In pesci.piastra, sulle razze, il riquadro della maschera viene riportato nel mondo prima che il campo lo usi
+    (le variabili lo, hi della chiusura cambiano dopo): il campo resta vuoto e le pinne non si vedono. Qui la
+    stessa lastra, con il riquadro nel telaio delle pinne. Restituisce [(campo, lo, hi)] nel mondo."""
+    P, body = c.P, c.body
+    vb, a_mondo, da_mondo = body.telaio_pinne()
+    out = []
+    for fin in c.forma.fins:
+        if not fin.carnosa or fin.kind in ('pectoral', 'pelvic'):
+            continue
+        roots, tips, fr = P.fin_points(vb, fin, -1)
+        R, T = np.array(roots, F), np.array(tips, F)
+        o = np.zeros(3, F)
+        e1, e2, en = np.array((1, 0, 0), F), np.array((0, 0, 1), F), np.array((0, 1, 0), F)
+
+        def piano(Q, o=o, e1=e1, e2=e2, en=en):
+            Q = Q - o
+            return np.stack([Q @ e1, Q @ e2], axis=1).astype(F), (Q @ en).astype(F)
+        radice = piano(R)[0]
+        poly = np.concatenate([radice, piano(T)[0][::-1]])
+        H, th1 = fin.size, (0.0024 if c.fast else 0.0015)
+        th0 = max(fin.spessore, th1 * 1.5)
+        tutti = np.concatenate([R, T])
+        lo_t, hi_t = tutti.min(0) - th0 - 0.01, tutti.max(0) + th0 + 0.01
+
+        def f(Pm, piano=piano, radice=radice, poly=poly, H=H, th0=th0, th1=th1, lo_t=lo_t, hi_t=hi_t):
+            out_ = np.full(len(Pm), LONTANO, F)
+            Q = da_mondo(Pm)
+            m = np.all((Q >= lo_t) & (Q <= hi_t), axis=1)
+            if m.any():
+                q2, qn = piano(Q[m])
+                d2 = P._poligono_2d(q2, poly)
+                th = th1 + (th0 - th1) * np.clip(1 - P._polilinea(q2, radice) / (H * 0.9), 0, 1) ** 1.5
+                wy = np.abs(qn) - th
+                out_[m] = np.minimum(np.maximum(d2, wy), 0) + np.sqrt(np.maximum(d2, 0) ** 2 + np.maximum(wy, 0) ** 2)
+            return out_
+        cc = a_mondo(np.array([[a, b, z] for a in (lo_t[0], hi_t[0]) for b in (lo_t[1], hi_t[1]) for z in (lo_t[2], hi_t[2])], F))
+        out.append((f, cc.min(0), cc.max(0)))
+    return out
+
+
+def _con_pinne_razza(c, f):
+    """Il campo f con le pinne di carne della razza rifatte (vedi _pinne_razza), fuse come quelle del generatore."""
+    pinne = _cache(c, 'pinne_razza', _pinne_razza)
+    smin = c.P.sdf.smin
+
+    def g(p):
+        d = f(p)
+        for pf, lo, hi in pinne:
+            m = np.all((p >= lo) & (p <= hi), axis=1)
+            if m.any():
+                d[m] = smin(d[m], pf(p[m]), 0.005)
+        return d.astype(F)
+    return g
 
 
 def _chiodo(P, base, asse, fuori, r=0.0028, testa=0.0068, piega=None):
@@ -741,7 +796,7 @@ def _geo_razza(c):
 
 
 def _campo_razza(c, f):
-    return _cache(c, 'scavi', _geo_razza).scava(f, k=0.001)
+    return _con_pinne_razza(c, _cache(c, 'scavi', _geo_razza).scava(f, k=0.001))
 
 
 def _razza(c):
@@ -1391,7 +1446,7 @@ def _geo_violino(c):
 
 
 def _campo_violino(c, f):
-    return _cache(c, 'scavi', _geo_violino).scava(f, k=0.001)
+    return _con_pinne_razza(c, _cache(c, 'scavi', _geo_violino).scava(f, k=0.001))
 
 
 def _violino(c):

@@ -127,6 +127,7 @@ class _Ossa:
         self.cono(p - d, p + d, r, r)
 
     def oggetto(self, c, nome, mat, res, attrs=None):
+        """L'oggetto con tutte le ossa raccolte (res: il passo della griglia, fine per le ossa sottili)."""
         f, lo, hi = c.P.campo_coni(self.A, self.B, self.R1, self.R2, k=6)
         return c.P.oggetto_sdf(nome, f, lo, hi, mat, res=res, attrs=attrs)
 
@@ -196,7 +197,7 @@ def _lisca(c, vertebre=34, costole_fino=0.55, emali_da=0.5, spessore=1.0, minimo
                     q = np.array((xm + h * 0.55, s * w * 0.4, zc + sz * h * 0.5), F)
                     oss.cono(b + np.array((0, s * r * 0.4, sz * r * 0.3), F), q, ra, ra * 0.25)
     if pterigiofori:
-        # sotto ogni due raggi di dorsali e anali, un'osso che scende verso la colonna
+        # sotto un raggio ogni tanto di dorsali e anali, un osso che scende verso la colonna
         rp = max(min(rc_min, 0.004) * 0.85, 0.0011)
         for fin in sh.fins:
             if fin.kind not in ('dorsal', 'anal') or fin.carnosa:
@@ -388,8 +389,8 @@ def _mat_impronta(c, x0, z0, rx, rz, creste=6.5):
     col = g.mix(g.smoothstep(0.25, 0.75, v), col, lk.back)
     _, vm = g.wave(co, scale=10.0, distortion=9.0, detail=4.0, kind='BANDS', axis='X')
     col = g.mix(g.mul(g.smoothstep(0.78, 0.92, vm), 0.4), col, (0.16, 0.13, 0.08))
-    col = g.mix(dentro, col, (0.3, 0.23, 0.14))
-    col = g.mix(g.mul(dentro, cresta), col, (0.01, 0.008, 0.006))
+    col = g.mix(dentro, col, (0.2, 0.155, 0.09))
+    col = g.mix(g.mul(dentro, cresta), col, (0.008, 0.006, 0.005))
     col = g.mix(anello, col, (0.8, 0.62, 0.26))
     g.output_material(g.principled(color=col, rough=0.42, coat=0.5, coat_rough=0.1, metal=0.15, spec=0.5))
     return m
@@ -655,7 +656,7 @@ SPECIE['zerossa'] = Specie(
 # Sparide ovale, l'occhio grande, la bocca piccola, la dorsale lunga, la coda forcuta; grigio argento con
 # righe tenui e, sul peduncolo, la macchia nera cerchiata di bianco. Da scheletro: «al posto degli occhi ha due
 # buchi… e ti guarda lo stesso» → le orbite vuote (occhi=False), e la macchia che resta sul peduncolo carnoso
-# (peduncolo più lungo, da 0.86): nera, cerchiata di bianco, è lei che guarda.
+# (peduncolo più lungo, da 0.86): nera, cerchiata di bianco, con un riflesso di luce: è lei che guarda.
 SPECIE['occhiata_vuota'] = Specie(
     forma=Shape(
         top=[(0, -0.015), (0.02, 0.012), (0.06, 0.05), (0.12, 0.09), (0.22, 0.13), (0.36, 0.148), (0.52, 0.138),
@@ -674,7 +675,9 @@ SPECIE['occhiata_vuota'] = Specie(
                  iris=(0.7, 0.66, 0.5), metal=0.5, irid=0.3,
                  disegni=[Disegno('strisce', colore=(0.18, 0.2, 0.22), forza=0.35, v0=-0.5, v1=0.7, n=8, larghezza=0.025),
                           Disegno('ocello', colore=(0.006, 0.006, 0.008), colore2=(0.95, 0.94, 0.9), u=0.935, v=0.0,
-                                  r=0.035, allungamento=1.2)]),
+                                  r=0.035, allungamento=1.2),
+                          # il riflesso di luce nella macchia: è lei l'occhio che guarda
+                          Disegno('macchia', colore=(0.95, 0.95, 0.92), forza=0.9, u=0.926, v=0.3, r=0.0055)]),
     famiglia='skeletal', piano='fusiforme', opzioni=dict(occhi=False, peduncolo=0.86))
 
 
@@ -838,18 +841,27 @@ def _extra_ceca(c):
         return np.maximum(np.linalg.norm(p - cp, axis=1) - rp, -buco).astype(F)
     c.obs.append(P.oggetto_sdf('Perlina', perlina, cp - rp - 0.004, cp + rp + 0.004, _plastica(c, 'PlasticaRosa', (0.95, 0.12, 0.4)),
                                res=0.0005))
-    # il dentino da latte: la corona schiacciata e la radice corta, storto
-    zc, h, w = _sez(body, 0.36)
-    cd = np.array((0.36, -w * 0.45, zc - h * 0.15), F)
+    # il dentino da latte: la corona schiacciata color avorio e la radice corta, rossa (è caduto da poco),
+    # storto; davanti alle costole, se no fra le ossa bianche non si vede
+    zc, h, w = _sez(body, 0.37)
+    cd = np.array((0.37, -w * 0.62, zc - h * 0.12), F)
     Rz = P.sdf.rot_matrix('y', 28.0)
-    corona = P.sdf.ellipsoid((0.0, 0.0, 0.003), (0.0062, 0.0036, 0.0075))
-    radice = P.sdf.round_cone((0.0, 0.0, -0.0015), (0.0015, 0.0, -0.0125), 0.0038, 0.001)
+    corona = P.sdf.ellipsoid((0.0, 0.0, 0.004), (0.0078, 0.0042, 0.0095))
+    radice = P.sdf.round_cone((0.0, 0.0, -0.002), (0.002, 0.0, -0.0155), 0.0046, 0.0012)
+    m, g = P.material('DentinoDaLatte')
+    # la radice dall'attributo (calcolato prima della piega: le coordinate dell'oggetto, dopo, sono piegate)
+    col = g.mix(g.attr('radice'), (0.92, 0.86, 0.68), (0.45, 0.04, 0.035))
+    g.output_material(g.principled(color=col, rough=0.22, coat=0.9, coat_rough=0.05, sss=0.2, sss_radius=(1, 0.6, 0.4),
+                                   sss_scale=0.002))
 
     def dente(p):
         q = ((p - cd) @ Rz).astype(F)
-        return P.sdf.smin(corona(q), radice(q), 0.0015).astype(F)
-    c.obs.append(P.oggetto_sdf('DentinoDaLatte', dente, cd - 0.018, cd + 0.018,
-                               P.materiale('Smalto', (0.88, 0.86, 0.8), rough=0.2, coat=0.9, sss=0.25), res=0.00035))
+        return P.sdf.smin(corona(q), radice(q), 0.0018).astype(F)
+
+    def sulla_radice(p):
+        return np.clip((-((p - cd) @ Rz)[:, 2] - 0.0015) / 0.004, 0, 1).astype(F)
+    c.obs.append(P.oggetto_sdf('DentinoDaLatte', dente, cd - 0.022, cd + 0.022, m, res=0.0004,
+                               attrs={'radice': sulla_radice}))
 
 
 SPECIE['ceca_ossuta'] = Specie(
