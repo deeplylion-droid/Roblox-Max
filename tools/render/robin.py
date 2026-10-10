@@ -61,7 +61,7 @@ SPALLA = {s: V(s * 0.085, -0.285, 0.895) for s in (-1, 1)}
 # le basi delle zampe-raggio sui fianchi del busto (davanti, in mezzo, dietro), come nella tavola
 BASI = {s: [V(s * 0.10, -0.09, 0.93), V(s * 0.11, 0.09, 0.935), V(s * 0.10, 0.25, 0.905)] for s in (-1, 1)}
 CODA = list(T.TAIL) + [V(0, 0.75, -0.34)]     # la coda della tavola, che scende un po' di più in acqua
-L_ALTRO = 0.76                            # braccio e avambraccio dell'altro braccio, in tutto
+L_ALTRO = 0.54                            # braccio e avambraccio dell'altro braccio, in tutto: corto, piegato a chela
 PESCE_L = 0.28                            # il pesce rubato
 
 # la posa di gioco (scena_creature.robin_posa) in coordinate locali, arrotondata: è quella che build() fa
@@ -69,10 +69,10 @@ PESCE_L = 0.28                            # il pesce rubato
 POSA = {
     'viewer': (-0.216, -1.517, 1.252),
     'bucket': (1.277, -0.916, 0.707),
-    'reach': (1.172, -0.907, 0.822),
-    'feet': [(-0.481, -0.392, 0.737), (-0.342, -0.214, 0.738), (-0.049, -0.128, 0.422),
+    'reach': (1.172, -0.907, 0.962),
+    'feet': [(-0.511, -0.417, 0.737), (-0.214, -0.211, 0.502), (-0.011, -0.111, 0.402),
              (0.410, 0.008, 0.422), (0.254, 0.164, 0.767), (0.281, 0.101, 0.462)],
-    'grip': (-0.180, -0.128, 0.742),
+    'grip': (-0.323, -0.237, 0.738),
     'lungo': (0.84, 0.54, 0.0),
 }
 
@@ -120,9 +120,20 @@ def braccio_lungo(polso):
     sul secchio. Restituisce spalla, i due gomiti e il polso."""
     sh = SPALLA[1]
     d = polso - sh
-    e1 = sh + d * 0.25 + V(0, 0, 0.27) + orizz(V(1, 0, 0)) * 0.04
-    e2 = sh + d * 0.63 + V(0, 0, 0.19)
+    e1 = sh + d * 0.25 + V(0, 0, 0.24) + V(0.04, 0, 0)
+    e2 = sh + d * 0.62 + V(0, 0, 0.12)
     return [sh, e1, e2, polso]
+
+
+def curve_braccia(A):
+    """Le curve delle braccia come le modella corpo(), segmento per segmento: [(punti, r0, r1)], dalla spalla
+    al polso. Ogni segmento del braccio lungo si incurva appena; i biglietti ci si avvolgono sopra."""
+    sh, e1, e2, wr = A['lungo']
+    lungo = [([p0, (p0 + p1) / 2 + V(0, 0, -0.018), p1], r0, r1)
+             for (p0, p1), (r0, r1) in zip(((sh, e1), (e1, e2), (e2, wr)), ((0.036, 0.029), (0.029, 0.025), (0.025, 0.020)))]
+    sh2, el2, wr2 = A['altro']
+    altro = [([sh2, el2], 0.036, 0.027), ([el2, (el2 + wr2) / 2 + V(0, 0, 0.015), wr2], 0.027, 0.020)]
+    return {'lungo': lungo, 'altro': altro}
 
 
 def pose_arti(P):
@@ -137,7 +148,7 @@ def pose_arti(P):
         dentro = -dentro                                # dentro la barca è verso −Y
     grip = V(*P['grip'])
     wr2 = grip - dentro * 0.03 + V(0, 0, 0.075)          # il polso sopra il capodibanda, un po' in fuori
-    el2 = gomito(SPALLA[-1], wr2, L_ALTRO, V(-0.7, 0.2, 1.0))
+    el2 = gomito(SPALLA[-1], wr2, L_ALTRO, V(-1.0, 0.15, 0.6))   # il gomito in fuori, sopra il mare
     feet = [V(*f) for f in P['feet']]
     rays = []
     for k, s in enumerate((-1, -1, -1, 1, 1, 1)):
@@ -222,7 +233,7 @@ def baffi(fr, verso):
     for s in (-1, 1):
         r = fr.pt((s * 0.118, -0.104, -0.034))
         p = [r, r + fr.dir((s * 0.040, -0.045, 0.0)) + V(0, 0, -0.035)]
-        for a_, b_ in ((0.03, 0.085), (0.06, 0.095), (0.085, 0.085), (0.095, 0.065), (0.08, 0.035), (0.05, -0.012)):
+        for a_, b_ in ((0.025, 0.075), (0.05, 0.08), (0.065, 0.07), (0.07, 0.05), (0.06, 0.025), (0.035, -0.012)):
             p.append(p[-1] + verso * a_ + V(0, 0, -b_))
         f, cp = T.tubo(p, 0.0085, 0.0022, n=6)
         bb.append(f)
@@ -249,21 +260,18 @@ def corpo(hf, A):
     bumps = sdf.union(*[sdf.sphere(c + V(0, 0, 0.085 - 0.02 * i / len(sp)), 0.022 - 0.008 * i / len(sp)) for i, c in enumerate(sp)])
     neck = chain([T.SPINE[0], V(0, -0.44, 0.90)], [0.085, 0.08], k=0.02)
     parts = [torso, tail, belly, bumps, neck, hf]
+    C = curve_braccia(A)
     # il braccio lungo: tre segmenti a nodi, i gomiti ossuti
     sh, e1, e2, wr = A['lungo']
-    for (p0, p1), (r0, r1) in zip(((sh, e1), (e1, e2), (e2, wr)), ((0.036, 0.029), (0.029, 0.025), (0.025, 0.020))):
-        mid = (p0 + p1) / 2 + V(0, 0, -0.018)                # ogni segmento si incurva appena
-        f, _ = T.tubo([p0, mid, p1], r0, r1, n=6, nodi=0.10)
-        parts.append(f)
+    for pts, r0, r1 in C['lungo']:
+        parts.append(T.tubo(pts, r0, r1, n=6, nodi=0.10)[0])
     parts += [sdf.sphere(e1, 0.034), sdf.sphere(e2, 0.029)]
     lo = np.minimum(wr, A['fist']) - 0.11
     hi = np.maximum(wr, A['fist']) + 0.11
     parts.append(T.entro(pugno(wr, A['fist'], A['a']), lo, hi))
     # l'altro braccio, aggrappato al capodibanda
     sh2, el2, wr2 = A['altro']
-    up_, _ = T.tubo([sh2, el2], 0.036, 0.027)
-    fo_, _ = T.tubo([el2, (el2 + wr2) / 2 + V(0, 0, 0.015), wr2], 0.027, 0.020)
-    parts += [up_, fo_, sdf.sphere(el2, 0.033)]
+    parts += [T.tubo(pts, r0, r1)[0] for pts, r0, r1 in C['altro']] + [sdf.sphere(el2, 0.033)]
     g = A['grip']
     parts.append(T.entro(presa_bordo(wr2, g, A['bordo'], A['dentro']), np.minimum(wr2, g) - 0.2, np.maximum(wr2, g) + 0.2))
     for s, pts in A['rays']:
@@ -354,9 +362,9 @@ def biglietto_texture(path):
     scritte rosso scuro (SPLASHLAND, 1 TICKET, il numero), i forellini della perforazione ai due capi.
     x lungo la striscia, y di traverso."""
     W, H = 640, 370
-    im = Image.new('RGB', (W, H), (232, 96, 12))
+    im = Image.new('RGB', (W, H), (246, 118, 14))
     d = ImageDraw.Draw(im)
-    ink = (122, 18, 8)
+    ink = (128, 20, 8)
     try:
         big = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 88)
         mid = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 64)
@@ -393,10 +401,9 @@ def biglietti_material():
     u = g.math('FRACT', g.div(g.attr('tick'), TICKET))
     v = g.mul(g.add(g.attr('side'), 1.0), 0.5)
     col, _ = g.image(path, g.comb(u, v, 0.0), extension='REPEAT')
+    # poche macchie d'alga, piccole: scuriscono a chiazze senza spegnere l'arancio
     st = g.noise(co, scale=9.0, detail=5.0, rough=0.6)
-    col = g.mix(g.mul(g.smoothstep(0.58, 0.74, st.fac), 0.65), col, (0.10, 0.07, 0.02))
-    dark = g.noise(co, scale=2.5, detail=3.0)
-    col = g.mix(g.mul(g.smoothstep(0.5, 0.75, dark.fac), 0.35), col, (0.30, 0.04, 0.0), blend='MULTIPLY')
+    col = g.mix(g.mul(g.smoothstep(0.62, 0.76, st.fac), 0.45), col, (0.16, 0.10, 0.02))
     wet = g.noise(co, scale=6.0, detail=3.0)
     bump = g.bump(g.mul(st.fac, 0.3), strength=0.2, distance=0.001)
     g.output_material(g.principled(color=col, rough=g.map_range(wet.fac, 0.3, 0.7, 0.55, 0.25), coat=0.35, coat_rough=0.12,
@@ -404,23 +411,51 @@ def biglietti_material():
     return m
 
 
+def spire(pts, r0, r1, giri, fase=0.0, t0=0.07, t1=0.90, gioco=0.0045, n_per_giro=28):
+    """Le spire della striscia attorno a un segmento di braccio (la curva 'pts' col raggio da r0 a r1, come lo
+    modella corpo()), dal tratto t0 al tratto t1 della lunghezza: la striscia resta stesa sulla pelle, a 'gioco'
+    di distanza anche dove il braccio si incurva e si assottiglia. Punti e direzioni della larghezza del nastro,
+    come teste_robin.elica (che invece gira attorno alla corda dritta, a raggio fisso)."""
+    C = catmull([V(*p) for p in pts], 24)
+    s = np.concatenate([[0.0], np.cumsum(np.linalg.norm(np.diff(C, axis=0), axis=1))])
+    n = max(8, int(giri * n_per_giro))
+    ss = np.linspace(t0, t1, n + 1) * s[-1]
+    P = np.stack([np.interp(ss, s, C[:, k]) for k in range(3)], axis=1).astype(F)
+    Tg = np.gradient(P, axis=0)
+    Tg /= np.linalg.norm(Tg, axis=1, keepdims=True)
+    u = unit(np.cross(Tg[0], V(0.3, 0.2, 1.0)))
+    L = ss[-1] - ss[0]
+    out_p, out_w = [], []
+    for i in range(n + 1):
+        u = unit(u - (u @ Tg[i]) * Tg[i])                # la base si trasporta lungo la curva
+        v = np.cross(Tg[i], u)
+        th = fase + 2 * math.pi * giri * i / n
+        r = r0 + (r1 - r0) * ss[i] / s[-1] + gioco
+        rad = math.cos(th) * u + math.sin(th) * v
+        tg = unit(Tg[i] * L + (-math.sin(th) * u + math.cos(th) * v) * (2 * math.pi * giri * r))
+        out_p.append(P[i] + rad * r)
+        out_w.append(unit(np.cross(rad, tg)))
+    return np.array(out_p, F), np.array(out_w, F)
+
+
 def biglietti(A, P):
     """La striscia: il capo libero pende nel secchio, poi le spire attorno al braccio che ruba (dal polso alla
     spalla, gomito dopo gomito), un'ansa sotto il collo, le spire attorno all'altro braccio, e il resto che
-    scende lungo la fiancata di dentro fino al pagliolo."""
+    scavalca il capodibanda accanto alla mano e scende lungo la fiancata di dentro."""
     sh, e1, e2, wr = A['lungo']
     sh2, el2, wr2 = A['altro']
     bk = V(*P['bucket'])
+    C = curve_braccia(A)
     out_P, out_W = [], []
 
     def add(p, w):
         out_P.append(p)
         out_W.append(w)
 
-    segs = [(wr, e2, 0.031, 5.5), (e2, e1, 0.034, 5.0), (e1, sh, 0.040, 4.0)]
-    eliche = []
-    for i, (a, b, r, giri) in enumerate(segs):
-        eliche.append(T.elica(a + (b - a) * 0.07, b + (a - b) * 0.10, r, giri, fase=0.4 + 1.3 * i))
+    # il braccio lungo dal polso alla spalla: i segmenti al contrario, ognuno con le sue spire
+    segs = [(pts[::-1], r1, r0) for pts, r0, r1 in reversed(C['lungo'])]
+    eliche = [spire(p, r0, r1, giri, fase=0.4 + 1.3 * i) for i, ((p, r0, r1), giri) in enumerate(zip(segs, (5.5, 5.0, 4.0)))]
+    knots = [e2, e1]
     # il capo libero: dal fondo del secchio sale sopra il bordo e arriva al polso
     h0, w0 = eliche[0]
     tip = bk + orizz(A['fist'] - bk) * 0.05 + V(0, 0, -0.14)
@@ -431,16 +466,16 @@ def biglietti(A, P):
         add(h, w)
         if i + 1 < len(eliche):
             nxt = eliche[i + 1][0]
-            knot = segs[i][1]
-            j, jw = T.libero([h[-1], knot + V(0, 0, 0.045), nxt[0]], w[-1], n=4)
+            j, jw = T.libero([h[-1], knots[i] + V(0, 0, 0.045), nxt[0]], w[-1], n=4)
             add(j[1:-1], jw[1:-1])
     # l'ansa sotto il collo, da una spalla all'altra
-    h3, w3 = T.elica(sh2 + (el2 - sh2) * 0.22, el2 + (sh2 - el2) * 0.08, 0.040, 3.5, fase=2.0)
+    (pu, ru0, ru1), (pf, rf0, rf1) = C['altro']
+    h3, w3 = spire(pu, ru0, ru1, 3.5, fase=2.0, t0=0.22, t1=0.92)
     hl, wl = eliche[-1]
     p3, pw3 = T.libero([hl[-1], V(0.10, -0.40, 0.77), V(0.0, -0.45, 0.73), V(-0.10, -0.42, 0.77), h3[0]], wl[-1], n=8, torsione=1.2)
     add(p3[1:-1], pw3[1:-1])
     add(h3, w3)
-    h4, w4 = T.elica(el2 + (wr2 - el2) * 0.10, wr2 + (el2 - wr2) * 0.12, 0.031, 4.5, fase=0.5)
+    h4, w4 = spire(pf, rf0, rf1, 4.5, fase=0.5, t0=0.10, t1=0.88)
     j, jw = T.libero([h3[-1], el2 + V(0, 0, 0.05), h4[0]], w3[-1], n=4)
     add(j[1:-1], jw[1:-1])
     add(h4, w4)
@@ -452,7 +487,7 @@ def biglietti(A, P):
             g + lg * 0.11 + dn * 0.13 + V(0, 0, -0.38), g + lg * 0.18 + dn * 0.20 + V(0, 0, -0.52)]
     p5, w5 = T.libero(rest, w4[-1], n=8, torsione=2.0)
     add(p5[1:], w5[1:])
-    ob = T.nastro('Tickets', np.concatenate(out_P), np.concatenate(out_W))
+    ob = T.nastro('Tickets', np.concatenate(out_P), np.concatenate(out_W), larghezza=0.034)
     ob.data.materials[0] = biglietti_material()
     return [ob]
 
@@ -460,13 +495,17 @@ def biglietti(A, P):
 # ───────────────────────── il pesce rubato e la melma ─────────────────────────
 
 def pesce_rubato(A, P):
-    """Il pesce del secchio, preso per la coda: pende a testa in giù, la testa ancora dentro il secchio. Gli
-    occhi del pesce si rinominano: il gioco fa brillare al buio gli oggetti che hanno 'Eye' nel nome."""
+    """Il pesce appena tirato fuori dal secchio, preso per la coda: pende a testa in giù sopra la bocca del
+    secchio, col fianco verso il pescatore. Ha la pelle dei pesci del secchio (boat.fish_material), argentata a
+    bande: quella della tavola, scura, contro il secchio non si vedeva. Gli occhi del pesce si rinominano: il
+    gioco fa brillare al buio gli oggetti che hanno 'Eye' nel nome."""
+    import boat
     fist, bk = A['fist'], V(*P['bucket'])
     giu = unit(V(0, 0, -1) + orizz(bk - fist) * 0.25)
     view = orizz(V(*P['viewer']) - fist)
-    dorso = unit(np.cross(view, V(0, 0, 1)))             # il fianco d'argento verso il pescatore
+    dorso = unit(np.cross(view, V(0, 0, 1)))
     obs = T.pesce('StolenFish', fist + V(0, 0, 0.045), giu, L=PESCE_L, dorso=tuple(dorso))
+    obs[0].data.materials[0] = boat.fish_material()
     for o in obs:
         o.name = o.name.replace('Eye', 'Occhio')
     return obs
@@ -541,26 +580,29 @@ def _set_barca():
     mats = boat.make_materials()
     obs = [boat.build_hull(mats)] + boat.build_structure(mats) + boat.build_tarp(mats) + boat.build_bucket(mats, 5)
     obs += boat.build_props(mats)
-    bpy.ops.mesh.primitive_plane_add(size=40, location=(0, 0, 0.0))
+    # il mare un filo più basso del vero: a z = 0 passerebbe dentro la barca, sopra il pagliolo
+    bpy.ops.mesh.primitive_plane_add(size=40, location=(0, 0, -0.13))
     sea = bpy.context.object
     sea.data.materials.append(D.mat_simple('NightSea', (0.004, 0.012, 0.016), rough=0.06, spec=0.8))
     return obs
 
 
 SHOTS = {
-    # (camera, bersaglio, lente) nelle coordinate della barca, rispetto alla testa di Robin
-    'insieme': ((0.95, -1.05, 0.62), (0.45, 0.42, -0.18), 24),
-    'testa': ((0.52, -0.40, 0.20), (0.0, 0.0, -0.02), 50),
-    'mano': ((-0.05, -0.75, 0.30), (1.05, 0.62, -0.08), 40),
+    # (riferimento, camera, bersaglio, lente): camera e bersaglio rispetto alla testa o al pugno, nelle
+    # coordinate della barca
+    'insieme': ('testa', (1.25, -0.95, 0.55), (0.55, 0.36, -0.06), 22),
+    'testa': ('testa', (0.50, -0.46, 0.16), (0.0, 0.0, -0.03), 50),
+    'mano': ('pugno', (-0.38, -0.52, 0.16), (0.0, 0.0, -0.08), 45),
 }
 
 
-def showcase(shots=('insieme', 'testa', 'mano')):
-    """La vetrina: Robin nella posa di gioco sul capodibanda, con le luci di studio delle altre vetrine (la
-    lampara calda da prua, la luna fredda da dietro, poco riempimento) e la resa AgX."""
+def scena_vetrina():
+    """La scena della vetrina: Robin nella posa di gioco sul capodibanda (scena_creature.robin_posa), in un pezzo
+    di barca, con le luci di studio delle altre vetrine: la lanterna calda davanti e in basso, la luna fredda
+    da dietro, la lampara da prua sul braccio, poco riempimento; resa AgX. Restituisce i riferimenti delle
+    inquadrature (testa e pugno, nelle coordinate della barca)."""
     from mathutils import Vector
     import scena_creature as SC
-    out = []
     sc = reset_scene()
     sc.view_settings.view_transform = 'AgX'
     sc.view_settings.look = 'None'
@@ -572,9 +614,20 @@ def showcase(shots=('insieme', 'testa', 'mano')):
     M, kw = SC.robin_posa()
     SC.place(build(**kw), M)
     h = np.array(M @ Vector(tuple(map(float, HEAD))))
-    D.area_light('Key', tuple(h + (0.9, 1.7, 1.2)), tuple(h + (0.3, 0.2, -0.2)), 90, (1.0, 0.74, 0.46), 0.6)
-    D.area_light('Rim', tuple(h + (-1.4, 0.9, 1.4)), tuple(h), 70, (0.55, 0.72, 1.0), 0.5)
-    D.area_light('Fill', tuple(h + (0.9, -1.4, 0.5)), tuple(h), 9, (0.55, 0.65, 0.85), 1.6)
+    p = np.array(M @ Vector(tuple(map(float, kw['reach']))))
+    D.area_light('Key', tuple(h + (0.30, -1.10, -0.35)), tuple(h), 40, (1.0, 0.72, 0.44), 0.4)
+    D.area_light('Rim', tuple(h + (-0.60, 1.40, 1.50)), tuple(h + (0.2, 0.1, 0.0)), 130, (0.55, 0.72, 1.0), 0.6)
+    D.area_light('Bow', (0.0, 2.6, 1.6), tuple((h + p) / 2), 60, (1.0, 0.80, 0.55), 0.5)
+    D.area_light('Fill', tuple(h + (1.40, -1.20, 0.70)), tuple(h), 10, (0.55, 0.65, 0.85), 1.6)
+    return {'testa': h, 'pugno': p}
+
+
+def showcase(shots=('insieme', 'testa', 'mano')):
+    """La vetrina: tools/render/cache/vetrina/robin_<inquadratura>.png."""
+    from mathutils import Vector
+    out = []
+    ref = scena_vetrina()
+    sc = bpy.context.scene
     cam_d = bpy.data.cameras.new('Cam')
     cam_d.sensor_width = 36.0
     cam_d.clip_start = 0.02
@@ -587,11 +640,12 @@ def showcase(shots=('insieme', 'testa', 'mano')):
     sc.render.image_settings.file_format = 'PNG'
     os.makedirs(os.path.join(CACHE, 'vetrina'), exist_ok=True)
     for name in shots:
-        cl, ct, lens = SHOTS[name]
+        r, cl, ct, lens = SHOTS[name]
+        c0 = ref[r]
         cam_d.lens = lens
-        cam.location = tuple(h + cl)
+        cam.location = tuple(c0 + cl)
         cam.rotation_mode = 'QUATERNION'
-        cam.rotation_quaternion = (Vector(tuple(h + ct)) - Vector(tuple(h + cl))).to_track_quat('-Z', 'Y')
+        cam.rotation_quaternion = (Vector(tuple(c0 + ct)) - Vector(tuple(c0 + cl))).to_track_quat('-Z', 'Y')
         path = os.path.join(CACHE, 'vetrina', f'robin_{name}.png')
         sc.render.filepath = path
         bpy.ops.render.render(write_still=True)

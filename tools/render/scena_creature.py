@@ -184,14 +184,16 @@ def robin_posa():
     lungo = R.T @ np.array((x1 - x0, 0.02, 0.0), F)
     bx, by, bz = boat.BUCKET_POS
     rim = (bx, by, bz + 0.285)
-    # la mano stringe il pesce sopra la bocca del secchio, dalla parte del pescatore e davanti al manico
-    fist = (bx - 0.075, by - 0.075, bz + 0.40)
+    # la mano ha appena tirato fuori il pesce: lo stringe per la coda sopra la bocca del secchio, dalla parte del
+    # pescatore e davanti al manico, e il pesce pende fuori, con la testa che lascia ora il bordo
+    fist = (bx - 0.075, by - 0.075, bz + 0.54)
     bench_x = -(boat.half_width_at(by, boat.BENCH_TOP) - 0.07)
-    # le punte delle zampe: dal lato della poppa due sul capodibanda e una fuori, sulla fiancata; dal lato della
-    # prua una sul banco (tra la fiancata e il telone), una sul capodibanda prima di y = 1 e una fuori
-    feet = [_bordo(y0 - 0.62, 0.02), _bordo(y0 - 0.40, -0.03), _fiancata_fuori(y0 - 0.12, 0.42),
+    # le punte delle zampe: dal lato della poppa una sul capodibanda, oltre la mano, e due fuori sulla fiancata;
+    # dal lato della prua una sul banco (tra la fiancata e il telone), una sul capodibanda prima di y = 1 e una
+    # fuori. L'altra mano si tiene al capodibanda verso poppa, tra la spalla e la zampa
+    feet = [_bordo(y0 - 0.66, 0.02), _fiancata_fuori(y0 - 0.30, 0.50), _fiancata_fuori(y0 - 0.08, 0.40),
             (bench_x, by - 0.07, boat.BENCH_TOP), _bordo(y0 + 0.30), _fiancata_fuori(y0 + 0.28, 0.46)]
-    grip = _bordo(y0 - 0.22)
+    grip = _bordo(y0 - 0.40)
     loc = lambda p: tuple(float(v) for v in to_local(M, p))
     return M, {'viewer': loc(EYE), 'bucket': loc(rim), 'reach': loc(fist), 'feet': [loc(p) for p in feet],
                'grip': loc(grip), 'lungo': tuple(float(v) for v in lungo)}
