@@ -1166,15 +1166,16 @@ export class Night {
       { key: POSE.mollyRight, p: v.mR, hands: 0.8, out: 0, handsStay: true },
       { key: POSE.mollyLeft, p: v.mL, hands: 0.8, out: 0, handsStay: true },
     ];
-    // Robin è steso sul bordo: testa, braccio e zampe stanno sopra la barca. Sale e scende di lato, dal mare, e
-    // quello che sta sopra la barca compare e svanisce mentre si muove. Nella luce piena trema e si ritrae un poco,
-    // la faccia si accende di luce calda (la lanterna, dalla parte del pescatore) e strizza gli occhi
+    // Robin è steso sul bordo: testa, braccio e zampe stanno sopra la barca. Il corpo sopra il mare sale e scende
+    // di lato, dal mare; quello che sta sopra la barca compare e svanisce in fretta sul posto (scivolando passerebbe
+    // attraverso il legno). Nella luce piena trema e si ritrae un poco, la faccia si accende di luce calda (la
+    // lanterna, dalla parte del pescatore) e strizza gli occhi
     const f = v.robinFear;
     const t = this.d.stage.time;
     const recoil: [number, number] = [-(9 + 3 * noise1(t * 21, 5)) * f, (12 + 3 * noise1(t * 19, 6)) * f];
     const light: [number, number, number] = [1, 1, 1 + 2.2 * f];
-    out.push({ key: POSE.robin, p: v.robin, hands: 0.3, out: -0.45, recoil, light });
-    out.push({ key: POSE.robinSquint, p: v.robin, hands: 0.3, out: -0.45, recoil, light, opacity: smooth01(f * 1.6) });
+    out.push({ key: POSE.robin, p: v.robin, hands: 0.75, out: -0.45, handsStay: true, recoil, light });
+    out.push({ key: POSE.robinSquint, p: v.robin, hands: 0.75, out: -0.45, handsStay: true, recoil, light, opacity: smooth01(f * 1.6) });
     return out;
   }
 
