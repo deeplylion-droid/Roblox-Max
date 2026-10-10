@@ -1198,17 +1198,20 @@ export class Night {
     return [dist * s + side * c, dist * c - side * s, WATER_Z];
   }
 
-  /** Il galleggiante in acqua (dall'occhio, spazio della barca): più vicino mentre recuperi, con l'onda e gli
-   *  strattoni del pesce. */
-  private floatPos(): Vec3 {
+  /** Il galleggiante in acqua a `dist` metri (dall'occhio, spazio della barca), con l'onda e gli strattoni del pesce. */
+  private floatAt(dist: number): Vec3 {
     const f = this.sim.fishing;
     const t = this.d.stage.time;
-    const reeling = f.phase === 'reeling';
-    const dist = reeling ? FLOAT_FAR + (FLOAT_NEAR - FLOAT_FAR) * f.progress : FLOAT_FAR;
-    const side = this.lineSway + 0.12 * Math.sin(t * 0.7) + (reeling && f.pulling ? 0.06 * Math.sin(t * 23) : 0);
+    const side = this.lineSway + 0.12 * Math.sin(t * 0.7) + (f.phase === 'reeling' && f.pulling ? 0.06 * Math.sin(t * 23) : 0);
     const p = this.waterAt(dist, side);
     p[2] += 0.035 * Math.sin(t * 1.9) + 0.02 * Math.sin(t * 3.1 + 1);
     return p;
+  }
+
+  /** Il galleggiante adesso: al largo, più vicino mentre recuperi. */
+  private floatPos(): Vec3 {
+    const f = this.sim.fishing;
+    return this.floatAt(f.phase === 'reeling' ? FLOAT_FAR + (FLOAT_NEAR - FLOAT_FAR) * f.progress : FLOAT_FAR);
   }
 
   /** Un cerchio che si allarga attorno al galleggiante (grandezza 0..1), che parte fra `delay` secondi se negativo. */
@@ -1252,7 +1255,7 @@ export class Night {
       } else {
         // il volo rallenta verso l'arrivo (il filo che corre via frena il galleggiante); dietro, una scia della sua luce
         const u = Math.min(1, (ct - CAST_WHIP) / (FISHING.castTime - CAST_WHIP));
-        const land = this.waterAt(FLOAT_FAR, this.lineSway);
+        const land = this.floatAt(FLOAT_FAR);
         const fly = (u: number): Vec3 => {
           const s = 1 - (1 - Math.max(0, u)) ** 1.8;
           return [hang[0] + (land[0] - hang[0]) * s, hang[1] + (land[1] - hang[1]) * s, hang[2] + (land[2] - hang[2]) * s + CAST_ARC * 4 * s * (1 - s)];
@@ -1336,7 +1339,7 @@ export class Night {
     // il tonfo: un lampo bianco nello schizzo e qualche goccia che ricade
     const pt = this.plopT;
     if (pt >= 0 && pt < 0.6 && f.lineOut) {
-      const at = this.waterAt(FLOAT_FAR, this.lineSway);
+      const at = this.floatAt(FLOAT_FAR);
       if (this.aboveRail(at) > 0) {
         if (pt < 0.25) {
           const k = 0.7 * (1 - pt / 0.25);
@@ -1354,18 +1357,24 @@ export class Night {
         }
       }
     }
-    // i cerchi sull'acqua: si allargano e svaniscono (schiacciati dalla prospettiva radente)
+    // i cerchi sull'acqua: si allargano e svaniscono (schiacciati dalla prospettiva radente); vicino alla barca
+    // il pezzo dietro il bordo non si vede
     for (const r of this.rings) {
-      if (r.t <= 0 || this.aboveRail(r.at) < 0.2) continue;
+      if (r.t <= 0) continue;
       const rad = r.size * (0.06 + 1.1 * (1 - Math.exp(-r.t * 1.8)));
       const alpha = 0.5 * r.size * Math.exp(-r.t * 1.3) * Math.min(1, r.t * 10);
       if (alpha < 0.01) continue;
-      const pts: Vec3[] = [];
+      let run: Vec3[] = [];
       for (let i = 0; i <= 28; i++) {
         const a = (i / 28) * Math.PI * 2;
-        pts.push([r.at[0] + Math.cos(a) * rad, r.at[1] + Math.sin(a) * rad, WATER_Z]);
+        const q: Vec3 = [r.at[0] + Math.cos(a) * rad, r.at[1] + Math.sin(a) * rad, WATER_Z];
+        if (this.aboveRail(q) > 0.1) {
+          run.push(q);
+          if (i < 28) continue;
+        }
+        if (run.length >= 2) out.strokes.push({ points: run, alpha, color: [0.5, 0.58, 0.66], width: 1.1, even: true });
+        run = [];
       }
-      out.strokes.push({ points: pts, alpha, color: [0.5, 0.58, 0.66], width: 1.1, even: true });
     }
     return out;
   }
