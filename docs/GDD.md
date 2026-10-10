@@ -76,7 +76,7 @@ Sono i bambini spariti a **Splashland** nel 1997, presi e trasformati dalla Madr
 > Il design visivo si definisce insieme (tavole in `docs/concept/`).
 > - **Gulpy**: sagoma C «Avvoltoio», testa B «Cerniera». Modello dettagliato **approvato** (`tools/render/gulpy.py`).
 > - **Molly**: sagoma C «Dita», testa B «Luna». Modello dettagliato **approvato** (`tools/render/molly.py`): occhi asimmetrici (uno ti fissa, l'altro scivola via), testa piegata di lato, melma verdastra.
-> - **Hatch**: sagoma C «Spilungone», testa A «Pescatrice». Modello dettagliato **approvato** (`tools/render/hatch.py`).
+> - **Hatch**: sagoma C «Spilungone», testa A «Pescatrice». Modello dettagliato **approvato** (`tools/render/hatch.py`). Dal 10 ottobre la pelle è **arancione** (i mostri si distinguono per colore, come gli animatronics).
 > - **Pose di gioco** (`tools/render/scena_creature.py`), viste dal posto del pescatore con le luci della scena: Molly sui due fianchi e Gulpy **approvate**. Gulpy è un gigante (1,35 volte il modello della vetrina) e arriva dal lato sinistro della prua, perché davanti alla prua c'è la lampara sul buttafuori: quando sale è una sagoma in acqua, quando pretende ha una mano sul capodibanda sinistro e l'altra sulla punta di prua. Hatch che conta in acqua **appena dietro la poppa** (molto vicino, altissimo e piegato sulla barca), illuminato dalla sua esca: **approvato**.
 >
 > Le tavole dei dettagli sono bozze: i modelli definitivi devono avere molto più dettaglio nelle forme e nelle texture. La pelle sotto è opaca, ma **tutti i mostri hanno sopra uno strato di melma e un effetto bagnato**: chiazze lucide, colature, bava che gocciola, fili tra le dita e tra i denti.

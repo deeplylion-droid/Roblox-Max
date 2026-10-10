@@ -28,8 +28,9 @@ la sua regola. Sono allungati, magri e sproporzionati come Gulpy, Molly e Hatch,
 stessa melma. **Non parlano** (l'unica eccezione resta la conta di Hatch).
 
 **Colori** (richiesta dell'utente, 10 ottobre: «i mostri tutti dello stesso colore non piacciono, dobbiamo
-differenziarli come su FNAF dove ognuno ha un colore»): Gulpy, Molly e Hatch restano grigi come sono; i
-quattro nuovi hanno ognuno un colore netto. Confermato poco dopo: «un colore diverso ciascuno: rosso, giallo
+differenziarli come su FNAF dove ognuno ha un colore»): Gulpy e Molly restano grigi come sono; **Hatch diventa
+arancione** (scelto il 10 ottobre, tra arancio e verde: `docs/concept/hatch_colori.jpg`); i quattro nuovi hanno
+ognuno un colore netto. Confermato poco dopo: «un colore diverso ciascuno: rosso, giallo
 eccetera, un po' come gli animatronics», quindi tinte sature e iconiche, riconoscibili anche al buio.
 **Approvati** sulle tavole delle teste (anche la montatura gialla degli occhialini di Fangy):
 
