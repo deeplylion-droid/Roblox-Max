@@ -1120,6 +1120,7 @@ def _campo_castagna(c, f):
     sdf = c.P.sdf
     buchi = _buchi_castagna(c)
     n3 = sdf.Noise3(132)
+    f = _strappi(c, f, seme=32, morsi=2, buchi=1, grandezza=0.12)     # le pinne di carne, smangiate
 
     def g(p):
         d = f(p)
@@ -1185,14 +1186,19 @@ SPECIE['castagna_marcia'] = Specie(
              (0.85, -0.065), (0.95, -0.04), (1, -0.036)],
         w=[(0, 0.008), (0.06, 0.03), (0.2, 0.05), (0.4, 0.054), (0.65, 0.04), (0.85, 0.02), (1, 0.012)],
         eye_t=0.11, eye_z=0.045, eye_r=0.03, mouth_t=0.08, mouth_z0=-0.01, mouth_z1=-0.055, gill_t=0.26,
+        # dorsale, anale e coda coperte di squame come nel pesce castagna vero: di carne (nere e lucide come il
+        # corpo), così la sagoma falcata resta anche smangiata (gli strappi sono nel campo)
         fins=[Fin('dorsal', 0.32, 0.9, [(0, 0), (0.06, 0.95), (0.12, 1.0), (0.2, 0.55), (0.35, 0.4), (0.8, 0.35), (0.95, 0.3), (1, 0.05)],
-                  0.2, 36),
+                  0.2, 60, carnosa=True, spessore=0.005),
               Fin('anal', 0.45, 0.9, [(0, 0), (0.07, 0.95), (0.14, 1.0), (0.24, 0.5), (0.4, 0.38), (0.8, 0.33), (0.95, 0.28),
-                                     (1, 0.05)], 0.17, 30),
-              Fin('caudal', 1.0, 1.0, coda_forcuta(2.3, 0.25, 1.1), 0.3, 22),
+                                     (1, 0.05)], 0.17, 50, carnosa=True, spessore=0.005),
+              # la coda profondamente forcuta, di carne: radice bassa (0.25), lobi lunghi e falcati
+              Fin('caudal', 1.0, 1.0, [(0.0, 0.25), (0.25, 0.7), (0.6, 1.25), (1.1, 2.3), (0.95, 2.02), (0.5, 0.9), (0.28, 0.0),
+                                      (0.5, -0.9), (0.95, -2.02), (1.1, -2.3), (0.6, -1.25), (0.25, -0.7), (0.0, -0.25)],
+                  0.3, 50, carnosa=True, spessore=0.005),
               Fin('pectoral', 0.26, 0.28, [(0, 0), (0.4, 0.22), (1.0, 0.06), (0.85, -0.02), (0, -0.06)], 0.28, 14),
               Fin('pelvic', 0.3, 0.315, PELVICA, 0.06, 6)]),
-    aspetto=Look(back=(0.022, 0.016, 0.012), flank=(0.045, 0.034, 0.025), belly=(0.07, 0.055, 0.042), fin=(0.1, 0.08, 0.062),
+    aspetto=Look(back=(0.022, 0.016, 0.012), flank=(0.045, 0.034, 0.025), belly=(0.07, 0.055, 0.042), fin=(0.04, 0.03, 0.023),
                  iris=(0.6, 0.55, 0.4), metal=0.35, irid=0.25, squame=0.6, linea_laterale=0.0, lucido=0.95,
                  disegni=[Disegno('sfumatura', colore=(0.12, 0.07, 0.035), forza=0.5, v0=-0.4, v1=0.5, larghezza=0.3)]),
     campo=_campo_castagna, extra=_vermi_castagna,

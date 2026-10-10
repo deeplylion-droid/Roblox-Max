@@ -23,6 +23,12 @@
   "h": 800,
   "family": "skeletal"
  },
+ "triglia_doppia": {
+  "file": "triglia_doppia.webp",
+  "w": 1600,
+  "h": 800,
+  "family": "glitch"
+ },
  "trigliocchi": {
   "file": "trigliocchi.webp",
   "w": 1600,
