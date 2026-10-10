@@ -71,6 +71,8 @@ const D2R = Math.PI / 180;
 // dove stanno le cose, dall'occhio del pescatore (coordinate dei render, metri)
 const RADIO_AT: Vec3 = [-0.3, -1.51, -0.655];
 const LAMP_AT: Vec3 = [0, 4.17, 0.55];
+/** forza della lucina del voltmetro rispetto al render (l'utente: «troppo luminosa in gioco, riducila del 40%») */
+const GAUGE_LIGHT = 0.6;
 /** dove si sente Robin: steso sul bordo di sinistra verso prua, le zampe nel secchio */
 const ROBIN_AT: Vec3 = dirPos(YAW.robin, 1.3, -22);
 const HATCH_AT: Vec3 = [0.35, -7.4, -0.6];
@@ -1039,7 +1041,7 @@ export class Night {
     if (sim.cfg.battery && has('battery')) {
       layers.push('battery');
       // il voltmetro retroilluminato (lo stesso strato col quadrante acceso, dissolto sopra)
-      if (has('battery_lit') && this.gaugeGlow > 0.002) layers.push({ key: 'battery_lit', opacity: this.gaugeGlow });
+      if (has('battery_lit') && this.gaugeGlow > 0.002) layers.push({ key: 'battery_lit', opacity: this.gaugeGlow * GAUGE_LIGHT });
     }
     // canna: dritta, piegata all'abboccata, piegatissima in recupero
     const bend = sim.fishing.bend;

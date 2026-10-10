@@ -108,7 +108,7 @@ def gauge_face_texture(path, needle=None):
 
 
 GLOW_COLOR = (1.0, 0.62, 0.28)               # la lampadina dietro il quadrante: ambra, come i cruscotti vecchi
-GLOW_STRENGTH = 4.0
+GLOW_STRENGTH = 4.0                          # nel gioco lo strato acceso si usa al 60% (GAUGE_LIGHT in night.ts)
 
 
 def face_material(name, path, glow=0.0):
