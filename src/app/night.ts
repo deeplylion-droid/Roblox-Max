@@ -965,18 +965,19 @@ export class Night {
     } else if (g.state === 'attack') {
       pretT = v.gPret > 0.5 ? 1 : 0;
     }
-    v.gSale = approach(v.gSale, saleT, saleT > v.gSale ? 3 : 1.5, dt);
+    // al largo emerge dall'acqua (si vede solo quello che sta sopra il pelo dell'acqua: niente dissolvenza)
+    v.gSale = saleT > v.gSale ? 1 : approach(v.gSale, saleT, 1.5, dt);
     v.gRise = approach(v.gRise, riseT, 4, dt);
     // alla prua sale da dietro il bordo; se ne va lasciandosi ricadere giù
-    v.gPret = toward(v.gPret, pretT, 0.45, 1.0, dt);
+    v.gPret = toward(v.gPret, pretT, 0.7, 1.0, dt);
     if (v.gRise < 0.02 && saleT === 0) v.gSale = approach(v.gSale, 0, 6, dt);
 
-    // Molly: si affaccia di colpo dal suo lato, scivola giù quando è contenta
+    // Molly: sale dal suo lato e si affaccia sul bordo, scivola giù quando è contenta
     const mollyShown = m.state === 'peeking' || m.state === 'tantrum' || m.state === 'attack';
     const rT = mollyShown && m.side === 'right' ? 1 : 0;
     const lT = mollyShown && m.side === 'left' ? 1 : 0;
-    v.mR = toward(v.mR, rT, 0.35, 0.9, dt);
-    v.mL = toward(v.mL, lT, 0.35, 0.9, dt);
+    v.mR = toward(v.mR, rT, 0.6, 0.9, dt);
+    v.mL = toward(v.mL, lT, 0.6, 0.9, dt);
 
     // Hatch: emerge piano dietro la poppa per contare; quando sale a bordo si rituffa
     const counting = h.state === 'counting';
@@ -985,7 +986,7 @@ export class Night {
     // Robin: sul bordo mentre sale e ruba; nella luce si ritrae, abbassandosi dietro il bordo
     const rb = sim.robin;
     const robinT = rb && rb.present ? 1 - 0.6 * rb.fear : rb?.state === 'attack' ? 1 : 0;
-    v.robin = toward(v.robin, robinT, 0.6, 0.5, dt);
+    v.robin = toward(v.robin, robinT, 0.8, 0.5, dt);
 
     this.updateBattery(dt);
 

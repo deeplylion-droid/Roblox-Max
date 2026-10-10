@@ -315,6 +315,7 @@ describe('Pesca', () => {
   const hooked = () => {
     const ev: GameEvent[] = [];
     const f = new Fishing(new Rng(3), (e) => ev.push(e));
+    f.snapGrace = N1.snapGrace!;
     f.phase = 'bite';
     f.press(fish);
     return { f, ev };
@@ -344,5 +345,13 @@ describe('Pesca', () => {
     const { f, ev } = hooked();
     step(f, false, 8);
     expect(ev.some((e) => e.t === 'lineSnap')).toBe(false);
+  });
+
+  it('la tolleranza allo strappo si sfuma nelle prime notti, ma non sparisce', () => {
+    const grace = [1, 2].map((n) => new NightSim(NIGHTS[n]!, 1).fishing.snapGrace);
+    expect(grace[0]).toBe(0.5);
+    expect(grace[1]).toBeLessThan(grace[0]!);
+    expect(new NightSim({ ...NIGHTS[2]!, snapGrace: undefined }, 1).fishing.snapGrace).toBeLessThan(grace[1]!);
+    expect(new NightSim({ ...NIGHTS[2]!, snapGrace: undefined }, 1).fishing.snapGrace).toBeGreaterThan(0);
   });
 });

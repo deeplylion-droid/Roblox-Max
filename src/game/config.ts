@@ -54,9 +54,12 @@ export const FISHING = {
   tensionRelax: 0.55,
   slackEscape: 1.1,
   lookAwayEscape: 1.4,
-  /** tolleranza allo strappo: a tensione piena il filo regge ancora mezzo secondo (la barra trema di rosso) */
-  snapGrace: 0.5,
-  /** da solo, senza che tu tiri, il pesce porta la tensione al massimo fino a qui: non spezza il filo */
+  /** tolleranza allo strappo: a tensione piena il filo regge ancora un attimo mentre la barra trema di rosso.
+   *  Le prime notti ne danno di più (NightConfig.snapGrace: 0,5 s la prima, 0,35 la seconda); dalla terza resta
+   *  questa, mai zero, se no la barra che trema non servirebbe a niente */
+  snapGrace: 0.2,
+  /** da solo, senza che tu tiri, il pesce porta la tensione al massimo fino a qui: non spezza il filo (in tutte le
+   *  notti: perdere il pesce senza aver sbagliato niente sembrerebbe un errore del gioco) */
   pullFreeMax: 0.92,
 };
 
@@ -134,6 +137,8 @@ export interface NightConfig {
   hourlyRamp: number;
   /** attesa dell'abboccata rispetto alla prima notte (0.8 = i pesci abboccano prima); assente: 1 */
   biteMul?: number;
+  /** secondi di tolleranza allo strappo, se diversi da FISHING.snapGrace (le prime notti si sfumano) */
+  snapGrace?: number;
   /** cattura (1-based) che garantisce un frammento di lore */
   guaranteedLoreAt: number;
   loreChance: number;
@@ -157,6 +162,9 @@ export const NIGHTS: Record<number, NightConfig> = {
     night: 1,
     quota: 8,
     hourlyRamp: 0.1,
+    // mezzo secondo di tolleranza allo strappo (dalla prova dell'utente: «si va subito in rosso e il pesce scappa
+    // in una frazione di secondo»); si sfuma nelle notti dopo
+    snapGrace: 0.5,
     guaranteedLoreAt: 4,
     loreChance: 0.08,
     exclusive: [
@@ -183,6 +191,7 @@ export const NIGHTS: Record<number, NightConfig> = {
     quota: 10,
     hourlyRamp: 0.12,
     biteMul: 0.35,
+    snapGrace: 0.35,
     guaranteedLoreAt: 3,
     loreChance: 0.08,
     exclusive: [

@@ -28,6 +28,8 @@ export class Fishing {
   private lookAwayTime = 0;
   /** secondi passati a tensione piena (oltre snapGrace il filo si spezza) */
   overload = 0;
+  /** quanto regge il filo a tensione piena (dipende dalla notte, vedi NightConfig.snapGrace) */
+  snapGrace = FISHING.snapGrace;
   current: Catch | null = null;
   /** valore 0..1 per animare la canna (0 riposo, 1 abboccata, 2 recupero) */
   get bend(): number {
@@ -91,7 +93,7 @@ export class Fishing {
 
   /** 0..1: quanto manca allo strappo mentre la tensione è piena (per far tremare la barra) */
   get strain(): number {
-    return Math.min(1, this.overload / FISHING.snapGrace);
+    return Math.min(1, this.overload / this.snapGrace);
   }
 
   update(dt: number, o: { lamp: LampLevel; reelHeld: boolean; facingRod: boolean; busy: boolean; biteMul?: number }): Catch | null {
@@ -182,7 +184,7 @@ export class Fishing {
     // tensione piena: il filo regge ancora un attimo, poi si spezza (mollando si salva)
     if (this.tension >= 1 && holding) {
       this.overload += dt;
-      if (this.overload >= FISHING.snapGrace) {
+      if (this.overload >= this.snapGrace) {
         this.emit({ t: 'lineSnap' });
         this.toRebait();
         return null;

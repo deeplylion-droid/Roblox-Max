@@ -1,4 +1,4 @@
-import { HOUR_SECONDS, LAMP, LORE, NIGHT_HOURS, VIEW, YAW, angleDiff, type LampLevel, type MonsterId, type NightConfig } from './config.ts';
+import { FISHING, HOUR_SECONDS, LAMP, LORE, NIGHT_HOURS, VIEW, YAW, angleDiff, type LampLevel, type MonsterId, type NightConfig } from './config.ts';
 import type { GameEvent } from './events.ts';
 import { Fishing, type Catch } from './fishing.ts';
 import { Hatch, Molly, Gulpy, Robin, SONAR_WARN, type WorldView } from './monsters.ts';
@@ -55,6 +55,7 @@ export class NightSim {
     this.foundLore = new Set(foundLore);
     const emit = (e: GameEvent) => this.events.push(e);
     this.fishing = new Fishing(this.rng, emit);
+    this.fishing.snapGrace = cfg.snapGrace ?? FISHING.snapGrace;
     this.gulpy = new Gulpy(cfg.gulpy);
     this.molly = new Molly(cfg.molly);
     this.hatch = new Hatch(cfg.hatch);

@@ -68,10 +68,10 @@ html, body {
 .hud-turn.show { opacity: 1; }
 .hud-hover { position: absolute; font-size: 13px; letter-spacing: .15em; text-transform: uppercase; color: var(--amber); opacity: 0; transform: translate(14px, 10px); transition: opacity .15s; }
 .hud-hover.show { opacity: .9; }
-.hud-reel { position: absolute; left: 50%; bottom: 150px; width: 260px; height: 8px; transform: translateX(-50%); border: 1px solid rgba(233,226,208,.5); opacity: 0; transition: opacity .2s; }
+.hud-reel { position: absolute; left: 50%; bottom: 150px; width: min(520px, 70vw); height: 16px; transform: translateX(-50%); border: 2px solid rgba(233,226,208,.5); opacity: 0; transition: opacity .2s; }
 .hud-reel.show { opacity: 1; }
 .hud-reel .bar { position: absolute; left: 0; top: 0; bottom: 0; background: var(--amber); }
-.hud-reel .zone { position: absolute; top: -4px; bottom: -4px; left: 80%; width: 2px; background: var(--blood); }
+.hud-reel .zone { position: absolute; top: -8px; bottom: -8px; left: 80%; width: 3px; background: var(--blood); }
 
 /* ── schermate ── */
 .screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: auto; background: radial-gradient(ellipse at center, rgba(5,8,13,.55), rgba(5,8,13,.96)); }
