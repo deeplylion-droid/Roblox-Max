@@ -125,6 +125,11 @@ def yaw_of(p):
 
 def encode_layer(key, exr, space, width, rect=None, yaw_center=0.0, with_alpha=False, data=False, extra=None, quality=90):
     p = post.read_exr(exr)
+    if rect is not None:
+        # Blender a volte rende una riga in più in fondo alla regione (i conti in float32 sul bordo): si taglia alle
+        # misure del riquadro, se no l'immagine non combacia col rect
+        h, w = rect[3] - rect[1], rect[2] - rect[0]
+        p = {k: (v[:h, :w] if v.ndim >= 2 and v.shape[0] >= h and v.shape[1] >= w else v) for k, v in p.items()}
     W, H = pano_size(width)
     alpha = p.get('alpha') if with_alpha else None
     entry = {'space': space, 'yaw': yaw_center, 'rect': list(rect) if rect else [0, 0, W, H], 'passes': {}}

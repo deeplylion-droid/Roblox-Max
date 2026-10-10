@@ -582,7 +582,7 @@ def _set_barca():
 SHOTS = {
     # (riferimento, camera, bersaglio, lente): camera e bersaglio rispetto alla testa, nelle coordinate della barca
     # (la lampara è lì accanto: le camere stanno fuori dal suo cappello)
-    'insieme': ('testa', (1.45, -1.45, -0.80), (-0.35, 0.10, -0.95), 26),
+    'insieme': ('testa', (1.60, -1.60, -0.70), (-0.40, 0.10, -0.62), 24),
     'testa': ('testa', (-0.40, -1.05, -0.30), (-0.12, -0.04, -0.10), 45),
     'fuori': ('testa', (-1.75, 2.55, -0.45), (0.05, 0.0, -0.75), 28),
     'bocca': ('testa', (-0.20, -0.66, -0.16), (-0.20, -0.06, -0.10), 60),

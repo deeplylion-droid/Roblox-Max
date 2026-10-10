@@ -1118,8 +1118,10 @@ export class Night {
     const breath = !idle ? 0 : hb < 0.6 ? smooth01(hb / 0.6) : hb < 0.9 ? 1 : hb < 1.8 ? 1 - smooth01((hb - 0.9) / 0.9) : 0;
     v.aHornHalf = approach(v.aHornHalf, breath, 18, dt);
     v.aHornFull = approach(v.aHornFull, ar && (ar.state === 'blowing' || ar.state === 'attack') ? 1 : 0, 25, dt);
-    // il risucchio: la gola si gonfia piano mentre prende fiato (e si sgonfia di colpo quando soffia o aspetta)
-    v.aFiato = ar?.state === 'inhaling' ? Math.min(1, v.aFiato + dt / 0.8) : Math.max(0, v.aFiato - dt / 0.25);
+    // il risucchio: la gola si gonfia per tutto il tempo che prende fiato; quando soffia si sgonfia di colpo, se
+    // l'hai spenta in tempo si sgonfia piano, in un sospiro, mentre aspetta al buio
+    if (ar?.state === 'inhaling') v.aFiato = Math.max(v.aFiato, ar.breath);
+    else v.aFiato = Math.max(0, v.aFiato - dt / (ar?.state === 'blowing' || ar?.state === 'attack' ? 0.3 : 1.5));
 
     // Robin: sale dal mare sul bordo mentre arriva e ruba; scacciato scivola giù in mare. La luce in faccia cresce
     // mentre lo scacci, e se ne va ancora abbagliato

@@ -208,7 +208,9 @@ def colori_bocca(fr, v):
 
     def mouth(p):
         q, d, front = misura(p)
-        inside = np.clip((max(a - v['r'], 0.004) * 1.05 - d) / 0.012, 0, 1) * (q[:, 1] > float(c[1]) - 0.04)
+        # dentro la bocca: solo nella galleria che scende in gola (sull'asse, dietro la testa, c'è la nuca)
+        dentro = (q[:, 1] > float(c[1]) - 0.04) & (q[:, 1] < 0.02)
+        inside = np.clip((max(a - v['r'], 0.004) * 1.05 - d) / 0.012, 0, 1) * dentro
         lip = np.clip(1 - np.abs(d - a) / 0.05, 0, 1) * front * 0.42
         return np.maximum(inside, lip).astype(F)
 
@@ -712,7 +714,7 @@ def tavola_vetrina(size=(480, 360)):
     sheet = Image.new('RGB', (3 * W, 2 * (H + cap)), (14, 14, 16))
     d = ImageDraw.Draw(sheet)
     font = _font(15)
-    titoli = ['insieme, dalla parte della barca', 'la testa', 'da dietro: pori, pinne, ventosa della coda']
+    titoli = ['insieme, dalla parte della barca', 'la testa', 'da dietro: l\'arco, le pinne, la ventosa della coda']
     righe = [[os.path.join(CACHE, 'vetrina', f'lampy_{n}.png') for n in ('insieme', 'testa', 'fuori')],
              [os.path.join(CACHE, 'vetrina', f'lampy_ventosa_{i}.png') for i in range(len(VENTOSE))]]
     for r, (paths, tt) in enumerate(zip(righe, (titoli, ['ventosa ' + t for t, _, _ in VENTOSE]))):
