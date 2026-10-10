@@ -36,7 +36,7 @@ Horror in prima persona a inquadratura fissa (alla *Five Nights at Freddy's*): s
 
 ## 4. Struttura della notte
 
-> **Difficoltà della Notte 1** (10 ottobre, su richiesta: «75% dei giocatori maldestri vince»): le creature tornano il 10% prima, l'attività cresce del 10% all'ora (prima 8%) e per ferrare ci sono 2,15 s (prima 2,6). Con i giocatori simulati (`npm run sim -- 1 1000`): esperto 100%, medio 89%, maldestro 76% (prima 100 / 98,5 / 97).
+> **Difficoltà della Notte 1** (10 ottobre, su richiesta: «75% dei giocatori maldestri vince»): le creature tornano il 10% prima, l'attività cresce del 10% all'ora (prima 8%) e per ferrare ci sono 2,15 s (prima 2,6). Con i giocatori simulati (`npm run sim -- 1 1000`): esperto 100%, medio 89%, maldestro 76% (prima 100 / 98,5 / 97). Dopo la prova dell'utente (10 ottobre: mezzo secondo di tolleranza allo strappo e Gulpy più raro, +20% di pausa fra una visita e l'altra): esperto 100%, medio 96%, maldestro 86%.
 
 - Dalle **00:00 alle 06:00**; un'ora di gioco dura **75 secondi**, quindi circa 7 minuti e mezzo per notte.
 - Ogni ora la campana del paese batte i rintocchi: è l'orologio diegetico.
@@ -45,10 +45,10 @@ Horror in prima persona a inquadratura fissa (alla *Five Nights at Freddy's*): s
 
 ## 5. Pesca
 
-1. **Lancio** (`Spazio` o clic sulla canna): la lenza entra in acqua.
+1. **Lancio** (`Spazio` o clic sulla canna): la canna si carica e scatta, il **galleggiante** (con la luce chimica della pesca di notte) vola in arco e cade al largo davanti alla canna, col tonfo, uno schizzo e i cerchi sull'acqua; poi il filo si posa (10 ottobre, dalla prova dell'utente: «un'animazione soddisfacente per il lancio»).
 2. **Attesa**: il tempo prima dell'abboccata dipende dalla lampara.
-3. **Abboccata**: suona il **campanellino** in punta alla canna (come nella pesca notturna vera) e la punta si piega. Hai circa 2 s per ferrare (2,15 s), altrimenti il pesce si mangia l'esca.
-4. **Recupero**: tieni premuto per riavvolgere. La tensione sale mentre recuperi e quando il pesce strattona; se supera il massimo **la lenza si spezza**, se scende a zero **il pesce si slama**. Mentre recuperi lo sguardo resta bloccato sulla canna.
+3. **Abboccata**: suona il **campanellino** in punta alla canna (come nella pesca notturna vera), la punta si piega e il galleggiante va sotto. Hai circa 2 s per ferrare (2,15 s), altrimenti il pesce si mangia l'esca.
+4. **Recupero**: tieni premuto per riavvolgere; il galleggiante si avvicina fino al bordo. La tensione sale mentre recuperi e quando il pesce strattona. A tensione piena il filo regge ancora **mezzo secondo**, mentre la barra trema di rosso: se molli in tempo si salva, se no **la lenza si spezza** (il galleggiante resta in acqua). Il pesce da solo non spezza il filo. Se la tensione scende a zero **il pesce si slama**. Mentre recuperi lo sguardo resta bloccato sulla canna. (Tolleranza allo strappo dal 10 ottobre, dalla prova dell'utente: «si va subito in rosso e il pesce scappa in una frazione di secondo».)
 5. **Cattura**: il gioco ti **mostra il pesce** che hai preso (render, nome, una riga di descrizione) e lo registra nel **Catalogo**. Poi finisce nel secchio. Ogni tanto, al posto del pesce, sale **un oggetto**: sono i frammenti di lore (vedi `LORE.md`).
 
 ### Il Catalogo dei pesci
@@ -78,6 +78,8 @@ Sono i bambini spariti a **Splashland** nel 1997, presi e trasformati dalla Madr
 > - **Molly**: sagoma C «Dita», testa B «Luna». Modello dettagliato **approvato** (`tools/render/molly.py`): occhi asimmetrici (uno ti fissa, l'altro scivola via), testa piegata di lato, melma verdastra.
 > - **Hatch**: sagoma C «Spilungone», testa A «Pescatrice». Modello dettagliato **approvato** (`tools/render/hatch.py`). Dal 10 ottobre la pelle è **arancione** (i mostri si distinguono per colore, come gli animatronics).
 > - **Pose di gioco** (`tools/render/scena_creature.py`), viste dal posto del pescatore con le luci della scena: Molly sui due fianchi e Gulpy **approvate**. Gulpy è un gigante (1,35 volte il modello della vetrina) e arriva dal lato sinistro della prua, perché davanti alla prua c'è la lampara sul buttafuori: quando sale è una sagoma in acqua, quando pretende ha una mano sul capodibanda sinistro e l'altra sulla punta di prua. Hatch che conta in acqua **appena dietro la poppa** (molto vicino, altissimo e piegato sulla barca), illuminato dalla sua esca: **approvato**.
+>
+> - **Come se ne vanno** (10 ottobre, dalla prova dell'utente: «sarebbe più bello se andasse via muovendosi verso il basso invece di scomparire»): nessuna creatura svanisce più in dissolvenza. Molly, Gulpy alla prua (e Robin) salgono e scendono **dietro il bordo della barca**, che li copre davvero (le mani sul bordo mollano la presa per prime); Gulpy lontano e Hatch emergono e si rituffano. Al buio gli occhi scendono con loro.
 >
 > Le tavole dei dettagli sono bozze: i modelli definitivi devono avere molto più dettaglio nelle forme e nelle texture. La pelle sotto è opaca, ma **tutti i mostri hanno sopra uno strato di melma e un effetto bagnato**: chiazze lucide, colature, bava che gocciola, fili tra le dita e tra i denti.
 
