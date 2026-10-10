@@ -35,6 +35,8 @@ export class App {
   readonly screens: Screens;
   private timer = 0;
   private lang: Lang;
+  /** Alt + numero sul titolo (vedi title) */
+  private nightKeys: ((e: KeyboardEvent) => void) | null = null;
   /** la notte in corso (o l'ultima giocata) */
   private nightNo = 1;
 
@@ -95,6 +97,17 @@ export class App {
     // ?notte=N: la nuova partita parte da quella notte (prove)
     const forced = Number(new URLSearchParams(location.search).get('notte'));
     const reached = Math.min(this.save.night, lastNight());
+    // Alt + numero sul titolo: comincia da quella notte (per provare le notti dopo la prima nelle build di prova;
+    // la demo arriva solo alla prima)
+    if (!this.nightKeys) {
+      this.nightKeys = (e: KeyboardEvent) => {
+        const n = Number(e.key);
+        if (this.mode !== 'title' || !e.altKey || !(n >= 1 && n <= lastNight())) return;
+        e.preventDefault();
+        this.intro(n);
+      };
+      addEventListener('keydown', this.nightKeys);
+    }
     this.screens.title({
       canContinue: reached >= 2,
       onNew: () => this.intro(forced >= 1 && forced <= lastNight() ? forced : 1),
