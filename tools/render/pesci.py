@@ -184,7 +184,8 @@ class Body:
 
     def attr_parti(self):
         """Attributi della pelle per i pezzi fusi che vanno colorati a parte: 'pinna' (le pinne carnose, del
-        colore delle pinne) e 'rostro' (del colore del dorso): 1 sul pezzo, 0 sul corpo, sfumati nel raccordo."""
+        colore delle pinne) e 'rostro' (del colore del dorso): 1 sul pezzo, 0 sul corpo, sfumati nel raccordo.
+        Con la ventosa della remora anche 'ventosa' (1 sul disco) e 'lamelle' (1 nei solchi fra le lamelle)."""
         self.parti()
         out = {}
         for tipo in ('pinna', 'rostro'):
@@ -199,6 +200,15 @@ class Body:
                     d = np.minimum(d, f(p))
                 return np.clip((base(p) - d) / 0.004, 0, 1).astype(F)
             out[tipo] = a
+        if self.sh.ventosa is not None:
+            def disco(p):
+                _, rr, vicino, _ = self._ventosa_q(p)
+                return (np.clip((0.97 - rr) / 0.08, 0, 1) * vicino).astype(F)
+
+            def lamelle(p):
+                _, rr, vicino, lam = self._ventosa_q(p)
+                return (lam * np.clip((0.92 - rr) / 0.08, 0, 1) * vicino).astype(F)
+            out['ventosa'], out['lamelle'] = disco, lamelle
         return out
 
     def raw(self):
@@ -256,7 +266,13 @@ class Body:
             elif sh.bocca == 'terminale':
                 # il taglio della bocca: una fessura sottile dal muso all'angolo
                 d = base(p)
-                slit = np.maximum(np.abs(z - self.mouth_line(x)) - 0.0012, x - sh.mouth_t)
+                if sh.rostro is not None and sh.rostro.tipo == 'becco':
+                    # il becco è tagliato fino in punta, e il taglio si assottiglia con le mascelle (resta un
+                    # terzo della loro altezza): così arrivano intere fino in fondo
+                    _, wz, _ = sezione_rostro(sh.rostro, np.minimum(x, 0.0))
+                    slit = np.maximum(np.abs(z - self.mouth_line(x)) - np.minimum(0.0012, wz * 0.3), x - sh.mouth_t)
+                else:
+                    slit = np.maximum(np.abs(z - self.mouth_line(x)) - 0.0012, x - sh.mouth_t)
                 if sh.rostro is not None and sh.rostro.tipo != 'becco':
                     slit = np.maximum(slit, -x - 0.003)      # il rostro resta intero (solo il becco è tagliato)
                 d = sdf.smax(d, -slit, 0.002)
@@ -344,8 +360,9 @@ class Body:
             out.append((np.array((t, np.sign(ec[1]) * y, z), F), self.sh.spiracoli))
         return out
 
-    def _ventosa(self, p, d):
-        """Il disco adesivo della remora sul capo: lamelle di traverso scavate e il bordo rialzato."""
+    def _ventosa_q(self, p):
+        """La ventosa della remora nei punti p: (q lungo il disco 0..1, distanza dal centro in unità del disco,
+        vicinanza alla pelle del dorso 0..1, lamelle: 1 nei solchi e 0 sulle creste)."""
         vs = self.sh.ventosa
         x, y, z = p[:, 0], p[:, 1], p[:, 2]
         q = (x - vs.t0) / (vs.t1 - vs.t0)
@@ -353,6 +370,11 @@ class Body:
         ztop = self.top(np.clip(x, 0, 1))
         vicino = np.clip(1 - np.abs(z - ztop) / 0.012, 0, 1)
         lam = 0.5 + 0.5 * np.cos(2 * np.pi * q * vs.lamelle)
+        return q, rr, vicino, lam
+
+    def _ventosa(self, p, d):
+        """Il disco adesivo della remora sul capo: lamelle di traverso scavate e il bordo rialzato."""
+        _, rr, vicino, lam = self._ventosa_q(p)
         dentro = np.clip((0.92 - rr) / 0.08, 0, 1)
         d = d + 0.0022 * lam * dentro * vicino
         return d - 0.0018 * np.exp(-((rr - 1.0) / 0.07) ** 2) * vicino
@@ -590,17 +612,24 @@ def piastra(body: Body, fin: Fin, side=-1):
     return f, lo, hi
 
 
+def sezione_rostro(r, x):
+    """La sezione del rostro r alla x (x < 0, davanti al muso): (mezza larghezza, mezza altezza, quota del
+    centro). Si assottiglia dritta fino a r.punta in punta; la curva alza (+) o abbassa (−) la punta."""
+    s = np.clip(-x / float(r.lunghezza), 0.0, 1.0)
+    k = 1.0 - (1.0 - r.punta) * s
+    return r.larghezza * k, r.altezza * k, r.z + r.curva * s * s
+
+
 def rostro_campo(body: Body):
     """Il rostro davanti al muso: una trave a sezione ellittica che si assottiglia verso la punta. 'tubo' ha
-    la boccuccia in punta, 'sega' i denti sui due bordi larghi. Restituisce (campo, lo, hi)."""
+    la boccuccia in punta, 'sega' i denti sui due bordi larghi, 'becco' è tagliato in due mascelle dal taglio
+    della bocca (in Body.field; i dentini sono un elemento a parte, denti_becco). Restituisce (campo, lo, hi)."""
     r = body.sh.rostro
     L = float(r.lunghezza)
     x_rad = 0.05            # la radice sta dentro la testa
 
     def sezione(x):
-        s = np.clip(-x / L, 0.0, 1.0)
-        k = 1.0 - (1.0 - r.punta) * s
-        return r.larghezza * k, r.altezza * k, r.z + r.curva * s * s
+        return sezione_rostro(r, x)
 
     tip_z = r.z + r.curva
     tond = max(min(r.larghezza, r.altezza) * r.punta, 0.0015)
@@ -872,6 +901,11 @@ def fish_skin(name, lk: Look, rot=0.0, wounds=False, slime=False, alto=False, pa
         col = g.mix(g.mul(g.attr('pinna'), lk.tinta_pinne), col, lk.fin)
     if 'rostro' in parti and lk.tinta_rostro:
         col = g.mix(g.mul(g.attr('rostro'), lk.tinta_rostro), col, lk.back)
+    if 'ventosa' in parti:
+        # la ventosa della remora: il disco più chiaro del dorso, i solchi fra le lamelle scuri
+        chiaro = tuple(min(1.0, c * 2.0 + 0.06) for c in lk.flank)
+        col = g.mix(g.mul(g.attr('ventosa'), 0.8), col, chiaro)
+        col = g.mix(g.mul(g.attr('lamelle'), 0.85), col, tuple(c * 0.3 for c in lk.back))
     # linea laterale
     if lk.linea_laterale > 0:
         la, lb = lk.linea_v
@@ -1334,18 +1368,23 @@ def barbels(body: Body, mat):
 
 
 def skeletal(body: Body, lk: Look, seed=3, vertebre=34, costole_fino=0.55, emali_da=0.5, cranio_t=None,
-             striscia=True, striscia_v=0.6, striscia_fino=0.9, peduncolo=0.9, occhi=True, osso=None):
+             striscia=None, striscia_v=0.6, striscia_fino=0.9, peduncolo=0.9, occhi=True, osso=None, raggi_disco=None):
     """Lisca, cranio, costole; resta la striscia di pelle del dorso con le righe, e gli occhi.
     Opzioni: vertebre (quante), costole_fino (fin dove arrivano le costole), emali_da (da dove le spine di
-    sotto), cranio_t (dove finisce il cranio; None: dietro l'opercolo), striscia (la pelle del dorso) con
-    striscia_v (da che quota) e striscia_fino (fin dove), peduncolo (da dove resta carnosa la coda; None:
-    niente), occhi (False: le orbite vuote), osso (tinta delle ossa, per esempio verde)."""
+    sotto), cranio_t (dove finisce il cranio; None: dietro l'opercolo), striscia (la pelle del dorso; None:
+    sì, tranne sulle razze) con striscia_v (da che quota) e striscia_fino (fin dove), peduncolo (da dove resta
+    carnosa la coda; None: niente), occhi (False: le orbite vuote), osso (tinta delle ossa, per esempio verde).
+    Le razze (piano 'razza'): il cranio è solo il tronco, le vertebre non hanno spine né costole (starebbero
+    nel piano delle ali) e le ali diventano raggi di cartilagine a ventaglio: raggi_disco = quanti per ala
+    (None: 30; 0: niente)."""
     rng = np.random.default_rng(seed)
     sh = body.sh
     obs = []
     bone = bone_material() if osso is None else bone_material('BoneTinto', tinta=osso)
     raw = body.field(socket=True)
     x_skull = sh.gill_t + 0.01 if cranio_t is None else cranio_t
+    if striscia is None:
+        striscia = not body.razza
     # cranio: la testa erosa, con l'orbita grande e il buco dell'opercolo
     n3 = sdf.Noise3(seed)
     occhi_l = body.occhi_lista()
@@ -1354,6 +1393,10 @@ def skeletal(body: Body, lk: Look, seed=3, vertebre=34, costole_fino=0.55, emali
 
     def skull(p):
         d = raw(p) + 0.0025
+        if body.razza:
+            # sulle razze il cranio è solo il tronco (il rostro davanti resta): le ali sono i raggi di cartilagine
+            zc_, h_, _ = body.section(np.clip(p[:, 0], 0, 1))
+            d = np.maximum(d, np.where(p[:, 0] > 0.0, np.abs(p[:, 2] - zc_) - h_ * 1.1, -1.0))
         # il bordo posteriore del cranio, frastagliato
         d = np.maximum(d, p[:, 0] - x_skull - 0.012 * n3(p, scale=0.015, octaves=2))
         for ec, r, _ in occhi_l:
@@ -1402,6 +1445,8 @@ def skeletal(body: Body, lk: Look, seed=3, vertebre=34, costole_fino=0.55, emali
         a, b, c = np.array((x0, 0, zc), F), np.array((xm, 0, zc), F), np.array((x1, 0, zc), F)
         parts.append(sdf.round_cone(a, b, r, r * 0.72))
         parts.append(sdf.round_cone(b, c, r * 0.72, r))
+        if body.razza:
+            continue        # le razze: solo le vertebre (spine e costole starebbero nel piano delle ali)
         # spina neurale (in su e indietro) e, dalla metà in poi, emale (in giù)
         top = zc + h * 0.92
         parts.append(sdf.round_cone(b + (0, 0, r * 0.6), np.array((xm + h * 0.45, 0, top), F), r * 0.32, r * 0.12))
@@ -1425,6 +1470,8 @@ def skeletal(body: Body, lk: Look, seed=3, vertebre=34, costole_fino=0.55, emali
     o = sdf_object('Spine', spine, lo, hi, res=res, col=COL, banded=a_fascia(lo, hi, res))
     o.data.materials.append(bone)
     obs.append(o)
+    if body.razza and body.disco is not None and raggi_disco != 0:
+        obs += raggi_cartilagine(body, bone, 30 if raggi_disco is None else raggi_disco, seme=seed)
     # la striscia di pelle del dorso, strappata ai bordi, che pende sopra la lisca
     rawb = body.raw()
 
@@ -1457,6 +1504,57 @@ def skeletal(body: Body, lk: Look, seed=3, vertebre=34, costole_fino=0.55, emali
     if occhi:
         obs += eyes(body, lk)
     return obs
+
+
+def raggi_cartilagine(body: Body, mat, n=30, seme=0):
+    """Lo scheletro delle ali delle razze (famiglia skeletal, piano 'razza'): n raggi di cartilagine per ala, a
+    ventaglio dal fianco del tronco al bordo del disco (i primi in avanti verso il muso, gli ultimi indietro
+    verso l'angolo dell'ala), appena piegati e a segmenti come le ossicine vere. Stanno nel piano del disco;
+    un oggetto solo (campo_coni). Restituisce [oggetto] (o [] se il disco non sporge dal tronco)."""
+    rng = np.random.default_rng(seme)
+    ts = np.linspace(0.0, 1.0, 801, dtype=F)
+    ala = body.disco.top(ts)
+    tronco = body.section(ts)[1]                     # la mezza larghezza del tronco, in z
+    fuori = np.nonzero(ala > tronco * 1.15 + 0.004)[0]
+    if len(fuori) == 0:
+        return []
+    t0, t1 = float(ts[fuori[0]]), float(ts[fuori[-1]])
+    A, B, R1, R2 = [], [], [], []
+
+    def osso(a, b, r1, r2):
+        A.append(a)
+        B.append(b)
+        R1.append(r1)
+        R2.append(r2)
+
+    def radice(f, sz):
+        """Il punto della radice sul fianco del tronco (f = 0 il primo raggio, 1 l'ultimo)."""
+        tr = t0 + (t1 - t0) * (0.18 + 0.72 * f)
+        return np.array((tr, 0.0, sz * float(body.section(np.array([tr], F))[1][0]) * 0.92), F)
+    segmenti = 7
+    for sz in (-1.0, 1.0):
+        radici = []
+        for i in range(n):
+            f = i / max(n - 1, 1)
+            tt = t0 + (t1 - t0) * f                  # la punta, lungo il bordo dell'ala
+            a = radice(f, sz)
+            b = np.array((tt, 0.0, sz * float(body.disco.top(np.array([tt], F))[0]) * 0.96), F)
+            radici.append(a)
+            # una curva dolce (Bézier): a metà il raggio si piega appena all'indietro
+            m = (a + b) * 0.5 + np.array((0.012 + 0.004 * rng.uniform(-1, 1), 0.0, 0.0), F)
+            pts = [(1 - u) ** 2 * a + 2 * u * (1 - u) * m + u * u * b for u in np.linspace(0, 1, segmenti + 1)]
+            for k in range(segmenti):
+                rr = 0.0019 * (1 - 0.5 * k / segmenti)
+                osso(pts[k], pts[k + 1], rr, rr * 0.72)     # ogni pezzo si stringe in fondo: cartilagine a segmenti
+        # la cartilagine lunga lungo il fianco del tronco, che regge tutti i raggi
+        for a, b in zip(radici[:-1], radici[1:]):
+            osso(a, b, 0.0028, 0.0028)
+    # le due cinture di traverso, dalla cartilagine di un lato a quella dell'altro passando per la colonna:
+    # quella delle pettorali (davanti) e quella delle pelviche (in fondo)
+    for f in (0.3, 0.97):
+        osso(radice(f, -1.0), radice(f, 1.0), 0.0032, 0.0032)
+    f, lo, hi = campo_coni(A, B, R1, R2)
+    return [oggetto_sdf('RaggiDisco', f, lo, hi, mat, res=0.0008 if FAST else 0.0005)]
 
 
 def zombie(body: Body, lk: Look, seed=5, cucitura=(0.26, 0.64, -0.52), punti=13, occhi='lattiginosi', marcio=0.45):
@@ -1598,12 +1696,18 @@ def corrupt(body: Body, lk: Look, seed=7, occhi_extra=None, iridi=None, escresce
 FERITE_SANGUINANTI = [((0.30, 0.25), (0.42, -0.35)), ((0.52, 0.45), (0.60, -0.15)), ((0.70, 0.30), (0.74, -0.30))]
 
 
-def bleeding(body: Body, lk: Look, seed=9, ferite=None, bocca=22.0, denti=9, sangue_bocca=True, carne=0.0):
+def bleeding(body: Body, lk: Look, seed=9, ferite=None, bocca=None, denti=9, sangue_bocca=None, carne=0.0):
     """Ferite aperte con la carne viva, sangue che cola, bocca aperta con i denti sporchi.
     Opzioni: ferite = [((t0, v0), (t1, v1))] tagli sul fianco sinistro, bocca (gradi di apertura; 0:
-    chiusa, senza denti), denti (per mascella e per lato), sangue_bocca (la goccia dal labbro), carne (0..1:
-    la pelle che manca dappertutto, carne viva su tutto il corpo: lo Scorticano)."""
+    chiusa, senza denti; None: 22 se la bocca è il taglio di sempre, 0 per le bocche ventrali degli squali e
+    per chi non ha bocca), denti (per mascella e per lato), sangue_bocca (la goccia dal labbro; None: solo
+    con la bocca di sempre), carne (0..1: la pelle che manca dappertutto, carne viva su tutto il corpo: lo
+    Scorticano)."""
     sh = body.sh
+    if bocca is None:
+        bocca = 22.0 if sh.bocca == 'terminale' else 0.0
+    if sangue_bocca is None:
+        sangue_bocca = sh.bocca == 'terminale'
     rng = np.random.default_rng(seed)
     gashes = FERITE_SANGUINANTI if ferite is None else ferite
     segs = []
@@ -1862,14 +1966,15 @@ def filamento(body: Body, lk: Look, fl: Filamento, k=0, mat=None):
 
 
 def raggi_liberi(body: Body, lk: Look, fin: Fin, k=0):
-    """I raggi liberi sotto la pettorale (gallinella): grossi, piegati verso il basso come zampette."""
+    """I raggi liberi sotto la pettorale (gallinella): grossi (in proporzione alla pinna), piegati verso il basso
+    come zampette, color carne chiara (fra il ventre e il fianco), appena più sottili in punta."""
     obs = []
-    col = fin.colore if fin.colore is not None else lk.fin
-    mat = materiale(f'RaggiLiberi{k}', tuple(c * 0.85 for c in col), rough=0.45, coat=0.5, sss=0.2)
-    zc, h, _ = (float(a[0]) for a in body.section(np.array([fin.a], F)))
+    col = tuple(a * 0.6 + b * 0.4 for a, b in zip(lk.belly, lk.flank))
+    mat = materiale(f'RaggiLiberi{k}', col, rough=0.45, coat=0.5, sss=0.25)
     for i in range(fin.liberi):
         fl = Filamento(t=fin.a - 0.012 - 0.011 * i, v=-0.62 - 0.08 * i, lunghezza=fin.size * (0.62 - 0.06 * i),
-                       raggio=0.0042, dir=(-0.3 + 0.15 * i, 0.4, -1.0), curva=(4.0, 0.0, 1.0), lati='due', punta=0.5)
+                       raggio=max(0.0042, fin.size * 0.02), dir=(-0.3 + 0.15 * i, 0.4, -1.0), curva=(4.0, 0.0, 1.0),
+                       lati='due', punta=0.7)
         obs += filamento(body, lk, fl, k=f'{k}l{i}', mat=mat)
     return obs
 
@@ -1921,9 +2026,43 @@ def denti_disco_orale(body: Body):
     return oggetto_sdf('DentiDiscoOrale', f, lo, hi, mat, res=max(R0 * 0.012, 0.00035))
 
 
+def denti_becco(body: Body, n=None, lunghezza=None, raggio=None, mat=None, nome='DentiBecco'):
+    """I dentini delle aguglie lungo le due mascelle del becco (Rostro('becco')): aghi corti sul bordo del
+    taglio, sui due lati, piegati in fuori e verso l'altra mascella. n: quanti per mascella e per lato (None:
+    Rostro.denti); lunghezza, raggio: None = in proporzione al becco, che in punta si assottiglia. Seguono la
+    mascella di sotto se la bocca è aperta (sanguinanti). Un oggetto solo (campo_coni)."""
+    r = body.sh.rostro
+    n = r.denti if n is None else n
+    L = float(r.lunghezza)
+    R, hinge = getattr(body, 'jaw_R', None), getattr(body, 'hinge', None)
+    A, B, R1, R2 = [], [], [], []
+    for i in range(n):
+        x = -L * (0.02 + 0.92 * i / max(n - 1, 1))      # dalla radice quasi alla punta
+        wy, wz, _ = (float(np.asarray(a).ravel()[0]) for a in sezione_rostro(r, np.array([x], F)))
+        zl = float(body.mouth_line(np.array([x], F))[0])
+        ln = lunghezza if lunghezza is not None else max(wz * 0.55, 0.0012)
+        rr = raggio if raggio is not None else max(min(wy, wz) * 0.22, 0.0004)
+        for jaw in (1, -1):         # 1: la mascella di sopra (il dente punta in giù), −1: quella di sotto
+            for s in (-1, 1):
+                a = np.array((x, s * wy * 0.6, zl + jaw * wz * 0.35), F)
+                d = np.array((-0.2, s * 0.6, -jaw * 0.75), F)
+                d /= np.linalg.norm(d)
+                b = a + d * (ln + wz * 0.35)
+                if jaw == -1 and R is not None:
+                    a = (a - hinge) @ R.T + hinge
+                    b = (b - hinge) @ R.T + hinge
+                A.append(a)
+                B.append(b)
+                R1.append(rr)
+                R2.append(rr * 0.15)
+    f, lo, hi = campo_coni(A, B, R1, R2)
+    mat = mat or materiale('DentiBecco', (0.84, 0.82, 0.72), rough=0.3, coat=0.6, sss=0.2)
+    return oggetto_sdf(nome, f, lo, hi, mat, res=max(min(R1) * 0.6, 0.0004))
+
+
 def elementi(body: Body, lk: Look):
     """Gli oggetti in più chiesti dalla forma: filamenti (barbigli, cirri), raggi liberi delle pettorali,
-    fotofori, i denti del disco orale."""
+    fotofori, i denti del disco orale e quelli del becco."""
     sh = body.sh
     obs = []
     for k, fl in enumerate(sh.filamenti):
@@ -1935,6 +2074,8 @@ def elementi(body: Body, lk: Look):
         obs.append(fotofori(body, sh.fotofori))
     if sh.disco_orale is not None:
         obs.append(denti_disco_orale(body))
+    if sh.rostro is not None and sh.rostro.tipo == 'becco' and sh.rostro.denti:
+        obs.append(denti_becco(body))
     return obs
 
 
@@ -2227,14 +2368,11 @@ def render_fish(fid):
 # ───────────────────────── fogli delle anteprime ─────────────────────────
 
 def foglio(voci, out, colonne=4, larghezza=1600):
-    """Un foglio con le immagini e due righe di testo sotto ciascuna: voci = [(percorso, titolo, sotto)]."""
+    """Un foglio con le immagini e il testo sotto ciascuna: voci = [(percorso, titolo, sotto)]. Il titolo e la
+    riga sotto vanno a capo se non stanno nella colonna (al massimo due righe ciascuno)."""
     from PIL import Image, ImageDraw, ImageFont
     cw = larghezza // colonne
     ih = cw // 2
-    th = 58
-    righe = (len(voci) + colonne - 1) // colonne
-    sheet = Image.new('RGB', (larghezza, righe * (ih + th) + 16), FONDO_CATALOGO)
-    dr = ImageDraw.Draw(sheet)
 
     def font(nome, px):
         for p in (f'/usr/share/fonts/truetype/dejavu/{nome}.ttf',):
@@ -2242,7 +2380,28 @@ def foglio(voci, out, colonne=4, larghezza=1600):
                 return ImageFont.truetype(p, px)
         return ImageFont.load_default()
     f1, f2 = font('DejaVuSans-Bold', 19), font('DejaVuSans', 13)
-    for i, (path, titolo, sotto) in enumerate(voci):
+    misura = ImageDraw.Draw(Image.new('RGB', (8, 8)))
+
+    def a_capo(testo, f, largo, righe_max=2):
+        """Le righe del testo spezzato alle parole perché stia largo al massimo `largo` pixel."""
+        righe, riga = [], ''
+        for parola in testo.split(' '):
+            prova = (riga + ' ' + parola).strip()
+            if riga and misura.textlength(prova, font=f) > largo:
+                righe.append(riga)
+                riga = parola
+            else:
+                riga = prova
+        righe.append(riga)
+        if len(righe) > righe_max:
+            righe = righe[:righe_max - 1] + [' '.join(righe[righe_max - 1:])]
+        return righe
+    testi = [(a_capo(titolo, f1, cw - 20), a_capo(sotto, f2, cw - 20)) for _, titolo, sotto in voci]
+    th = max(len(a) * 25 + len(b) * 17 for a, b in testi) + 12
+    righe = (len(voci) + colonne - 1) // colonne
+    sheet = Image.new('RGB', (larghezza, righe * (ih + th) + 16), FONDO_CATALOGO)
+    dr = ImageDraw.Draw(sheet)
+    for i, ((path, _, _), (r1, r2)) in enumerate(zip(voci, testi)):
         x, y = (i % colonne) * cw, (i // colonne) * (ih + th) + 8
         if os.path.exists(path):
             im = Image.open(path).convert('RGBA')
@@ -2251,8 +2410,14 @@ def foglio(voci, out, colonne=4, larghezza=1600):
             sheet.paste(im, (x + 4, y))
         else:
             dr.text((x + 20, y + ih // 2), f'manca {os.path.basename(path)}', fill=(200, 80, 80), font=f2)
-        dr.text((x + 12, y + ih + 4), titolo, fill=(236, 226, 205), font=f1)
-        dr.text((x + 12, y + ih + 30), sotto, fill=(214, 160, 90), font=f2)
+        ty = y + ih + 4
+        for r in r1:
+            dr.text((x + 12, ty), r, fill=(236, 226, 205), font=f1)
+            ty += 25
+        ty += 2
+        for r in r2:
+            dr.text((x + 12, ty), r, fill=(214, 160, 90), font=f2)
+            ty += 17
     sheet.save(out, quality=90)
     log('foglio', out)
     return out
@@ -2266,8 +2431,8 @@ def foglio_anteprime(out, voci_cli, colonne=4, larghezza=1600):
         fid, _, etichetta = v.partition(':')
         sp = registro.SPECIE.get(fid)
         titolo = etichetta or (sp.piano if sp else fid)
-        info = cat.get(fid, {})
-        sotto = f"{info.get('vero', '?')} ({info.get('sci', '?')}) · {fid}"
+        info = cat.get(fid)
+        sotto = f"{info['vero']} ({info['sci']}) · {fid}" if info else fid
         voci.append((os.path.join(CACHE, 'pesci', 'anteprime', f'{fid}.png'), titolo, sotto))
     return foglio(voci, out, colonne=colonne, larghezza=larghezza)
 

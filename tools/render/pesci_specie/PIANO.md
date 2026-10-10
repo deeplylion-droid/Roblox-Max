@@ -25,9 +25,10 @@ davanti, luna fredda dietro, sfondo trasparente).
 - La macchina ha 4 core: **un render alla volta**. Le prove sono sempre `--anteprima --fast`; i render finali
   (senza `--anteprima`, scrivono in `public/assets/img/fish/` e in `fish.json`) li lancia chi coordina.
 - Nel codice tutto in italiano (commenti, docstring, nomi), con la densità di commenti che trovi.
-- Le specie già registrate con `famiglia='normale'` sono **le prove dei piani corporei**: forma e aspetto
-  della specie vera, già controllati. Sono il punto di partenza: trasformale nella tua famiglia (metti la
-  famiglia giusta, aggiungi opzioni ed extra). Una voce `normale` non si può rendere senza `--anteprima`.
+- Le specie già registrate con `famiglia='normale'` sono **le prove dei piani corporei** (21, elencate nel §4):
+  forma e aspetto della specie vera, già controllati. Sono il punto di partenza: trasformale nella tua
+  famiglia (metti la famiglia giusta, aggiungi opzioni ed extra). Una voce `normale` non si può rendere senza
+  `--anteprima`, e `--elenco` le conta a parte finché restano `normale`.
 
 ## 1. Comandi
 
@@ -45,7 +46,16 @@ Se più agenti lavorano nello stesso momento, ogni render passa dal lucchetto, c
 Le anteprime finiscono in `tools/render/cache/pesci/anteprime/`: `<id>.jpg` (sul fondo scuro delle pagine
 del Catalogo: **è quella da guardare**, con lo strumento Read) e `<id>.png` (RGBA, come il finale). Con
 `--foglio` si fa una tavola delle anteprime già fatte; `id:etichetta` cambia il titolo sotto l'immagine.
-Il foglio delle prove dei piani è `tools/render/cache/pesci/piani_corporei.jpg`.
+I fogli già fatti, da guardare prima di cominciare (in `tools/render/cache/pesci/`):
+
+| foglio | cosa fa vedere |
+|---|---|
+| `piani_corporei.jpg` | le 21 prove dei piani corporei, con il piano sotto ciascuna |
+| `famiglie_sui_piani.jpg` | le famiglie applicate ai piani nuovi con le opzioni di default o quasi (scheletro di murena, aguglia, pastinaca e pesce sega; zombi sulla razza; corrotti sulla sogliola; sanguinanti su verdesca e aguglia) |
+| `disegni_della_pelle.jpg` | i disegni generici della pelle (§3.3) provati su un tonno |
+| `ganci_per_specie.jpg` | trasparenza, occhio allungato con la pupilla a fessura, pancia all'aria, `campo`, `ritocco`, pesce che esce dal bordo |
+| `effetti_glitch.jpg` | gli effetti in più dei glitchati (§5) sulla salpa |
+| `confronto_prototipi/prima_dopo.jpg` | i cinque prototipi prima e dopo il generatore nuovo: identici |
 
 Il modo di lavorare: scrivi la voce → anteprima → guarda il jpg → correggi → avanti. La specie vera deve
 riconoscersi al primo sguardo, e i dettagli della descrizione si devono vedere. Alla fine fai il foglio
@@ -131,7 +141,7 @@ numeri. I colori sono lineari (0..1, come in Blender): un dorso "scuro" sta sott
 | `fins` | le pinne (`Fin`, sotto) |
 | `barbels` | i due baffi delle triglie come il prototipo (`True`); per tutto il resto `filamenti` |
 | `spiracoli` | raggio del foro dietro ogni occhio (razze, squali) |
-| `rostro` | `Rostro(tipo, lunghezza, z, larghezza, altezza, punta, curva, denti)`: `'spada'` (piatta, sopra la bocca), `'becco'` (le due mascelle: z = mouth_z0, il taglio della bocca arriva in punta), `'tubo'` (muso a tubo con la boccuccia in punta), `'sega'` (con i denti sui bordi larghi) |
+| `rostro` | `Rostro(tipo, lunghezza, z, larghezza, altezza, punta, curva, denti)`: `'spada'` (piatta, sopra la bocca), `'becco'` (le due mascelle: z = mouth_z0, il taglio della bocca arriva in punta e si assottiglia con loro; `denti` = i dentini per mascella e per lato, vedi `ossaguglia`), `'tubo'` (muso a tubo con la boccuccia in punta), `'sega'` (con i denti sui bordi larghi). Con la bocca aperta (sanguinanti, `bocca_aperta`) la metà di sotto del becco si apre con i suoi dentini |
 | `disco` | razze: `Disco(contorno=[(t, mezza apertura)], spessore=[(t, mezzo spessore)])`; le pelviche delle razze sono un secondo lobo nel contorno |
 | `disco_orale` | lampreda: `DiscoOrale(raggio, anelli, denti, inclinazione)` (la ventosa con gli anelli di denti) |
 | `ventosa` | remora: `Ventosa(t0, t1, larghezza, lamelle)` sul capo piatto |
@@ -200,6 +210,11 @@ disco). La fascia u0..u1 / v0..v1 limita il disegno (i lati aperti 0, 1, ±1 non
 | `ventre` | ventre argentato metallico | v1, colore, forza (= metallo) |
 | `sfumatura` | tinta di una zona | u0, u1, v0, v1, larghezza (morbidezza) |
 
+Le scale sono in unità della lunghezza del pesce: `marmo` con `scala` sotto 30 fa chiazze grandi quanto il
+pesce, che quindi non si vedono (sulla pastinaca: 60 e 150); `macchie` 30–50, `punti` ≥ 160. I pesci visti
+dall'alto (piatti e razze) prendono la luce in pieno sul dorso: lì i colori vanno tenuti più scuri del
+solito (dorso ≤ 0.1) e il disegno più contrastato, se no il disco viene chiaro e piatto.
+
 ### 3.4 Specie, Ritratto, i ganci per specie
 
 `Specie(forma, aspetto, famiglia, piano, extra=None, campo=None, opzioni={}, ritratto=None, ritocco=None, note='')`
@@ -227,14 +242,48 @@ Cosa c'è in `c`: `c.fid`, `c.specie`, `c.body` (il corpo: `section(t)` → (zc,
   denti, bolle, verruche) → `(campo, lo, hi)`.
 - `c.P.denti_mascelle(body, n, lunghezza, zanne, apertura, mat, nome, seme)`: denti lungo le due mascelle.
 - `c.P.filamento(body, aspetto, Filamento(...), k, mat)`: un filamento in più (per esempio con un altro materiale).
+- `c.P.denti_becco(body, n, lunghezza, raggio, mat, nome)`: i dentini lungo il becco (li mette già la forma se
+  `Rostro.denti` > 0; l'aiuto serve per farne altri, più grossi o di un altro materiale).
+- `c.P.raggi_cartilagine(body, mat, n, seme)`: il ventaglio di raggi di cartilagine nelle ali delle razze (lo
+  mette già la famiglia skeletal, opzione `raggi_disco`).
+- `c.P.sezione_rostro(r, x)` → (mezza larghezza, mezza altezza, quota del centro) del rostro alla x (x < 0):
+  per attaccare cose alla spada, al becco o alla sega (il braccialetto della Spadossa, la cosa infilata
+  sull'aguglia imperiale).
 - Materiali: `c.P.materiale(nome, colore, rough, coat, metal, sss, emissione, forza)`, `fish_skin`,
   `bone_material`, `blood_material`, `tar_material`, `dirty_teeth_material`, `thread_material`,
   `flesh_material`, `human_eye(nome, iris)`, `slime_material`; `c.P.eyeball(nome, centro, raggio, mat,
   look, col=c.P.COL)`, `c.P.tooth(nome, base, punta, raggio, mat, col=c.P.COL)`, `c.P.drip(punto, lunghezza, r0, r1, dir)` (goccia
   che pende), `c.P.strand(a, b, cedimento, r)` (filo di bava fra due punti): sono campi, da passare a `oggetto_sdf`.
+- Materiali fatti a mano: `m, g = c.P.material('Nome')` dà il materiale e il costruttore dei nodi di
+  `tools/render/nodes.py` (`g.texcoord('Object')`, `g.attr('u')`, `g.noise`, `g.voronoi`, `g.wave`, `g.mix`,
+  `g.smoothstep`, `g.image(percorso, vec)`, `g.principled(color=…, rough=…, emission=…, alpha=…)`,
+  `g.output_material(…)`); poi `oggetto.data.materials.append(m)`. Le immagini che servono (scritte, la barca
+  dentro lo specchio, una foto) si fanno al volo con PIL in `tools/render/cache/pesci/tex/` e si leggono con
+  `g.image`, proiettate con le coordinate `Object`.
+- `c.P.sdf.smin(a, b, k)` / `smax` lavorano sui **valori** (array), `sdf.union(*campi, k)` / `subtract` /
+  `intersect` sui **campi** (funzioni).
 
 Esempi già scritti: `_denti_murena` (zombi.py), `_becco_pesce_palla` (corrotti.py), `_denti_sciabola`
-(scheletrici.py).
+(scheletrici.py). Esempi di `campo` e `ritocco`: il foglio `ganci_per_specie.jpg` è fatto con (serve
+`import numpy as np` in cima al file di famiglia)
+
+```python
+def buco(c, f):
+    """campo: un buco tondo che passa il corpo da parte a parte (a metà, all'altezza dell'asse)."""
+    centro = np.array((0.5, 0.0, 0.0), np.float32)
+
+    def g(p):
+        q = p - centro
+        return np.maximum(f(p), -(np.sqrt(q[:, 0] ** 2 + q[:, 2] ** 2) - 0.035))
+    return g
+
+
+def verde(img, c):
+    """ritocco: tutto più verde dentro la sagoma (img è RGBA 0..1, il canale 3 è la sagoma)."""
+    out = img.copy()
+    out[..., 1] = np.clip(out[..., 1] * 1.6, 0, 1)
+    return out
+```
 
 ## 4. I piani corporei
 
@@ -247,14 +296,21 @@ il pesce e la posa del ritratto; tutto il resto è nei dati della forma.
 | `alto` | corpo alto e compresso, quasi un disco di fianco | `san_pietrificato` | come sopra (si rimpicciolisce da solo) |
 | `anguilliforme` | lunghissimo (alto 1/12–1/30), dorsale e anale continue unite alla coda, `piega` a S | `murena_murata` (pinne carnose, bocca aperta); `lampreda_vampira` (disco orale, pori); `missina_della_melma` (barbigli, niente occhi) | yaw 12 |
 | `nastriforme` | nastro compresso, dorsale bassa da cima a fondo, coda minuscola | `sciabola_spolpata` | yaw 12 |
-| `squalo` | pinne carnose, coda eterocerca, fessure, bocca ventrale, pelle liscia e opaca | `volpe_sfregiata` | yaw 12 |
-| `rostro` | spada, becco o muso a tubo davanti al muso | `spadossa` (spada, pinne rigide carnose) | yaw 12 |
+| `squalo` | pinne carnose, coda eterocerca, fessure, bocca ventrale, pelle liscia e opaca | `verdesca_ferita` (lo squalo di sempre: `coda_eterocerca`, pettorali a falce); `volpe_sfregiata` (la coda a falce lunga quanto il corpo) | yaw 12 |
+| `rostro` | spada, becco o muso a tubo davanti al muso | `spadossa` (spada, pinne rigide carnose); `ossaguglia` (becco con i dentini) | yaw 12 |
 | `pettorali` | pettorali enormi aperte (pesce volante, civetta, gallinella) | `pesce_volante_in_pausa` (ali), `gallincubo` (ventaglio e zampette) | roll +28: si vede il dorso |
 | `palla` | pesce palla gonfio | `pesce_bubbone` (spine, becco) | yaw 12 |
 | `cavalluccio` | asse curvo: testa ad angolo, coda arrotolata | `cavalluccio_dosso` | yaw 14, pitch 0 |
 | `coda_di_topo` | testa grossa, coda che si assottiglia in un filo (chimera, granatiere) | `chimera_bianca` | yaw 12 |
 | `piatto` | pesce di fianco compresso, occhi tutti e due sul lato −Y, frangia di pinne | `sogliombra` | roll −38: coricato sul fondo |
-| `razza` | disco delle pettorali visto dall'alto, tronco con la coda | `razza_inchiodata` (disco a rombo, spine); `sega_dossa` (corpo da squalo, sega) | roll −38 |
+| `razza` | disco delle pettorali visto dall'alto, tronco con la coda | `razza_inchiodata` (disco a rombo, spine, coda con due dorsali); `pastinaca_putrida` (coda a frusta con il pungiglione); `sega_dossa` (corpo da squalo, sega) | roll −38 |
+
+Le 21 prove, piano per piano (sono le voci `normale` dei file di famiglia): `tonno_di_sangue` (fusiforme),
+`san_pietrificato` (alto), `murena_murata`, `lampreda_vampira`, `missina_della_melma` (anguilliforme),
+`sciabola_spolpata` (nastriforme), `chimera_bianca` (coda di topo), `sogliombra` (piatto), `razza_inchiodata`,
+`pastinaca_putrida`, `sega_dossa` (razza), `verdesca_ferita`, `volpe_sfregiata` (squalo), `spadossa`,
+`ossaguglia` (rostro), `cavalluccio_dosso` (cavalluccio), `pesce_volante_in_pausa`, `gallincubo` (pettorali),
+`pesce_bubbone` (palla), `remora_strappata`, `lanternossa` (fusiforme con ventosa e fotofori).
 
 Consigli per piano:
 
@@ -266,14 +322,18 @@ Consigli per piano:
 - **squalo**: tutte le pinne `carnosa=True`; la pettorale con `dir=(0.75, 0.3, -0.6)` scende dietro le
   fessure; `bocca='ventrale'` (mezzaluna sotto il muso), `branchie='fessure'` (`n_branchie` 5 o 6),
   `squame=0`, `ruvido≈0.45`, `linea_laterale=0`, colori scuri sul dorso (≤ 0.08) perché la pelle opaca
-  sotto la lampara schiarisce.
+  sotto la lampara schiarisce. La coda: `coda_eterocerca(lobo, alzata, lobo_basso, basso)` con `size`
+  0.22–0.3 (verdesca: 1.0, 1.9, 0.45, 1.45); gattuccio e palombo hanno la coda bassa e lunga, quasi
+  orizzontale (alzata ~0.8–1.0, lobo_basso piccolo). Partire da `verdesca_ferita`.
 - **piatto**: compresso (w ≤ 0.02), `occhi=[(t, z, r, -1), (t, z, r, -1)]` vicini al bordo dorsale della
   testa, dorsale dal muso alla coda e anale lunga (90 raggi), `dv`: il lato degli occhi prende il colore
   `back`, il lato cieco `belly`. Il rombo è quasi tondo (alto ~0.8 della lunghezza).
 - **razza**: `top`/`bot`/`w` sono il tronco (la gobba centrale e la coda: top = −bot = mezza larghezza in z,
   w = mezzo spessore), `disco` le ali; `occhi` sul lato −1 a z = ±, `spiracoli`, `bocca='nessuna'`,
   `branchie='nessuna'`; le pinne dorsali e la caudale della coda si scrivono come per un pesce di fianco
-  (il generatore le gira verso la camera). Pastinaca: coda a frusta lunga, pungiglione = `Spine` coricata.
+  (il generatore le gira verso la camera). Pastinaca (`pastinaca_putrida`): coda a frusta lunga una volta e
+  mezza il disco (il tronco che si assottiglia fino a 0.001), pungiglione = una `Spine` sola coricata
+  all'indietro, appena di lato (v = 0.55) perché dall'alto si veda.
   Aquila di mare: ali appuntite larghe, la testa che sporge (tronco largo davanti). Torpedine: disco tondo,
   coda grossa con la caudale. Pesce violino e squadro: disco a cuneo / ali staccate dalla testa con una
   tacca, coda da squalo con due dorsali (vedi `sega_dossa`).
@@ -286,15 +346,19 @@ Consigli per piano:
 
 Le funzioni sono in `pesci.py`; le opzioni si passano con `Specie.opzioni` (default = i prototipi).
 
-- **skeletal** `skeletal(seed=3, vertebre=34, costole_fino=0.55, emali_da=0.5, cranio_t=None, striscia=True,
-  striscia_v=0.6, striscia_fino=0.9, peduncolo=0.9, occhi=True, osso=None)`: il cranio è il corpo tagliato
+- **skeletal** `skeletal(seed=3, vertebre=34, costole_fino=0.55, emali_da=0.5, cranio_t=None, striscia=None,
+  striscia_v=0.6, striscia_fino=0.9, peduncolo=0.9, occhi=True, osso=None, raggi_disco=None)`: il cranio è il corpo tagliato
   dietro l'opercolo (`cranio_t`), eroso, con le orbite e gli archi branchiali; vertebre con le spine e le
   costole fino a `costole_fino`; la striscia di pelle del dorso (sopra `striscia_v`) con il disegno; il
   peduncolo carnoso che regge la coda (`None` per toglierlo); pinne d'osso con brandelli di membrana.
   `occhi=False`: orbite vuote. `osso=(r, g, b)` tinge le ossa (le ossa verdi dell'aguglia). Le pinne carnose,
   il rostro e il disco delle razze sono nel campo del corpo: finiscono nel cranio se stanno davanti a
-  `cranio_t`, nella striscia o nel peduncolo se ci cadono dentro. Sulle razze la striscia del dorso non ha
-  senso (`striscia=False`): le ossa vanno fatte con un extra.
+  `cranio_t`, nella striscia o nel peduncolo se ci cadono dentro. **Sulle razze** (piano `razza`) lo scheletro
+  è un altro: il cranio è solo il tronco (con il rostro: la sega resta), le vertebre non hanno spine né
+  costole, niente striscia di pelle (di default), e le ali diventano un ventaglio di raggi di cartilagine a
+  segmenti, attaccati a una cartilagine lungo il fianco del tronco, con le due cinture di traverso
+  (`raggi_disco` = quanti per ala, default 30; 0 = niente, per fare altre ossa con un extra: l'Aquila d'Osso).
+  `cranio_t` ~0.15 sulle razze (il default, dietro `gill_t`, è lungo). Vedi `famiglie_sui_piani.jpg`.
 - **zombie** `zombie(seed=5, cucitura=(0.26, 0.64, -0.52), punti=13, occhi='lattiginosi', marcio=0.45)`:
   chiazze di marcio e muffa, carne esposta dove è profondo, squame cadute, la cucitura (t0, t1, v) sul
   fianco sinistro con i punti, occhi lattiginosi, pinne strappate. `marcio` più basso = più marcio.
@@ -302,10 +366,12 @@ Le funzioni sono in `pesci.py`; le opzioni si passano con `Specie.opzioni` (defa
   colature=2)`: occhi umani in più con la palpebra carnosa che guardano la camera, pece nera attorno e che
   cola dai primi `colature` occhi, un'escrescenza (`None`: niente), i baffi se `barbels`. Gli occhi in più e
   l'escrescenza stanno sul fianco sinistro (sulle razze e sui pesci piatti: sul dorso).
-- **bleeding** `bleeding(seed=9, ferite=[((t0, v0), (t1, v1))], bocca=22.0, denti=9, sangue_bocca=True,
+- **bleeding** `bleeding(seed=9, ferite=[((t0, v0), (t1, v1))], bocca=None, denti=9, sangue_bocca=None,
   carne=0.0)`: tagli aperti con la carne viva sul fianco sinistro, sangue che cola, bocca aperta con i denti
-  sporchi (`bocca=0`: chiusa, niente denti: necessario per le razze e per chi ha `bocca='nessuna'`),
-  `carne` (0..1) la pelle che manca dappertutto.
+  sporchi. `bocca` = gradi di apertura; il default (None) è 22 con la bocca di sempre (`bocca='terminale'`) e
+  0 (chiusa, niente denti né goccia dal labbro) per le bocche ventrali degli squali e per chi non ha bocca
+  (razze, lampreda): i denti degli squali, se servono, si fanno con un extra. Sul becco delle aguglie la
+  bocca aperta apre il becco (bastano 10–14 gradi: è lungo). `carne` (0..1) la pelle che manca dappertutto.
 - **glitch**: il pesce si costruisce normale; il glitch è sull'immagine:
   `glitch_post(seed=11, doppio=0.035, bande=9, separa=0.006, blocchi=4, righe=0.86, **effetti)` (opzioni:
   spostamento del doppio, bande strappate, colori separati, blocchi a pixel, righe), più gli effetti in più,
@@ -336,73 +402,77 @@ Per ogni specie: il piano, la **forma** della specie vera da modellare (quello c
    ventre carenato a scudetti (`linea` con scudi sul ventre), bocca piccola all'insù, dorsale a metà.
    Dettagli: "il teschio ti sta in punta di dito… batte i denti come chi ha freddo" → il cranio grande in
    proporzione e una fila di dentini che battono (extra: `denti_mascelle` piccoli fitti, bocca socchiusa).
-3. **`lattossino`** — Lattossino, latterino (*Atherina boyeri*) — `fusiforme`. Forma: piccolo e slanciato,
+3. **`sgombrato`** — PROTOTIPO.
+4. **`lattossino`** — Lattossino, latterino (*Atherina boyeri*) — `fusiforme`. Forma: piccolo e slanciato,
    occhio grande, due dorsali ben separate, la fascia d'argento lungo il fianco. Dettagli: "trasparente da
    vivo, ancora di più adesso. Attraverso la lisca vedi il fondo" → quel che resta della pelle trasparente
    (`alfa` 0.3–0.5) con la sola fascia d'argento, ossa sottilissime e chiare.
-4. **`bogossa`** — Bogossa, boga (*Boops boops*) — `fusiforme`. Forma: sparide slanciato, occhi enormi,
+5. **`bogossa`** — Bogossa, boga (*Boops boops*) — `fusiforme`. Forma: sparide slanciato, occhi enormi,
    bocca piccola, 3–4 righe dorate sottili sul fianco, macchietta scura all'ascella della pettorale.
    Dettagli: "ha gli occhi enormi di quando era viva. Le sono rimasti solo quelli" → occhi grandissimi
    (eye_r ~0.04) intatti e lucidi nel cranio spolpato; poca o niente pelle.
-5. **`zerossa`** — Zerossa, zerro (*Spicara smaris*) — `fusiforme`. Forma: piccolo, slanciato, bocca
+6. **`zerossa`** — Zerossa, zerro (*Spicara smaris*) — `fusiforme`. Forma: piccolo, slanciato, bocca
    protrattile, dorsale lunga, macchia scura sul fianco sopra la pettorale. Dettagli: "pulito come se
    l'avessero mangiato con calma, un boccone alla volta" → ossa pulitissime (`striscia=False`,
    `peduncolo=None`), forse i segni regolari dei morsi sulle ossa.
-6. **`occhiata_vuota`** — Occhiata Vuota, occhiata (*Oblada melanura*) — `fusiforme`. Forma: sparide ovale,
+7. **`occhiata_vuota`** — Occhiata Vuota, occhiata (*Oblada melanura*) — `fusiforme`. Forma: sparide ovale,
    occhio grande, la macchia nera cerchiata di bianco sul peduncolo (`ocello`). Dettagli: "al posto degli
    occhi ha due buchi… e ti guarda lo stesso" → orbite vuote (`occhi=False`), la macchia del peduncolo che
    resta sulla coda carnosa.
-7. **`ossaguglia`** — Ossaguglia, aguglia (*Belone belone*) — `rostro` (becco). Forma: lunghissima e sottile,
-   le due mascelle allungate a becco (`Rostro('becco')`, z sulla linea della bocca), dorsale e anale arretrate
-   e opposte, coda forcuta piccola; dorso verde-azzurro. Dettagli: "ha le ossa verdi… un becco pieno di
-   dentini. Ti punge" → `osso` verde, dentini lungo tutto il becco (extra: `campo_coni`).
-8. **`ago_dosso`** — Ago d'Osso, pesce ago (*Syngnathus acus*) — `rostro` (tubo). Forma: lunghissimo e
+8. **`ossaguglia`** — Ossaguglia, aguglia (*Belone belone*) — `rostro` (becco). Prova (il becco con i
+   dentini, `Rostro('becco', denti=28)`). Dettagli: "ha le ossa verdi… un becco pieno di dentini. Ti punge"
+   → `osso` verde (vedi `famiglie_sui_piani.jpg`), dentini più grossi e numerosi, magari aguzzi e sporchi
+   (`denti_becco` con `lunghezza`/`raggio` maggiori e un altro materiale), lo scheletro lunghissimo
+   (vertebre ~50).
+9. **`ago_dosso`** — Ago d'Osso, pesce ago (*Syngnathus acus*) — `rostro` (tubo). Forma: lunghissimo e
    sottilissimo (alto ~1/30), rigido, muso a tubo lungo, `anelli` ~50, una dorsale piccola a metà, coda
    minuscola, niente pelviche. Dettagli: "un ago da cucito fatto d'osso. Qualcuno lo usa ancora per
    ricucire" → la cruna in coda con un filo infilato che pende (extra: `thread_material`).
-9. **`san_pietrificato`** — San Pietrificato, pesce San Pietro (*Zeus faber*) — `alto`. Prova. Dettagli:
+10. **`san_pietrificato`** — San Pietrificato, pesce San Pietro (*Zeus faber*) — `alto`. Prova. Dettagli:
    "l'impronta di un pollice… piccolo, come quello di un bambino" → la macchia del fianco con le righe di
    un'impronta digitale, piccola; lo scheletro del corpo alto (spine lunghe fino ai bordi), i filamenti della
    dorsale come raggi d'osso.
-10. **`ceca_ossuta`** — Ceca Ossuta, ceca (anguilla giovane) — `anguilliforme`. Forma: anguillina minuscola
+11. **`ceca_ossuta`** — Ceca Ossuta, ceca (anguilla giovane, *Anguilla anguilla*) — `anguilliforme`. Forma: anguillina minuscola
     e trasparente, dorsale-anale-coda continue, occhi neri, testa piccola. Dettagli: "non ha mai avuto niente
     da nascondere… adesso si vede anche quello che ha mangiato" → corpo trasparente (`alfa`), la lisca
     dentro, e nella pancia qualcosa che ha mangiato (extra: un oggettino, una perlina, un dentino).
-11. **`lucertossa`** — Lucertossa, pesce lucertola (*Synodus saurus*) — `fusiforme` (cilindrico). Forma: testa
+12. **`lucertossa`** — Lucertossa, pesce lucertola (*Synodus saurus*) — `fusiforme` (cilindrico). Forma: testa
     da lucertola piatta, bocca enormemente lunga, pinna adiposa, dorsale alta a metà, coda forcuta; righe blu
     e gialle. Dettagli: "più denti che ossa… sorride anche da morto" → tantissimi denti (`denti_mascelle` con
     n alto, anche più file), il ghigno.
-12. **`sciabola_spolpata`** — Sciabola Spolpata, pesce sciabola (*Lepidopus caudatus*) — `nastriforme`.
+13. **`sciabola_spolpata`** — Sciabola Spolpata, pesce sciabola (*Lepidopus caudatus*) — `nastriforme`.
     Prova. Dettagli: "lungo come un braccio, sottile come una lama… rumore di posate" → la lisca lunghissima
     e lucida come una lama (vertebre ~70, costole fino in fondo), le zanne.
-13. **`lanternossa`** — Lanternossa, pesce lanterna (*Myctophum punctatum*) — `fusiforme` + fotofori. Prova.
+14. **`lanternossa`** — Lanternossa, pesce lanterna (*Myctophum punctatum*) — `fusiforme` + fotofori. Prova.
     Dettagli: "le lucine… rimaste accese sulle ossa. Al buio sembra un piccolo parco giochi visto da
     lontano" → i fotofori accesi attaccati alle ossa (con un extra, o lasciati dove stava la pelle, come un
     contorno di lucine), magari di colori diversi come un luna park.
-14. **`cavalluccio_dosso`** — Cavalluccio d'Osso, cavalluccio marino (*Hippocampus guttulatus*) —
+15. **`cavalluccio_dosso`** — Cavalluccio d'Osso, cavalluccio marino (*Hippocampus guttulatus*) —
     `cavalluccio`. Prova. Dettagli: "un cavallino da giostra, senza la giostra" → lo scheletro ad anelli,
     tracce di vernice da giostra, o il palo dorato che lo attraversa.
-15. **`flauto_dossa`** — Flauto d'Ossa, pesce flauto (*Fistularia commersonii*) — `rostro` (tubo). Forma:
+16. **`flauto_dossa`** — Flauto d'Ossa, pesce flauto (*Fistularia commersonii*) — `rostro` (tubo). Forma:
     lunghissimo e sottile, muso a tubo lungo un quarto del corpo, dorsale e anale piccole opposte vicino alla
     coda, coda forcuta con il filo centrale lunghissimo (`Filamento` in punta, come la chimera); macchie
     azzurre. Dettagli: "se ci soffi dentro suona… la nota del carillon" → i buchi del flauto lungo il tubo
     (`campo`: fori).
-16. **`trombetta_dosso`** — Trombetta d'Osso, pesce trombetta (*Macroramphosus scolopax*) — `alto` + tubo.
+17. **`trombetta_dosso`** — Trombetta d'Osso, pesce trombetta (*Macroramphosus scolopax*) — `alto` + tubo.
     Forma: corpo piccolo, alto e compresso, muso a tubo lungo, una spina dorsale lunghissima e seghettata,
     coda piccola; rosa-argento. Dettagli: "il muso a trombetta… le trombette che suonavano i bambini" → il
     tubo finisce in una campana di trombetta di plastica (extra).
-17. **`aquila_dosso`** — Aquila d'Osso, aquila di mare (*Myliobatis aquila*) — `razza`. Forma: ali appuntite
+18. **`aquila_dosso`** — Aquila d'Osso, aquila di mare (*Myliobatis aquila*) — `razza`. Forma: ali appuntite
     larghissime, la testa tonda che sporge davanti al disco, occhi ai lati della testa, coda a frusta
     lunghissima con il pungiglione e una dorsale piccola alla base. Dettagli: "le razze non hanno ossa…
     questa ne ha trovate, e non sono di pesce" → ossa da mammifero, quasi umane: falangi nelle ali come dita,
-    una gabbia toracica, clavicole (extra); `striscia=False`.
-18. **`spadossa`** — Spadossa, pesce spada (*Xiphias gladius*) — `rostro` (spada). Prova. Dettagli: "solo la
+    una gabbia toracica, clavicole (extra, con `raggi_disco=0`: il ventaglio di cartilagine qui non c'è).
+    Partenza: `pastinaca_putrida` (la coda a frusta, il pungiglione) con il disco da rifare (ali appuntite).
+19. **`spadossa`** — Spadossa, pesce spada (*Xiphias gladius*) — `rostro` (spada). Prova. Dettagli: "solo la
     spada e lo scheletro, in posa da combattimento. Sulla spada è infilato un braccialetto di plastica
     fucsia" → spada intatta, scheletro completo, il braccialetto fucsia infilato a metà spada (extra: un
     toro di plastica lucida).
-19. **`sega_dossa`** — Sega d'Ossa, pesce sega (*Pristis pectinata*) — `razza` + sega. Prova. Dettagli: "nel
+20. **`sega_dossa`** — Sega d'Ossa, pesce sega (*Pristis pectinata*) — `razza` + sega. Prova. Dettagli: "nel
     Mediterraneo non se ne vedono da cent'anni. Questo non lo sa" → ossa vecchie e ingiallite (`osso`),
-    incrostazioni, qualche dente della sega mancante.
+    incrostazioni, qualche dente della sega mancante. Lo scheletro delle razze c'è già (il ventaglio di
+    cartilagine, `famiglie_sui_piani.jpg`): `cranio_t` ~0.15.
 
 ### Zombi (`zombi.py`) — marci, occhi lattiginosi, pinne strappate, punti di sutura
 
@@ -434,18 +504,19 @@ Per ogni specie: il piano, la **forma** della specie vera da modellare (quello c
 8. **`gattomorto`** — Gattomorto, gattuccio (*Scyliorhinus canicula*) — `squalo`. Forma: piccolo squalo
    slanciato, testa corta e piatta, occhi da gatto (`eye_allungato` ~1.6, pupilla a fessura), due dorsali
    molto arretrate, coda bassa quasi orizzontale, pelle con tante macchioline scure. Partenza:
-   `volpe_sfregiata` (coda e dorsali da rifare). Dettagli: "fa il gatto morto" → a pancia all'aria
+   `verdesca_ferita` (coda più bassa, dorsali arretrate). Dettagli: "fa il gatto morto" → a pancia all'aria
    (`Ritratto(roll=180)` o di sbieco), occhi lattiginosi.
 9. **`corvina_becchina`** — Corvina Becchina, corvina (*Sciaena umbra*) — `fusiforme`. Forma: dorso arcuato,
    muso tondo, due dorsali unite, coda tronca; bronzo scuro, pelviche e anale nere orlate di bianco.
    Dettagli: "brontola come i becchini… la terra che cade sul legno" → terra di camposanto addosso (grumi).
 10. **`palombra`** — Palombra, palombo (*Mustelus mustelus*) — `squalo`. Forma: squalo slanciato grigio,
-    muso tondo, due dorsali simili, coda con il lobo basso piccolo, niente macchie. Dettagli: "grigio come un
+    muso tondo, due dorsali simili, coda con il lobo basso piccolo, niente macchie. Partenza:
+    `verdesca_ferita`. Dettagli: "grigio come un
     cane vecchio… ti segue" → grigio spento, occhi da cane vecchio lattiginosi.
-11. **`pastinaca_putrida`** — Pastinaca Putrida, pastinaca (*Dasyatis pastinaca*) — `razza`. Forma: disco a
-    rombo arrotondato senza spine grosse, coda a frusta lunga con il pungiglione seghettato, niente dorsali;
-    grigio-oliva. Partenza: `razza_inchiodata`. Dettagli: "la senti prima di vederla. Il pungiglione è
-    l'unica cosa che funziona" → disco marcio e cascante, il pungiglione intatto e lucido (materiale a parte).
+11. **`pastinaca_putrida`** — Pastinaca Putrida, pastinaca (*Dasyatis pastinaca*) — `razza`. Prova (la coda
+    a frusta). Dettagli: "la senti prima di vederla. Il pungiglione è l'unica cosa che funziona" → disco
+    marcio e cascante (bordi che pendono: `campo`), il pungiglione intatto, lucido e seghettato (un oggetto a
+    parte con il suo materiale, al posto della `Spine`).
 12. **`castagna_marcia`** — Castagna Marcia, pesce castagna (*Brama brama*) — `alto`. Forma: alto e compresso,
     profilo ripido, dorsale e anale lunghe e falcate, coda profondamente forcuta; nero lucido. Dettagli:
     "nera e lucida come una castagna… piena di piccoli vermi bianchi che ballano" → buchi da cui escono
@@ -478,7 +549,7 @@ Per ogni specie: il piano, la **forma** della specie vera da modellare (quello c
     (extra) e lacrime grigie che colano.
 20. **`squalo_capomorto`** — Squalo Capomorto, squalo capopiatto (*Hexanchus griseus*) — `squalo`. Forma:
     testa larga e piatta, **sei** fessure branchiali, una sola dorsale molto arretrata, coda lunga; occhi
-    verdi; grigio-bruno. Partenza: `volpe_sfregiata`. Dettagli: "sei branchie, e respira con tutte e sei" →
+    verdi; grigio-bruno. Partenza: `verdesca_ferita`. Dettagli: "sei branchie, e respira con tutte e sei" →
     le sei fessure aperte e marce, rosse dentro.
 
 ### Glitchati (`glitchati.py`) — fette sfalsate, colori separati, nastro rovinato
@@ -555,70 +626,71 @@ glitch è sull'immagine: `opzioni` per `glitch_post`, e `ritocco(img, c)` per il
 
 ### Corrotti (`corrotti.py`) — occhi in più, bocche sbagliate, escrescenze, melma nera
 
-1. **`sardonica`** — Sardonica, sardina (*Sardina pilchardus*) — `fusiforme`. Forma: clupeide, macchie scure
+1. **`trigliocchi`** — PROTOTIPO.
+2. **`sardonica`** — Sardonica, sardina (*Sardina pilchardus*) — `fusiforme`. Forma: clupeide, macchie scure
    sul fianco, ventre carenato. Dettagli: "il sorriso sardonico dei morti: labbra tirate, tutti i denti in
    vista. Le sardine non hanno denti" → una dentatura umana in vista (extra).
-2. **`ghiozzo_gozzuto`** — Ghiozzo Gozzuto, ghiozzo nero (*Gobius niger*) — `fusiforme`. Forma: testa grossa
+3. **`ghiozzo_gozzuto`** — Ghiozzo Gozzuto, ghiozzo nero (*Gobius niger*) — `fusiforme`. Forma: testa grossa
    e larga, occhi alti e vicini, due dorsali, pelviche fuse a ventosa, coda tonda; bruno scuro. Dettagli:
    "sotto la gola una sacca nera e molle" → `escrescenza` sotto la gola, nera e lucida.
-3. **`bavaccia`** — Bavaccia, bavosa (*Parablennius gattorugine*) — `fusiforme`. Forma: testa tozza dal
+4. **`bavaccia`** — Bavaccia, bavosa (*Parablennius gattorugine*) — `fusiforme`. Forma: testa tozza dal
    profilo ripido, cirri ramificati sopra gli occhi (`filamenti`), dorsale lunga continua, labbra grosse,
    coda tonda; bruna a bande. Dettagli: "sbava melma nera senza fermarsi" → pece che cola dalla bocca.
-4. **`scorfano_pece`** — Scorfano Pece, scorfano nero (*Scorpaena porcus*) — `fusiforme`. Forma: testa grossa
+5. **`scorfano_pece`** — Scorfano Pece, scorfano nero (*Scorpaena porcus*) — `fusiforme`. Forma: testa grossa
    con le spine (`Spine`) e i lembi di pelle sopra gli occhi (`filamenti`), bocca grande, dorsale spinosa,
    pettorali larghe, coda tonda; bruno marmorizzato. Dettagli: "gli cola pece nera dalle spine" → pece che
    cola dalle punte della dorsale e della testa.
-5. **`sciarrano_scrivano`** — Sciarrano Scrivano, sciarrano (*Serranus scriba*) — `fusiforme`. Forma: bande
+6. **`sciarrano_scrivano`** — Sciarrano Scrivano, sciarrano (*Serranus scriba*) — `fusiforme`. Forma: bande
    verticali scure, macchia blu-viola sul ventre, ghirigori sulla testa (`vermi` sulla testa). Dettagli:
    "le scritte si leggono: sono date. L'ultima è di stanotte" → date leggibili sulla testa (extra: una
    texture con il testo, per esempio fatta con PIL).
-6. **`gallincubo`** — Gallincubo, gallinella (*Chelidonichthys lucerna*) — `pettorali`. Prova. Dettagli: "le
+7. **`gallincubo`** — Gallincubo, gallinella (*Chelidonichthys lucerna*) — `pettorali`. Prova. Dettagli: "le
    pinne davanti sono diventate dita… di notte bussa" → i raggi liberi diventano dita umane con nocche e
    unghie (extra al posto di `liberi`).
-7. **`mostrella`** — Mostrella, mostella (*Phycis phycis*) — `fusiforme`. Forma: allungata, barbiglio sotto il
+8. **`mostrella`** — Mostrella, mostella (*Phycis phycis*) — `fusiforme`. Forma: allungata, barbiglio sotto il
    mento, prima dorsale corta, seconda e anale lunghissime, pelviche ridotte a due filamenti lunghi, coda
    tonda. Dettagli: "al posto della barbetta un ciuffo di filamenti neri che si muovono da soli" → tanti
    filamenti neri lucidi sotto il mento.
-8. **`mormoria`** — Mormorìa, mormora (*Lithognathus mormyrus*) — `fusiforme`. Forma: sparide allungato,
+9. **`mormoria`** — Mormorìa, mormora (*Lithognathus mormyrus*) — `fusiforme`. Forma: sparide allungato,
    muso appuntito, 12–14 bande verticali scure sottili, argento. Dettagli: "dalle branchie un brusio, come
    un parco pieno di gente lontano" → l'opercolo socchiuso con dentro tante boccucce o occhietti.
-9. **`luciferna`** — Luciferna, pesce prete (*Uranoscopus scaber*) — `fusiforme`. Forma: testa grande e
+10. **`luciferna`** — Luciferna, pesce prete (*Uranoscopus scaber*) — `fusiforme`. Forma: testa grande e
    squadrata, occhi in cima che guardano in su (`occhi` sul dorso), bocca verticale all'insù con le frange,
    pettorali larghe. Dettagli: "gli occhi rivolti in su… una fila intera, verso la barca" → una fila di
    occhi in più sul dorso (`occhi_extra` a v ~0.9).
-10. **`bocchenere`** — Bocchenere, squalo boccanera (*Galeus melastomus*) — `squalo`. Forma: piccolo squalo
+11. **`bocchenere`** — Bocchenere, squalo boccanera (*Galeus melastomus*) — `squalo`. Forma: piccolo squalo
     slanciato, muso lungo, occhi grandi da gatto, l'interno della bocca nero, macchie a sella sul dorso.
-    Partenza: `volpe_sfregiata`. Dettagli: "una bocca nera, poi un'altra sul fianco, poi un'altra" → bocche
+    Partenza: `verdesca_ferita`. Dettagli: "una bocca nera, poi un'altra sul fianco, poi un'altra" → bocche
     nere in più sul fianco (`campo`: tagli a mezzaluna; extra: denti).
-11. **`pesce_bubbone`** — Pesce Bubbone, pesce palla argenteo (*Lagocephalus sceleratus*) — `palla`. Prova.
+12. **`pesce_bubbone`** — Pesce Bubbone, pesce palla argenteo (*Lagocephalus sceleratus*) — `palla`. Prova.
     Dettagli: "si gonfiano anche le bolle nere che ha sulla pelle" → pustole nere in rilievo al posto delle
     macchie.
-12. **`missina_della_melma`** — Missina della Melma, missina (*Myxine glutinosa*) — `anguilliforme`. Prova.
+13. **`missina_della_melma`** — Missina della Melma, missina (*Myxine glutinosa*) — `anguilliforme`. Prova.
     Dettagli: "tanta melma da riempire il secchio. È nera, ed è tiepida" → fili e colate di melma nera.
-13. **`specchio_nero`** — Specchio Nero, pesce specchio (*Hoplostethus mediterraneus*) — `alto`. Forma: alto e
+14. **`specchio_nero`** — Specchio Nero, pesce specchio (*Hoplostethus mediterraneus*) — `alto`. Forma: alto e
     compresso, testa enorme con le cavità mucose, occhi grandi, scudetti sul ventre, coda forcuta; rosato.
     Dettagli: "una macchia nera lucida come uno specchio… dentro c'è la barca, e qualcuno in più" → la
     macchia-specchio con dentro la barca e una figura in più (extra con un materiale immagine).
-14. **`sciabola_di_carbone`** — Sciabola di Carbone, pesce sciabola nero (*Aphanopus carbo*) — `nastriforme`.
+15. **`sciabola_di_carbone`** — Sciabola di Carbone, pesce sciabola nero (*Aphanopus carbo*) — `nastriforme`.
     Partenza: `sciabola_spolpata` (nera, occhi enormi). Dettagli: "occhi grandi come monete, e dentro una
     lampara accesa" → occhi enormi con un puntino di luce calda.
-15. **`granatiere_nero`** — Granatiere Nero, granatiere (*Coelorinchus caelorhincus*) — `coda_di_topo`.
+16. **`granatiere_nero`** — Granatiere Nero, granatiere (*Coelorinchus caelorhincus*) — `coda_di_topo`.
     Forma: testa grossa, muso appuntito che sporge sopra la bocca, occhi grandi, barbiglio sotto il mento,
     corpo che finisce in una coda da topo. Partenza: `chimera_bianca`. Dettagli: "una coda come quella di un
     topo… cento sotto la barca" → coda nuda da topo, baffi.
-16. **`vipera_degli_abissi`** — Vipera degli Abissi, pesce vipera (*Chauliodus sloani*) — `fusiforme`
+17. **`vipera_degli_abissi`** — Vipera degli Abissi, pesce vipera (*Chauliodus sloani*) — `fusiforme`
     (allungato) + fotofori. Forma: corpo allungato, bocca enorme con zanne lunghissime che restano fuori, il
     primo raggio della dorsale lunghissimo, fotofori lungo il ventre. Dettagli: "i denti così lunghi che non
     riesce a chiudere la bocca" → le zanne fuori dalla bocca.
-17. **`razza_due_facce`** — Razza dalle Due Facce, razza bianca (*Rostroraja alba*) — `razza`. Forma: disco a
+18. **`razza_due_facce`** — Razza dalle Due Facce, razza bianca (*Rostroraja alba*) — `razza`. Forma: disco a
     rombo con il muso lungo e appuntito, bianca sotto. Partenza: `razza_inchiodata`. Dettagli: "sotto, le
     razze hanno una faccia che sembra sorridere. Questa ne ha due, e non sorridono" → si mostra il ventre
     (`Ritratto(roll=142)`) con due facce di narici e bocca (`campo`, extra).
-18. **`pesce_angelo_caduto`** — Pesce Angelo Caduto, squadro (*Squatina squatina*) — `razza`. Forma: squalo
+19. **`pesce_angelo_caduto`** — Pesce Angelo Caduto, squadro (*Squatina squatina*) — `razza`. Forma: squalo
     piatto, testa larga con la bocca davanti, pettorali come ali staccate dalla testa, pelviche larghe, due
     dorsali sulla coda, caudale. Partenza: `sega_dossa`. Dettagli: "le ali nere e bagnate, e attorno alla
     testa un'aureola di occhi" → ali nere lucide, un anello di occhi attorno alla testa.
-19. **`re_nero`** — Re Nero, pesce re (*Lampris guttatus*) — `alto`. Forma: ovale altissimo, dorsale falcata
+20. **`re_nero`** — Re Nero, pesce re (*Lampris guttatus*) — `alto`. Forma: ovale altissimo, dorsale falcata
     alta davanti, pettorali lunghe, coda a mezzaluna; qui nero come la pece. Dettagli: "al posto della
     corona ha una bocca" → una bocca dentata sulla nuca al posto della corona.
 
@@ -674,9 +746,9 @@ glitch è sull'immagine: `opzioni` per `glitch_post`, e `ritocco(img, c)` per il
 16. **`remora_strappata`** — Remora Strappata, remora (*Remora remora*) — `fusiforme`. Prova. Dettagli:
     "strappata via… ha ancora un pezzo di pelle grigia sulla ventosa" → un lembo di pelle grigia (di Gulpy)
     attaccato alla ventosa.
-17. **`verdesca_ferita`** — Verdesca Ferita, verdesca (*Prionace glauca*) — `squalo`. Forma: slanciatissima,
-    muso lungo, pettorali lunghissime a falce, occhio grande, blu indaco sopra e bianco sotto. Partenza:
-    `volpe_sfregiata`. Dettagli: "il sangue era il suo" → ferite profonde che sanguinano.
+17. **`verdesca_ferita`** — Verdesca Ferita, verdesca (*Prionace glauca*) — `squalo`. Prova (la coda
+    eterocerca). Dettagli: "il sangue era il suo" → ferite profonde che sanguinano (la bocca resta chiusa di
+    default, vedi §5; i denti sporchi, se servono, con un extra).
 18. **`aguglia_imperiale`** — Aguglia Imperiale Trafitta, aguglia imperiale (*Tetrapturus belone*) —
     `rostro`. Forma: slanciata, rostro corto e tondo, dorsale lunga e alta davanti, coda a mezzaluna; blu
     scuro. Partenza: `spadossa`. Dettagli: "ha trafitto qualcosa con il rostro… ancora lì, infilata, e si

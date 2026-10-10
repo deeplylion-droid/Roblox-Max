@@ -5,8 +5,8 @@ Una voce per specie: SPECIE['id'] = Specie(forma, aspetto, famiglia, piano, ...)
 altre è in PIANO.md (accanto a questo file); si prova con
     tools/.venv/bin/python tools/render/pesci.py <id> --anteprima --fast
 """
-from .base import (PELVICA, PETTORALE_ALA, PETTORALE_TONDA, RITRATTO_PROTOTIPI, Disegno, Filamento, Fin, Look, Shape,
-                   Specie, coda_appuntita, coda_forcuta, coda_tonda)
+from .base import (PELVICA, PETTORALE_ALA, PETTORALE_TONDA, RITRATTO_PROTOTIPI, Disco, Disegno, Filamento, Fin, Look,
+                   Shape, Specie, Spine, coda_appuntita, coda_forcuta, coda_tonda)
 
 SPECIE = {}
 
@@ -54,7 +54,6 @@ SPECIE['sogliombra'] = Specie(
     famiglia='normale', piano='piatto')
 
 
-
 def _denti_murena(c):
     """I denti a zanna nella bocca aperta (aiuto comune: denti_mascelle, con la stessa apertura della forma)."""
     c.obs += c.P.denti_mascelle(c.body, n=7, lunghezza=0.0055, zanne=(1, 2), apertura=c.forma.bocca_aperta, nome='DenteMurena')
@@ -85,6 +84,35 @@ SPECIE['murena_murata'] = Specie(
                           Disegno('punti', colore=(0.7, 0.58, 0.3), forza=0.7, scala=120, r=0.16, seme=3)]),
     extra=_denti_murena,
     famiglia='normale', piano='anguilliforme')
+
+
+# ── Pastinaca Putrida (pastinaca, Dasyatis pastinaca) — PROVA DELLA CODA A FRUSTA (piano 'razza'): forma
+#    normale, ancora da trasformare nella famiglia (il disco marcio e cascante, il pungiglione intatto) ──
+# Come la razza, costruita con il dorso verso la camera: il disco a rombo arrotondato, largo quanto lungo, con
+# le pelviche piccole dietro; niente dorsali né caudale: la coda è una frusta lunga una volta e mezza il disco,
+# con il pungiglione coricato all'indietro e appena di lato (una Spine sola, sulla coda: v = 0.55).
+SPECIE['pastinaca_putrida'] = Specie(
+    forma=Shape(
+        top=[(0, 0.0), (0.04, 0.025), (0.1, 0.042), (0.2, 0.05), (0.3, 0.043), (0.38, 0.026), (0.44, 0.012), (0.55, 0.0075),
+             (0.75, 0.005), (0.9, 0.003), (1, 0.0012)],
+        bot=[(0, 0.0), (0.04, -0.025), (0.1, -0.042), (0.2, -0.05), (0.3, -0.043), (0.38, -0.026), (0.44, -0.012),
+             (0.55, -0.0075), (0.75, -0.005), (0.9, -0.003), (1, -0.0012)],
+        w=[(0, 0.003), (0.05, 0.011), (0.15, 0.024), (0.25, 0.027), (0.35, 0.021), (0.42, 0.012), (0.5, 0.0075), (0.7, 0.005),
+           (0.9, 0.0028), (1, 0.0012)],
+        eye_t=0.105, eye_z=0.0, eye_r=0.0085,
+        occhi=[(0.105, 0.026, 0.0085, -1), (0.105, -0.026, 0.0085, -1)], spiracoli=0.0055,
+        bocca='nessuna', branchie='nessuna',
+        disco=Disco(contorno=[(0, 0.0), (0.02, 0.035), (0.06, 0.1), (0.11, 0.17), (0.16, 0.215), (0.2, 0.228), (0.24, 0.215),
+                              (0.3, 0.155), (0.35, 0.095), (0.38, 0.07), (0.41, 0.062), (0.44, 0.045), (0.46, 0.0), (1.0, 0.0)],
+                    spessore=[(0, 0.003), (0.08, 0.01), (0.2, 0.014), (0.32, 0.01), (0.42, 0.004), (0.47, 0.001), (1.0, 0.001)]),
+        spine=[Spine(0.6, 0.6, 0.55, 0.55, 1, lunghezza=0.085, raggio=0.005, lati='sinistro', inclinazione=0.8, fila=True),
+               Spine(0.17, 0.36, 0.0, 0.0, 6, lunghezza=0.004, raggio=0.0028, lati='sinistro', inclinazione=0.5, fila=True)]),
+    aspetto=Look(back=(0.085, 0.075, 0.05), flank=(0.12, 0.1, 0.07), belly=(0.82, 0.8, 0.74), fin=(0.08, 0.07, 0.05),
+                 iris=(0.55, 0.5, 0.3), iris_dark=(0.1, 0.09, 0.05), metal=0.0, irid=0.0, squame=0.0, linea_laterale=0.0,
+                 lucido=0.25, ruvido=0.5,
+                 disegni=[Disegno('marmo', colore=(0.035, 0.03, 0.02), forza=0.7, scala=60, r=0.45),
+                          Disegno('marmo', colore=(0.03, 0.028, 0.02), forza=0.5, scala=150, r=0.3)]),
+    famiglia='normale', piano='razza')
 
 
 # ── Chimera Bianca (chimera, Chimaera monstrosa) — PROVA DEL PIANO 'coda_di_topo': forma normale, ancora da

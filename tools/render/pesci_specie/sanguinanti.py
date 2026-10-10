@@ -7,7 +7,7 @@ altre è in PIANO.md (accanto a questo file); si prova con
 """
 from .base import (DORSALE_FALCE, DORSALE_SQUALO, DORSALE_TRIANGOLO, PELVICA, PETTORALE, RITRATTO_PROTOTIPI, Disco,
                    DiscoOrale, Disegno, Fin, Look, Ritratto, Shape, Specie, Spine, Ventosa, coda_appuntita,
-                   coda_falcata, coda_forcuta, coda_tronca)
+                   coda_eterocerca, coda_falcata, coda_forcuta, coda_tronca)
 
 SPECIE = {}
 
@@ -58,6 +58,36 @@ SPECIE['volpe_sfregiata'] = Specie(
     famiglia='normale', piano='squalo')
 
 
+# ── Verdesca Ferita (verdesca, Prionace glauca) — PROVA DELLA CODA ETEROCERCA (piano 'squalo'): forma normale,
+#    ancora da trasformare nella famiglia (le ferite profonde: «il sangue era il suo») ──
+# Lo squalo di sempre: slanciatissimo, muso lungo e appuntito, occhio grande; le pettorali lunghissime a falce,
+# la prima dorsale arretrata, la coda eterocerca dell'aiuto comune (coda_eterocerca); indaco sopra, bianco sotto.
+SPECIE['verdesca_ferita'] = Specie(
+    forma=Shape(
+        top=[(0, -0.004), (0.02, 0.01), (0.06, 0.026), (0.12, 0.042), (0.22, 0.057), (0.36, 0.065), (0.5, 0.06), (0.65, 0.046),
+             (0.8, 0.03), (0.92, 0.019), (1, 0.015)],
+        bot=[(0, -0.01), (0.03, -0.02), (0.08, -0.032), (0.18, -0.048), (0.32, -0.059), (0.46, -0.056), (0.6, -0.044),
+             (0.75, -0.028), (0.9, -0.017), (1, -0.015)],
+        w=[(0, 0.004), (0.04, 0.02), (0.12, 0.038), (0.3, 0.05), (0.5, 0.045), (0.7, 0.031), (0.9, 0.017), (1, 0.011)],
+        eye_t=0.072, eye_z=0.006, eye_r=0.0155,
+        bocca='ventrale', mouth_a=0.075, mouth_t=0.118, mouth_z1=-0.026, mouth_z0=-0.026,
+        branchie='fessure', gill_t=0.165, n_branchie=5, passo_branchie=0.016,
+        fins=[Fin('dorsal', 0.42, 0.52, DORSALE_SQUALO, 0.085, 30, carnosa=True, spessore=0.006),
+              Fin('dorsal', 0.83, 0.855, DORSALE_SQUALO, 0.022, 12, carnosa=True, spessore=0.003),
+              Fin('anal', 0.82, 0.85, DORSALE_SQUALO, 0.02, 12, carnosa=True, spessore=0.003),
+              Fin('caudal', 1.0, 1.0, coda_eterocerca(lobo=1.0, alzata=1.9, lobo_basso=0.45, basso=1.45), 0.27, 50,
+                  carnosa=True, spessore=0.006),
+              # le pettorali lunghe e strette, a falce, che scendono all'indietro dietro le fessure
+              Fin('pectoral', 0.2, 0.24, [(0, 0.06), (0.5, 0.055), (1.0, -0.06), (0.9, -0.1), (0.4, -0.13), (0, -0.11)], 0.32, 30,
+                  carnosa=True, spessore=0.005, dir=(0.8, 0.35, -0.5)),
+              Fin('pelvic', 0.6, 0.64, [(0, 0.05), (0.6, 0.06), (1.0, -0.02), (0.6, -0.12), (0, -0.1)], 0.06, 20,
+                  carnosa=True, spessore=0.004)]),
+    aspetto=Look(back=(0.01, 0.03, 0.12), flank=(0.04, 0.12, 0.34), belly=(0.74, 0.75, 0.77), fin=(0.02, 0.06, 0.2),
+                 iris=(0.12, 0.13, 0.15), iris_dark=(0.02, 0.02, 0.03), metal=0.1, irid=0.1, squame=0.0,
+                 linea_laterale=0.0, lucido=0.35, ruvido=0.45),
+    famiglia='normale', piano='squalo')
+
+
 # ── Razza Inchiodata (razza chiodata, Raja clavata) — PROVA DEL PIANO 'razza': forma normale, ancora da
 #    trasformare nella famiglia (le spine diventano chiodi arrugginiti) ──
 # Costruita con il dorso verso la camera (−Y): z è l'apertura delle ali, y lo spessore. I profili top/bot/w
@@ -89,7 +119,6 @@ SPECIE['razza_inchiodata'] = Specie(
                           Disegno('macchie', colore=(0.05, 0.035, 0.025), forza=0.85, scala=45, r=0.2),
                           Disegno('macchie', colore=(0.62, 0.55, 0.42), forza=0.7, scala=70, r=0.13, seme=5)]),
     famiglia='normale', piano='razza')
-
 
 
 # ── Lampreda Vampira (lampreda di mare, Petromyzon marinus) — PROVA DEL DISCO ORALE (piano 'anguilliforme'):
@@ -135,7 +164,7 @@ SPECIE['remora_strappata'] = Specie(
               Fin('pelvic', 0.25, 0.26, PELVICA, 0.05, 6)]),
     aspetto=Look(back=(0.16, 0.15, 0.14), flank=(0.2, 0.19, 0.18), belly=(0.24, 0.23, 0.21), fin=(0.15, 0.14, 0.13),
                  iris=(0.6, 0.55, 0.4), iris_dark=(0.12, 0.1, 0.06), metal=0.15, irid=0.1, squame=0.4),
-    ritratto=Ritratto(yaw=12.0, pitch=-4.0, roll=30.0),
+    ritratto=Ritratto(yaw=12.0, pitch=-2.0, roll=40.0),
     famiglia='normale', piano='fusiforme')
 
 

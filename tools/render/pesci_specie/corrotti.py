@@ -28,7 +28,6 @@ SPECIE['trigliocchi'] = Specie(
     famiglia='corrupt', piano='fusiforme', ritratto=RITRATTO_PROTOTIPI)
 
 
-
 def _becco_pesce_palla(c):
     """Il becco del pesce palla: due placche di dente bianco, sopra e sotto il taglio della bocca."""
     P, sh = c.P, c.forma
@@ -90,19 +89,22 @@ SPECIE['missina_della_melma'] = Specie(
     famiglia='normale', piano='anguilliforme')
 
 
-
 # ── Gallincubo (gallinella, Chelidonichthys lucerna) — PROVA DEI RAGGI LIBERI (piano 'pettorali'): forma
 #    normale, ancora da trasformare nella famiglia (le dita che bussano) ──
-# Testa ossuta e larga, le pettorali enormi a ventaglio (verdi, puntinate di blu, il bordo blu) e sotto i tre
-# raggi liberi a zampetta (Fin.liberi = 3).
+# Testa grossa e corazzata: il profilo dal muso alla nuca è una rampa dritta e ripida, gli occhi alti sotto il
+# bordo osseo, la bocca bassa; le placche della testa (disegno 'reticolo' solo sulla testa) e le spinette.
+# Le pettorali enormi a ventaglio (verdi, puntinate di blu, il bordo blu) e sotto i tre raggi liberi a
+# zampetta (Fin.liberi = 3).
 SPECIE['gallincubo'] = Specie(
     forma=Shape(
-        top=[(0, -0.02), (0.02, 0.012), (0.06, 0.046), (0.12, 0.074), (0.22, 0.088), (0.35, 0.086), (0.55, 0.068), (0.75, 0.044),
-             (0.9, 0.028), (1, 0.022)],
-        bot=[(0, -0.036), (0.03, -0.06), (0.1, -0.074), (0.25, -0.076), (0.45, -0.066), (0.65, -0.048), (0.85, -0.03), (1, -0.022)],
-        w=[(0, 0.016), (0.05, 0.045), (0.15, 0.058), (0.3, 0.054), (0.6, 0.037), (0.85, 0.02), (1, 0.012)],
-        eye_t=0.09, eye_z=0.045, eye_r=0.02, mouth_t=0.06, mouth_z0=-0.03, mouth_z1=-0.04, gill_t=0.2,
-        spine=[Spine(0.03, 0.17, 0.35, 0.9, 10, lunghezza=0.006, raggio=0.003, inclinazione=0.6, seme=4)],
+        top=[(0, -0.028), (0.015, -0.0157), (0.04, 0.0047), (0.08, 0.0374), (0.12, 0.066), (0.17, 0.08), (0.25, 0.086), (0.38, 0.08),
+             (0.55, 0.066), (0.75, 0.044), (0.9, 0.028), (1, 0.022)],
+        bot=[(0, -0.04), (0.03, -0.058), (0.08, -0.07), (0.16, -0.074), (0.3, -0.071), (0.45, -0.063), (0.65, -0.047),
+             (0.85, -0.03), (1, -0.022)],
+        w=[(0, 0.02), (0.04, 0.042), (0.12, 0.06), (0.25, 0.056), (0.5, 0.041), (0.75, 0.025), (1, 0.012)],
+        eye_t=0.115, eye_z=0.036, eye_r=0.02, mouth_t=0.065, mouth_z0=-0.036, mouth_z1=-0.046, gill_t=0.22,
+        spine=[Spine(0.03, 0.2, 0.3, 0.95, 14, lunghezza=0.007, raggio=0.0032, inclinazione=0.6, seme=4),
+               Spine(0.19, 0.21, -0.2, 0.4, 3, lunghezza=0.012, raggio=0.003, inclinazione=0.85, seme=6)],
         fins=[Fin('pectoral', 0.2, 0.23, [(0, 0.05), (0.35, 0.45), (0.8, 0.5), (1.0, 0.2), (0.95, -0.15), (0.6, -0.3), (0, -0.1)],
                   0.3, 16, z=-0.1, dir=(0.55, 0.75, -0.2), su=(1.0, 0.0, 0.3),
                   colore=(0.12, 0.3, 0.32), bordo=(0.12, 0.3, 0.8), macchie=0.7, colore_macchie=(0.15, 0.35, 0.9), liberi=3),
@@ -112,5 +114,7 @@ SPECIE['gallincubo'] = Specie(
               Fin('caudal', 1.0, 1.0, coda_tronca(1.6, 0.2, 0.85), 0.18, 16),
               Fin('pelvic', 0.24, 0.25, PELVICA, 0.06, 6)]),
     aspetto=Look(back=(0.45, 0.2, 0.13), flank=(0.6, 0.36, 0.28), belly=(0.85, 0.78, 0.72), fin=(0.5, 0.3, 0.25),
-                 iris=(0.8, 0.6, 0.3), iris_dark=(0.3, 0.15, 0.05), metal=0.2, irid=0.2, squame=0.7),
+                 iris=(0.8, 0.6, 0.3), iris_dark=(0.3, 0.15, 0.05), metal=0.2, irid=0.2, squame=0.7,
+                 disegni=[Disegno('reticolo', colore=(0.2, 0.06, 0.04), forza=0.75, scala=55, larghezza=0.09, u1=0.21, v0=-0.4),
+                          Disegno('macchie', colore=(0.3, 0.1, 0.06), forza=0.5, scala=30, r=0.3, u0=0.2, v0=0.1)]),
     famiglia='normale', piano='pettorali')

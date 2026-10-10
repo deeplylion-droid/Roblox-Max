@@ -78,12 +78,14 @@ class Rostro:
     """Quello che sporge davanti al muso (x < 0).
     tipo: 'spada' (pesce spada: lama piatta dalla mascella di sopra; la bocca resta sotto),
           'becco' (aguglie: le due mascelle lunghe e sottili, il taglio della bocca arriva in punta: z va
-                   messo sulla linea della bocca, mouth_z0),
+                   messo sulla linea della bocca, mouth_z0; il taglio si assottiglia con le mascelle; con
+                   denti > 0 i dentini sui bordi, pesci.denti_becco),
           'tubo' (pesce ago, cavalluccio, pesce flauto, trombetta: muso a tubo con la boccuccia in punta),
           'sega' (pesce sega: lama piatta con i denti sui due bordi; per una razza vista dall'alto la lama
                   è larga in z, quindi altezza > larghezza)
     larghezza / altezza: mezze misure della sezione alla radice (y / z); punta: quanto ne resta in punta
-    (frazione); curva: quanto sale (+) o scende (−) la punta; denti: 'sega' e 'becco', per lato."""
+    (frazione); curva: quanto sale (+) o scende (−) la punta; denti: 'sega' e 'becco', per lato (e, nel
+    becco, per mascella)."""
     tipo: str = 'spada'
     lunghezza: float = 0.3
     z: float = 0.0

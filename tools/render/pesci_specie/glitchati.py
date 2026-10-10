@@ -6,7 +6,7 @@ Una voce per specie: SPECIE['id'] = Specie(forma, aspetto, famiglia, piano, ...)
 altre è in PIANO.md (accanto a questo file); si prova con
     tools/.venv/bin/python tools/render/pesci.py <id> --anteprima --fast
 """
-from .base import PELVICA, PETTORALE_ALA, RITRATTO_PROTOTIPI, Fin, Look, Shape, Specie, coda_forcuta
+from .base import PETTORALE_ALA, RITRATTO_PROTOTIPI, Fin, Look, Shape, Specie, coda_forcuta
 
 SPECIE = {}
 
@@ -25,7 +25,6 @@ SPECIE['salpa_sfasata'] = Specie(
     aspetto=Look(back=(0.12, 0.16, 0.20), flank=(0.36, 0.40, 0.44), belly=(0.62, 0.62, 0.6), fin=(0.16, 0.17, 0.2),
                  iris=(0.95, 0.62, 0.10), iris_dark=(0.45, 0.22, 0.02), pattern='salema'),
     famiglia='glitch', piano='fusiforme', ritratto=RITRATTO_PROTOTIPI)
-
 
 
 # ── Pesce Volante in Pausa (pesce volante, Cheilopogon heterurus) — PROVA DEL PIANO 'pettorali': forma normale,

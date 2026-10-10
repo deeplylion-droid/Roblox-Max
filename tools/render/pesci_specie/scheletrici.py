@@ -5,7 +5,7 @@ Una voce per specie: SPECIE['id'] = Specie(forma, aspetto, famiglia, piano, ...)
 altre è in PIANO.md (accanto a questo file); si prova con
     tools/.venv/bin/python tools/render/pesci.py <id> --anteprima --fast
 """
-from .base import (DORSALE_FALCE, DORSALE_SQUALO, PETTORALE, PETTORALE_TONDA, PELVICA, RITRATTO_PROTOTIPI, Disco,
+from .base import (DORSALE_SQUALO, PETTORALE, PETTORALE_TONDA, PELVICA, RITRATTO_PROTOTIPI, Disco,
                    Disegno, Filamento, Fin, Fotofori, Look, Rostro, Shape, Specie, coda_eterocerca, coda_falcata,
                    coda_forcuta, coda_tonda)
 
@@ -109,6 +109,33 @@ SPECIE['spadossa'] = Specie(
     famiglia='normale', piano='rostro')
 
 
+# ── Ossaguglia (aguglia, Belone belone) — PROVA DEL BECCO (piano 'rostro'): forma normale, ancora da
+#    trasformare nella famiglia (le ossa verdi, il becco pieno di dentini che punge) ──
+# Lunghissima e sottile; le due mascelle a becco sono un Rostro('becco') alla quota della bocca (il taglio
+# arriva in punta e lo divide in due), con i dentini sui bordi (denti); dorsale e anale arretrate e opposte,
+# coda forcuta con il lobo di sotto più lungo; dorso verde-azzurro, fianchi d'argento.
+SPECIE['ossaguglia'] = Specie(
+    forma=Shape(
+        top=[(0, 0.004), (0.02, 0.012), (0.06, 0.022), (0.12, 0.03), (0.25, 0.037), (0.45, 0.04), (0.62, 0.038), (0.75, 0.032),
+             (0.88, 0.021), (0.96, 0.014), (1, 0.012)],
+        bot=[(0, -0.006), (0.03, -0.014), (0.08, -0.023), (0.18, -0.032), (0.4, -0.038), (0.6, -0.037), (0.75, -0.031),
+             (0.88, -0.021), (0.96, -0.013), (1, -0.012)],
+        w=[(0, 0.007), (0.05, 0.016), (0.15, 0.024), (0.4, 0.028), (0.65, 0.025), (0.85, 0.015), (1, 0.008)],
+        eye_t=0.055, eye_z=0.007, eye_r=0.0135, mouth_t=0.05, mouth_z0=-0.0015, mouth_z1=-0.004, gill_t=0.13,
+        rostro=Rostro('becco', lunghezza=0.42, z=-0.0015, larghezza=0.0085, altezza=0.0095, punta=0.3, denti=28),
+        fins=[Fin('dorsal', 0.68, 0.86, [(0, 0), (0.06, 0.95), (0.2, 0.7), (0.6, 0.55), (0.9, 0.75), (1, 0.35)], 0.04, 22),
+              Fin('anal', 0.65, 0.84, [(0, 0), (0.06, 0.95), (0.2, 0.7), (0.6, 0.55), (0.9, 0.7), (1, 0.3)], 0.036, 22),
+              Fin('caudal', 1.0, 1.0, [(0.0, 1.0), (0.5, 1.1), (0.95, 1.5), (0.32, 0.0), (1.1, -1.75), (0.55, -1.1), (0.0, -1.0)],
+                  0.12, 18),
+              Fin('pectoral', 0.12, 0.13, PETTORALE, 0.06, 9, z=0.25),
+              Fin('pelvic', 0.5, 0.51, PELVICA, 0.04, 6)]),
+    aspetto=Look(back=(0.02, 0.1, 0.11), flank=(0.38, 0.44, 0.45), belly=(0.72, 0.74, 0.72), fin=(0.1, 0.16, 0.17),
+                 iris=(0.75, 0.72, 0.55), iris_dark=(0.1, 0.1, 0.08), metal=0.7, irid=0.45, squame=0.25,
+                 linea_laterale=0.0,
+                 disegni=[Disegno('ventre', colore=(0.8, 0.82, 0.84), forza=0.6, v1=-0.3)]),
+    famiglia='normale', piano='rostro')
+
+
 # ── Cavalluccio d'Osso (cavalluccio marino, Hippocampus guttulatus) — PROVA DEL PIANO 'cavalluccio': forma
 #    normale, ancora da trasformare nella famiglia (le ossa del cavallino da giostra) ──
 # Si costruisce dritto (muso a tubo in −X, coda in +X) e piega curva l'asse: la testa resta orizzontale, il
@@ -158,7 +185,6 @@ SPECIE['lanternossa'] = Specie(
     aspetto=Look(back=(0.03, 0.04, 0.06), flank=(0.3, 0.33, 0.38), belly=(0.42, 0.44, 0.47), fin=(0.18, 0.2, 0.22),
                  iris=(0.4, 0.45, 0.5), iris_dark=(0.04, 0.05, 0.06), metal=0.7, irid=0.3, squame=1.0),
     famiglia='normale', piano='fusiforme')
-
 
 
 # ── Sega d'Ossa (pesce sega, Pristis pectinata) — PROVA DEL ROSTRO A SEGA SU UNA RAZZA (piano 'razza'): forma
