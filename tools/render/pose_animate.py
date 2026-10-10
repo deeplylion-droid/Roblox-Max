@@ -82,6 +82,9 @@ HATCH_TESTA = ('HatchHead', 'HatchEye*', 'HatchTeeth', 'HatchSlime')
 # il corpo dietro le mascelle (vedi sopra, «Attenzione, le mascelle»)
 GULPY_CORPO = ('GulpyBody',)
 HATCH_CORPO = ('HatchBody',)
+# l'esca di Hatch (lo stelo e il pesciolino giocattolo che gli pende davanti alla bocca): nella toppa va visibile, se
+# no fa da maschera e il gioco, che sfuma lo strato principale dove la toppa è vuota, ci aprirebbe un buco scuro
+HATCH_ESCA = ('HatchStalk', 'Toy*')
 # Archie: la testa con la trombetta, e il collo dietro (scena_creature.ARCHIE_TESTA e ARCHIE_CORPO)
 ARCHIE_TESTA = SC.ARCHIE_TESTA
 ARCHIE_CORPO = SC.ARCHIE_CORPO
@@ -231,8 +234,8 @@ TOPPE = {
     'molly_destra_secondo': _toppa(molly_destra_secondo, 'molly_destra', MOLLY_TESTA),
     'molly_sinistra_primo': _toppa(molly_sinistra_primo, 'molly_sinistra', MOLLY_TESTA),
     'molly_sinistra_secondo': _toppa(molly_sinistra_secondo, 'molly_sinistra', MOLLY_TESTA),
-    'hatch_bocca_mezza': _toppa(hatch_bocca_mezza, 'hatch_conta', HATCH_TESTA, HATCH_CORPO),
-    'hatch_bocca_chiusa': _toppa(hatch_bocca_chiusa, 'hatch_conta', HATCH_TESTA, HATCH_CORPO),
+    'hatch_bocca_mezza': _toppa(hatch_bocca_mezza, 'hatch_conta', HATCH_TESTA, HATCH_CORPO + HATCH_ESCA),
+    'hatch_bocca_chiusa': _toppa(hatch_bocca_chiusa, 'hatch_conta', HATCH_TESTA, HATCH_CORPO + HATCH_ESCA),
     'archie_trombetta_mezza': _toppa(archie_trombetta_mezza, 'archie_soffia', ARCHIE_TESTA, ARCHIE_CORPO),
     'archie_trombetta_tutta': _toppa(archie_trombetta_tutta, 'archie_soffia', ARCHIE_TESTA, ARCHIE_CORPO),
 }

@@ -78,7 +78,7 @@ const GAUGE_LIGHT = 0.6;
 /** dove si sente Robin: steso sul bordo di sinistra verso prua, le zampe nel secchio */
 const ROBIN_AT: Vec3 = dirPos(YAW.robin, 1.3, -22);
 /** Archie: la testa in cima al collo, davanti alla prua, piegata sulla lampara (notte 3) */
-const ARCHIE_AT: Vec3 = dirPos(YAW.archie, 4.5, 8);
+const ARCHIE_AT: Vec3 = dirPos(YAW.archie, 5, 13);
 const HATCH_AT: Vec3 = [0.35, -7.4, -0.6];
 /** il pelo dell'acqua sotto l'occhio */
 const WATER_Z = -1.25;
@@ -133,6 +133,8 @@ const POSE = {
   archie: 'archie_soffia',
   archieHornHalf: 'archie_trombetta_mezza',
   archieHornFull: 'archie_trombetta_tutta',
+  /** la testa con la gola gonfia: il risucchio prima di soffiare */
+  archieBreath: 'archie_fiato',
 } as const;
 
 /** le toppe degli occhi di Molly sui due lati: il primo occhio (quello che ti fissa) e il secondo */
@@ -255,7 +257,7 @@ export class Night {
   private hoverTarget: Target = null;
   // stato visivo (morbido)
   private v = { gSale: 0, gRise: 0, gPret: 0, mR: 0, mL: 0, hRise: 0, robin: 0, robinFear: 0, robinBlink: 0,
-    gJaw: 0, gJawPhase: 0, gJawAmp: 0, mBlink1: 0, mBlink2: 0, hMouth: 0, hMouthT: 99, aRise: 0, aHornT: 0, aHornHalf: 0, aHornFull: 0, tarp: 0, toy: 0, toyX: -1, dawn: 0, rock: 0, dark: 0 };
+    gJaw: 0, gJawPhase: 0, gJawAmp: 0, mBlink1: 0, mBlink2: 0, hMouth: 0, hMouthT: 99, aRise: 0, aHornT: 0, aHornHalf: 0, aHornFull: 0, aFiato: 0, tarp: 0, toy: 0, toyX: -1, dawn: 0, rock: 0, dark: 0 };
   private gulpyDive = 0;
   private js: { killer: MonsterId; t: number; yaw: number; scream: Voice | null } | null = null;
   private lineSway = 0;
@@ -1116,6 +1118,8 @@ export class Night {
     const breath = !idle ? 0 : hb < 0.6 ? smooth01(hb / 0.6) : hb < 0.9 ? 1 : hb < 1.8 ? 1 - smooth01((hb - 0.9) / 0.9) : 0;
     v.aHornHalf = approach(v.aHornHalf, breath, 18, dt);
     v.aHornFull = approach(v.aHornFull, ar && (ar.state === 'blowing' || ar.state === 'attack') ? 1 : 0, 25, dt);
+    // il risucchio: la gola si gonfia piano mentre prende fiato (e si sgonfia di colpo quando soffia o aspetta)
+    v.aFiato = ar?.state === 'inhaling' ? Math.min(1, v.aFiato + dt / 0.8) : Math.max(0, v.aFiato - dt / 0.25);
 
     // Robin: sale dal mare sul bordo mentre arriva e ruba; scacciato scivola giù in mare. La luce in faccia cresce
     // mentre lo scacci, e se ne va ancora abbagliato
@@ -1272,6 +1276,8 @@ export class Night {
       if (half) layers.push(half);
       const full = rise(POSE.archieHornFull, kFull, arr);
       if (full) layers.push(full);
+      const fiato = has(POSE.archieBreath) ? rise(POSE.archieBreath, smooth01(v.aFiato) * (1 - kFull), arr) : null;
+      if (fiato) layers.push(fiato);
     }
     // creature sulla barca: salgono e scendono dietro il bordo. Mentre si muovono, la parte che nella posa si
     // vedeva contro il mare passa sotto la barca, che la copre; le mani sul bordo restano sopra e mollano la
