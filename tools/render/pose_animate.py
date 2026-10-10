@@ -186,21 +186,27 @@ def hatch_bocca_chiusa():
     return hatch_conta(bocca=HATCH_BOCCA['chiusa'])
 
 
-def _toppa(fn, base, testa):
+def _toppa(fn, base, testa, corpo=()):
+    """La voce di una toppa. Con corpo (le mascelle): nella toppa si vede anche il corpo dietro la testa, perché la
+    mascella che si sposta scopre una striscia che nello strato principale era mascella; il riquadro resta sulla
+    sola testa, e il gioco sfuma lo strato principale dove la toppa è vuota (lo sfondo)."""
     space, sea = SC.POSES[base][1:3]
-    return (fn, space, sea, {'visibili': testa, 'occhi': False, 'yaw_di': base})
+    opts = {'visibili': tuple(testa) + tuple(corpo), 'occhi': False, 'yaw_di': base}
+    if corpo:
+        opts['riquadro'] = testa
+    return (fn, space, sea, opts)
 
 
 # chiave → (funzione, spazio, mare, opzioni), come le voci di scena_creature.POSES (vedi jobs.job_creature)
 TOPPE = {
-    'gulpy_mascella_chiusa': _toppa(gulpy_mascella_chiusa, 'gulpy_pretende', GULPY_TESTA),
-    'gulpy_mascella_aperta': _toppa(gulpy_mascella_aperta, 'gulpy_pretende', GULPY_TESTA),
+    'gulpy_mascella_chiusa': _toppa(gulpy_mascella_chiusa, 'gulpy_pretende', GULPY_TESTA, GULPY_CORPO),
+    'gulpy_mascella_aperta': _toppa(gulpy_mascella_aperta, 'gulpy_pretende', GULPY_TESTA, GULPY_CORPO),
     'molly_destra_primo': _toppa(molly_destra_primo, 'molly_destra', MOLLY_TESTA),
     'molly_destra_secondo': _toppa(molly_destra_secondo, 'molly_destra', MOLLY_TESTA),
     'molly_sinistra_primo': _toppa(molly_sinistra_primo, 'molly_sinistra', MOLLY_TESTA),
     'molly_sinistra_secondo': _toppa(molly_sinistra_secondo, 'molly_sinistra', MOLLY_TESTA),
-    'hatch_bocca_mezza': _toppa(hatch_bocca_mezza, 'hatch_conta', HATCH_TESTA),
-    'hatch_bocca_chiusa': _toppa(hatch_bocca_chiusa, 'hatch_conta', HATCH_TESTA),
+    'hatch_bocca_mezza': _toppa(hatch_bocca_mezza, 'hatch_conta', HATCH_TESTA, HATCH_CORPO),
+    'hatch_bocca_chiusa': _toppa(hatch_bocca_chiusa, 'hatch_conta', HATCH_TESTA, HATCH_CORPO),
 }
 
 

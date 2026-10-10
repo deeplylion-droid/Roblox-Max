@@ -372,6 +372,9 @@ def job_creature(q):
         'occhi'     se registrare gli occhi nel manifest (predefinito True; tra i visibili, gli oggetti che hanno
                     'Eye' nel nome). Una toppa che mostra gli stessi occhi dello strato principale mette False,
                     se no il gioco li fa brillare due volte al buio.
+        'riquadro'  (facoltativo, con 'visibili') i nomi degli oggetti su cui si calcola il riquadro dello strato,
+                    se deve essere più stretto dei visibili: una mascella che si sposta scopre il corpo dietro la
+                    testa, che nella toppa va visibile ma non deve allargarla (vedi pose_animate.py).
         'yaw_di'    la chiave dello strato principale, su cui va la toppa. La toppa usa il suo stesso centro
                     (yaw), così i pixel dei due strati coincidono uno a uno: lo yaw si prende dallo strato reso
                     prima nello stesso giro o, se no, dal manifest (che deve venire dallo stesso render: la stessa
@@ -388,11 +391,14 @@ def job_creature(q):
     identica a quella principale fuori dal pezzo che cambia (stessa posa, stessi parametri, e a 0 il modello
     non deve aggiungere né spostare niente), se no le maschere non combaciano."""
     import scena_creature
+    import pose_animate
     build_scene(fish=0, rod=False)
     panorama_camera()
     only = [k for k in os.environ.get('POSES', '').split(',') if k]
     fatti = {}
-    for key, voce in scena_creature.POSES.items():
+    # le pose di gioco e le toppe delle animazioni (le mascelle, gli occhi di Gulpy, Molly e Hatch)
+    poses = {**scena_creature.POSES, **pose_animate.TOPPE}
+    for key, voce in poses.items():
         if only and key not in only:
             continue
         fn, space, sea = voce[:3]
@@ -423,7 +429,9 @@ def job_creature(q):
             if yaw is None:
                 yaw = yaw_center(dense_points(meshes))
                 log(f'{key}: lo strato {base} non c\'è, centro dalla creatura intera', round(yaw, 4))
-        entry = render_sprite(q, key, vis, space=space, sea=sea, extra=extra or None, holdout=masks, yaw=yaw)
+        rect_objs = scegli(vis, opts['riquadro']) if opts.get('riquadro') else None
+        entry = render_sprite(q, key, vis, space=space, sea=sea, extra=extra or None, holdout=masks, yaw=yaw,
+                              rect_objs=rect_objs)
         fatti[key] = entry['yaw']
         for o in new:
             o.hide_render = True
