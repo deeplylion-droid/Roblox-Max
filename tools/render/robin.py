@@ -31,6 +31,7 @@ Uso: tools/.venv/bin/python tools/render/robin.py [--fast]          vetrina → 
                                                                     vista dall'occhio → docs/concept/pose_robin*.jpg
      tools/.venv/bin/python tools/render/robin.py [--fast] --occhi  le tre teste dall'occhio (normale, strizzata,
                                                                     chiusa) → docs/concept/pose_robin_occhi.jpg
+     tools/.venv/bin/python tools/render/robin.py --occhi-tavola    rimonta quella tavola dai pannelli già fatti
      nella vetrina: --palpebre 0.75 --aggrotta 1 per l'espressione (→ robin_<inquadratura>_p0.75_a1.png),
                     --solo testa,insieme per alcune inquadrature soltanto
 """
@@ -334,12 +335,13 @@ def arcate_moto(fr, k):
         out = np.zeros_like(q)
         alto = D.smooth01(q[:, 2], 0.014, 0.040)
         for s in (-1, 1):
-            t = np.linalg.norm((q - V(s * 0.056, -0.124, 0.048)) / V(0.050, 0.042, 0.032), axis=1)
+            t = np.linalg.norm((q - V(s * 0.062, -0.124, 0.048)) / V(0.060, 0.042, 0.032), axis=1)
             w = D.smooth01(1.0 - t, 0.0, 0.6) * alto * k
-            dentro = D.smooth01(0.072 - s * q[:, 0], -0.010, 0.032)     # verso il naso scende di più
-            out[:, 0] -= s * 0.0045 * w
+            # l'arcata gira: verso il naso scende di un centimetro, sopra l'occhio di 4 mm, in fuori resta lì
+            u = 2.0 * D.smooth01(0.072 - s * q[:, 0], -0.035, 0.035) - 1.0
+            out[:, 0] -= s * 0.0055 * w
             out[:, 1] -= 0.0020 * w
-            out[:, 2] -= (0.0035 + 0.0055 * dentro) * w
+            out[:, 2] -= (0.0045 + 0.0055 * u) * w
         return (out @ R.T).astype(F)
     return moto
 
@@ -921,14 +923,20 @@ TESTE_OCCHI = (('robin_secchio', 'normale · robin_secchio'),
                ('robin_chiusi', 'battito di ciglia · robin_chiusi (palpebre 1)'))
 
 
-def anteprima_occhi(lens=75.0, size=(640, 540)):
+OCCHI_JSON = os.path.join(CACHE, 'robin_occhi.json')      # i pannelli dell'anteprima degli occhi e dove stanno gli occhi
+
+
+def anteprima_occhi(lens=80.0, size=(640, 540)):
     """Le tre teste di Robin affiancate, dall'occhio del pescatore: normale, che strizza gli occhi nella luce, a
     occhi chiusi. Ognuna è la posa intera di scena_creature (robin_secchio, robin_strizza, robin_chiusi) nella
-    scena del gioco con la batteria della notte 2, come anteprima_posa, con la camera stretta sulla testa.
-    → docs/concept/pose_robin_occhi.jpg (e i pannelli in cache/robin_occhi_<posa>.png)."""
+    scena del gioco con la batteria della notte 2, come anteprima_posa, con la camera stretta sulla testa (80 mm
+    su 640 pixel: la scala di pose_robin_vicino, 32 mm su 1600, ritagliata attorno alla testa).
+    → docs/concept/pose_robin_occhi.jpg (i pannelli in cache/robin_occhi_<posa>.png; tavola_occhi() rimonta la
+    tavola senza rifarli)."""
     import batteria
     import jobs
     import scena_creature as SC
+    from bpy_extras.object_utils import world_to_camera_view
     from common import perspective_camera
     from mathutils import Vector
     jobs.build_scene(fish=5, rod=True)
@@ -939,35 +947,63 @@ def anteprima_occhi(lens=75.0, size=(640, 540)):
     sc.render.resolution_percentage = 100
     sc.render.resolution_x, sc.render.resolution_y = size
     sc.cycles.samples = 32 if FAST else 96
-    panels = []
+    info = {'pannelli': [], 'occhi': []}
     for key, titolo in TESTE_OCCHI:
         before = set(bpy.data.objects.keys())
         SC.POSES[key][0]()
         bpy.context.view_layer.update()
         new = [bpy.data.objects[n] for n in set(bpy.data.objects.keys()) - before]
-        if not panels:
+        if not info['pannelli']:
             # la camera si punta sulla testa della prima posa (le tre stanno nello stesso posto)
             h = SC.LAST_M['robin_secchio'] @ Vector(tuple(map(float, HEAD)))
-            perspective_camera(EYE, tuple(h), lens=lens, name='RobinCam_occhi')
+            cam = perspective_camera(EYE, tuple(h), lens=lens, name='RobinCam_occhi')
+            bpy.context.view_layer.update()
+            for o in new:
+                if o.name.split('.')[0] in ('RobinEye0', 'RobinEye1'):
+                    c = world_to_camera_view(sc, cam, o.matrix_world.translation)
+                    info['occhi'].append([round(c.x * size[0], 1), round((1.0 - c.y) * size[1], 1)])
         path = os.path.join(CACHE, f'robin_occhi_{key}.png')
         sc.render.filepath = path
         bpy.ops.render.render(write_still=True)
-        panels.append((path, titolo))
+        info['pannelli'].append([path, titolo])
         print('pannello', path, flush=True)
         for o in new:
             o.hide_render = True
-    W, H = size
-    pad, cap = 8, 38
-    sheet = Image.new('RGB', (len(panels) * W + (len(panels) + 1) * pad, H + 2 * pad + cap), (14, 14, 16))
+    with open(OCCHI_JSON, 'w') as fh:
+        json.dump(info, fh, indent=1)
+    return tavola_occhi(info)
+
+
+def tavola_occhi(info=None, zoom=2):
+    """La tavola dell'anteprima degli occhi: i tre pannelli affiancati con le didascalie e sotto, ingranditi,
+    gli occhi di ognuno. Senza info rilegge cache/robin_occhi.json (i pannelli già fatti).
+    → docs/concept/pose_robin_occhi.jpg"""
+    if info is None:
+        with open(OCCHI_JSON) as fh:
+            info = json.load(fh)
+    panels = [(Image.open(p).convert('RGB'), t) for p, t in info['pannelli']]
+    W, H = panels[0][0].size
+    pad, cap = 8, 34
+    # la fascia ingrandita: attorno ai due occhi, larga quanto mezzo pannello
+    (ax, ay), (bx, by) = info['occhi']
+    cx, cy = (ax + bx) / 2, (ay + by) / 2
+    cw, ch = W // zoom, int(W // zoom * 0.34)
+    box = (int(round(cx - cw / 2)), int(round(cy - ch / 2)))
+    box = (min(max(box[0], 0), W - cw), min(max(box[1], 0), H - ch))
+    box = (*box, box[0] + cw, box[1] + ch)
+    zh = ch * zoom
+    sheet = Image.new('RGB', (len(panels) * W + (len(panels) + 1) * pad, H + zh + 3 * pad + cap), (14, 14, 16))
     d = ImageDraw.Draw(sheet)
     try:
-        font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 17)
+        font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 16)
     except OSError:
         font = ImageFont.load_default()
-    for i, (path, titolo) in enumerate(panels):
+    for i, (im, titolo) in enumerate(panels):
         x = pad + i * (W + pad)
-        sheet.paste(Image.open(path).convert('RGB'), (x, pad))
-        d.text((x + 4, pad + H + 9), titolo, fill=(225, 225, 220), font=font)
+        sheet.paste(im, (x, pad))
+        d.rectangle((x + box[0], pad + box[1], x + box[2] - 1, pad + box[3] - 1), outline=(120, 120, 110))
+        sheet.paste(im.crop(box).resize((cw * zoom, zh), Image.LANCZOS), (x, H + 2 * pad))
+        d.text((x + 4, H + zh + 2 * pad + 8), titolo, fill=(225, 225, 220), font=font)
     dst = os.path.join(ROOT, 'docs', 'concept', 'pose_robin_occhi.jpg')
     sheet.save(dst, quality=90)
     print('anteprima', dst, flush=True)
@@ -979,6 +1015,8 @@ if __name__ == '__main__':
         anteprima_posa()
     elif '--occhi' in sys.argv:
         anteprima_occhi()
+    elif '--occhi-tavola' in sys.argv:
+        tavola_occhi()
     elif '--solo' in sys.argv:
         showcase(tuple(_argomento('--solo').split(',')))
     else:

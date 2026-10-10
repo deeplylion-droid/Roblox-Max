@@ -372,18 +372,21 @@ def job_creature(q):
         'occhi'     se registrare gli occhi nel manifest (predefinito True; tra i visibili, gli oggetti che hanno
                     'Eye' nel nome). Una toppa che mostra gli stessi occhi dello strato principale mette False,
                     se no il gioco li fa brillare due volte al buio.
-        'yaw_di'    la chiave dello strato principale: la toppa usa il suo stesso centro (yaw), così i pixel dei
-                    due strati coincidono uno a uno. Lo yaw si prende dallo strato reso prima nello stesso giro
-                    o, se no, dal manifest (che deve venire dallo stesso render: la stessa RENDER_OUT); se non
-                    c'è si calcola sulla creatura intera, visibili e maschere (quasi lo stesso centro), e lo dice
-                    il log. Senza: il centro si calcola sui visibili.
-    Esempio (scena_creature.py), una toppa con la sola testa:
+        'yaw_di'    la chiave dello strato principale, su cui va la toppa. La toppa usa il suo stesso centro
+                    (yaw), così i pixel dei due strati coincidono uno a uno: lo yaw si prende dallo strato reso
+                    prima nello stesso giro o, se no, dal manifest (che deve venire dallo stesso render: la stessa
+                    RENDER_OUT); se non c'è si calcola sulla creatura intera, visibili e maschere (quasi lo stesso
+                    centro), e lo dice il log. Nel manifest la toppa porta 'base': la chiave dello strato principale
+                    (il gioco deve muoverla come lui: per esempio la discesa dietro il bordo, che dipende
+                    dall'altezza del riquadro, va presa dallo strato base). Senza: il centro si calcola sui visibili.
+    Esempio (scena_creature.py: ROBIN_TESTA, ROBIN_TOPPA), una toppa con la sola testa:
         'robin_strizza': (lambda: robin_secchio(palpebre=0.75, aggrotta=1.0), 'boat', True,
-                          {'visibili': ('RobinHead', 'RobinEye*', 'RobinLid*'), 'occhi': False,
+                          {'visibili': ('RobinHead', 'RobinEye*', 'RobinLid*', ...), 'occhi': False,
                            'yaw_di': 'robin_secchio'}),
-    e si rende come le altre: POSES=robin_secchio,robin_strizza jobs.py creature --quality final. La funzione
-    della toppa deve rifare la creatura identica a quella principale fuori dal pezzo che cambia (stessa posa,
-    stessi parametri), se no le maschere non combaciano."""
+    e si rende come le altre: POSES=robin_strizza,robin_chiusi jobs.py creature --quality final (con la stessa
+    RENDER_OUT dello strato principale, o insieme a lui). La funzione della toppa deve rifare la creatura
+    identica a quella principale fuori dal pezzo che cambia (stessa posa, stessi parametri, e a 0 il modello
+    non deve aggiungere né spostare niente), se no le maschere non combaciano."""
     import scena_creature
     build_scene(fish=0, rod=False)
     panorama_camera()
@@ -406,19 +409,21 @@ def job_creature(q):
             if not vis:
                 raise RuntimeError(f'{key}: nessun oggetto visibile tra {sorted(o.name for o in meshes)}')
             log(f'{key}: visibili', sorted(o.name for o in vis), '· maschera', len(masks), 'oggetti')
-        extra = None
+        extra = {}
         if opts.get('occhi', True):
             # dove sono gli occhi (dall'occhio del pescatore): a lampara spenta si vedono solo loro
             eyes = [[round(float(o.matrix_world.translation[i] - EYE[i]), 4) for i in range(3)]
                     for o in vis if 'Eye' in o.name and not o.name.startswith(('Toy', 'Duck'))]
-            extra = {'eyes': eyes}
+            extra['eyes'] = eyes
         yaw = None
-        if opts.get('yaw_di'):
-            yaw = yaw_dello_strato(opts['yaw_di'], fatti)
+        base = opts.get('yaw_di')
+        if base:
+            extra['base'] = base
+            yaw = yaw_dello_strato(base, fatti)
             if yaw is None:
                 yaw = yaw_center(dense_points(meshes))
-                log(f'{key}: lo strato {opts["yaw_di"]} non c\'è, centro dalla creatura intera', round(yaw, 4))
-        entry = render_sprite(q, key, vis, space=space, sea=sea, extra=extra, holdout=masks, yaw=yaw)
+                log(f'{key}: lo strato {base} non c\'è, centro dalla creatura intera', round(yaw, 4))
+        entry = render_sprite(q, key, vis, space=space, sea=sea, extra=extra or None, holdout=masks, yaw=yaw)
         fatti[key] = entry['yaw']
         for o in new:
             o.hide_render = True
