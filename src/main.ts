@@ -20,7 +20,9 @@ const ui = document.getElementById('ui') as HTMLDivElement;
 /** Strati della notte, nell'ordine in cui vanno caricati (le pose delle creature possono mancare). */
 const GAME_LAYERS = ['world', 'boat', 'rod0', 'rod1', 'rod2', 'fish2', 'fish5', 'fish9', 'gulpy_sale', 'hatch_conta', 'gulpy_pretende', 'molly_destra', 'molly_sinistra', 'battery', 'battery_lit', 'robin_secchio', 'robin_strizza', 'robin_chiusi', 'rod_c1', 'rod_c2', 'rod_m', 'rod_f1', 'rod_f2', 'rod_base',
   'gulpy_mascella_aperta', 'gulpy_mascella_chiusa', 'molly_destra_primo', 'molly_destra_secondo', 'molly_sinistra_primo',
-  'molly_sinistra_secondo', 'hatch_bocca_mezza', 'hatch_bocca_chiusa'];
+  'molly_sinistra_secondo', 'hatch_bocca_mezza', 'hatch_bocca_chiusa',
+  // notte 3: Archie e le sue toppe (la trombetta a metà e tutta, la gola gonfia)
+  'archie_soffia', 'archie_trombetta_mezza', 'archie_trombetta_tutta', 'archie_fiato'];
 
 /** ?speed=N accelera il tempo di gioco (per le prove automatiche nel browser senza GPU). */
 const SPEED = Math.max(0.1, Number(new URLSearchParams(location.search).get('speed') ?? 1) || 1);
