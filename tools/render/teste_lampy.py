@@ -29,7 +29,7 @@ import dettagli as D  # noqa: E402
 import sdf  # noqa: E402
 import skin  # noqa: E402
 from common import set_lightgroup  # noqa: E402
-from creature import sdf_object, teeth_material  # noqa: E402
+from creature import sdf_object, skin_material, teeth_material  # noqa: E402
 from dettagli import Frame, V, chain, ellipsoid_rot, mat_simple, torus_axis, unit  # noqa: E402
 from geo import catmull, rbox, tube  # noqa: E402
 
@@ -157,6 +157,21 @@ def fishing_line():
     return ob
 
 
+# ───────────────────────── colori (proposta del 10 ottobre, da approvare) ─────────────────────────
+# I mostri nuovi non sono più grigi come quelli della prima notte: ognuno ha un colore netto, come in FNAF.
+# Lampy è viola-magenta saturo, da sanguisuga; la cuffia bianca a fiori rosa deve spiccarci sopra.
+
+def lampy_skin():
+    """Pelle viola-magenta lucida di melma: più scura sul dorso, rosata sul ventre e dentro la ventosa.
+    Il blu è più forte del rosso, così sotto la luce calda della lampara resta viola e non vira al marrone."""
+    m = bpy.data.materials.get('LampySkinMat')
+    if m:
+        return m
+    return skin_material('LampySkinMat', base=(0.13, 0.016, 0.17), dark=(0.035, 0.004, 0.06), belly=(0.40, 0.085, 0.26),
+                         accent=(0.45, 0.15, 0.40), rough=0.42, coat=0.6, sss=0.22, sss_radius=(1.0, 0.25, 0.7),
+                         spots_scale=4.5, spots_amount=0.75, bump_scale=55.0, bump=0.4, mouth=(0.60, 0.17, 0.26), irid=0.12)
+
+
 # ───────────────────────── corpo: l'arco della sanguisuga ─────────────────────────
 
 def arch_points(start, back):
@@ -276,12 +291,19 @@ def lampy_finish(fr, head_local, cut_local=None, head_r=0.42, neck_r=0.15, attrs
         f = sdf.subtract(f, bounded(fr.field(cut_local), fr.pos, head_r), k=0.006)
     rims, holes = body.gill_pores(f)
     f = sdf.subtract(sdf.union(f, rims, k=0.004), holes, k=0.003)
-    attrs = {'belly': body.belly}
+    def belly(p):
+        """Ventre chiaro: il lato dell'arco verso la lenza e, sulla testa, la parte di sotto."""
+        q = (p - fr.pos) @ fr.R
+        near = np.clip(1 - (np.linalg.norm(p - fr.pos, axis=1) - 0.26) / 0.12, 0, 1)
+        under = np.clip(-q[:, 2] / 0.18 + 0.15, 0, 1)
+        return np.maximum(body.belly(p) * (1 - near), near * under).astype(F)
+
+    attrs = {'belly': belly}
     attrs.update(attrs_extra or {})
     lo = np.minimum(body.pts.min(0), fr.pos) - 0.46
     hi = np.maximum(body.pts.max(0), fr.pos) + 0.46
     lo[0], hi[0] = min(-0.36, fr.pos[0] - 0.46), max(0.36, fr.pos[0] + 0.46)
-    obs = [skin_mesh('LampySkin', f, lo, hi, D.pale_skin(), attrs=attrs), fishing_line(), water()]
+    obs = [skin_mesh('LampySkin', f, lo, hi, lampy_skin(), attrs=attrs), fishing_line(), water()]
     # la bava: dal sotto dell'arco (dove il ventre guarda in giù), dalla ventosa della coda, dalla bocca
     anchors = []
     for u in (0.27, 0.43, 0.55):
@@ -296,10 +318,11 @@ def lampy_finish(fr, head_local, cut_local=None, head_r=0.42, neck_r=0.15, attrs
 # ───────────────────────── la cuffia a fiori ─────────────────────────
 
 def cap_material():
-    return D.vinyl('CapRubber', (0.36, 0.66, 0.64), stain=(0.22, 0.27, 0.13))
+    """Gomma bianca, ingiallita e macchiata d'alga."""
+    return D.vinyl('CapWhite', (0.80, 0.78, 0.72), stain=(0.30, 0.30, 0.18))
 
 
-FLOWER_COLS = [((0.95, 0.22, 0.52), 'CapFlowerPink'), ((0.95, 0.78, 0.22), 'CapFlowerYellow'), ((0.90, 0.88, 0.80), 'CapFlowerWhite')]
+FLOWER_COLS = [((0.95, 0.10, 0.42), 'CapFlowerFuchsia'), ((0.98, 0.42, 0.62), 'CapFlowerRose'), ((0.92, 0.20, 0.50), 'CapFlowerPink')]
 
 
 def flower(c, n, size, petals=6):
@@ -338,7 +361,7 @@ def swim_cap(fr, center, radii, plane_q, plane_n, flowers, thick=0.0045, tear=No
         pf, bt = flower(q, n, size)
         col, nm = FLOWER_COLS[ci]
         obs.append(D.mesh(f'{name}Flower{k}', pf, q - size * 1.4, q + size * 1.4, D.vinyl(nm, col, stain=(0.3, 0.3, 0.18)), res=size / 14))
-        obs.append(D.mesh(f'{name}Button{k}', bt, q - size * 0.6, q + size * 0.6, D.vinyl('CapFlowerButton', (0.95, 0.82, 0.30), stain=(0.3, 0.3, 0.18)), res=size / 16))
+        obs.append(D.mesh(f'{name}Button{k}', bt, q - size * 0.6, q + size * 0.6, D.vinyl('CapFlowerCenter', (0.88, 0.86, 0.80), stain=(0.3, 0.3, 0.18)), res=size / 16))
     return obs
 
 
@@ -388,14 +411,14 @@ def oriented(c, radii, n, along=(0, 1, 0)):
 CRAN_C, CRAN_R = V(0, 0.03, 0.02), (0.29, 0.29, 0.28)
 
 
-def cap_tear(d, length=0.12):
+def cap_tear(d, length=0.15):
     """Lo strappo della cuffia (sul cranio grande) e la carne che ne esce."""
     n = unit(d)
     c = CRAN_C + n * 0.295
     return oriented(c, (0.04, length, 0.032), n), oriented(c - n * 0.004, (0.034, length * 1.05, 0.036), n)
 
 
-TEAR_A = V(-0.35, 0.45, 0.82)      # dove la cuffia di A si è strappata
+TEAR_A = V(-0.50, 0.02, 0.87)      # dove la cuffia di A si è strappata (in alto, dalla parte di chi guarda)
 CAP_Q, CAP_N = (0, -0.03, 0.0), (0, 1.0, 0.75)   # l'orlo della cuffia: dietro gli occhi, sulla fronte
 
 
@@ -441,7 +464,7 @@ def lampy_a():
 
 # ───────────────────────── B · Bacio ─────────────────────────
 
-def pucker_lips(c, R, r, n=26, amp=0.05, squash=0.85):
+def pucker_lips(c, R, r, n=18, amp=0.035, squash=0.85):
     """Labbra a bacio attorno all'asse −Y: una ciambella carnosa un po' più larga che alta, il labbro di
     sotto più gonfio, le grinzette verticali delle labbra."""
     c = V(*c)
@@ -464,41 +487,45 @@ def place_head(local_mouth):
 
 
 def lampy_b():
-    """B · Bacio: il cranio tondo da neonato sotto la cuffia, occhioni bianchi, il naso schiacciato; la
-    ventosa è una bocca umana con le labbra a bacio, piena di anelli di denti da latte."""
-    fr = place_head((0, -0.315, -0.10))
+    """B · Bacio: il cranio tondo da neonato sotto la cuffia, occhi tondi senza palpebre, al posto del naso
+    due fessure; la ventosa è una bocca umana enorme, con le labbra a bacio e gli anelli di denti da latte."""
+    fr = place_head((0, -0.325, -0.115))
     cran = sdf.ellipsoid(V(0, 0.03, 0.05), (0.28, 0.28, 0.29))
-    face = sdf.ellipsoid(V(0, -0.10, -0.03), (0.22, 0.18, 0.21))
-    brow = sdf.ellipsoid(V(0, -0.252, 0.118), (0.15, 0.032, 0.03))
-    nose = sdf.union(sdf.round_cone(V(0, -0.262, 0.07), V(0, -0.292, 0.012), 0.014, 0.022), sdf.sphere(V(0, -0.29, 0.012), 0.024), k=0.01)
-    lips = pucker_lips((0, -0.30, -0.10), 0.075, 0.036)
-    head = sdf.union(cran, face, brow, nose, lips, k=0.035)
-    sockets = sdf.union(*[sdf.sphere(V(sx * 0.092, -0.258, 0.072), 0.037) for sx in (-1, 1)])
-    nostrils = sdf.union(*[ellipsoid_rot(V(sx * 0.013, -0.312, 0.004), (0.006, 0.01, 0.004), np.eye(3, dtype=F)) for sx in (-1, 1)])
-    hole = sdf.union(sdf.ellipsoid(V(0, -0.34, -0.10), (0.044, 0.09, 0.044)), sdf.capsule(V(0, -0.30, -0.10), V(0, -0.02, -0.05), 0.03))
+    face = sdf.ellipsoid(V(0, -0.10, -0.05), (0.23, 0.19, 0.22))
+    brow = sdf.ellipsoid(V(0, -0.246, 0.128), (0.16, 0.032, 0.03))
+    lips = pucker_lips((0, -0.30, -0.115), 0.098, 0.044)
+    head = sdf.union(cran, face, brow, lips, k=0.035)
+    sockets = sdf.union(*[sdf.sphere(V(sx * 0.10, -0.252, 0.082), 0.040) for sx in (-1, 1)])
+    nostrils = sdf.union(*[ellipsoid_rot(V(sx * 0.016, -0.262, 0.026), (0.005, 0.012, 0.012), sdf.rot_matrix('y', sx * 20)) for sx in (-1, 1)])
+    hole = sdf.union(sdf.ellipsoid(V(0, -0.35, -0.115), (0.060, 0.10, 0.056)), sdf.capsule(V(0, -0.30, -0.115), V(0, -0.02, -0.06), 0.034))
     cut = sdf.union(sockets, nostrils, hole)
 
     def attrs_mouth(p):
-        """1 dentro la bocca, mezzo sulle labbra (rosso livido e bagnato)."""
+        """1 dentro la bocca, meno sulle labbra (rosso livido e bagnato)."""
         q = (p - fr.pos) @ fr.R
-        d = np.sqrt(q[:, 0] ** 2 + ((q[:, 2] + 0.10) / 0.85) ** 2)
-        inside = np.clip((0.05 - d) / 0.012, 0, 1) * (q[:, 1] > -0.33)
-        lip = np.clip(1 - np.abs(d - 0.075) / 0.045, 0, 1) * np.clip((-0.25 - q[:, 1]) / 0.03, 0, 1) * 0.5
+        d = np.sqrt(q[:, 0] ** 2 + ((q[:, 2] + 0.115) / 0.85) ** 2)
+        inside = np.clip((0.062 - d) / 0.012, 0, 1) * (q[:, 1] > -0.34)
+        lip = np.clip(1 - np.abs(d - 0.098) / 0.05, 0, 1) * np.clip((-0.25 - q[:, 1]) / 0.03, 0, 1) * 0.42
         return np.maximum(inside, lip).astype(F)
 
-    obs = lampy_finish(fr, head, cut, attrs_extra={'mouth': attrs_mouth},
-                       drip_local=[(0.0, -0.33, -0.165), (0.05, -0.32, -0.15)])
-    c0 = fr.pt((0, -0.17, -0.08))
-    obs.append(D.mesh('LampyThroat', fr.field(sdf.capsule(V(0, -0.27, -0.10), V(0, -0.04, -0.06), 0.028)), c0 - 0.22, c0 + 0.22, D.dark_throat(), res=0.004))
-    rings = [(0.050, -0.300, 15, 0.016, 0.0072), (0.039, -0.282, 12, 0.017, 0.0068), (0.029, -0.262, 9, 0.017, 0.0064)]
-    obs.append(teeth('LampyMilkTeeth', ring_teeth(fr, rings, axis_c=(0, 0, -0.10), inward=1.1), teeth_material()))
-    obs += D.eyes('LampyEye', [fr.pt((sx * 0.092, -0.252, 0.072)) for sx in (-1, 1)], 0.032, fr.dir((0, -1, -0.05)))
+    def lips_blush(p):
+        q = (p - fr.pos) @ fr.R
+        d = np.sqrt(q[:, 0] ** 2 + ((q[:, 2] + 0.115) / 0.85) ** 2)
+        return (np.clip(1 - np.abs(d - 0.098) / 0.055, 0, 1) * np.clip((-0.25 - q[:, 1]) / 0.03, 0, 1)).astype(F)
+
+    obs = lampy_finish(fr, head, cut, attrs_extra={'mouth': attrs_mouth, 'blush': lips_blush},
+                       drip_local=[(0.0, -0.33, -0.19), (0.06, -0.32, -0.175)])
+    c0 = fr.pt((0, -0.17, -0.09))
+    obs.append(D.mesh('LampyThroat', fr.field(sdf.capsule(V(0, -0.27, -0.115), V(0, -0.04, -0.06), 0.032)), c0 - 0.22, c0 + 0.22, D.dark_throat(), res=0.004))
+    rings = [(0.064, -0.306, 18, 0.018, 0.0078), (0.052, -0.288, 15, 0.019, 0.0074), (0.041, -0.268, 12, 0.019, 0.0070), (0.031, -0.248, 9, 0.018, 0.0066)]
+    obs.append(teeth('LampyMilkTeeth', ring_teeth(fr, rings, axis_c=(0, 0, -0.115), inward=1.1), teeth_material()))
+    obs += D.eyes('LampyEye', [fr.pt((sx * 0.10, -0.242, 0.082)) for sx in (-1, 1)], 0.036, fr.dir((0, -1, -0.05)))
     flowers = cap_flowers(V(0, 0.03, 0.05), CAP_Q_B, CAP_N)
     obs += swim_cap(fr, V(0, 0.03, 0.05), (0.28, 0.28, 0.29), CAP_Q_B, CAP_N, flowers)
-    return obs, 'B · Bacio', 'a metà: il cranio da neonato sotto la cuffia,\nocchioni bianchi; la ventosa è una bocca\ncon le labbra a bacio e anelli di denti da latte'
+    return obs, 'B · Bacio', 'a metà: il cranio da neonato sotto la cuffia,\nocchi tondi senza palpebre; la ventosa è una\nbocca enorme a bacio, con anelli di denti da latte'
 
 
-CAP_Q_B = (0, -0.12, 0.0)
+CAP_Q_B = (0, -0.10, 0.0)
 
 
 # ───────────────────────── C · Bambina ─────────────────────────
@@ -522,7 +549,7 @@ def lampy_c():
         e = V(sx * 0.078, -0.212, 0.048)
         sh = sdf.subtract(sdf.sphere(e, 0.038), sdf.sphere(e, 0.0305))
         low = sdf.sphere(e + V(0, 0, -0.040), 0.042)          # sotto quest'arco: palpebra di sotto
-        high = sdf.sphere(e + V(0, 0, -0.026), 0.042)         # sopra quest'arco: palpebra di sopra
+        high = sdf.sphere(e + V(0, 0, -0.022), 0.042)         # sopra quest'arco: palpebra di sopra
         keep = lambda p, low=low, high=high: np.minimum(low(p), -high(p))
         lids.append(sdf.intersect(sh, keep))
     head = sdf.union(sdf.subtract(base, sockets, k=0.004), *lids, k=0.004)
@@ -562,6 +589,15 @@ def lampy_c():
     pts = pts + nrm * 0.004
     strap = D.hair_clump(list(pts), 0.0085, 0.0085)
     obs.append(D.mesh('CapStrap', strap, pts.min(0) - 0.03, pts.max(0) + 0.03, cap_material(), res=0.0028))
+    # ciocche bagnate scappate dalla cuffia, appiccicate alle tempie e alle guance
+    strands = []
+    for sx in (-1, 1):
+        for k, (dy, dz, L) in enumerate(((0.0, 0.0, 1.0), (0.03, -0.01, 0.8), (-0.025, 0.015, 0.65))):
+            path = [V(sx * 0.205, -0.10 + dy, 0.085 + dz), V(sx * 0.215, -0.13 + dy, 0.02 + dz), V(sx * 0.205, -0.15 + dy, -0.06 * L + dz), V(sx * 0.19, -0.16 + dy, -0.12 * L)]
+            q, nn = snap(skin_w, [fr.pt(v) for v in path])
+            strands.append(D.hair_clump(list(q + nn * 0.004), 0.0075, 0.0025))
+    hp = fr.pos
+    obs.append(D.mesh('LampyHair', sdf.union(*strands, k=0.004), hp - 0.36, hp + 0.36, D.wet_hair(), res=0.0026))
     return obs, 'C · Bambina', 'più bambina: un testone da bimba piccola,\nla cuffia allacciata sotto il mento; ride a occhi\nstretti e la bocca è una O piena di dentini'
 
 
@@ -571,7 +607,7 @@ CAP_Q_C = (0, -0.14, 0.03)
 # ───────────────────────── scena ─────────────────────────
 
 D.CREATURES['lampy'] = {
-    'title': 'LAMPY — dettagli della testa (notte 4, sagoma C «Sanguisuga», più grossa), con la lenza',
+    'title': 'LAMPY — dettagli della testa (notte 4, sagoma C «Sanguisuga», più grossa), con la lenza · colori da approvare',
     'variants': [lampy_a, lampy_b, lampy_c],
     'cam': CAM,
     'subject': (0, -0.2, 1.4), 'key': 45, 'rim': 160,

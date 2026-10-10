@@ -8,6 +8,11 @@ corazzata, pettorali a ventaglio con i raggi liberi che usa come zampette sul fo
 (i barbigli). Da bambino nascondeva le cose degli altri sotto gli scivoli: ora, steso sul bordo della
 barca come un ragno di mare, ruba i pesci dal secchio. Bozze di studio: non sono i modelli definitivi.
 
+Colori (proposta da approvare, 10 ottobre): i mostri nuovi non sono più grigi come i primi tre, ognuno ha
+un colore netto come in FNAF. Robin è rosso corallo come la gallinella vera (Chelidonichthys), più scuro e
+più bagnato sul dorso, rosato sulla pancia; i ventagli e le zampette sono turchese elettrico a macchie blu;
+la melma è tinta di rosso. Pelle, chiazze, vene e melma restano quelle di famiglia: cambia solo la tinta.
+
 Coordinate come la sagoma: il bordo della barca corre lungo X a y = 0 (capodibanda a z = 0,75), dentro
 la barca è y < 0, fuori c'è il mare (z = 0). La faccia guarda −Y, verso il secchio e il pescatore.
 
@@ -108,10 +113,10 @@ def placche(seed, centro, raggio, n, largo=0.0045):
     return f
 
 
-def fine(name, field, pts, mat, pad=0.03, res=None):
+def fine(name, field, pts, mat, pad=0.03, res=None, attrs=None):
     """Mesh di un pezzo sottile, valutata a fasce in una scatola stretta attorno ai suoi punti."""
     P = np.concatenate([np.atleast_2d(np.asarray(p, F)) for p in pts])
-    ob = sdf_object(name, field, P.min(0) - pad, P.max(0) + pad, res=res or RES_FINE, banded=True)
+    ob = sdf_object(name, field, P.min(0) - pad, P.max(0) + pad, res=res or RES_FINE, attrs=attrs, banded=True)
     ob.data.materials.append(mat)
     return ob
 
@@ -135,6 +140,74 @@ def base_da(asse_z, verso=(0.3, 1.0, 0.0)):
 
 # ───────────────────────── materiali ─────────────────────────
 
+def costante(v):
+    """Attributo uguale su tutta la mesh."""
+    return lambda p: np.full(len(p), v, F)
+
+
+def pelle(name, dorso, fianco, ventre, macchie, seconda, puntini=None, vene=(0.10, 0.02, 0.03), placche=(0.85, 0.45, 0.35),
+          guance=(0.70, 0.08, 0.10), bocca=(0.10, 0.015, 0.02), melma=(0.80, 0.92, 0.66), sss=(1.0, 0.35, 0.25)):
+    """La pelle dei mostri nuovi: la stessa pelle di famiglia (bagnata, a chiazze, malata, con la melma
+    lucida e le colature) ma con un colore netto. Attributi: 'ventre' (0 dorso, 1 pancia), 'seconda' (0..1,
+    il secondo colore: zampette e pinne, oppure fasce), 'wart' (placche ossee), 'blush', 'mouth'."""
+    m = bpy.data.materials.get(name)
+    if m:
+        return m
+    m, g = material(name)
+    co = g.texcoord('Object')
+    ven = g.attr('ventre')
+    col = g.ramp(ven, [(0.0, dorso), (0.5, fianco), (1.0, ventre)])
+    # chiazze della pelle malata e maculatura fine
+    n1 = g.noise(co, scale=5.0, detail=4.0, rough=0.55, distortion=0.6)
+    col = g.mix(g.mul(g.smoothstep(0.52, 0.64, n1.fac), 0.75), col, macchie)
+    n2 = g.noise(co, scale=16.0, detail=3.0, rough=0.6)
+    col = g.mix(g.mul(g.smoothstep(0.58, 0.72, n2.fac), 0.45), col, macchie)
+    # vene sotto la pelle
+    warp = g.vmath('ADD', co, g.vmath('SCALE', n1.color, scale=0.05))
+    vv = g.voronoi(warp, scale=7.0, feature='DISTANCE_TO_EDGE')
+    col = g.mix(g.mul(g.smoothstep(0.025, 0.0, vv), 0.35), col, vene)
+    # il secondo colore con le sue macchie
+    sec = g.attr('seconda')
+    col = g.mix(sec, col, seconda)
+    if puntini is not None:
+        dots = g.voronoi(co, scale=48.0, feature='F1')
+        col = g.mix(g.mul(sec, g.smoothstep(0.32, 0.20, dots)), col, puntini)
+    # placche ossee, guance, bocca e orbite
+    col = g.mix(g.mul(g.attr('wart'), 0.6), col, placche)
+    col = g.mix(g.mul(g.attr('blush'), 0.55), col, guance)
+    col = g.mix(g.smoothstep(0.3, 0.7, g.attr('mouth')), col, bocca)
+    ao = g.ao(distance=0.03, samples=8)
+    col = g.mix(g.sub(1.0, ao), col, (0.25, 0.22, 0.22), blend='MULTIPLY')
+    # melma: chiazze lucide, colature verso il basso, ristagni nelle cavità; più bagnato sul dorso
+    patch = g.noise(co, scale=4.2, detail=4.0, rough=0.55, distortion=0.7)
+    pm = g.smoothstep(0.50, 0.60, patch.fac)
+    streak = g.noise(g.mapping(co, scale=(28.0, 28.0, 2.6)), scale=1.0, detail=3.0, rough=0.5, distortion=0.3)
+    dm = g.mul(g.smoothstep(0.56, 0.68, streak.fac), 0.9)
+    cm = g.mul(g.smoothstep(0.25, 0.55, g.sub(1.0, ao)), 0.8)
+    sl = g.clamp01(g.add(g.mx(g.mx(pm, dm), cm), g.mul(g.sub(1.0, ven), 0.25)))
+    col = g.mix(g.mul(sl, 0.40), col, (melma[0] * 0.8, melma[1] * 0.8, melma[2] * 0.8), blend='MULTIPLY')
+    r = g.mixf(sl, 0.50, 0.12)
+    grain = g.noise(co, scale=55.0, detail=3.0, rough=0.6)
+    nrm = g.bump(g.add(grain.fac, g.mul(g.attr('wart'), 2.0)), strength=0.4, distance=0.003)
+    bub = g.voronoi(co, scale=160.0, feature='F1')
+    coat_n = g.bump(g.add(g.mul(sl, 0.8), g.mul(g.mul(g.smoothstep(0.22, 0.05, bub), pm), 0.25)), strength=0.3, distance=0.002)
+    g.output_material(g.principled(color=col, rough=r, coat=g.add(0.30, g.mul(sl, 0.65)), coat_rough=g.mixf(sl, 0.12, 0.03),
+                                   coat_tint=melma, coat_normal=coat_n, sss=0.12, sss_radius=sss, sss_scale=0.03, normal=nrm))
+    return m
+
+
+def pelle_robin():
+    """Rosso corallo come la gallinella vera: dorso scuro e bagnato, pancia rosata; zampette e pinne
+    turchese elettrico a macchie blu; melma rossastra."""
+    return pelle('RobinSkinRed', dorso=(0.30, 0.022, 0.016), fianco=(0.72, 0.10, 0.055), ventre=(0.88, 0.40, 0.32),
+                 macchie=(0.24, 0.02, 0.02), seconda=(0.0, 0.50, 0.62), puntini=(0.01, 0.07, 0.48),
+                 vene=(0.18, 0.0, 0.03), placche=(0.95, 0.42, 0.30), guance=(0.55, 0.02, 0.06), melma=(1.0, 0.62, 0.58))
+
+
+def melma_rossa():
+    return skin.slime_material('SlimeRed', tint=(0.90, 0.32, 0.26))
+
+
 def biglietti_material():
     """I biglietti della sala giochi: carta arancio con la finestrella chiara stampata, la perforazione tra un
     biglietto e l'altro, fradici e macchiati d'alga. Attributi: 'tick' (metri lungo la striscia), 'side' (−1..1)."""
@@ -152,7 +225,7 @@ def biglietti_material():
     txt = g.noise(g.comb(g.mul(tick, 260.0), g.mul(side, 5.0), 0.0), scale=1.0, detail=1.0)
     rows = g.smoothstep(0.25, 0.0, g.math('ABSOLUTE', g.sub(g.math('FRACT', g.mul(g.add(side, 1.0), 1.6)), 0.5)))
     ink = g.mul(g.mul(win, g.smoothstep(0.5, 0.56, txt.fac)), g.sub(1.0, rows))
-    col = g.mix(g.smoothstep(0.80, 0.92, a), (0.86, 0.30, 0.07), (0.55, 0.12, 0.04))   # bordino più scuro
+    col = g.mix(g.smoothstep(0.80, 0.92, a), (0.95, 0.50, 0.08), (0.62, 0.18, 0.03))   # bordino più scuro
     col = g.mix(win, col, (0.86, 0.74, 0.52))
     col = g.mix(ink, col, (0.40, 0.06, 0.04))
     col = g.mix(perf, col, (0.30, 0.10, 0.04))
@@ -168,24 +241,40 @@ def biglietti_material():
 
 
 def ventaglio_material():
-    """La membrana della pettorale: scura verso la base con le macchioline chiare, il bordo che ricorda ancora
-    l'azzurro della gallinella, traslucida controluce. Attributo 'bordo' (0 alla base, 1 al bordo)."""
-    m = bpy.data.materials.get('FinWeb')
+    """La membrana della pettorale, come la gallinella vera: turchese elettrico, più cupo verso la base, con le
+    macchie blu e il bordo chiaro; traslucida controluce. Attributo 'bordo' (0 alla base, 1 al bordo)."""
+    m = bpy.data.materials.get('FinWebTeal')
     if m:
         return m
-    m, g = material('FinWeb')
+    m, g = material('FinWebTeal')
     co = g.texcoord('Object')
     bordo = g.attr('bordo')
     n = g.noise(co, scale=30.0, detail=4.0, rough=0.6)
-    col = g.mix(g.smoothstep(0.15, 0.55, bordo), (0.20, 0.21, 0.20), (0.035, 0.045, 0.05))
-    dots = g.voronoi(co, scale=38.0, feature='F1')
-    col = g.mix(g.mul(g.mul(g.smoothstep(0.22, 0.10, dots), g.smoothstep(0.25, 0.45, bordo)), g.smoothstep(0.85, 0.70, bordo)), col, (0.30, 0.42, 0.45))
-    col = g.mix(g.smoothstep(0.74, 0.92, bordo), col, (0.07, 0.30, 0.36))
-    col = g.mix(g.mul(n.fac, 0.25), col, (0.10, 0.10, 0.09))
+    col = g.mix(g.smoothstep(0.05, 0.55, bordo), (0.0, 0.09, 0.14), (0.0, 0.46, 0.58))
+    dots = g.voronoi(co, scale=34.0, feature='F1')
+    spot = g.mul(g.mul(g.smoothstep(0.30, 0.16, dots), g.smoothstep(0.20, 0.35, bordo)), g.smoothstep(0.90, 0.78, bordo))
+    col = g.mix(spot, col, (0.01, 0.05, 0.42))
+    col = g.mix(g.smoothstep(0.80, 0.95, bordo), col, (0.20, 0.85, 0.92))
+    col = g.mix(g.mul(n.fac, 0.2), col, (0.0, 0.10, 0.12))
     veins = g.voronoi(co, scale=22.0, feature='DISTANCE_TO_EDGE')
-    col = g.mix(g.mul(g.smoothstep(0.025, 0.0, veins), 0.4), col, (0.22, 0.07, 0.07))
-    g.output_material(g.principled(color=col, rough=0.28, transmission=0.15, ior=1.36, sss=0.45, sss_radius=(1.0, 0.6, 0.5),
-                                   sss_scale=0.01, coat=0.7, coat_rough=0.05, normal=g.bump(n.fac, strength=0.2, distance=0.002)))
+    col = g.mix(g.mul(g.smoothstep(0.025, 0.0, veins), 0.35), col, (0.0, 0.06, 0.20))
+    g.output_material(g.principled(color=col, rough=0.25, transmission=0.15, ior=1.36, sss=0.4, sss_radius=(0.3, 0.8, 1.0),
+                                   sss_scale=0.01, coat=0.8, coat_rough=0.04, normal=g.bump(n.fac, strength=0.2, distance=0.002)))
+    return m
+
+
+def zinco_opaco():
+    """Lo zinco del secchio, ma vecchio e opaco: in queste tavole non deve rubare la scena con i riflessi."""
+    m = bpy.data.materials.get('GalvanizedDull')
+    if m:
+        return m
+    m, g = material('GalvanizedDull')
+    co = g.texcoord('Object')
+    sp = g.bw(g.voronoi(co, scale=40.0, out='Color'))
+    dent = g.noise(co, scale=3.0, detail=3.0).fac
+    col = g.mix(sp, (0.20, 0.21, 0.21), (0.32, 0.33, 0.32))
+    col = g.mix(g.mul(g.smoothstep(0.55, 0.75, g.noise(co, scale=6.0, detail=4.0).fac), 0.6), col, (0.10, 0.08, 0.05))
+    g.output_material(g.principled(color=col, metal=0.85, rough=g.map_range(sp, 0, 1, 0.45, 0.70), normal=g.bump(dent, strength=0.15, distance=0.01)))
     return m
 
 
@@ -260,7 +349,7 @@ def scena():
     so = b.modifiers.new('T', 'SOLIDIFY')
     so.thickness = 0.004
     b.location = (x, y, z)
-    b.data.materials.append(mats['galvanized'])
+    b.data.materials.append(zinco_opaco())
     handle = [(x + 0.158 * math.cos(a), y, z + 0.28 + 0.12 * math.sin(a)) for a in np.linspace(0.15, math.pi - 0.15, 13)]
     hb = tube('BucketHandle', handle, 0.004, n=6, col='set')
     hb.data.materials.append(mats['chrome'])
@@ -364,14 +453,51 @@ def gills():
     return sdf.union(*[D.ellipsoid_rot(V(s * 0.079, -0.385 + 0.028 * i, 0.905), (0.006, 0.010, 0.032), sdf.rot_matrix('y', s * 20)) for s in (-1, 1) for i in range(3)])
 
 
-def corpo_mesh(head_field, cut=None, attrs=None, shh_wrist=None):
+def zampette():
+    """Punti lungo le zampe-raggio, col parametro t (0 alla base, 1 alla punta): servono per colorarle."""
+    P, T = [], []
+    for _, pts in raggi():
+        c = catmull(pts, 14)
+        P.append(c)
+        T.append(np.linspace(0.0, 1.0, len(c)))
+    return np.concatenate(P).astype(F), np.concatenate(T).astype(F)
+
+
+def attr_robin(fr, faccia=0.0):
+    """Gli attributi del colore: 'ventre' (la pancia rosata sotto il busto e sotto la testa; nella C anche la
+    faccia) e 'seconda' (le zampe-raggio, che dalla base rossa diventano turchesi)."""
+    from scipy.spatial import cKDTree
+    P, T = zampette()
+    tree = cKDTree(P)
+
+    def ventre(p):
+        v = np.full(len(p), 0.35, F)
+        torso = (np.abs(p[:, 0]) < 0.18) & (p[:, 1] > -0.44) & (p[:, 1] < 0.34) & (p[:, 2] > 0.72) & (p[:, 2] < 1.08)
+        v[torso] = D.smooth01(1.02 - p[torso, 2], 0.0, 0.20)
+        q = (p - fr.pos) @ fr.R
+        near = np.linalg.norm(q, axis=1) < 0.20
+        vh = D.smooth01(-q[:, 2], -0.07, 0.07) * 0.85 + 0.05
+        if faccia:
+            vh = np.maximum(vh, D.smooth01(-q[:, 1], 0.05, 0.09) * faccia)
+        v[near] = vh[near]
+        return v
+
+    def seconda(p):
+        d, i = tree.query(p, k=1, workers=-1)
+        return ((1.0 - D.smooth01(d.astype(F), 0.034, 0.05)) * D.smooth01(T[i], 0.10, 0.25)).astype(F)
+    return {'ventre': ventre, 'seconda': seconda}
+
+
+def corpo_mesh(fr, head_field, cut=None, attrs=None, shh_wrist=None, faccia=0.0):
     f = corpo(head_field, shh_wrist=shh_wrist)
     c = gills()
     if cut is not None:
         c = sdf.union(c, cut)
     f = sdf.subtract(f, c, k=0.005)
-    ob = sdf_object('RobinSkin', f, V(-0.78, -1.02, -0.08), V(0.78, 0.80, 1.40), res=RES_BODY, attrs=attrs, banded=True)
-    ob.data.materials.append(D.pale_skin())
+    a = attr_robin(fr, faccia)
+    a.update(attrs or {})
+    ob = sdf_object('RobinSkin', f, V(-0.78, -1.02, -0.08), V(0.78, 0.80, 1.40), res=RES_BODY, attrs=a, banded=True)
+    ob.data.materials.append(pelle_robin())
     return ob
 
 
@@ -419,7 +545,7 @@ def ventagli():
         sol.offset = 0.0
         obs.append(ob)
         spines = [tubo(r[::3], 0.0105, 0.0028, n=4, nodi=0.12)[0] for r in rays]
-        obs.append(fine(f'FinSpines{s}', sdf.union(*spines), rays, D.pale_skin(), res=0.0025))
+        obs.append(fine(f'FinSpines{s}', sdf.union(*spines), rays, pelle_robin(), res=0.0025, attrs={'seconda': costante(1.0), 'ventre': costante(0.3)}))
     return obs
 
 
@@ -564,7 +690,7 @@ def bava(name, fili=(), gocce=()):
         a = V(*a)
         parts.append(skin.drip(a, L, r0=0.0022, r1=0.0042))
         pts += [a, a - V(0, 0, L)]
-    return fine(name, sdf.union(*parts), [np.array(pts, F)], skin.slime_material(), pad=0.012, res=0.0011)
+    return fine(name, sdf.union(*parts), [np.array(pts, F)], melma_rossa(), pad=0.012, res=0.0011)
 
 
 def comune(obs, shh_wrist=None):
@@ -598,7 +724,7 @@ def robin_a():
     mouth = sdf.ellipsoid(V(0, -0.118, -0.068), (0.076, 0.048, 0.017))
     hf = entro(fr.field(head), HEAD - 0.30, HEAD + 0.30)
     cut = entro(fr.field(sdf.union(sockets, mouth)), HEAD - 0.25, HEAD + 0.25)
-    obs = [corpo_mesh(hf, cut=cut, attrs={'wart': osso(fr, pl)})]
+    obs = [corpo_mesh(fr, hf, cut=cut, attrs={'wart': osso(fr, pl)})]
     c0 = fr.pt((0, -0.09, -0.066))
     obs.append(D.mesh('RobinThroat', fr.field(sdf.ellipsoid(V(0, -0.09, -0.066), (0.068, 0.04, 0.012))), c0 - 0.1, c0 + 0.1, D.dark_throat(), res=0.003))
     pairs = []
@@ -615,7 +741,7 @@ def robin_a():
         f2, p2 = barbiglio(fr, (s * 0.078, -0.105, -0.072), [(s * 0.030, -0.025, -0.040), (s * 0.020, -0.020, -0.075), (s * 0.006, 0.0, -0.075)], 0.0065, 0.002)
         bb += [f1, f2]
         pts += [p1, p2]
-    obs.append(fine('RobinBarbels', sdf.union(*bb), pts, D.pale_skin()))
+    obs.append(fine('RobinBarbels', sdf.union(*bb), pts, pelle_robin(), attrs={'ventre': costante(0.6)}))
     obs.append(bava('RobinSlime', fili=[(fr.pt((-0.035, -0.150, -0.074)), fr.pt((0.030, -0.152, -0.074)), 0.035)],
                     gocce=[(fr.pt((-0.012, -0.152, -0.076)), 0.06), (fr.pt((0.045, -0.140, -0.075)), 0.035)]))
     return (comune(obs), *TESTI['A'])
@@ -631,7 +757,7 @@ def robin_b():
     lipL = chain([V(-0.112, -0.096, -0.056), V(-0.06, -0.136, -0.062), V(0, -0.150, -0.064), V(0.06, -0.136, -0.062), V(0.112, -0.096, -0.056)], [0.010, 0.015, 0.016, 0.015, 0.010], k=0.01)
     nose = sdf.ellipsoid(V(0, -0.140, 0.006), (0.030, 0.022, 0.016))
     brow = sdf.ellipsoid(V(0, -0.072, 0.050), (0.085, 0.035, 0.022))
-    ears = sdf.union(*[D.ellipsoid_rot(V(s * 0.150, 0.050, 0.012), (0.014, 0.033, 0.044), sdf.rot_matrix('z', s * 28)) for s in (-1, 1)])
+    ears = sdf.union(*[D.ellipsoid_rot(V(s * 0.166, 0.052, 0.014), (0.017, 0.040, 0.052), sdf.rot_matrix('z', s * 38)) for s in (-1, 1)])   # a sventola
     lids = sdf.union(*[sdf.ellipsoid(V(s * 0.072, -0.118, 0.044), (0.030, 0.016, 0.014)) for s in (-1, 1)])
     head = sdf.union(cran, face, lipU, lipL, nose, brow, ears, lids, k=0.018)
     top = placche(23, (0, 0, 0), (0.15, 0.20, 0.12), 110)
@@ -639,9 +765,9 @@ def robin_b():
     spines = [sdf.round_cone(V(s * 0.118, 0.060, -0.030), V(s * 0.172, 0.150, -0.040), 0.012, 0.002) for s in (-1, 1)]
     spines += [sdf.round_cone(V(0, y, 0.110), V(0, y + 0.04, 0.145), 0.008, 0.0015) for y in (0.02, 0.07)]
     head = sdf.union(head, *spines, k=0.006)
-    mouth = chain([V(-0.115, -0.100, -0.045), V(-0.06, -0.140, -0.049), V(0, -0.158, -0.051), V(0.06, -0.140, -0.049), V(0.115, -0.100, -0.045)], [0.005, 0.011, 0.013, 0.011, 0.005], k=0.004)
+    mouth = chain([V(-0.118, -0.098, -0.045), V(-0.06, -0.140, -0.050), V(0, -0.158, -0.052), V(0.06, -0.140, -0.050), V(0.118, -0.098, -0.045)], [0.008, 0.014, 0.016, 0.014, 0.008], k=0.004)
     nostrils = sdf.union(*[sdf.sphere(V(s * 0.016, -0.158, 0.002), 0.0065) for s in (-1, 1)])
-    concha = sdf.union(*[sdf.sphere(V(s * 0.162, 0.040, 0.010), 0.013) for s in (-1, 1)])
+    concha = sdf.union(*[sdf.sphere(V(s * 0.176, 0.040, 0.012), 0.015) for s in (-1, 1)])
     sockets = sdf.union(*[sdf.sphere(V(s * 0.072, -0.118, 0.028), 0.020) for s in (-1, 1)])
     hf = entro(fr.field(head), HEAD - 0.30, HEAD + 0.30)
     cut = entro(fr.field(sdf.union(mouth, nostrils, concha, sockets)), HEAD - 0.25, HEAD + 0.25)
@@ -650,7 +776,7 @@ def robin_b():
         d = np.minimum(np.linalg.norm(q - V(0.072, -0.118, 0.028), axis=1), np.linalg.norm(q - V(-0.072, -0.118, 0.028), axis=1))
         return np.clip(1.0 - (d - 0.015) / 0.014, 0.0, 1.0)
 
-    obs = [corpo_mesh(hf, cut=cut, attrs={'wart': osso(fr, top, zmin=0.05), 'mouth': orbite})]
+    obs = [corpo_mesh(fr, hf, cut=cut, attrs={'wart': osso(fr, top, zmin=0.05), 'mouth': orbite})]
     c0 = fr.pt((0, -0.11, -0.047))
     obs.append(D.mesh('RobinThroat', fr.field(sdf.ellipsoid(V(0, -0.11, -0.047), (0.10, 0.04, 0.008))), c0 - 0.12, c0 + 0.12, D.dark_throat(), res=0.0025))
     pairs = []
@@ -669,7 +795,7 @@ def robin_b():
         f3, p3 = barbiglio(fr, (s * 0.052, -0.130, -0.072), [(s * 0.012, -0.018, -0.035), (s * 0.014, -0.008, -0.055)], 0.0045, 0.0015)
         bb += [f1, f2, f3]
         pts += [p1, p2, p3]
-    obs.append(fine('RobinBarbels', sdf.union(*bb), pts, D.pale_skin()))
+    obs.append(fine('RobinBarbels', sdf.union(*bb), pts, pelle_robin(), attrs={'ventre': costante(0.6)}))
     obs.append(bava('RobinSlime', fili=[(fr.pt((s * 0.085, -0.125, -0.042)), fr.pt((s * 0.080, -0.122, -0.060)), 0.012) for s in (-1, 1)],
                     gocce=[(fr.pt((-0.030, -0.150, -0.070)), 0.075), (fr.pt((0.040, -0.142, -0.068)), 0.045)]))
     return (comune(obs), *TESTI['B'])
@@ -705,8 +831,7 @@ def robin_c():
     crust = sdf.union(*[sdf.ellipsoid(V(x, 0.06, 0.085 + z), (0.028, 0.03, 0.012)) for x, z in ((-0.03, 0.0), (0.03, 0.0), (0.0, 0.02))])
     crust = sdf.union(crust, *[sdf.round_cone(V(s * 0.07, 0.07, 0.02), V(s * 0.12, 0.16, 0.03), 0.010, 0.0018) for s in (-1, 1)], k=0.006)
     # le palpebre di sopra calate a metà: lo sguardo furbo di chi sa di averla fatta
-    lids = sdf.union(*[D.ellipsoid_rot(V(s * 0.038, -0.093, 0.027), (0.024, 0.013, 0.010), sdf.rot_matrix('y', s * 10)) for s in (-1, 1)])
-    head = sdf.union(head, lids, k=0.006)
+    lids = sdf.union(*[D.ellipsoid_rot(V(s * 0.038, -0.088, 0.024), (0.023, 0.014, 0.0105), sdf.rot_matrix('y', s * 12)) for s in (-1, 1)])
     hand, wrist = shh_hand(fr, -1)
     sockets = sdf.union(sdf.sphere(V(0.038, -0.094, 0.016), 0.0205), sdf.sphere(V(-0.038, -0.094, 0.016), 0.0205))
     grin = chain([V(-0.088, -0.028, -0.048), V(-0.062, -0.074, -0.058), V(-0.03, -0.094, -0.062), V(0, -0.100, -0.063),
@@ -727,7 +852,7 @@ def robin_c():
 
     hf = entro(fr.field(sdf.union(head, crust, hand, k=0.006)), HEAD - 0.32, HEAD + 0.32)
     cut = entro(fr.field(sdf.union(sockets, grin)), HEAD - 0.25, HEAD + 0.25)
-    obs = [corpo_mesh(hf, cut=cut, attrs={'blush': blush, 'mouth': dark}, shh_wrist=wrist)]
+    obs = [corpo_mesh(fr, hf, cut=cut, attrs={'blush': blush, 'mouth': dark}, shh_wrist=wrist, faccia=0.85)]
     c0 = fr.pt((0, -0.080, -0.060))
     obs.append(D.mesh('RobinThroat', fr.field(sdf.ellipsoid(V(0, -0.080, -0.060), (0.075, 0.02, 0.007))), c0 - 0.1, c0 + 0.1, D.dark_throat(), res=0.002))
     pairs = []
@@ -745,7 +870,7 @@ def robin_c():
         f1, p1 = barbiglio(fr, (s * 0.086, -0.032, -0.052), [(s * 0.020, -0.020, -0.050), (s * 0.010, -0.020, -0.080), (0.0, -0.010, -0.070)], 0.0055, 0.0016)
         bb.append(f1)
         pts.append(p1)
-    obs.append(fine('RobinBarbels', sdf.union(*bb), pts, D.pale_skin()))
+    obs.append(fine('RobinBarbels', sdf.union(*bb), pts, pelle_robin(), attrs={'ventre': costante(0.6)}))
     strands, hp = [], []
     for a in np.linspace(-1, 1, 8):
         d0 = unit(V(0.15 * a, 0.40, 1.0))
@@ -754,7 +879,11 @@ def robin_c():
         q = [fr.pt(d * 0.118) for d in (d0, d1, d2)]
         strands.append(tubo(q, 0.010, 0.003, n=6)[0])
         hp.append(q)
-    obs.append(fine('RobinHair', sdf.union(*strands, k=0.008), hp, D.wet_hair(), res=0.0025))
+    obs.append(fine('RobinHair', sdf.union(*strands, k=0.008), hp, D.wet_hair(), res=0.0015))
+    c2 = fr.pt((0, -0.088, 0.024))
+    lid = sdf_object('RobinLids', fr.field(lids), c2 - 0.08, c2 + 0.08, res=0.0015, attrs={'ventre': costante(0.8)})
+    lid.data.materials.append(pelle_robin())
+    obs.append(lid)
     obs.append(bava('RobinSlime', fili=[(fr.pt((0.040, -0.090, -0.056)), fr.pt((0.060, -0.078, -0.066)), 0.010)],
                     gocce=[(fr.pt((0.066, -0.072, -0.064)), 0.07)]))
     return (comune(obs, shh_wrist=wrist), *TESTI['C'])
@@ -775,7 +904,7 @@ def con_la_barca(variant):
 # le luci di dettagli.setup sono riferite a 'subject': Robin sta basso sul bordo e la lampara vera pende dal
 # palo sopra di lui, quindi il riferimento si alza perché la luce calda arrivi di lato e un po' dall'alto
 D.CREATURES['robin'] = {
-    'title': 'ROBIN — dettagli della testa (sagoma A «Granchio»), dal posto del pescatore',
+    'title': 'ROBIN — dettagli della testa (sagoma A «Granchio»), dal posto del pescatore · colori: proposta da approvare',
     'variants': [con_la_barca(v) for v in (robin_a, robin_b, robin_c)],
     'cam': (tuple(map(float, CAM)), (0.0, -0.56, 0.80), 50),
     'subject': (0, -0.45, 1.30), 'key': 70, 'rim': 50,

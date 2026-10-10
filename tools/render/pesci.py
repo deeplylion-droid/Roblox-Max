@@ -434,13 +434,17 @@ class Body:
             self._telaio = (Body(vsh), a_mondo, da_mondo)
         return self._telaio
 
-    def bounds(self, pad=0.03):
+    def bounds(self, pad=0.03, tratto=None, solo_corpo=False):
+        """Il riquadro del corpo e dei pezzi fusi. solo_corpo: senza i pezzi (la lisca degli scheletri);
+        tratto = (x0, x1): solo i pezzi che cadono in quel tratto (il cranio non ha bisogno della coda)."""
         t = np.linspace(0, 1, 200, dtype=F)
         zt, zb, w = self.top(t), self.bot(t), self.wid(t)
         lo = np.array((-pad, -float(w.max()) - pad, float(zb.min()) - pad), F)
         hi = np.array((1.0 + pad, float(w.max()) + pad, float(zt.max()) + pad), F)
         self.parti()
-        for _, _, plo, phi, _ in self._parti:
+        for _, _, plo, phi, _ in ([] if solo_corpo else self._parti):
+            if tratto is not None and (float(phi[0]) < tratto[0] or float(plo[0]) > tratto[1]):
+                continue
             lo = np.minimum(lo, np.asarray(plo, F) - pad)
             hi = np.maximum(hi, np.asarray(phi, F) + pad)
         return lo, hi
@@ -1224,6 +1228,12 @@ def build_fins(body: Body, lk: Look, family: str, seed=0):
     return obs
 
 
+def a_fascia(lo, hi, res):
+    """Griglia fine solo vicino alla superficie: sempre nei render finali; nelle anteprime veloci solo se la
+    griglia piena sarebbe enorme (corpi grandi con code e spade lunghe), così restano veloci."""
+    return (not FAST) or float(np.prod((np.asarray(hi) - np.asarray(lo)) / res)) > 3e6
+
+
 # ───────────────────────── attributi della pelle ─────────────────────────
 
 def _vicinanza_macchia(body: Body, d: Disegno):
@@ -1300,7 +1310,8 @@ def build_normal(body: Body, lk: Look, family: str, extra_field=None, extra_attr
     attrs = base_attrs(body, extra_attrs, lk)
     if mouth_open:
         attrs['mouth'] = body.mouth_attr
-    ob = sdf_object('Body', f, lo, hi, res=res if not FAST else res * 2, attrs=attrs, col=COL, banded=not FAST)
+    res = res if not FAST else res * 2
+    ob = sdf_object('Body', f, lo, hi, res=res, attrs=attrs, col=COL, banded=a_fascia(lo, hi, res))
     ob.data.materials.append(fish_skin('Skin', lk, rot=1.0 if family == 'zombie' else 0.0,
                                        wounds=family == 'bleeding', slime=family == 'corrupt', alto=body.alto,
                                        parti=tuple(body.attr_parti())))
@@ -1372,9 +1383,10 @@ def skeletal(body: Body, lk: Look, seed=3, vertebre=34, costole_fino=0.55, emali
                 arches.append(sdf.round_cone(pts[j], pts[j + 1], 0.0018, 0.0016))
     arch_f = sdf.union(*arches)
 
-    lo, hi = body.bounds()
+    lo, hi = body.bounds(tratto=(-10.0, x_skull + 0.02))
     hi[0] = x_skull + 0.02
-    o = sdf_object('Skull', lambda p: sdf.smin(skull(p), arch_f(p), 0.002), lo, hi, res=0.0016 if not FAST else 0.004, col=COL, banded=not FAST)
+    res = 0.0016 if not FAST else 0.004
+    o = sdf_object('Skull', lambda p: sdf.smin(skull(p), arch_f(p), 0.002), lo, hi, res=res, col=COL, banded=a_fascia(lo, hi, res))
     o.data.materials.append(bone)
     obs.append(o)
     # colonna vertebrale e spine
@@ -1407,9 +1419,10 @@ def skeletal(body: Body, lk: Look, seed=3, vertebre=34, costole_fino=0.55, emali
                 for k in range(5):
                     parts.append(sdf.round_cone(pts[k], pts[k + 1], r * 0.26, r * 0.2))
     spine = sdf.union(*parts, k=0.0015)
-    lo, hi = body.bounds()
+    lo, hi = body.bounds(solo_corpo=True)
     lo[0] = x_skull - 0.03
-    o = sdf_object('Spine', spine, lo, hi, res=0.0014 if not FAST else 0.0035, col=COL, banded=not FAST)
+    res = 0.0014 if not FAST else 0.0035
+    o = sdf_object('Spine', spine, lo, hi, res=res, col=COL, banded=a_fascia(lo, hi, res))
     o.data.materials.append(bone)
     obs.append(o)
     # la striscia di pelle del dorso, strappata ai bordi, che pende sopra la lisca
@@ -1425,10 +1438,10 @@ def skeletal(body: Body, lk: Look, seed=3, vertebre=34, costole_fino=0.55, emali
         d = np.maximum(d, x_skull + 0.02 - p[:, 0])
         d = np.maximum(d, p[:, 0] - striscia_fino)
         return d
-    lo, hi = body.bounds()
+    res = 0.0016 if not FAST else 0.0035
     if striscia:
-        o = sdf_object('SkinStrip', strip, lo, hi, res=0.0016 if not FAST else 0.0035, col=COL,
-                       attrs=base_attrs(body, lk=lk), banded=not FAST)
+        lo, hi = body.bounds(tratto=(x_skull, striscia_fino + 0.03))
+        o = sdf_object('SkinStrip', strip, lo, hi, res=res, col=COL, attrs=base_attrs(body, lk=lk), banded=a_fascia(lo, hi, res))
         o.data.materials.append(fish_skin('StripSkin', lk, alto=body.alto, parti=tuple(body.attr_parti())))
         obs.append(o)
     # il peduncolo della coda resta carnoso (tiene la pinna)
@@ -1437,7 +1450,8 @@ def skeletal(body: Body, lk: Look, seed=3, vertebre=34, costole_fino=0.55, emali
         cut = peduncolo + 0.025 * n3(p, scale=0.012, octaves=2) - 0.02 * np.clip(body.norm_v(p), -1, 1)
         return np.maximum(rawb(p), cut - p[:, 0])
     if peduncolo is not None:
-        o = sdf_object('Peduncle', ped, lo, hi, res=0.0016 if not FAST else 0.0035, col=COL, attrs=base_attrs(body, lk=lk), banded=not FAST)
+        lo, hi = body.bounds(tratto=(peduncolo - 0.06, 10.0))
+        o = sdf_object('Peduncle', ped, lo, hi, res=res, col=COL, attrs=base_attrs(body, lk=lk), banded=a_fascia(lo, hi, res))
         o.data.materials.append(fish_skin('PedSkin', lk, alto=body.alto, parti=tuple(body.attr_parti())))
         obs.append(o)
     if occhi:
