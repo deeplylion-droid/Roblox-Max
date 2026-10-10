@@ -28,6 +28,8 @@ export interface LayerDraw {
    * scende; 'front' è quella davanti alla barca (le mani sul bordo), da disegnare dopo.
    */
   part?: 'back' | 'front';
+  /** moltiplica le luci di questo strato: ambiente, lampara, lanterna (Robin con la luce in faccia) */
+  light?: [number, number, number];
 }
 
 /** Polilinea 3D (spazio barca) disegnata come nastro sottile: la lenza, i cerchi sull'acqua. */
@@ -230,7 +232,7 @@ export class Renderer {
         .f4('uRect', ...l.info.rect)
         .f1('uYaw', l.info.yaw * D2R)
         .f3('uScale', ps.ambient?.scale ?? 1, ps.lamp?.scale ?? 1, ps.lantern?.scale ?? 1)
-        .f3('uW', f.ambient, f.lamp, f.lantern)
+        .f3('uW', f.ambient * (d.light?.[0] ?? 1), f.lamp * (d.light?.[1] ?? 1), f.lantern * (d.light?.[2] ?? 1))
         .f3('uHas', l.amb ? 1 : 0, l.lamp ? 1 : 0, l.lantern ? 1 : 0)
         .f1('uAlpha', key === 'world' ? 0 : 1)
         .f1('uOpacity', d.opacity ?? 1)

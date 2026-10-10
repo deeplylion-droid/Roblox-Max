@@ -100,9 +100,25 @@ const POSE = {
   mollyRight: 'molly_destra',
   mollyLeft: 'molly_sinistra',
   hatchConta: 'hatch_conta',
-  /** notte 2: ancora da modellare (si disegna quando il render c'è) */
+  /** notte 2: Robin steso sul bordo col braccio nel secchio, e la sua testa con gli occhi strizzati (nella luce) */
   robin: 'robin_secchio',
+  robinSquint: 'robin_strizza',
 } as const;
+
+/** Una creatura sulla barca (vedi Night.aboard). */
+interface Aboard {
+  key: string;
+  /** quanto è su: 1 in posa, 0 sparita dietro il bordo */
+  p: number;
+  /** sotto questo p la parte davanti alla barca (le mani sul bordo) è svanita */
+  hands: number;
+  /** quanto va in fuori mentre scende (frazione della discesa, in pixel di yaw del panorama) */
+  out: number;
+  /** spostamento in più (pixel del panorama) */
+  recoil?: [number, number];
+  light?: [number, number, number];
+  opacity?: number;
+}
 
 function approach(cur: number, target: number, rate: number, dt: number): number {
   return cur + (target - cur) * (1 - Math.exp(-rate * dt));
@@ -197,7 +213,7 @@ export class Night {
   private reelByMouse = false;
   private hoverTarget: Target = null;
   // stato visivo (morbido)
-  private v = { gSale: 0, gRise: 0, gPret: 0, mR: 0, mL: 0, hRise: 0, robin: 0, tarp: 0, toy: 0, toyX: -1, dawn: 0, rock: 0, dark: 0 };
+  private v = { gSale: 0, gRise: 0, gPret: 0, mR: 0, mL: 0, hRise: 0, robin: 0, robinFear: 0, tarp: 0, toy: 0, toyX: -1, dawn: 0, rock: 0, dark: 0 };
   private gulpyDive = 0;
   private js: { killer: MonsterId; t: number; yaw: number; scream: Voice | null } | null = null;
   private lineSway = 0;
@@ -983,10 +999,13 @@ export class Night {
     const counting = h.state === 'counting';
     v.hRise = toward(v.hRise, counting ? 1 : 0, 1.6, 0.9, dt);
 
-    // Robin: sul bordo mentre sale e ruba; nella luce si ritrae, abbassandosi dietro il bordo
+    // Robin: sale dal mare sul bordo mentre arriva e ruba; scacciato scivola giù in mare. La luce in faccia cresce
+    // mentre lo scacci, e se ne va ancora abbagliato
     const rb = sim.robin;
-    const robinT = rb && rb.present ? 1 - 0.6 * rb.fear : rb?.state === 'attack' ? 1 : 0;
-    v.robin = toward(v.robin, robinT, 0.8, 0.5, dt);
+    const robinT = rb && (rb.present || rb.state === 'attack') ? 1 : 0;
+    v.robin = toward(v.robin, robinT, 1.2, 0.7, dt);
+    const fearT = rb ? (rb.state === 'fleeing' ? 1 : rb.present ? rb.fear : 0) : 0;
+    v.robinFear = approach(v.robinFear, fearT, 10, dt);
 
     this.updateBattery(dt);
 
@@ -1102,16 +1121,18 @@ export class Night {
     // vedeva contro il mare passa sotto la barca, che la copre; le mani sul bordo restano sopra e mollano la
     // presa per prime
     const aboard: LayerDraw[] = [];
-    for (const [key, p] of this.aboard()) {
-      if (!has(key) || p < 0.002) continue;
-      if (p >= 0.999) {
-        aboard.push({ key });
+    for (const a of this.aboard()) {
+      const k = a.opacity ?? 1;
+      if (!has(a.key) || a.p < 0.002 || k < 0.002) continue;
+      const d = this.sinkPx(a.key, a.p);
+      const shift: [number, number] = [a.out * d + (a.recoil?.[0] ?? 0), d + (a.recoil?.[1] ?? 0)];
+      if (a.p >= 0.999) {
+        aboard.push({ key: a.key, shift, opacity: k, light: a.light });
         continue;
       }
-      const shift: [number, number] = [0, this.sinkPx(key, p)];
-      layers.push({ key, shift, part: 'back' });
-      const hands = smooth01((p - 0.75) / 0.25);
-      if (hands > 0.002) aboard.push({ key, shift, part: 'front', opacity: hands });
+      layers.push({ key: a.key, shift, part: 'back', opacity: k, light: a.light });
+      const hands = smooth01((a.p - a.hands) / (1 - a.hands));
+      if (hands > 0.002) aboard.push({ key: a.key, shift, part: 'front', opacity: hands * k, light: a.light });
     }
     layers.push('boat');
     if (sim.cfg.battery && has('battery')) {
@@ -1126,15 +1147,24 @@ export class Night {
     return layers;
   }
 
-  /** Le creature sulla barca e quanto sono su (1 in posa, 0 sparite dietro il bordo). */
-  private aboard(): [string, number][] {
+  /** Le creature sulla barca: salgono e scendono dietro il bordo, le mani sul bordo mollano la presa per prime. */
+  private aboard(): Aboard[] {
     const v = this.v;
-    return [
-      [POSE.gulpyPretende, v.gPret],
-      [POSE.mollyRight, v.mR],
-      [POSE.mollyLeft, v.mL],
-      [POSE.robin, v.robin],
+    const out: Aboard[] = [
+      { key: POSE.gulpyPretende, p: v.gPret, hands: 0.75, out: 0 },
+      { key: POSE.mollyRight, p: v.mR, hands: 0.75, out: 0 },
+      { key: POSE.mollyLeft, p: v.mL, hands: 0.75, out: 0 },
     ];
+    // Robin è steso sul bordo: testa, braccio e zampe stanno sopra la barca. Sale e scende di lato, dal mare, e
+    // quello che sta sopra la barca compare e svanisce mentre si muove. Nella luce piena trema e si ritrae un poco,
+    // la faccia si accende di luce calda (la lanterna, dalla parte del pescatore) e strizza gli occhi
+    const f = v.robinFear;
+    const t = this.d.stage.time;
+    const recoil: [number, number] = [-(9 + 3 * noise1(t * 21, 5)) * f, (12 + 3 * noise1(t * 19, 6)) * f];
+    const light: [number, number, number] = [1, 1, 1 + 2.2 * f];
+    out.push({ key: POSE.robin, p: v.robin, hands: 0.3, out: -0.45, recoil, light });
+    out.push({ key: POSE.robinSquint, p: v.robin, hands: 0.3, out: -0.45, recoil, light, opacity: smooth01(f * 1.6) });
+    return out;
   }
 
   /** Di quanto (pixel del panorama) è scesa dietro il bordo una creatura sulla barca: p = 1 in posa, 0 sparita. */
@@ -1426,21 +1456,24 @@ export class Night {
     const v = this.v;
     const pano = st.man.pano;
     const degPx = (pano.latMax - pano.latMin) / pano.height;
-    // [strato, intensità, di quanto è sceso (pixel del panorama)]: gli occhi scendono con la creatura e
-    // spariscono sotto il pelo dell'acqua o dietro il bordo
-    const shown: [string, number, number][] = [
-      [POSE.gulpySale, v.gSale, this.wavePx(POSE.gulpySale, v.gRise)],
-      [POSE.hatchConta, v.hRise > 0.002 ? 1 : 0, this.wavePx(POSE.hatchConta, ease(v.hRise))],
-      ...this.aboard().map(([key, p]): [string, number, number] => [key, p > 0.002 ? 1 : 0, this.sinkPx(key, p)]),
+    // [strato, intensità, di quanto è sceso e di quanto è andato di lato (pixel del panorama)]: gli occhi
+    // scendono con la creatura e spariscono sotto il pelo dell'acqua o dietro il bordo
+    const shown: [string, number, number, number][] = [
+      [POSE.gulpySale, v.gSale, this.wavePx(POSE.gulpySale, v.gRise), 0],
+      [POSE.hatchConta, v.hRise > 0.002 ? 1 : 0, this.wavePx(POSE.hatchConta, ease(v.hRise)), 0],
+      ...this.aboard().map((a): [string, number, number, number] => {
+        const d = this.sinkPx(a.key, a.p);
+        return [a.key, a.p > 0.002 ? a.opacity ?? 1 : 0, d, a.out * d];
+      }),
     ];
-    for (const [key, k, drop] of shown) {
+    for (const [key, k, drop, side] of shown) {
       const info = st.man.layers[key];
       if (!info?.eyes || k < 0.05) continue;
       const water = info.space === 'world' ? pano.latMax - (info.rect[3] - 3) * degPx : null;
       const pulse = 0.85 + 0.15 * Math.sin(st.time * 1.7 + key.length);
       const a = k * dark * pulse;
       for (const e of info.eyes) {
-        const yaw = Math.atan2(e[0], e[1]);
+        const yaw = Math.atan2(e[0], e[1]) + (side * 360 / pano.width) * D2R;
         const el = Math.atan2(e[2], Math.hypot(e[0], e[1])) - drop * degPx * D2R;
         const limit = water ?? this.sheerAt(yaw / D2R);
         if (limit === null ? drop > 0 : el / D2R < limit + 0.3) continue;

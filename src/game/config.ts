@@ -20,7 +20,8 @@ export const LAMP = {
 export const YAW = {
   rod: 31,
   bow: 0,
-  bucket: 13,
+  /** il secchio sul banco di prua (boat.BUCKET_POS nei render: 18,1° dall'occhio) */
+  bucket: 18,
   tarp: -16,
   stern: 180,
   mollyLeft: -68,
