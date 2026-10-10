@@ -1,9 +1,15 @@
 # Eseguibili del gioco (Electron) per Windows e Linux: si costruiscono su richiesta (Actions → build →
 # Run workflow) e per i tag di versione (v0.2.0…); gli installer finiscono negli artifact del workflow.
+# Con «ultima_notte» = 1 la build è la demo della sola prima notte (VITE_ULTIMA_NOTTE, vedi src/app/app.ts).
 name: build
 
 on:
   workflow_dispatch:
+    inputs:
+      ultima_notte:
+        description: 'Fino a che notte arriva la build (vuoto = tutte, 1 = demo della prima notte)'
+        required: false
+        default: ''
   push:
     tags: ['v*']
 
@@ -27,15 +33,30 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+        env:
+          VITE_ULTIMA_NOTTE: ${{ inputs.ultima_notte }}
       - run: npx electron-builder ${{ matrix.target }} --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
-      - uses: actions/upload-artifact@v4
+      # Windows: la cartella del gioco pronta da estrarre e aprire (un solo zip da scaricare) e, a parte,
+      # l'installer
+      - if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
         with:
-          name: splashland-${{ runner.os }}
+          name: SplashlandIsClosed-windows-portatile
+          path: release/win-unpacked/
+          if-no-files-found: error
+      - if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: SplashlandIsClosed-windows-installer
+          path: release/*.exe
+          if-no-files-found: warn
+      - if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: SplashlandIsClosed-linux
           path: |
-            release/*.exe
-            release/*.zip
             release/*.AppImage
             release/*.tar.gz
           if-no-files-found: warn

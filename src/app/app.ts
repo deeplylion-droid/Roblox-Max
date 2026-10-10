@@ -15,10 +15,13 @@ type Mode = 'warning' | 'title' | 'intro' | 'night' | 'paused' | 'static' | 'end
 
 const isElectron = navigator.userAgent.includes('Electron');
 
-/** L'ultima notte che esiste nel gioco. */
+/** Fino a che notte arriva questa build: VITE_ULTIMA_NOTTE=1 per la demo della sola prima notte. */
+const NIGHT_LIMIT = Number(import.meta.env.VITE_ULTIMA_NOTTE) || Infinity;
+
+/** L'ultima notte giocabile (che esiste nel gioco e che questa build lascia giocare). */
 function lastNight(): number {
   let n = 1;
-  while (NIGHTS[n + 1]) n++;
+  while (NIGHTS[n + 1] && n + 1 <= NIGHT_LIMIT) n++;
   return n;
 }
 
@@ -90,7 +93,7 @@ export class App {
     const reached = Math.min(this.save.night, lastNight());
     this.screens.title({
       canContinue: reached >= 2,
-      onNew: () => this.intro(NIGHTS[forced] ? forced : 1),
+      onNew: () => this.intro(forced >= 1 && forced <= lastNight() ? forced : 1),
       onContinue: () => this.intro(reached),
       onJournal: () => this.extras(),
       onOptions: () => this.options(() => this.title()),
@@ -240,8 +243,8 @@ export class App {
         caught: r.stats.caught,
         fed: r.stats.fed,
         lore: r.stats.lore.length,
-        demoEnd: r.kind === 'won' && !NIGHTS[this.nightNo + 1],
-        onNext: r.kind === 'won' && NIGHTS[this.nightNo + 1] ? () => this.intro(this.nightNo + 1) : null,
+        demoEnd: r.kind === 'won' && this.nightNo >= lastNight(),
+        onNext: r.kind === 'won' && this.nightNo < lastNight() ? () => this.intro(this.nightNo + 1) : null,
         onRetry: () => this.intro(),
         onMenu: () => this.title(),
       });
