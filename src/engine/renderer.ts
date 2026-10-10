@@ -30,6 +30,8 @@ export interface LayerDraw {
   part?: 'back' | 'front';
   /** moltiplica le luci di questo strato: ambiente, lampara, lanterna (Robin con la luce in faccia) */
   light?: [number, number, number];
+  /** fino a due toppe che entrano sopra questo strato (chiave, quanto): dove sono vuote questo strato sfuma */
+  masks?: { key: string; k: number }[];
 }
 
 /** Polilinea 3D (spazio barca) disegnata come nastro sottile: la lenza, i cerchi sull'acqua. */
@@ -273,6 +275,13 @@ export class Renderer {
         .tex('uLant', 2, l.lantern)
         .tex('uData', 3, l.data)
         .tex('uBoat', 4, d.part ? (this.layers.get('boat')?.amb ?? null) : null);
+      const m0 = d.masks?.[0] ? this.layers.get(d.masks[0].key) : undefined;
+      const m1 = d.masks?.[1] ? this.layers.get(d.masks[1].key) : undefined;
+      p.f2('uMaskK', m0 ? d.masks![0]!.k : 0, m1 ? d.masks![1]!.k : 0)
+        .f4('uMaskRect0', ...(m0?.info.rect ?? [0, 0, 1, 1]))
+        .f4('uMaskRect1', ...(m1?.info.rect ?? [0, 0, 1, 1]))
+        .tex('uMask0', 5, m0?.amb ?? null)
+        .tex('uMask1', 6, m1?.amb ?? null);
       this.tri.draw();
       if (key === 'world' && f.bino && f.bino.amount > 0.001 && f.bino.places.length) {
         this.drawPersp(view, f);

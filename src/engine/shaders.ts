@@ -58,6 +58,15 @@ uniform float uClipY;    // > 0: sotto questa riga del panorama non si disegna (
 uniform float uPart;     // creatura che sale o scende dietro il bordo: 0 tutta, 1 la parte contro mare e cielo
                          // (disegnata prima della barca, che la copre), 2 la parte davanti alla barca (le mani)
 uniform sampler2D uBoat; // la barca: il suo alfa dice dov'era coperta la creatura nella posa
+// fino a due toppe che entrano sopra questo strato (una mascella che si sposta): dove la toppa è vuota questo strato
+// sfuma, se no si vedrebbe la mascella vecchia. Stesso yaw: il riquadro è in pixel del panorama dello strato
+uniform sampler2D uMask0, uMask1;
+uniform vec4 uMaskRect0, uMaskRect1;
+uniform vec2 uMaskK;
+float maskOf(sampler2D m, vec4 r, float k, vec2 p) {
+  if (k <= 0.0 || p.x < r.x || p.x > r.z || p.y < r.y || p.y > r.w) return 1.0;
+  return 1.0 - k * (1.0 - texture(m, (p - r.xy) / (r.zw - r.xy)).a);
+}
 
 vec3 dec(vec4 t, float s) { vec3 c = t.rgb * t.rgb; return c * c * s; }   // gamma 4
 
@@ -78,6 +87,8 @@ void main() {
     part = uPart < 1.5 ? 1.0 - b : b;
     if (part < 0.004) discard;
   }
+  part *= maskOf(uMask0, uMaskRect0, uMaskK.x, p) * maskOf(uMask1, uMaskRect1, uMaskK.y, p);
+  if (part < 0.004) discard;
   vec2 uv = (p - uRect.xy) / (uRect.zw - uRect.xy);
   float mist = 0.0, sky = 0.0;
   if (uHasData > 0.5) {

@@ -121,6 +121,17 @@ const POSE = {
   robin: 'robin_secchio',
   robinSquint: 'robin_strizza',
   robinBlink: 'robin_chiusi',
+  /** le animazioni sulla barca (toppe della sola testa, tools/render/pose_animate.py) */
+  gulpyJawOpen: 'gulpy_mascella_aperta',
+  gulpyJawShut: 'gulpy_mascella_chiusa',
+  hatchMouthHalf: 'hatch_bocca_mezza',
+  hatchMouthShut: 'hatch_bocca_chiusa',
+} as const;
+
+/** le toppe degli occhi di Molly sui due lati: il primo occhio (quello che ti fissa) e il secondo */
+const MOLLY_EYES = {
+  right: ['molly_destra_primo', 'molly_destra_secondo'],
+  left: ['molly_sinistra_primo', 'molly_sinistra_secondo'],
 } as const;
 
 /** Una creatura sulla barca (vedi Night.aboard). */
@@ -139,6 +150,8 @@ interface Aboard {
   recoil?: [number, number];
   light?: [number, number, number];
   opacity?: number;
+  /** le toppe delle mascelle che entrano sopra questo strato (dove sono vuote, questo sfuma) */
+  masks?: { key: string; k: number }[];
 }
 
 function approach(cur: number, target: number, rate: number, dt: number): number {
@@ -234,7 +247,8 @@ export class Night {
   private reelByMouse = false;
   private hoverTarget: Target = null;
   // stato visivo (morbido)
-  private v = { gSale: 0, gRise: 0, gPret: 0, mR: 0, mL: 0, hRise: 0, robin: 0, robinFear: 0, robinBlink: 0, tarp: 0, toy: 0, toyX: -1, dawn: 0, rock: 0, dark: 0 };
+  private v = { gSale: 0, gRise: 0, gPret: 0, mR: 0, mL: 0, hRise: 0, robin: 0, robinFear: 0, robinBlink: 0,
+    gJaw: 0, gJawPhase: 0, gJawAmp: 0, mBlink1: 0, mBlink2: 0, hMouth: 0, hMouthT: 99, tarp: 0, toy: 0, toyX: -1, dawn: 0, rock: 0, dark: 0 };
   private gulpyDive = 0;
   private js: { killer: MonsterId; t: number; yaw: number; scream: Voice | null } | null = null;
   private lineSway = 0;
@@ -879,6 +893,7 @@ export class Night {
             const words = S.hatchCount;
             const text = e.last ? `${words[words.length - 1]} ${S.hatchReady}` : words[Math.min(n, words.length) - 1]!;
             speak(this.d.audio, text, { ...CHILD, pitch: 250, gain: 0.55 }, { pos: HATCH_AT, bus: 'sfx', maxDuration: e.last ? 2.6 : 0.9 });
+            this.v.hMouthT = 0;
             if (this.d.options.subtitles) this.hud.subtitle(S.hatchName, text);
             if (n === 1) fx.emerge('hatch', HATCH_AT);
             break;
@@ -1044,6 +1059,18 @@ export class Night {
     v.robinFear = approach(v.robinFear, fearT, 10, dt);
     v.robinBlink = this.blinker('robin', dt, [2.5, 6]);
 
+    // Gulpy alla prua muove piano la mascella mentre pretende; quando mangia mastica in fretta
+    const eating = g.state === 'eating';
+    v.gJawPhase += dt * ((2 * Math.PI) / (eating ? 0.8 : 5.5));
+    v.gJawAmp = approach(v.gJawAmp, g.state === 'demanding' || eating ? 1 : 0, 3, dt);
+    v.gJaw = v.gJawAmp * Math.sin(v.gJawPhase);
+    // Molly sbatte gli occhi: il primo e poi, storto, il secondo
+    [v.mBlink1, v.mBlink2] = this.blinkPair('molly', dt, [2.8, 6.5], 0.11);
+    // Hatch chiude la bocca a ogni numero della conta (si chiude in fretta, si riapre più piano)
+    v.hMouthT += dt;
+    const ht = v.hMouthT;
+    v.hMouth = ht < 0.12 ? smooth01(ht / 0.12) : ht < 0.2 ? 1 : ht < 0.5 ? 1 - smooth01((ht - 0.2) / 0.3) : 0;
+
     this.updateBattery(dt);
     this.updateRod(dt);
 
@@ -1146,15 +1173,26 @@ export class Night {
     const layers: (string | LayerDraw)[] = ['world'];
     const has = (k: string) => !!man.layers[k];
     // creature nel mondo: emergono dal pelo dell'acqua (lo strato scende e si taglia al galleggiamento)
-    const rise = (key: string, opacity: number, r: number): LayerDraw | null => {
+    const rise = (key: string, opacity: number, r: number, masks?: { key: string; k: number }[]): LayerDraw | null => {
       const info = this.baseOf(key);
       if (!info || !has(key) || opacity < 0.002) return null;
-      return { key, opacity, shift: [0, this.wavePx(key, r)], clipY: info.rect[3] - 3 };
+      return { key, opacity, shift: [0, this.wavePx(key, r)], clipY: info.rect[3] - 3, masks };
     };
     const gs = rise(POSE.gulpySale, v.gSale, v.gRise);
     if (gs) layers.push(gs);
-    const hc = rise(POSE.hatchConta, v.hRise > 0.002 ? 1 : 0, ease(v.hRise));
-    if (hc) layers.push(hc);
+    // Hatch che conta, e la bocca che si chiude a ogni numero: prima la toppa mezza chiusa, poi sopra quella chiusa
+    const hr = ease(v.hRise);
+    const hm = v.hMouth;
+    const kHalf = has(POSE.hatchMouthHalf) ? (hm < 0.5 ? hm / 0.5 : 1) : 0;
+    const kShut = has(POSE.hatchMouthShut) ? (hm < 0.5 ? 0 : (hm - 0.5) / 0.5) : 0;
+    const hc = rise(POSE.hatchConta, v.hRise > 0.002 ? 1 : 0, hr, [{ key: POSE.hatchMouthHalf, k: kHalf }, { key: POSE.hatchMouthShut, k: kShut }]);
+    if (hc) {
+      layers.push(hc);
+      const half = rise(POSE.hatchMouthHalf, kHalf, hr, [{ key: POSE.hatchMouthShut, k: kShut }]);
+      if (half) layers.push(half);
+      const shut = rise(POSE.hatchMouthShut, kShut, hr);
+      if (shut) layers.push(shut);
+    }
     // creature sulla barca: salgono e scendono dietro il bordo. Mentre si muovono, la parte che nella posa si
     // vedeva contro il mare passa sotto la barca, che la copre; le mani sul bordo restano sopra e mollano la
     // presa per prime
@@ -1164,14 +1202,15 @@ export class Night {
       if (!has(a.key) || a.p < 0.002 || k < 0.002) continue;
       const d = this.sinkPx(a.key, a.p);
       const shift: [number, number] = [a.out * d + (a.recoil?.[0] ?? 0), d + (a.recoil?.[1] ?? 0)];
+      const masks = a.masks;
       if (a.p >= 0.999) {
-        aboard.push({ key: a.key, shift, opacity: k, light: a.light });
+        aboard.push({ key: a.key, shift, opacity: k, light: a.light, masks });
         continue;
       }
-      layers.push({ key: a.key, shift, part: 'back', opacity: k, light: a.light });
+      layers.push({ key: a.key, shift, part: 'back', opacity: k, light: a.light, masks });
       const hands = smooth01((a.p - a.hands) / (1 - a.hands));
       const handsShift: [number, number] = a.handsStay ? [a.recoil?.[0] ?? 0, a.recoil?.[1] ?? 0] : shift;
-      if (hands > 0.002) aboard.push({ key: a.key, shift: handsShift, part: 'front', opacity: hands * k, light: a.light });
+      if (hands > 0.002) aboard.push({ key: a.key, shift: handsShift, part: 'front', opacity: hands * k, light: a.light, masks });
     }
     layers.push('boat');
     if (sim.cfg.battery && has('battery')) {
@@ -1190,11 +1229,23 @@ export class Night {
   /** Le creature sulla barca: salgono e scendono dietro il bordo, le mani sul bordo mollano la presa per prime. */
   private aboard(): Aboard[] {
     const v = this.v;
+    const L = this.d.stage.man.layers;
+    // Gulpy: la mascella va avanti e indietro fra la toppa più aperta e quella più chiusa, passando per la posa
+    const kOpen = L[POSE.gulpyJawOpen] ? smooth01(Math.max(0, v.gJaw)) : 0;
+    const kShut = L[POSE.gulpyJawShut] ? smooth01(Math.max(0, -v.gJaw)) : 0;
+    const gulpy = { p: v.gPret, hands: 0.8, out: 0, handsStay: true };
     const out: Aboard[] = [
-      { key: POSE.gulpyPretende, p: v.gPret, hands: 0.8, out: 0, handsStay: true },
-      { key: POSE.mollyRight, p: v.mR, hands: 0.8, out: 0, handsStay: true },
-      { key: POSE.mollyLeft, p: v.mL, hands: 0.8, out: 0, handsStay: true },
+      { key: POSE.gulpyPretende, ...gulpy, masks: [{ key: POSE.gulpyJawOpen, k: kOpen }, { key: POSE.gulpyJawShut, k: kShut }] },
+      { key: POSE.gulpyJawOpen, ...gulpy, opacity: kOpen },
+      { key: POSE.gulpyJawShut, ...gulpy, opacity: kShut },
     ];
+    // Molly: gli occhi che sbattono, sui due lati
+    for (const [side, key, p] of [['right', POSE.mollyRight, v.mR], ['left', POSE.mollyLeft, v.mL]] as const) {
+      const molly = { p, hands: 0.8, out: 0, handsStay: true };
+      out.push({ key, ...molly });
+      out.push({ key: MOLLY_EYES[side][0], ...molly, opacity: v.mBlink1 });
+      out.push({ key: MOLLY_EYES[side][1], ...molly, opacity: v.mBlink2 });
+    }
     // Robin è steso sul bordo: testa, braccio e zampe stanno sopra la barca. Il corpo sopra il mare sale e scende
     // di lato, dal mare; quello che sta sopra la barca compare e svanisce in fretta sul posto (scivolando passerebbe
     // attraverso il legno). Nella luce piena trema e si ritrae un poco, la faccia si accende di luce calda (la
@@ -1224,6 +1275,23 @@ export class Night {
     return info?.base ? L[info.base] ?? info : info;
   }
 
+  /** Due occhi che sbattono, il secondo in ritardo di `delay` secondi: [primo, secondo], ognuno da 0 a 1. */
+  private blinkPair(id: string, dt: number, every: [number, number], delay: number, len = 0.17): [number, number] {
+    const pick = () => every[0] + Math.random() * (every[1] - every[0]);
+    const b = (this.blinks[id] ??= { wait: pick(), t: -1 });
+    if (b.t >= 0) {
+      b.t += dt;
+      if (b.t > len + delay) {
+        b.t = -1;
+        b.wait = pick();
+      }
+    } else if ((b.wait -= dt) <= 0) {
+      b.t = 0;
+    }
+    const k = (x: number) => (x >= 0 && x <= len ? Math.min(1, 1.8 * Math.sin((Math.PI * x) / len)) : 0);
+    return b.t >= 0 ? [k(b.t), k(b.t - delay)] : [0, 0];
+  }
+
   /** Battito di ciglia: chiuso (fino a 1) per un attimo ogni tanto, a intervalli a caso fra every[0] e every[1] s. */
   private blinker(id: string, dt: number, every: [number, number], len = 0.17): number {
     const pick = () => every[0] + Math.random() * (every[1] - every[0]);
@@ -1244,6 +1312,17 @@ export class Night {
     const t = this.d.stage.time;
     const bob = 1.6 * Math.sin(t * 0.9 + key.length) + 0.7 * Math.sin(t * 2.3);
     return (1 - r) * (info.rect[3] - info.rect[1]) + bob;
+  }
+
+  /** Quali occhi di uno strato sono chiusi in questo momento (un battito di ciglia). */
+  private shutEyes(key: string, eyes: Vec3[]): boolean[] {
+    const v = this.v;
+    if (key === POSE.robin) return eyes.map(() => v.robinBlink > 0.5 || v.robinFear > 0.6);
+    if (key === POSE.mollyRight || key === POSE.mollyLeft) {
+      const hi = eyes.reduce((best, e, i) => (e[2] > eyes[best]![2] ? i : best), 0);
+      return eyes.map((_, i) => (i === hi ? v.mBlink1 > 0.5 : v.mBlink2 > 0.5));
+    }
+    return eyes.map(() => false);
   }
 
   /** Altezza (gradi) del bordo della barca visto dall'occhio, nella direzione yaw (gradi, spazio della barca). */
@@ -1617,7 +1696,10 @@ export class Night {
       const water = info.space === 'world' ? pano.latMax - (info.rect[3] - 3) * degPx : null;
       const pulse = 0.85 + 0.15 * Math.sin(st.time * 1.7 + key.length);
       const a = k * dark * pulse;
-      for (const e of info.eyes) {
+      // gli occhi chiusi (un battito di ciglia) non brillano: per Molly il primo occhio è il più alto dei due
+      const shut = this.shutEyes(key, info.eyes);
+      for (const [ei, e] of info.eyes.entries()) {
+        if (shut[ei]) continue;
         const yaw = Math.atan2(e[0], e[1]) + (side * 360 / pano.width) * D2R;
         const el = Math.atan2(e[2], Math.hypot(e[0], e[1])) - drop * degPx * D2R;
         const limit = water ?? this.sheerAt(yaw / D2R);
