@@ -107,6 +107,26 @@ def robin_attack():
 
 ATTACKS = {'gulpy': gulpy_attack, 'molly': molly_attack, 'hatch': hatch_attack, 'robin': robin_attack}
 
+# Una luce calda vicino all'occhio, dalla parte della lanterna, che illumina soltanto la creatura (si accende dopo lo
+# sfondo): Robin ha la lampara alle spalle e da vicino la sua faccia sarebbe nera; così esce dal buio man mano che
+# arriva addosso. energia in watt, dist in metri dall'occhio verso la lanterna
+FILL = {'robin': {'energy': 3.0, 'dist': 0.35}}
+
+
+def _fill_light(cfg):
+    from props import LANTERN_POS
+    eye = Vector(EYE)
+    d = (Vector(LANTERN_POS) - eye).normalized()
+    ld = bpy.data.lights.new('JumpFill', 'POINT')
+    ld.energy = cfg['energy']
+    ld.color = (1.0, 0.60, 0.28)
+    ld.shadow_soft_size = 0.05
+    lo = bpy.data.objects.new('JumpFill', ld)
+    bpy.context.scene.collection.objects.link(lo)
+    lo.location = eye + d * cfg['dist']
+    lo.lightgroup = 'lantern'
+    return lo
+
 
 # ───────────────────────── render ─────────────────────────
 
@@ -152,6 +172,8 @@ def run(q, who, post_mod, overlays_path, build_scene, coll_objects, renderable):
     log(f'jumpscare {who} sfondo', round(time.time() - t), 's')
     for o in meshes:
         o.hide_render = False
+    if who in FILL:
+        _fill_light(FILL[who])
 
     # la creatura in ogni fotogramma: il resto della scena fa da maschera
     scene_objs = renderable(coll_objects('boat')) + renderable(coll_objects('env'))
