@@ -3,6 +3,8 @@ import { HOUR_SECONDS, NIGHTS, YAW, type NightConfig } from '../src/game/config.
 import type { GameEvent } from '../src/game/events.ts';
 import { NightSim } from '../src/game/sim.ts';
 import { SKILLS, playNight } from '../src/game/bot.ts';
+import { Fishing } from '../src/game/fishing.ts';
+import { Rng } from '../src/game/rng.ts';
 
 const N1 = NIGHTS[1]!;
 
@@ -307,3 +309,40 @@ describe('Notte 2', () => {
   });
 });
 
+
+describe('Pesca', () => {
+  const fish = () => ({ species: { id: 'prova', weight: 1, strength: 1, kg: [1, 2] as [number, number] }, lore: null, kg: 1 });
+  const hooked = () => {
+    const ev: GameEvent[] = [];
+    const f = new Fishing(new Rng(3), (e) => ev.push(e));
+    f.phase = 'bite';
+    f.press(fish);
+    return { f, ev };
+  };
+  const step = (f: Fishing, held: boolean, secs: number) => {
+    for (let t = 0; t < secs; t += 1 / 60) f.update(1 / 60, { lamp: 1, reelHeld: held, facingRod: true, busy: false });
+  };
+
+  it('a tensione piena il filo regge mezzo secondo e la barra trema; mollando in tempo si salva', () => {
+    const { f, ev } = hooked();
+    let guard = 0;
+    while (f.tension < 1 && guard++ < 600) step(f, true, 1 / 60);
+    expect(f.tension).toBe(1);
+    step(f, true, 0.3);
+    expect(f.phase).toBe('reeling');
+    expect(f.strain).toBeGreaterThan(0.4);
+    step(f, false, 0.5);
+    expect(ev.some((e) => e.t === 'lineSnap')).toBe(false);
+    // tirando ancora a tensione piena, oltre il mezzo secondo il filo si spezza
+    guard = 0;
+    while (f.tension < 1 && guard++ < 600) step(f, true, 1 / 60);
+    step(f, true, 0.6);
+    expect(ev.some((e) => e.t === 'lineSnap')).toBe(true);
+  });
+
+  it('il pesce da solo non spezza il filo', () => {
+    const { f, ev } = hooked();
+    step(f, false, 8);
+    expect(ev.some((e) => e.t === 'lineSnap')).toBe(false);
+  });
+});

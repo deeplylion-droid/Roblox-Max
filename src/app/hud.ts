@@ -128,12 +128,17 @@ export class Hud {
     this.turnEl.classList.toggle('show', show);
   }
 
-  reel(show: boolean, tension: number, progress: number): void {
+  /** strain 0..1: la tensione è piena e il filo sta per spezzarsi (la barra trema di rosso). */
+  reel(show: boolean, tension: number, progress: number, strain = 0): void {
     this.reelEl.classList.toggle('show', show);
     if (show) {
       this.reelBar.style.width = `${Math.round(Math.min(1, tension) * 100)}%`;
       this.reelBar.style.background = tension > 0.8 ? 'var(--blood)' : tension < 0.12 ? 'var(--dim)' : 'var(--amber)';
-      this.reelEl.style.borderColor = `rgba(233,226,208,${0.3 + 0.5 * progress})`;
+      this.reelEl.style.borderColor = strain > 0 ? 'var(--blood)' : `rgba(233,226,208,${0.3 + 0.5 * progress})`;
+      // a tensione piena la barra trema, sempre più forte finché il filo non si spezza
+      const a = strain > 0 ? 1.5 + 3.5 * strain : 0;
+      this.reelEl.style.transform = a ? `translate(calc(-50% + ${((Math.random() * 2 - 1) * a).toFixed(1)}px), ${((Math.random() * 2 - 1) * a * 0.6).toFixed(1)}px)` : '';
+      this.reelEl.style.boxShadow = strain > 0 ? `0 0 ${Math.round(6 + 12 * strain)}px rgba(200,30,20,${(0.4 + 0.5 * strain).toFixed(2)})` : '';
     }
   }
 

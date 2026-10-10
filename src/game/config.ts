@@ -54,6 +54,10 @@ export const FISHING = {
   tensionRelax: 0.55,
   slackEscape: 1.1,
   lookAwayEscape: 1.4,
+  /** tolleranza allo strappo: a tensione piena il filo regge ancora mezzo secondo (la barra trema di rosso) */
+  snapGrace: 0.5,
+  /** da solo, senza che tu tiri, il pesce porta la tensione al massimo fino a qui: non spezza il filo */
+  pullFreeMax: 0.92,
 };
 
 export interface Species {
@@ -160,7 +164,10 @@ export const NIGHTS: Record<number, NightConfig> = {
       ['gulpy', 'hatch'],
     ],
     minGapBetweenStarts: 6,
-    gulpy: { firstAt: 1 * H + 6, cooldown: [68, 104], rise: 7, climb: 6, patience: 8, eat: 4.5 },
+    // Gulpy un po' più raro (prova dell'utente: «appare troppo spesso, togliendoti pesci dalla quota»): +20% di pausa tra
+    // una visita e l'altra. Giocatori simulati dopo questo e la tolleranza allo strappo (npm run sim -- 1 300):
+    // esperto 100%, medio 96%, maldestro 86% (prima 100/92/73)
+    gulpy: { firstAt: 1 * H + 6, cooldown: [82, 125], rise: 7, climb: 6, patience: 8, eat: 4.5 },
     molly: { firstAt: 2 * H + 8, cooldown: [43, 70], knock: 5, attention: 4.2, neglectMax: 8, tantrumMax: 6.5 },
     hatch: { firstAt: 3 * H + 6, cooldown: [52, 79], calls: 10, callInterval: 1.1, search: [8, 10.5] },
     hideTime: 0.7,

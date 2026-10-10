@@ -14,7 +14,8 @@ export interface Catch {
 /**
  * Pesca con la canna: lancio → attesa → abboccata (campanellino) → recupero con tensione.
  * La tensione sale tenendo premuto (molto se il pesce strattona) e scende rilasciando:
- * a 1 il filo si spezza, a 0 troppo a lungo il pesce si slama.
+ * a 1 il filo regge ancora snapGrace secondi (la barra trema di rosso) e poi si spezza, a 0 troppo a
+ * lungo il pesce si slama. Il pesce da solo non spezza il filo: senza tirare la tensione si ferma prima.
  */
 export class Fishing {
   phase: FishingPhase = 'idle';
@@ -25,6 +26,8 @@ export class Fishing {
   private pullTimer = 0;
   private slackTime = 0;
   private lookAwayTime = 0;
+  /** secondi passati a tensione piena (oltre snapGrace il filo si spezza) */
+  overload = 0;
   current: Catch | null = null;
   /** valore 0..1 per animare la canna (0 riposo, 1 abboccata, 2 recupero) */
   get bend(): number {
@@ -56,6 +59,7 @@ export class Fishing {
       this.progress = 0;
       this.slackTime = 0;
       this.lookAwayTime = 0;
+      this.overload = 0;
       this.pullTimer = this.rng.range(0.3, 0.8);
       this.pulling = false;
       this.emit({ t: 'hooked', species: this.current.species?.id ?? 'lore' });
@@ -82,6 +86,12 @@ export class Fishing {
     this.tension = 0;
     this.progress = 0;
     this.pulling = false;
+    this.overload = 0;
+  }
+
+  /** 0..1: quanto manca allo strappo mentre la tensione è piena (per far tremare la barra) */
+  get strain(): number {
+    return Math.min(1, this.overload / FISHING.snapGrace);
   }
 
   update(dt: number, o: { lamp: LampLevel; reelHeld: boolean; facingRod: boolean; busy: boolean; biteMul?: number }): Catch | null {
@@ -153,9 +163,12 @@ export class Fishing {
       this.tension += (this.pulling ? FISHING.tensionPullHold * (0.7 + strength * 0.6) : FISHING.tensionHold) * dt;
     } else {
       this.tension += (this.pulling ? FISHING.tensionPullFree : -FISHING.tensionRelax) * dt;
-      if (this.pulling) this.progress = Math.max(0, this.progress - 0.05 * dt);
+      if (this.pulling) {
+        this.progress = Math.max(0, this.progress - 0.05 * dt);
+        this.tension = Math.min(this.tension, FISHING.pullFreeMax);
+      }
     }
-    this.tension = Math.max(0, this.tension);
+    this.tension = Math.max(0, Math.min(1, this.tension));
     if (!o.facingRod) {
       this.lookAwayTime += dt;
       if (this.lookAwayTime > FISHING.lookAwayEscape) {
@@ -166,10 +179,16 @@ export class Fishing {
     } else {
       this.lookAwayTime = 0;
     }
-    if (this.tension >= 1) {
-      this.emit({ t: 'lineSnap' });
-      this.toRebait();
-      return null;
+    // tensione piena: il filo regge ancora un attimo, poi si spezza (mollando si salva)
+    if (this.tension >= 1 && holding) {
+      this.overload += dt;
+      if (this.overload >= FISHING.snapGrace) {
+        this.emit({ t: 'lineSnap' });
+        this.toRebait();
+        return null;
+      }
+    } else {
+      this.overload = Math.max(0, this.overload - dt * 2);
     }
     if (this.tension < 0.03) {
       this.slackTime += dt;

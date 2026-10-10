@@ -1312,7 +1312,7 @@ export class Night {
     }
     hud.setQuota(sim.fish, sim.cfg.quota);
     const f = sim.fishing;
-    hud.reel(f.phase === 'reeling' && sim.hide === 'out', f.tension, f.progress);
+    hud.reel(f.phase === 'reeling' && sim.hide === 'out', f.tension, f.progress, f.strain);
     // il nome di ciò che sta sotto il puntatore
     let target: Target = null;
     if (sim.hide === 'out' && !this.sonarOpen && !this.js && this.mouse.inside) target = this.targetAt(this.mouse.x, this.mouse.y);
