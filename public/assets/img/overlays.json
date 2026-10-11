@@ -90,6 +90,44 @@
   ]
  },
  "jumpscares": {
+  "archie": {
+   "aspect": 1.7778,
+   "fps": 10,
+   "frames": [
+    {
+     "file": "js_archie_00.webp",
+     "scale": 2.2
+    },
+    {
+     "file": "js_archie_01.webp",
+     "scale": 2.2
+    },
+    {
+     "file": "js_archie_02.webp",
+     "scale": 2.2
+    },
+    {
+     "file": "js_archie_03.webp",
+     "scale": 2.2
+    },
+    {
+     "file": "js_archie_04.webp",
+     "scale": 2.2
+    },
+    {
+     "file": "js_archie_05.webp",
+     "scale": 2.2
+    },
+    {
+     "file": "js_archie_06.webp",
+     "scale": 1.7000000000000002
+    },
+    {
+     "file": "js_archie_07.webp",
+     "scale": 1.7000000000000002
+    }
+   ]
+  },
   "gulpy": {
    "aspect": 1.7778,
    "fps": 10,
