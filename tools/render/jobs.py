@@ -725,8 +725,29 @@ def grotte_vista(q, nome, pos, target, lens, size, torcia=False, pesi=None, espo
     t = time.time()
     p = grotte.render_con_raggi(exr, samples or q.samples, size)
     log(nome, 'render', round(time.time() - t), 's')
+    # i parametri della composizione accanto all'EXR: si può ricomporre senza rendere (job grotte_ricomponi)
+    par = dict(nome=nome, lens=lens, size=list(size), torcia=torcia, pesi=pesi, esposizione=esposizione, cono=cono)
+    with open(exr.replace('.exr', '.json'), 'w') as f:
+        json.dump(par, f)
+    out = grotte_componi(exr, par, p)
+    if luce is not None:
+        bpy.data.objects.remove(luce)
+    log('anteprima', out)
+    return out
+
+
+def grotte_componi(exr, par, p=None):
+    """Dall'EXR (e da quello dei raggi) all'anteprima: acqua cotta, tone mapping del gioco → docs/concept/<nome>.jpg."""
+    import grotte
+    from PIL import Image
+    if p is None:
+        p = post.read_exr(exr)
+        r = exr.replace('.exr', '_raggi.exr')
+        if os.path.exists(r):
+            p['raggi'] = post.read_exr(r)['ambient']
     # la scia della torcia solo nel suo cono (il faretto è quasi sulla camera)
-    W, H = size
+    W, H = par['size']
+    lens, cono = par['lens'], par['cono']
     tx = 18.0 / lens
     xs = (np.arange(W) + 0.5) / W * 2 - 1
     ys = ((np.arange(H) + 0.5) / H * 2 - 1) * H / W
@@ -734,16 +755,30 @@ def grotte_vista(q, nome, pos, target, lens, size, torcia=False, pesi=None, espo
     ang = np.degrees(np.arctan(np.hypot(X, Y)))
     cone = np.clip((cono / 2 - ang) / (cono * 0.25), 0, 1).astype(np.float32)
     baked = grotte.acqua(p, blur_px=W / 10, cone_mask=cone)
-    pesi = pesi or {'ambient': 1.0, 'lantern': 1.0 if torcia else 0.0}
+    pesi = par.get('pesi') or {'ambient': 1.0, 'lantern': 1.0 if par['torcia'] else 0.0}
     lin = post.compose(baked, pesi)
-    img = post.tonemap(lin, esposizione)
+    img = post.tonemap(lin, par['esposizione'] + GROTTE_ESPOSIZIONE)
     os.makedirs(CONCEPT, exist_ok=True)
-    out = os.path.join(CONCEPT, nome + '.jpg')
+    out = os.path.join(CONCEPT, par['nome'] + '.jpg')
     Image.fromarray((img * 255 + 0.5).astype(np.uint8)).save(out, quality=90)
-    if luce is not None:
-        bpy.data.objects.remove(luce)
-    log('anteprima', out)
     return out
+
+
+GROTTE_ESPOSIZIONE = float(os.environ.get('GROTTE_ESPOSIZIONE', '0'))   # correzione per le prove di ricomposizione
+
+
+def job_grotte_ricomponi(q):
+    """Ricompone le anteprime della grotta dagli EXR in cache (dopo aver cambiato l'acqua o l'esposizione)."""
+    import glob
+    for js in sorted(glob.glob(os.path.join(CACHE, q.name, 'grotte_*.json'))):
+        with open(js) as f:
+            par = json.load(f)
+        log('ricomposta', grotte_componi(js.replace('.json', '.exr'), par))
+    import grotte
+    tiles = [(chi, os.path.join(CONCEPT, f'grotte_tana_{chi}.jpg')) for chi, *_ in grotte.TANE]
+    if all(os.path.exists(t) for _, t in tiles):
+        from PIL import Image
+        tavola_tane(tiles, Image.open(tiles[0][1]).size)
 
 
 def _grotte_scena(neve=True):
@@ -771,7 +806,6 @@ def job_grotte_anteprime(q):
 def job_grotte_tane(q):
     """Le sette aperture da vicino, con la torcia: una tavola (docs/concept/grotte_anteprima_tane.jpg)."""
     import grotte
-    from PIL import Image, ImageDraw, ImageFont
     tane = _grotte_scena(neve=True)
     s = q.persp_scale
     size = (round(720 * s), round(480 * s))
@@ -787,6 +821,12 @@ def job_grotte_tane(q):
         out = grotte_vista(q, f'grotte_tana_{chi}', tuple(pos), tuple(tgt), 30.0, size, torcia=True, esposizione=0.6,
                            cono=50.0)
         tiles.append((chi, out))
+    tavola_tane(tiles, size)
+
+
+def tavola_tane(tiles, size):
+    """Mette insieme le sette bocche da vicino in una tavola (4 × 2) col nome di ognuno."""
+    from PIL import Image, ImageDraw, ImageFont
     W, H = size
     sheet = Image.new('RGB', (W * 4, H * 2), (8, 10, 12))
     font = ImageFont.truetype(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fonts', 'Limelight-Regular.ttf'), max(14, H // 14))
@@ -845,7 +885,7 @@ def job_grotte(q):
         post.save_png(v, os.path.join(CACHE, q.name, f'grotta_vista_{nome}.png'))
 
 
-JOBS = {'grotte': job_grotte, 'grotte_anteprime': job_grotte_anteprime, 'grotte_tane': job_grotte_tane,
+JOBS = {'grotte': job_grotte, 'grotte_ricomponi': job_grotte_ricomponi, 'grotte_anteprime': job_grotte_anteprime, 'grotte_tane': job_grotte_tane,
         'world': job_world, 'boat': job_boat, 'props': job_props, 'creature': job_creature, 'reencode': job_reencode, 'tarp': job_tarp, 'jumpscare': job_jumpscare, 'binocolo': job_binocolo, 'bordo': job_bordo, 'pelo': job_pelo}
 
 

@@ -211,8 +211,8 @@ def rock_material():
     # la sabbia: grigia, increspata dalla corrente, con puntini scuri
     _, rip = g.wave(g.mapping(co, rot=(0, 0, 0.5)), scale=1.6, distortion=4.0, detail=3.0, detail_scale=0.8)
     grani = g.noise(co, scale=60.0, detail=2.0).fac
-    sand = g.mix(g.smoothstep(0.55, 0.7, grani), (0.20, 0.19, 0.16), (0.09, 0.085, 0.075))
-    sand = g.mix(g.mul(big, 0.5), sand, (0.12, 0.12, 0.10))
+    sand = g.mix(g.smoothstep(0.55, 0.7, grani), (0.15, 0.145, 0.125), (0.07, 0.066, 0.058))
+    sand = g.mix(g.mul(big, 0.6), sand, (0.08, 0.08, 0.068))
     sab = g.smoothstep(0.2, 0.8, g.attr('sabbia'))
     col = g.mix(sab, rock, sand)
     h = g.mixf(sab, h_rock, g.add(g.mul(rip, 0.6), g.mul(grani, 0.15)))
@@ -238,8 +238,8 @@ def plastica(name, color, rough=0.35, melma=0.45, color2=None, stripes=None):
         if color2 is not None:
             col = g.mix(g.smoothstep(stripes * 0.45, stripes * 0.55, g.math('PINGPONG', g.sep(co)[2], stripes)),
                         color, color2)
-        sl = g.smoothstep(1.0 - melma, 1.0 - melma + 0.12, g.noise(co, scale=7.0, detail=6.0, distortion=0.5).fac)
-        col = g.mix(sl, col, (0.035, 0.045, 0.02))
+        sl = g.smoothstep(1.0 - melma, 1.0 - melma + 0.25, g.noise(co, scale=5.0, detail=8.0, rough=0.7, distortion=0.8).fac)
+        col = g.mix(g.mul(sl, 0.8), col, g.mix(0.5, col, (0.035, 0.045, 0.02)))
         g.output_material(g.principled(color=col, rough=g.mixf(sl, rough, 0.6), coat=0.3, coat_rough=0.2,
                                        normal=g.bump(g.noise(co, scale=25.0, detail=3.0).fac, strength=0.1, distance=0.004)))
         return m
@@ -588,7 +588,7 @@ def boa(name, loc, r=0.33):
 def scivolo(name, pts, color, r=0.5):
     """Un pezzo di scivolo a tubo: aperto alle due estremità (si vede dentro)."""
     ob = tube(name, catmull(pts, 8), r, n=28, col=COL, cap=False)
-    ob.data.materials.append(plastica(name + 'Mat', color, rough=0.3, melma=0.55))
+    ob.data.materials.append(plastica(name + 'Mat', color, rough=0.3, melma=0.4))
     inner = tube(name + 'Dentro', catmull(pts, 8), r * 0.92, n=28, col=COL, cap=False)
     inner.data.materials.append(plastica(name + 'Mat', color))
     # il bordo spezzato: un anello alle due bocche
