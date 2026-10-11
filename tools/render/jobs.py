@@ -139,6 +139,16 @@ def encode_layer(key, exr, space, width, rect=None, yaw_center=0.0, with_alpha=F
         p = {k: (v[:h, :w] if v.ndim >= 2 and v.shape[0] >= h and v.shape[1] >= w else v) for k, v in p.items()}
     W, H = pano_size(width)
     alpha = p.get('alpha') if with_alpha else None
+    if 'depth' in p:
+        # atmosfera (atmosfera.py): il mist del motore dalla distanza vera, sqrt(d / 2500 m) come nel mist di Blender,
+        # e la luce della lampara diffusa lontano dalla nebbia smussata (Cycles la lascia a chiazze)
+        import atmosfera
+        d = np.where(np.isfinite(p['depth']), p['depth'], 1e9)
+        p['mist'] = np.sqrt(np.clip(d / 2500.0, 0.0, 1.0))
+        if 'lamp' in p:
+            p['lamp'] = p['lamp'].copy()
+            p['lamp'][..., :3] = atmosfera.liscia_lontano(p['lamp'][..., :3], np.clip(d / 2500.0, 0.0, 1.0),
+                                                          sigma=width / 360.0)
     entry = {'space': space, 'yaw': yaw_center, 'rect': list(rect) if rect else [0, 0, W, H], 'passes': {}}
     total = 0
     for g in ('ambient', 'lamp', 'lantern'):
@@ -217,7 +227,12 @@ def job_world(q):
     W, H = pano_size(q.pano_width)
     exr = os.path.join(CACHE, q.name, 'world.exr')
     t = time.time()
-    render(exr, q.samples, (W, H), data_passes=('Mist', 'Object Index'))
+    passes = ('Mist', 'Object Index')
+    if os.environ.get('ATMOSFERA'):
+        # con la nebbia il mist di Cycles si accumula nei volumi: le distanze vere vengono dal passo Depth
+        bpy.context.scene.view_layers[0].use_pass_z = True
+        passes += ('Depth',)
+    render(exr, q.samples, (W, H), data_passes=passes)
     log('world render', round(time.time() - t), 's')
     encode_layer('world', exr, 'world', q.pano_width, data=True)
     write_globals(q.pano_width)

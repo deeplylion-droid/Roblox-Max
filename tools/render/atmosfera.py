@@ -312,8 +312,30 @@ def carica(nome, modo):
     return g('ambient'), g('lamp'), g('lantern'), p['mist']
 
 
+def liscia_lontano(lamp, mist, sigma=None):
+    """La luce della lampara che la nebbia diffonde lontano (dove si vede il cielo o la riva) è debole e
+    liscissima, ma Cycles la trova con pochi campioni e il denoiser la lascia a chiazze. Oltre una trentina di
+    metri la si sostituisce con la sua media su un intorno largo, una convoluzione normalizzata sui soli pixel
+    lontani: così non ci entrano la reticella e la barca, che sono vicine."""
+    from scipy.ndimage import gaussian_filter
+    H, W = mist.shape
+    sigma = sigma or W / 90.0
+    dist = mist * 2500.0
+    w = np.clip((dist - 15.0) / 45.0, 0.0, 1.0)
+    w = w * w * (3 - 2 * w)
+    num = gaussian_filter(lamp * w[..., None], (sigma, sigma, 0))
+    den = gaussian_filter(w, sigma)[..., None]
+    liscia = num / np.maximum(den, 1e-4)
+    return lamp * (1 - w[..., None]) + liscia * w[..., None]
+
+
 def immagine(nome, modo, livello, motore_fog):
     amb, lamp, lant, mist = carica(nome, modo)
+    if modo == 'dopo':
+        # il passo mist di Cycles si accumula anche nei volumi: le distanze vere vengono dal render senza nebbia
+        # (stessa camera, stessa scena); per il panorama servirà il passo Depth
+        vero = os.path.join(OUT, f'{nome}_prima.exr')
+        lamp = liscia_lontano(lamp, carica(nome, 'prima')[3] if os.path.exists(vero) else mist)
     lin = amb + PESI[livello] * lamp + lant
     if motore_fog:
         H, W = mist.shape
