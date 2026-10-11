@@ -34,9 +34,11 @@ NEBBIA = {
     'raggio': 1700.0,        # la scatola della nebbia attorno alla barca (la riva è fra 400 e 1300 m)
     'alto': 160.0,
     'bassa': 0.050,          # densità (1/m) della foschia bassa al pelo dell'acqua
-    'bassa_h': 2.6,          # quota (m) in cui la foschia bassa cala a 1/e
-    'alta': 0.0016,          # la nebbia rada che sale (fa la profondità e copre le luci lontane)
-    'alta_h': 55.0,
+    'bassa_h': 1.2,          # quota (m) in cui la foschia bassa cala a 1/e
+    'vicino': 0.014,         # la sacca di nebbia attorno alla barca, dove la lampara fa l'alone
+    'vicino_r': 26.0,        # il suo raggio (m): oltre, il buio
+    'alta': 0.0005,          # la nebbia rada che sale (fa la profondità e copre le luci lontane)
+    'alta_h': 40.0,
     'colore': (0.80, 0.86, 0.92),
     'anisotropia': 0.55,     # diffusione in avanti: l'alone attorno alla lampara quando la si guarda
 }
@@ -44,10 +46,13 @@ NEBBIA = {
 # quanto si abbassano le luci della scena (moltiplicatori)
 BUIO = {
     'cielo': 0.30,           # il fondo del cielo (la luna nel cielo, le stelle, le nuvole)
-    'luna': 0.15,            # la luce della luna sulla scena
+    'luna': 0.15,
+    'disco': 0.35,           # il disco della luna (oltre al cielo): il suo riflesso sull'acqua bucava la foschia            # la luce della luna sulla scena
     'paese': 0.35,           # finestre, lampioni, neon e lampade del paese
     'faro': 0.45,
-    'luoghi': 0.80,          # le luci dei posti del binocolo: restano, la nebbia le spegne già un po'
+    'chiarore': (0.0075, 0.0098, 0.0140),   # il chiarore sopra l'orizzonte (lineare, a cielo già abbassato)
+    'luna_luoghi': 0.85,     # la luna che resta sui posti del binocolo (light linking: solo su di loro)
+    'luoghi': 1.30,          # le luci dei posti del binocolo: più forti, devono bucare la nebbia
 }
 
 
@@ -83,17 +88,46 @@ def applica_buio(luoghi):
     for n in w.node_tree.nodes:
         if n.type == 'BACKGROUND':
             n.inputs['Strength'].default_value *= BUIO['cielo']
+        # il disco: moon_strength = disc * 22 in env.build_sky
+        if n.type == 'MATH' and n.operation == 'MULTIPLY' and abs(n.inputs[1].default_value - 22.0) < 1e-6:
+            n.inputs[1].default_value *= BUIO['disco']
+    # un chiarore appena più chiaro sopra l'orizzonte, perché le sagome della riva ci si stacchino contro
+    from nodes import Graph
+    g = Graph(w.node_tree, clear=False)
+    bg = next(n for n in w.node_tree.nodes if n.type == 'BACKGROUND')
+    src = bg.inputs['Color'].links[0].from_socket
+    _, _, dz = g.sep(g.texcoord('Generated'))
+    banda = g.mul(g.smoothstep(0.16, 0.0, dz), g.smoothstep(-0.02, 0.005, dz))
+    k = 1.0 / BUIO['cielo']
+    c = BUIO['chiarore']
+    g.link(g.mix(1.0, src, g.comb(g.mul(banda, c[0] * k), g.mul(banda, c[1] * k), g.mul(banda, c[2] * k)),
+                 blend='ADD', clamp=False), bg.inputs['Color'])
     moon = bpy.data.objects.get('Moon')
     if moon:
+        # una seconda luna, legata solo ai posti del binocolo: il chiaro di luna resta su di loro, così si leggono
+        # contro le colline buie dietro (con la luna abbassata dappertutto la ruota e la torre sparivano)
+        col = bpy.data.collections.new('LuoghiLuna')
+        for n in luoghi:
+            o = bpy.data.objects.get(n)
+            if o is not None and o.type == 'MESH':
+                col.objects.link(o)
+        d2 = moon.data.copy()
+        d2.energy = moon.data.energy * BUIO['luna_luoghi']
+        m2 = bpy.data.objects.new('MoonLuoghi', d2)
+        bpy.data.collections['env'].objects.link(m2)
+        m2.rotation_mode = moon.rotation_mode
+        m2.rotation_quaternion = moon.rotation_quaternion
+        m2.lightgroup = 'ambient'
+        m2.light_linking.receiver_collection = col
         moon.data.energy *= BUIO['luna']
     env_col = bpy.data.collections['env']
     fatti = set()
-    for o in env_col.all_objects:
+    for o in list(env_col.all_objects):
         nome = o.name
         faro = nome.startswith(('Lighthouse', 'KeeperHouse'))
         k = BUIO['faro'] if faro else BUIO['luoghi'] if nome in luoghi else BUIO['paese']
         if o.type == 'LIGHT':
-            if nome == 'Moon':
+            if nome.startswith('Moon'):
                 continue
             o.data.energy *= k
             continue
@@ -108,7 +142,7 @@ def applica_buio(luoghi):
     # meno lampioni lungo i tornanti del paese: uno su tre
     lamp_m = bpy.data.materials.get('StreetLamp')
     k = 0
-    for o in env_col.all_objects:
+    for o in list(env_col.all_objects):
         if o.type == 'MESH' and o.material_slots and o.material_slots[0].material is lamp_m:
             if k % 3:
                 o.hide_render = True
@@ -141,7 +175,10 @@ def costruisci_nebbia():
     var = g.math('MAXIMUM', g.add(var, 0.18), 0.05)
     bassa = g.mul(g.math('EXPONENT', g.mul(z, -1.0 / P['bassa_h'])), g.mul(var, P['bassa']))
     alta = g.mul(g.math('EXPONENT', g.mul(z, -1.0 / P['alta_h'])), g.mul(g.add(0.7, g.mul(banchi.fac, 0.6)), P['alta']))
-    dens = g.mul(g.add(bassa, alta), g.smoothstep(-0.25, 0.05, z))
+    r2 = g.add(g.mul(x, x), g.mul(y, y))
+    vicino = g.mul(g.math('EXPONENT', g.mul(r2, -1.0 / P['vicino_r'] ** 2)),
+                   g.mul(g.math('EXPONENT', g.mul(z, -1.0 / 9.0)), g.mul(g.add(0.6, g.mul(var, 0.4)), P['vicino'])))
+    dens = g.mul(g.add(g.add(bassa, alta), vicino), g.smoothstep(-0.25, 0.05, z))
     vol = g.node('ShaderNodeVolumePrincipled')
     g.set(vol, 'Color', (*P['colore'], 1.0))
     g.set(vol, 'Density', dens)
@@ -208,7 +245,8 @@ def job_render():
     w.mist_settings.falloff = 'LINEAR'
     if modo == 'dopo':
         applica_buio(luoghi)
-        costruisci_nebbia()
+        if '--senza-nebbia' not in sys.argv:
+            costruisci_nebbia()
     a, e = math.radians(yaw), math.radians(pitch)
     d = (math.sin(a) * math.cos(e), math.cos(a) * math.cos(e), math.sin(e))
     tgt = (EYE[0] + d[0], EYE[1] + d[1], EYE[2] + d[2])
@@ -224,6 +262,7 @@ def job_render():
 
 # ───────────────────────── composizione come il motore ─────────────────────────
 
+PITCH = {'poppa': -3.0}   # come in job_render (--pitch)
 PESI = {'alta': 1.7, 'bassa': 1.0, 'spenta': 0.0}   # stage.lampWeight(): livello 2 → 1 + 0,7
 
 
@@ -278,7 +317,7 @@ def immagine(nome, modo, livello, motore_fog):
     lin = amb + PESI[livello] * lamp + lant
     if motore_fog:
         H, W = mist.shape
-        lin = nebbia_motore(lin, mist, W, H, 0.0, -12.0)
+        lin = nebbia_motore(lin, mist, W, H, 0.0, PITCH.get(nome, -12.0))
     return finale(lin)
 
 
