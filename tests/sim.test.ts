@@ -136,6 +136,24 @@ describe('NightSim', () => {
     expect(bad.outcome).toEqual({ kind: 'dead', killer: 'molly' });
   });
 
+  it('sotto il telone Molly non ti vede e aspetta senza offendersi; quando esci vuole di nuovo che la guardi', () => {
+    const cfg: NightConfig = { ...N1, gulpy: { ...N1.gulpy, firstAt: 1e9 }, hatch: { ...N1.hatch, firstAt: 1e9 } };
+    const sim = new NightSim(cfg, 11);
+    sim.fish = 9;
+    // appena si affaccia ti nascondi e resti sotto il telone a lungo (come per Hatch): non si arrabbia
+    const ev = run(sim, cfg.molly.firstAt + cfg.molly.knock + cfg.molly.neglectMax * 3, (s) => {
+      if (s.molly.state === 'peeking' && s.hide === 'out') s.toggleHide();
+    });
+    expect(sim.playing).toBe(true);
+    expect(ev.some((e) => e.t === 'molly' && e.e === 'tantrum')).toBe(false);
+    expect(sim.molly.state).toBe('peeking');
+    // esci e la guardi: se ne va
+    sim.toggleHide();
+    const ev2 = run(sim, 15, (s) => s.setView(s.molly.yaw, false));
+    expect(ev2.some((e) => e.t === 'molly' && e.e === 'giggle')).toBe(true);
+    expect(sim.playing).toBe(true);
+  });
+
   it('Hatch ti trova se non sei sotto il telone, ti risparmia se ti nascondi', () => {
     const cfg: NightConfig = { ...N1, gulpy: { ...N1.gulpy, firstAt: 1e9 }, molly: { ...N1.molly, firstAt: 1e9 } };
     const bad = new NightSim(cfg, 13);

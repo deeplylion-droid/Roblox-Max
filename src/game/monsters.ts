@@ -231,6 +231,9 @@ export class Molly {
             this.state = 'leaving';
             this.timer = 2.4;
           }
+        } else if (w.hidden) {
+          // sotto il telone non ti vede: aspetta, senza offendersi (segnalato dall'utente l'11 ottobre: ti uccideva mentre
+          // ti nascondevi da Hatch); quando esci, vuole di nuovo che la guardi
         } else {
           this.neglect += dt;
           if (!this.whined && this.neglect > this.cfg.neglectMax * 0.55) {
@@ -255,7 +258,8 @@ export class Molly {
             this.whined = true;
             w.emit({ t: 'molly', e: 'calm', side: this.side });
           }
-        } else {
+        } else if (!w.hidden) {
+          // (sotto il telone il capriccio resta com'è: non ti vede)
           this.tantrum += dt;
           if (this.tantrum >= this.cfg.tantrumMax) {
             this.state = 'attack';
