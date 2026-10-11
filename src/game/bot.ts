@@ -27,12 +27,16 @@ export interface BotSkill {
   lampyEar: number;
   /** con Fangy che ascolta, quante volte al secondo ci si dimentica e si fa un gesto rumoroso */
   fangySlip: number;
+  /** a ogni visita di Fangy, la probabilità di continuare a pescare lo stesso (il pesce in canna, l'abboccata)… */
+  fangyGreed: number;
+  /** …e quella di smettere appena lo si sente voltarsi */
+  fangyStop: number;
 }
 
 export const SKILLS: Record<string, BotSkill> = {
-  expert: { name: 'expert', reaction: [0.25, 0.6], turnSpeed: 420, reelHi: 0.72, reelLo: 0.3, pullReaction: 0.12, lampPolicy: 'greedy', hideAtCount: 6, archiePatience: 1.15, lampyEar: 0.998, fangySlip: 0.004 },
-  average: { name: 'average', reaction: [0.5, 1.2], turnSpeed: 260, reelHi: 0.68, reelLo: 0.25, pullReaction: 0.3, lampPolicy: 'steady', hideAtCount: 6, archiePatience: 1.0, lampyEar: 0.97, fangySlip: 0.03 },
-  sloppy: { name: 'sloppy', reaction: [0.9, 2.2], turnSpeed: 170, reelHi: 0.8, reelLo: 0.2, pullReaction: 0.55, lampPolicy: 'steady', hideAtCount: 8, archiePatience: 0.8, lampyEar: 0.9, fangySlip: 0.07 },
+  expert: { name: 'expert', reaction: [0.25, 0.6], turnSpeed: 420, reelHi: 0.72, reelLo: 0.3, pullReaction: 0.12, lampPolicy: 'greedy', hideAtCount: 6, archiePatience: 1.15, lampyEar: 0.998, fangySlip: 0.004, fangyGreed: 0.03, fangyStop: 1 },
+  average: { name: 'average', reaction: [0.5, 1.2], turnSpeed: 260, reelHi: 0.68, reelLo: 0.25, pullReaction: 0.3, lampPolicy: 'steady', hideAtCount: 6, archiePatience: 1.0, lampyEar: 0.97, fangySlip: 0.03, fangyGreed: 0.15, fangyStop: 0.8 },
+  sloppy: { name: 'sloppy', reaction: [0.9, 2.2], turnSpeed: 170, reelHi: 0.8, reelLo: 0.2, pullReaction: 0.55, lampPolicy: 'steady', hideAtCount: 8, archiePatience: 0.8, lampyEar: 0.9, fangySlip: 0.07, fangyGreed: 0.3, fangyStop: 0.55 },
 };
 
 export class Bot {
@@ -204,7 +208,17 @@ export class Bot {
   private fangyQuiet(dt: number): boolean {
     const f = this.sim.fangy;
     const near = !!f && f.listening;
-    if (!this.noticed('fangy', near)) return false;
+    // a ogni visita: si continua a pescare lo stesso? e, sentito il primo scatto della testa, si smette?
+    if (f && f.state === 'rising' && this.fangySeen !== 'rising') {
+      this.fangyGreedy = this.rng.chance(this.skill.fangyGreed);
+      this.fangyHeard = 0;
+    }
+    this.fangySeen = f?.state ?? '';
+    if (f && this.fangyGreedy && f.heard > this.fangyHeard) {
+      this.fangyHeard = f.heard;
+      if (this.rng.chance(this.skill.fangyStop)) this.fangyGreedy = false;
+    }
+    if (!this.noticed('fangy', near) || this.fangyGreedy) return false;
     if (this.slipT > 0) {
       this.slipT -= dt;
       return false;
@@ -214,6 +228,9 @@ export class Bot {
   }
 
   private slipT = 0;
+  private fangySeen = '';
+  private fangyGreedy = false;
+  private fangyHeard = 0;
   private biteAt = -1;
   private lampyKnown: boolean | null = null;
   private archieWait = 0;

@@ -925,10 +925,15 @@ export class Fangy {
     if (this.state === 'listening') this.timer = Math.max(this.timer, this.cfg.listen * 0.6);
   }
 
-  /** Il mulinello mentre recuperi: un rumore dopo reelNoise secondi, e poi ancora ogni reelNoise. */
+  /** Il mulinello mentre recuperi: un rumore dopo reelNoise secondi di recupero, e poi ancora ogni reelNoise (le pause
+   *  brevi, quando molli perché il pesce strattona, non cancellano il conto: cala piano). */
   reel(dt: number, w: WorldView, held: boolean): void {
-    if (!held || !this.listening) {
+    if (!this.listening) {
       this.reelFor = 0;
+      return;
+    }
+    if (!held) {
+      this.reelFor = Math.max(0, this.reelFor - 0.4 * dt);
       return;
     }
     this.reelFor += dt;
