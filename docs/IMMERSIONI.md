@@ -49,7 +49,7 @@ scivoli, cartelli di Splashland).
   dell'erogatore). **Ogni cameretta è un'inquadratura fissa**, come una telecamera di FNAF: la guardi da un punto
   solo e la puoi girare di 30° a destra e a sinistra; da lì si torna alla grotta grande.
 
-### Sotto la barca (inquadratura fissa, anteprima **da approvare**)
+### Sotto la barca (inquadratura fissa, anteprima **approvata** l'11 ottobre sera)
 
 Deciso l'11 ottobre sera: non è più a 360°, è un'inquadratura fissa come le camerette (si gira di 30° a destra e a
 sinistra e di pochi gradi in su e in giù). Scena in `tools/render/sotto_barca.py`, la stessa roccia, luce e acqua
@@ -63,8 +63,16 @@ della grotta. Il sub galleggia 3,4 m sotto la superficie, 8 m dietro la poppa, e
   per andare alla grotta grande).
 
 Anteprime: `docs/concept/sotto_barca_anteprima.jpg` (come la vede il gioco, 90° in orizzontale) e
-`sotto_barca_anteprima_larga.jpg` (124°: tutto il campo in cui si gira). Se si approva, il render finale sarà un
-panorama parziale (circa 160° × 90°) con `frame`, come le camerette.
+`sotto_barca_anteprima_larga.jpg` (124°: tutto il campo in cui si gira).
+
+**Il render finale** (job `sotto`): un panorama parziale come le camerette, coi numeri del segnaposto del motore:
+160° × 95° (`lonMin`/`lonMax` ±80°, `latMin` −45°, `latMax` +50°), 3640 × 2162 (la stessa densità della grotta
+grande), centrato sulla direzione in cui guarda il sub; `frame` con `yawRange` 30 e `pitchRange` 6. Stessa codifica
+della grotta grande (acqua cotta, passo dati come il mondo, B = la superficie). File in
+`public/assets/img/immersioni/sotto_barca_*.webp` e la voce del posto in `sotto_barca_posto.json`, con le direzioni
+vere: l'imboccatura (`cave`) e la cima dell'ancora vicino alla prua (`ascend`), che nella scena sta appena a
+sinistra del centro, non a −28° come nel segnaposto. Nel finale la parete gira attorno al sub come un'insenatura,
+così ai lati dell'inquadratura non ci sono più spigoli squadrati.
 
 ### La grotta grande (anteprime **approvate** l'11 ottobre sera; render finale del panorama)
 
