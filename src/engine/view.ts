@@ -53,6 +53,11 @@ export function transpose(m: number[]): number[] {
   return [m[0]!, m[3]!, m[6]!, m[1]!, m[4]!, m[7]!, m[2]!, m[5]!, m[8]!];
 }
 
+/** Un angolo (gradi) riportato fra −180 e 180, anche se è molto negativo (il % di JavaScript tiene il segno). */
+export function wrap180(deg: number): number {
+  return ((((deg + 180) % 360) + 360) % 360) - 180;
+}
+
 export class View {
   /** gradi */
   yaw = 0;
@@ -86,11 +91,13 @@ export class View {
 
   update(dt: number, aspect: number): void {
     this.t += dt;
-    // avvicinamento morbido allo yaw desiderato (gira per la via più corta)
-    let d = ((this.targetYaw - this.yaw + 540) % 360) - 180;
+    // avvicinamento morbido allo yaw desiderato (gira per la via più corta). Lo yaw desiderato resta a meno di mezzo
+    // giro da quello attuale: girando sempre nello stesso verso (gli scatti di W A S D, le frecce) cresceva senza
+    // limite, e sotto i −540° il resto negativo di % sbagliava la via più corta: la vista girava da sola senza fermarsi
+    const d = wrap180(this.targetYaw - this.yaw);
+    this.targetYaw = this.yaw + d;
     const k = 1 - Math.exp(-dt * 14);
-    this.yaw += d * k;
-    this.yaw = ((this.yaw + 540) % 360) - 180;
+    this.yaw = wrap180(this.yaw + d * k);
     const t = this.t;
     // la barca si muove rispetto al mare (onda lunga + rollio) e la testa respira appena
     const rb = this.rockBoost;

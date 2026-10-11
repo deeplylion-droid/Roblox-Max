@@ -196,6 +196,7 @@ export class App {
     this.audio.applyVolumes();
     this.stage.brightness = o.brightness;
     this.stage.renderer.renderScale = o.quality;
+    document.documentElement.style.setProperty('--ts', String(o.textSize || 1));
   }
 
   private intro(n = this.nightNo): void {
@@ -245,6 +246,14 @@ export class App {
     const show = () =>
       this.screens.pause({
         onResume: () => this.resume(),
+        // ricomincia la notte in corso da capo (dall'intro, come «Riprova» dopo una morte)
+        onRestart: () => {
+          removeEventListener('keydown', this.escResume);
+          this.audio.resume();
+          this.night?.destroy();
+          this.night = null;
+          this.intro(this.nightNo);
+        },
         onOptions: () => this.options(show),
         onMenu: () => {
           removeEventListener('keydown', this.escResume);
