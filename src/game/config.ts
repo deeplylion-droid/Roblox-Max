@@ -388,10 +388,14 @@ export const EXTRA_MAX = 20;
 /** i sette mostri, nell'ordine in cui arrivano nelle notti (è anche l'ordine della schermata dei livelli) */
 export const MONSTERS: MonsterId[] = ['gulpy', 'molly', 'hatch', 'robin', 'archie', 'lampy', 'fangy'];
 
-export type ExtraLevels = Record<MonsterId, number>;
+/** chi si sceglie nella notte extra: i sette mostri e, ottava, la Madre (deciso dall'utente l'11 ottobre) */
+export type ExtraId = MonsterId | 'mother';
+export const EXTRA_IDS: ExtraId[] = [...MONSTERS, 'mother'];
+
+export type ExtraLevels = Record<ExtraId, number>;
 
 export function extraLevels(level: number): ExtraLevels {
-  return { gulpy: level, molly: level, hatch: level, robin: level, archie: level, lampy: level, fangy: level };
+  return { gulpy: level, molly: level, hatch: level, robin: level, archie: level, lampy: level, fangy: level, mother: level };
 }
 
 /** Le preimpostazioni della schermata (da approvare). */
@@ -401,7 +405,7 @@ export const EXTRA_PRESETS: { id: string; levels: ExtraLevels }[] = [
   { id: 'all10', levels: extraLevels(10) },
   { id: 'all20', levels: extraLevels(20) },
   // i tre della prima notte, ma feroci
-  { id: 'first3', levels: { gulpy: 15, molly: 15, hatch: 15, robin: 0, archie: 0, lampy: 0, fangy: 0 } },
+  { id: 'first3', levels: { gulpy: 15, molly: 15, hatch: 15, robin: 0, archie: 0, lampy: 0, fangy: 0, mother: 0 } },
 ];
 
 /** un livello valido: intero da 0 a EXTRA_MAX */
@@ -477,6 +481,37 @@ function monsterAt(who: MonsterId, level: number): Num {
   return level <= 5 ? mix(a.calm, a.debut, (level - 1) / 4) : mix(a.debut, a.fierce, ((level - 5) / 15) ** 1.5);
 }
 
+/**
+ * La Madre nella notte extra (confermato dall'utente l'11 ottobre): il suo livello dice quante volte passa sotto la
+ * barca e quanto dura ogni passata. La meccanica è quella della notte 6 (si avvicina con l'ombra enorme sul sonar, i
+ * mostri si zittiscono e tornano giù, mentre passa sotto serve immobilità totale): la fa la sessione principale nel
+ * suo branch. Qui ci sono solo i numeri, e la simulazione non li usa ancora: l'aggancio è in extraNight(), quando
+ * NightConfig avrà la sua config della Madre. I numeri sono una proposta da approvare: al 10 tre passate come nella
+ * notte 6, al 20 cinque e più lunghe.
+ */
+export interface ExtraMother {
+  /** quante volte passa sotto la barca in una notte */
+  passes: number;
+  /** quanto dura ogni passata (s): tanto deve durare l'immobilità */
+  pass: number;
+}
+
+export function extraMother(level: number): ExtraMother | null {
+  const l = clampLevel(level);
+  if (l === 0) return null;
+  return { passes: 1 + Math.round((l / EXTRA_MAX) * 4), pass: Math.round((5 + (l / EXTRA_MAX) * 5) * 10) / 10 };
+}
+
+/**
+ * Il finale speciale della notte extra si vede solo vincendola con tutti, Madre compresa, almeno a 10 (confermato
+ * dall'utente l'11 ottobre); con impostazioni più facili all'alba c'è l'alba normale.
+ */
+export const EXTRA_ENDING_MIN = 10;
+
+export function extraEndingEarned(levels: ExtraLevels): boolean {
+  return EXTRA_IDS.every((who) => clampLevel(levels[who] ?? 0) >= EXTRA_ENDING_MIN);
+}
+
 /** Gulpy, Molly e Hatch ci sono in ogni notte (il gioco li disegna sempre): al livello 0 il
  *  primo arrivo è ben oltre le sei, cioè non arrivano mai (come nei test, quiet()). */
 const NEVER = 1e9;
@@ -518,6 +553,7 @@ export function extraNight(levels: ExtraLevels): NightConfig {
     archie: on('archie') ? at<ArchieConfig>('archie') : undefined,
     lampy: on('lampy') ? at<LampyConfig>('lampy') : undefined,
     fangy: on('fangy') ? at<FangyConfig>('fangy') : undefined,
+    // la Madre: extraMother(levels.mother) va qui quando la simulazione avrà la sua config (branch della notte 6)
     battery: { drain: [0, 1 / 700, 1 / 320], sonar: 1 / 1100, low: 0.15, lullaby: 64 },
     hideTime: 0.7,
     unhideTime: 0.6,

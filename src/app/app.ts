@@ -3,7 +3,7 @@
  * Tiene il salvataggio, le opzioni e lo sfondo animato dei menu (la scena dalla barca).
  */
 import type { AudioEngine, Voice } from '../engine/audio.ts';
-import { EXTRA_NIGHT, NIGHTS, extraNight, type MonsterId, type NightConfig } from '../game/config.ts';
+import { EXTRA_NIGHT, NIGHTS, extraEndingEarned, extraNight, type MonsterId, type NightConfig } from '../game/config.ts';
 import { STRINGS, type Lang } from '../i18n.ts';
 import { Night, type NightAssets, type NightEnd } from './night.ts';
 import { writeSave, type Options, type SaveData } from './save.ts';
@@ -307,6 +307,13 @@ export class App {
       this.audio.play('static_burst', { gain: 0.85 });
       this.timer = 1.2;
       this.afterStatic = show;
+    } else if (extra && r.kind === 'won' && extraEndingEarned(this.save.extra)) {
+      // la notte extra vinta con tutti, Madre compresa, almeno a 10: prima il finale speciale (per ora un segnaposto,
+      // Screens.extraEnding), poi i risultati. Con impostazioni più facili, l'alba normale
+      this.mode = 'end';
+      this.night?.destroy();
+      this.night = null;
+      this.screens.extraEnding(show);
     } else show();
   }
 

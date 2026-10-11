@@ -1,5 +1,5 @@
 /** Salvataggio locale: progressi, diario, catalogo e opzioni. */
-import { MONSTERS, clampLevel, extraLevels, type ExtraLevels } from '../game/config.ts';
+import { EXTRA_IDS, clampLevel, extraLevels, type ExtraLevels } from '../game/config.ts';
 import type { Lang } from '../i18n.ts';
 
 export interface Options {
@@ -54,7 +54,7 @@ export function loadSave(): SaveData {
       version: 1,
       lang: d.lang === 'it' || d.lang === 'en' ? d.lang : null,
       night: typeof d.night === 'number' ? d.night : 1,
-      extra: Object.fromEntries(MONSTERS.map((m) => [m, clampLevel(Number((d.extra as Partial<ExtraLevels> | undefined)?.[m] ?? f.extra[m]))])) as ExtraLevels,
+      extra: Object.fromEntries(EXTRA_IDS.map((m) => [m, clampLevel(Number((d.extra as Partial<ExtraLevels> | undefined)?.[m] ?? f.extra[m]))])) as ExtraLevels,
       lore: Array.isArray(d.lore) ? d.lore.filter((x) => typeof x === 'string') : [],
       catalog: d.catalog && typeof d.catalog === 'object' ? d.catalog : {},
       options: { ...f.options, ...(d.options ?? {}) },

@@ -1,6 +1,6 @@
 /** Schermate in DOM sopra la scena: avvertenza, titolo, intro, pausa, opzioni, diario, alba, game over. */
 import { FISH, FISH_BY_ID, type FishFamily, type FishSpecies } from '../game/catalog.ts';
-import { EXTRA_MAX, EXTRA_PRESETS, LORE, MONSTERS, clampLevel, type ExtraLevels } from '../game/config.ts';
+import { EXTRA_IDS, EXTRA_MAX, EXTRA_PRESETS, LORE, clampLevel, type ExtraLevels } from '../game/config.ts';
 import { LORE_TEXT, STRINGS, type Lang } from '../i18n.ts';
 import type { CatalogEntry, Options } from './save.ts';
 
@@ -168,7 +168,7 @@ export class Screens {
       for (const p of paint) p();
       o.onChange({ ...lv });
     };
-    for (const who of MONSTERS) {
+    for (const who of EXTRA_IDS) {
       const num = h('b', { class: 'lv' });
       const what = h('div', { class: 'lv-word' });
       const minus = button('−', () => set(who, lv[who] - 1));
@@ -180,7 +180,7 @@ export class Screens {
       const card = h(
         'div',
         { class: 'extra-card', 'data-who': who },
-        h('div', { class: 'who' }, who[0]!.toUpperCase() + who.slice(1)),
+        h('div', { class: 'who' }, who === 'mother' ? S.extraMother : who[0]!.toUpperCase() + who.slice(1)),
         h('div', { class: 'rule' }, S.extraRules[who]),
         h('div', { class: 'ctl' }, minus, num, plus),
         what,
@@ -190,6 +190,11 @@ export class Screens {
         e.preventDefault();
         set(who, lv[who] + (e.deltaY < 0 ? 1 : -1));
       });
+      // la Madre: il livello si sceglie già, ma nella notte non c'è ancora (la sua meccanica arriva con la notte 6)
+      if (who === 'mother') {
+        card.classList.add('soon');
+        card.append(h('div', { class: 'soon-tag' }, S.extraSoon));
+      }
       paint.push(() => {
         num.textContent = String(lv[who]);
         what.textContent = word(lv[who]);
@@ -222,6 +227,15 @@ export class Screens {
         h('div', { class: 'menu' }, button(S.extraStart, () => o.onStart({ ...lv }), 'start'), button(S.back, o.onBack, 'back')),
       ),
     );
+  }
+
+  /**
+   * Il finale speciale della notte extra (vinta con tutti, Madre compresa, almeno a 10): per ora un SEGNAPOSTO, il
+   * finale vero è da fare (deciso dall'utente l'11 ottobre che ci sarà, diverso da quello della notte 6).
+   */
+  extraEnding(onDone: () => void): void {
+    const S = this.S;
+    this.show(h('div', { class: 'screen dawn extra-ending fade-in' }, h('h2', {}, S.extraEndingTitle), h('p', {}, S.extraEndingText), h('div', { class: 'menu' }, button(S.resume, onDone, 'start'))));
   }
 
   journal(found: string[], onBack: () => void): void {

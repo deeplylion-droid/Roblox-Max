@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { EXTRA_NIGHT, HOUR_SECONDS, MONSTERS, NIGHTS, YAW, extraLevels, extraNight, type MonsterId, type NightConfig } from '../src/game/config.ts';
+import { EXTRA_NIGHT, HOUR_SECONDS, MONSTERS, NIGHTS, YAW, extraEndingEarned, extraLevels, extraMother, extraNight, type MonsterId, type NightConfig } from '../src/game/config.ts';
 import type { GameEvent } from '../src/game/events.ts';
 import { NightSim } from '../src/game/sim.ts';
 import { Bot, SKILLS, playNight } from '../src/game/bot.ts';
@@ -753,6 +753,21 @@ describe('Notte 7, la notte extra', () => {
       if (sim.outcome.kind === 'won') wins++;
     }
     expect(wins).toBeGreaterThanOrEqual(18);
+  });
+
+  it('la Madre: a 0 non passa, al 10 tre passate come nella notte 6, al 20 di più e più lunghe', () => {
+    expect(extraMother(0)).toBeNull();
+    expect(extraMother(10)!.passes).toBe(3);
+    expect(extraMother(20)!.passes).toBeGreaterThan(3);
+    expect(extraMother(20)!.pass).toBeGreaterThan(extraMother(1)!.pass);
+  });
+
+  it('il finale speciale solo con tutti, Madre compresa, almeno a 10', () => {
+    expect(extraEndingEarned(extraLevels(10))).toBe(true);
+    expect(extraEndingEarned(extraLevels(20))).toBe(true);
+    expect(extraEndingEarned({ ...extraLevels(20), mother: 9 })).toBe(false);
+    expect(extraEndingEarned({ ...extraLevels(20), lampy: 0 })).toBe(false);
+    expect(extraEndingEarned(extraLevels(5))).toBe(false);
   });
 
   it('più alti i livelli, meno notti vinte', () => {

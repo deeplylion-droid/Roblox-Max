@@ -316,7 +316,8 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
 > Madre, la progetta un'altra sessione: qui non c'è niente di lei, solo il posto (la notte extra è la 7 e si
 > sblocca finendo l'ultima notte giocabile, che sarà la sesta).
 
-Come la *custom night* di FNAF: per ognuno dei sette mostri si sceglie un **livello da 0 a 20**. A 0 non viene, a
+Come la *custom night* di FNAF: per ognuno dei sette mostri, e per **la Madre** (ottava, confermato dall'utente
+l'11 ottobre), si sceglie un **livello da 0 a 20**. A 0 non viene, a
 20 è feroce. Le regole che il giocatore ha imparato non cambiano mai (i dieci della conta di Hatch, i tre colpi di
 Lampy, il terzo rumore di Fangy): cambiano solo **quando arriva, quanto spesso torna e quanta pazienza ha**.
 
@@ -331,17 +332,28 @@ Lampy, il terzo rumore di Fangy): cambiano solo **quando arriva, quanto spesso t
     più a lungo, Robin ruba più spesso, Archie prende fiato in meno tempo e resta più a lungo al buio, Lampy prende la
     lenza prima, Fangy arriva più svelto e ascolta di più).
   - Fra 5 e 20 la curva sale piano all'inizio e più in fretta alla fine (se no a 10 era già quasi impossibile).
+- **La Madre** (**confermato l'11 ottobre** che c'è, come ottavo livello; la sua meccanica è quella approvata per la
+  notte 6 e la fa la sessione principale: si avvicina con l'ombra enorme sul sonar, i mostri si zittiscono e tornano
+  giù, mentre passa sotto la barca serve immobilità totale). Il suo livello dice **quante volte passa e quanto dura ogni
+  passata** (`extraMother()`, numeri da approvare): a 1 una passata di 5 s, al **10 tre passate come nella notte 6**
+  (7,5 s), al 20 cinque passate di 10 s. Nella schermata la sua scheda c'è già, tratteggiata e con la scritta **«in
+  arrivo»**: il livello si sceglie e si salva, ma la simulazione non lo usa finché la sua meccanica non arriva
+  (l'aggancio è segnato in `extraNight()`). Le simulazioni qui sotto quindi sono senza di lei.
+- **Il finale speciale** (**confermato l'11 ottobre**): si vede solo **vincendo con tutti, Madre compresa, almeno a
+  10** (`extraEndingEarned()`); con impostazioni più facili all'alba c'è l'alba normale. Il finale vero è da fare:
+  per ora dopo l'alba compare una **schermata segnaposto** (`Screens.extraEnding`, il titolo «Il finale della notte
+  extra» e una riga che dice che è un segnaposto), poi i risultati. È diverso da quello della notte 6.
 - **Il resto della notte**: quota **10**; i pesci abboccano in fretta come nella quinta notte; la batteria è quella
   dalla notte 2 in poi (con la ninna nanna della Madre a batteria morta); le ore fanno salire l'attività come nella
   quinta. La regia tiene le **esclusioni della quinta notte**: chi chiede il contrario dell'altro non viene insieme a
   lui (Robin con Molly, Hatch o Archie; Hatch con Gulpy, Lampy o Fangy; Lampy con Archie; Fangy con Archie o Robin).
   Gulpy, Molly e Hatch, che il gioco disegna in tutte le notti, a 0 restano semplicemente a casa.
 - **La schermata** (`docs/concept/notte7_livelli.jpg`): dal titolo, «Notte extra» (compare solo quando è sbloccata).
-  Sette schede in fila, una per mostro: il nome, la sua regola in due parole, il livello grande con − e + (anche la
+  Otto schede in fila, una per mostro più la Madre: il nome, la sua regola in due parole, il livello grande con − e + (anche la
   rotella sulla scheda), e sotto una parola: *non viene* (0), *calmo* (1-4), *come la sua notte* (5), *svelto* (6-14),
   *feroce* (15-20). Più è alto, più la scheda si tinge di rosso e il numero passa dall'ambra al rosso sangue; a 0 la
   scheda si spegne e il nome è barrato. Sotto, le preimpostazioni **Tutti a 0, Tutti a 5, Tutti a 10, Tutti a 20,
-  I primi tre** (Gulpy, Molly e Hatch a 15, gli altri a 0). Poi **Salpa** e Indietro. I livelli scelti restano nel
+  I primi tre** (Gulpy, Molly e Hatch a 15, gli altri e la Madre a 0; le altre valgono anche per la Madre). Poi **Salpa** e Indietro. I livelli scelti restano nel
   salvataggio per la volta dopo (all'inizio tutti a 5). Per ora ci sono i nomi: i **ritratti** dei mostri (per esempio le
   foto sbiadite dell'edicola) sono da fare.
 - **La notte**: l'intro dice «Notte 7» con la quota; vincerla non sblocca niente e non cambia «Continua»; alla fine
@@ -350,11 +362,13 @@ Lampy, il terzo rumore di Fangy): cambiano solo **quando arriva, quanto spesso t
 - **Testi** (italiano e inglese, in `src/i18n.ts`, segnati da approvare): il pulsante «Notte extra» / «Extra night»;
   «Scegli chi viene stanotte. 0: non viene. 20: feroce.» / «Choose who comes tonight. 0: stays away. 20: ferocious.»;
   le regole sotto i nomi «sfamalo, guardala, nasconditi, luce in faccia, spegni la luce, non ferrare, stai zitto» /
-  «feed him, watch her, hide, light in his face, lamp off, don't strike, stay quiet»; «Salpa» / «Cast off».
+  «feed him, watch her, hide, light in his face, lamp off, don't strike, stay quiet»; per la Madre «La Madre, non
+  muoverti, in arrivo» / «The Mother, don't move, coming soon»; «Salpa» / «Cast off». Il finale segnaposto: «Il finale
+  della notte extra» / «The end of the extra night» (con una riga che dice che è un segnaposto).
   La radio, corta: «Notte extra. Dieci pesci. / Stanotte vengono quelli che hai chiamato tu. / Buona pesca.» /
   «Extra night. Ten fish. / Tonight the ones you called are coming. / Good fishing.»
 - **Giocatori simulati** (`npm run sim -- 7 300 <livelli>`; un numero vale per tutti, se no i sette livelli in
-  ordine Gulpy, Molly, Hatch, Robin, Archie, Lampy, Fangy). Vittorie di esperto / medio / maldestro:
+  ordine Gulpy, Molly, Hatch, Robin, Archie, Lampy, Fangy, e la Madre per ottava, che però non conta ancora). Vittorie di esperto / medio / maldestro:
 
   | Livelli | Esperto | Medio | Maldestro | Chi uccide |
   |---|---|---|---|---|
