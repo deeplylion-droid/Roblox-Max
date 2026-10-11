@@ -264,19 +264,27 @@ describe('Notte 2', () => {
     expect(sim.outcome).toEqual({ kind: 'dead', killer: 'robin' });
   });
 
-  it('la lampara al massimo in faccia scaccia Robin; guardare la canna non basta', () => {
+  it('la lampara al massimo scaccia Robin anche senza guardarlo; con la luce bassa ruba', () => {
     const r = N2.robin!;
-    const sim = new NightSim(quiet2(10), 5);
-    sim.fish = 3;
-    sim.setLamp(2);
-    sim.setView(YAW.rod, false);
-    run(sim, 10 + r.climb + 0.5);
-    expect(sim.robin!.state).toBe('stealing');
-    sim.setView(YAW.robin, false);
-    const ev = run(sim, r.scare + 0.2);
+    // luce al massimo e lo sguardo sulla canna (deciso dall'utente l'11 ottobre: non serve guardarlo): scappa prima di
+    // arrivare al secchio
+    const a = new NightSim(quiet2(10), 5);
+    a.fish = 3;
+    a.setLamp(2);
+    a.setView(YAW.rod, false);
+    const ev = run(a, 10 + r.climb + r.stealEvery + 0.5);
     expect(ev.some((e) => e.t === 'robin' && e.e === 'scared')).toBe(true);
-    expect(sim.fish).toBe(3);
-    expect(sim.playing).toBe(true);
+    expect(ev.some((e) => e.t === 'robin' && e.e === 'steal')).toBe(false);
+    expect(a.fish).toBe(3);
+    expect(a.playing).toBe(true);
+    // luce bassa, anche guardandolo: ruba
+    const b = new NightSim(quiet2(10), 5);
+    b.fish = 3;
+    b.setLamp(1);
+    b.setView(YAW.robin, false);
+    const ev2 = run(b, 10 + r.climb + r.stealEvery + 0.5);
+    expect(ev2.some((e) => e.t === 'robin' && e.e === 'steal')).toBe(true);
+    expect(b.fish).toBe(2);
   });
 
   it('quando canta la Madre i mostri se ne vanno e non tornano finché la canzone non finisce', () => {
