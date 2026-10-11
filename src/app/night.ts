@@ -276,6 +276,9 @@ export class Night {
   // input
   private held = new Set<string>();
   private mouse = { x: 0.5, y: 0.5, inside: false, down: false };
+  /** i bordi dello schermo girano lo sguardo; dopo uno scatto da tastiera (W A S D) non più, finché il mouse non si
+   *  muove: se era rimasto fermo nella fascia del bordo, dopo lo scatto la vista continuava a girare da sola */
+  private edgeArmed = true;
   private sonarOpen = false;
   /** binocolo: alzato (desiderato), quanto è alzato (0..1), campo dello zoom, inclinazione dello sguardo */
   private binoUp = false;
@@ -452,8 +455,10 @@ export class Night {
     });
     this.on(c, 'mousemove', (e) => {
       const m = e as MouseEvent;
-      this.mouse.x = m.clientX / innerWidth;
-      this.mouse.y = m.clientY / innerHeight;
+      const x = m.clientX / innerWidth, y = m.clientY / innerHeight;
+      if (Math.hypot((x - this.mouse.x) * innerWidth, (y - this.mouse.y) * innerHeight) > 6) this.edgeArmed = true;
+      this.mouse.x = x;
+      this.mouse.y = y;
       this.mouse.inside = true;
     });
     this.on(c, 'mouseleave', () => {
@@ -616,6 +621,7 @@ export class Night {
     if (this.paused || this.finished || this.js || this.sim.hide !== 'out') return;
     const v = this.d.stage.view;
     v.targetYaw = v.targetYaw + 180;
+    this.edgeArmed = false;
   }
 
   /** Voltarsi di scatto verso una direzione (gradi, spazio della barca), per la via più corta. */
@@ -623,6 +629,7 @@ export class Night {
     if (this.paused || this.finished || this.js || this.sim.hide !== 'out' || this.sonarOpen) return;
     const v = this.d.stage.view;
     v.targetYaw += ((((yaw - v.targetYaw) % 360) + 540) % 360) - 180;
+    this.edgeArmed = false;
   }
 
   private toggleSonar(open = !this.sonarOpen): void {
@@ -674,7 +681,7 @@ export class Night {
       let spin = 0;
       const edge = 0.2;
       const mx = this.mouse.x;
-      if (this.mouse.inside && !reeling) {
+      if (this.mouse.inside && !reeling && this.edgeArmed) {
         if (mx < edge) spin = -(((edge - mx) / edge) ** 1.5);
         else if (mx > 1 - edge) spin = ((mx - (1 - edge)) / edge) ** 1.5;
       }

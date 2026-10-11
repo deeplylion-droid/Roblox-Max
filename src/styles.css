@@ -96,6 +96,7 @@ html, body {
 @keyframes blink { 50% { opacity: .25; } }
 .title { background: radial-gradient(ellipse at center, rgba(5,8,13,.15), rgba(5,8,13,.75)); justify-content: space-between; padding: 9vh 0 9vh; }
 .title h1 { font-size: clamp(36px, 7vw, 92px); margin-bottom: 4vh; }
+.title .build { position: absolute; right: 14px; bottom: 10px; font-size: 11px; letter-spacing: .04em; opacity: .4; pointer-events: none; }
 .intro { background: rgba(5,8,13,.92); }
 .intro .intro-time { font-family: 'Limelight', serif; font-size: 44px; color: var(--amber); margin: 8px 0 18px; }
 .pause { background: rgba(5,8,13,.78); }
