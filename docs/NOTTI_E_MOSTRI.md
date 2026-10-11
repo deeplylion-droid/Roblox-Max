@@ -246,7 +246,8 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
   e `js_lampy.gif`; `jumpscare.py`, `ATTACKS['lampy']`): agganciata, ti salta in
   faccia dalla lenza con la ventosa spalancata a disco (a 60 cm dall'occhio riempie mezzo quadro), e da un fotogramma
   all'altro gli anelli di denti da latte girano come una macina, quelli vicini in versi opposti; una luce calda dalla
-  parte della lanterna le prende la faccia, come per Robin. Finché non c'è il render finale il gioco zooma sulla posa.
+  parte della lanterna le prende la faccia, come per Robin. Il **render finale** (64 campioni, otto fotogrammi
+  `public/assets/img/js_lampy_00…07.webp`, 11 ottobre) è nel gioco.
 
 ### Notte 5 · Fangy — *STARE ZITTI*
 
