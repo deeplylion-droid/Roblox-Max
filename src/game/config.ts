@@ -238,6 +238,10 @@ export interface NightConfig {
   biteMul?: number;
   /** secondi di tolleranza allo strappo, se diversi da FISHING.snapGrace (le prime notti si sfumano) */
   snapGrace?: number;
+  /** recupero più veloce (1,3 = il 30% in meno di tempo per tirare su un pesce); assente: 1. Dalla notte 2 compensa il
+   *  tempo che si passa col binocolo per il Foxy (indicazione dell'utente, 11 ottobre sera: «se devi bilanciare, riduci il
+   *  tempo necessario per tirare su i pesci») */
+  reelMul?: number;
   /** cattura (1-based) che garantisce un frammento di lore */
   guaranteedLoreAt: number;
   loreChance: number;
@@ -298,6 +302,7 @@ export const NIGHTS: Record<number, NightConfig> = {
     quota: 10,
     hourlyRamp: 0.12,
     biteMul: 0.35,
+    reelMul: 1.1,
     snapGrace: 0.35,
     guaranteedLoreAt: 3,
     loreChance: 0.08,
@@ -327,6 +332,7 @@ export const NIGHTS: Record<number, NightConfig> = {
     quota: 11,
     hourlyRamp: 0.13,
     biteMul: 0.33,
+    reelMul: 1.06,
     guaranteedLoreAt: 3,
     loreChance: 0.08,
     exclusive: [
@@ -356,6 +362,7 @@ export const NIGHTS: Record<number, NightConfig> = {
     quota: 12,
     hourlyRamp: 0.15,
     biteMul: 0.21,
+    reelMul: 1.15,
     guaranteedLoreAt: 3,
     loreChance: 0.08,
     exclusive: [
@@ -390,6 +397,7 @@ export const NIGHTS: Record<number, NightConfig> = {
     quota: 11,
     hourlyRamp: 0.16,
     biteMul: 0.12,
+    reelMul: 1.08,
     guaranteedLoreAt: 3,
     loreChance: 0.08,
     exclusive: [

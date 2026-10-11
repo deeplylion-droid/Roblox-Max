@@ -72,6 +72,7 @@ export class NightSim {
     const emit = (e: GameEvent) => this.events.push(e);
     this.fishing = new Fishing(this.rng, emit);
     this.fishing.snapGrace = cfg.snapGrace ?? FISHING.snapGrace;
+    this.fishing.reelMul = cfg.reelMul ?? 1;
     this.gulpy = new Gulpy(cfg.gulpy);
     this.molly = new Molly(cfg.molly);
     this.hatch = new Hatch(cfg.hatch);

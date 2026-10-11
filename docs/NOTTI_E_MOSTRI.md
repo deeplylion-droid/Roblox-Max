@@ -63,17 +63,20 @@ del questionario:
   di scatto, alza il binocolo sul posto dove l'ha visto l'ultima volta, e se lì non c'è guarda nell'altro. Ogni quanto
   dipende dall'abilità, in frazioni di `leave` (esperto 0,45-0,6; medio 0,5-0,75; maldestro 0,55-0,9); visto sporto,
   il controllo dopo arriva prima. Ogni controllo costa tempo di pesca: per questo cresce anche la quota mancata.
-- **Simulazioni** (200 partite; prima → con il Foxy, esperto / medio / maldestro):
+- **Bilanciamento: il recupero più veloce** (indicazione dell'utente, 11 ottobre sera: «se devi bilanciare, riduci il
+  tempo necessario per tirare su i pesci»). Il tempo passato col binocolo si ripaga tirando su i pesci più in fretta:
+  `reelMul` per notte (2: ×1,10; 3: ×1,06; 4: ×1,15; 5: ×1,08). Le regole del Foxy e le quote non cambiano.
+- **Simulazioni** (esperto / medio / maldestro; 200 partite le prime due colonne, 400 l'ultima):
 
-  | Notte | prima | con il Foxy |
-  |---|---|---|
-  | 2 | 100 / 91 / 64,5% | 99 / 78,5 / 45% |
-  | 3 | 100 / 76 / 46,5% | 99,5 / 69,5 / 31% |
-  | 4 | 96,5 / 74 / 51% | 94 / 63,5 / 31% |
-  | 5 | 95 / 76,5 / 53% | 93 / 73 / 38% |
+  | Notte | prima del Foxy | col Foxy | col Foxy e il recupero più veloce |
+  |---|---|---|---|
+  | 2 | 100 / 91 / 64,5% | 99 / 78,5 / 45% | 100 / 94 / 64% |
+  | 3 | 100 / 76 / 46,5% | 99,5 / 69,5 / 31% | 100 / 79 / 44% |
+  | 4 | 96,5 / 74 / 51% | 94 / 63,5 / 31% | 99 / 74,5 / 51% |
+  | 5 | 95 / 76,5 / 53% | 93 / 73 / 38% | 97,5 / 79 / 50% |
 
-  Le notti diventano più difficili, soprattutto per chi si distrae: è una minaccia in più, come chiesto («più
-  pauroso e ansiogeno»). Se servono più facili, si allungano `leave` e `lean`.
+  Le percentuali tornano quelle di prima: il Foxy aggiunge tensione, non sconfitte. Chi si dimentica di lui muore
+  per lui (il maldestro: 6-12% delle partite) invece che per la quota.
 - **Testi** (da approvare): suggerimento «Col binocolo (B): non perderlo di vista» finché non lo trovi la prima volta,
   «Il posto è vuoto» se lo guardi quando se n'è andato; didascalie «laggiù, qualcosa si sporge», «qualcosa corre
   sull'acqua»; game over **«Lo spettacolo finiva sempre con un abbraccio.»** (faceva lo spettacolo di Mama Marina).
