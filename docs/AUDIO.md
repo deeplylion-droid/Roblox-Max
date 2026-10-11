@@ -11,7 +11,7 @@ Rigenerazione: `tools/.venv/bin/python tools/audio/generate.py [id...] [--spectr
 - `dsp.py`: mattoni (filtri, rumori periodici, voce a formanti, riverberi, limitatore, misure).
 - `instruments.py`: modelli di medio livello (acqua: bolle, gocce, schizzi, colpi d'onda; legno; corpi bagnati; campane e lamelle; respiri, gabbiani, balene).
 - `creatures.py`: modelli dei versi (voce irregolare con jitter e shimmer variabili, diplofonia, fry, ruvidità da urlo; gola bagnata, saliva, deglutizioni; ossa, denti, masticazione; nocche, unghie, passi bagnati, gomma; compressione e saturazione per bande degli urli).
-- `sounds/`: un modulo per tema (`ambience`, `world`, `fishing`, `gulpy`, `molly`, `hatch`, `robin`, `archie`, `lampy`, `music`, `ui`); ogni id si registra con `@sound(...)` o `register(...)`.
+- `sounds/`: un modulo per tema (`ambience`, `world`, `fishing`, `gulpy`, `molly`, `hatch`, `robin`, `archie`, `lampy`, `fangy`, `madre`, `music`, `ui`); ogni id si registra con `@sound(...)` o `register(...)`.
 - `master.py`: pulizia, livello (RMS "attivo"), limitatore, codifica Vorbis e verifica sul file decodificato (lunghezza, picco, giunzione del loop).
 
 ## Regole tecniche
@@ -179,6 +179,36 @@ suona uno dei tre scatti (`fangy_snap`, varianti `_2` e `_3`, scelte a caso).
 | `fangy_snap` ×3 | 0,65 s | Ti ha sentito: la testa che scatta sul collo (lo schiocco della cartilagine, il collo che si torce nell'acqua), le zanne che sbattono, un'annusata secca e forte. |
 | `fangy_leave` | 2,2 s | Torna giù: un fiato lungo che esce gorgogliando mentre il muso va sotto, l'acqua che si richiude sopra la testa, le bolle, lo sciabordio contro la fiancata. |
 | `js_fangy` | 1,6 s | Jumpscare (**stereo**): l'acqua che esplode sulla fiancata, la mascella che schiocca e le zanne che sbattono, e il ruggito di un mastino enorme in una gola d'acqua con sopra, alta e rotta, la voce di un bambino che strilla (tre voci). RMS ≈ −7,3 dBFS. |
+
+### La Madre — notte 6 (11 ottobre, DA APPROVARE)
+Mama Marina, la balena-mamma della mascotte del parco diventata mostro: enorme, molto più grande della barca. Non parla:
+al massimo canticchia la sua ninna nanna senza parole. La voce è una gola più grande di tutte (formanti a ×0,38, come il
+lamento di `mus_madre`) con un battito lento e ruvido (le pulsazioni dei versi delle balene) e sotto una seconda gola a
+poco meno di un'ottava, mai esatta (suona sbagliata, come le voci doppie dei figli). Sott'acqua arriva scura, con le eco
+della superficie e del fondo e una coda lunghissima. Modulo `tools/audio/sounds/madre.py`. I richiami lontani sono
+**mono** (il gioco li mette dove sta l'ombra sul sonar); tutto il resto la circonda ed è **stereo**.
+
+| id | durata | descrizione |
+|---|---|---|
+| `madre_far_1`…`3` | 10,5 / 11,5 / 12 s | L'ombra lontana: un richiamo profondo e distorto che arriva dal fondo, da lontano (niente acuti, le eco del fondo, il livello che ondeggia con l'acqua in mezzo). 1 un lamento lungo che sale, si apre e ricade, e un canto più acuto che gli risponde; 2 due grugniti pulsati che scendono e un lamento basso che crolla; 3 l'inizio della ninna nanna (Mi–Do–La–Si) canticchiato lentissimo e sempre più calante. Mono, RMS ≈ −24 dBFS. |
+| `madre_approach` | 12 s | Si avvicina: in lontananza i figli fanno i loro versi (un gorgoglio, una risatina, un mugolio) e d'un tratto si zittiscono, l'ultimo a metà, e vanno giù tutti insieme (corpi che scivolano in acqua attorno alla barca); a 3,5 s il mare si calma di colpo e resta un silenzio che pesa, con sotto una pressione gravissima che cresce; il richiamo della Madre arriva da lontano e si fa vicinissimo, sotto la barca; la lampara trema due volte (6 e 9 s: la luce che cala e torna a scatti, il reattore che ronza ruvido; non si spegne). |
+| `madre_lullaby` | 40 s, **loop** | La ninna nanna della Madre canticchiata dal fondo, a bocca chiusa, da una voce di balena enorme: la prima frase della melodia del carillon (Mi–Do \| La–Si \| Do Re Mi \| Si…, poi Mi–Do \| La–Sol♯ \| La Si Do \| La…), tre ottave sotto, lentissima (43 al minuto contro i 67,5 del carillon, e rallenta ancora). Scivola da una nota all'altra, entra un po' sotto ogni nota e la fa calare sulla coda; la seconda frase è più bassa della prima e l'ultima nota non arriva: crolla di quasi due semitoni in un lamento. Sopra, la stessa voce un'ottava più su e, lontanissimo, il canto delle balene che segue la melodia. Poi la pausa con le bolle grosse che salgono, e ricomincia. RMS ≈ −22 dBFS. |
+| `madre_pass_1`, `_2`, `_3` | 12 / 16 / 20 s | La passata sotto la barca (le tre della notte, alle 2, alle 4 e alle 5:30, sempre più lunghe): l'acqua che il corpo enorme sposta e spinge contro lo scafo, la pelle che scorre sotto la chiglia (un attrito lento e sordo che fa vibrare il fasciame, le incrostazioni che grattano il legno), la barca che si solleva piano sul suo dorso e scricchiola tutta (dal fasciame grave alle tavole del pagliolo), il manico del secchio e la campanella a poppa che si muovono appena, l'acqua che scivola giù dai fianchi; attraverso il legno, il suo cuore lentissimo (13 battiti al minuto) e, appena, un brontolio dentro di lei. Passa da sinistra a destra. Sale piano e piano se ne va: niente è mai forte di colpo (picco ≈ −6 dBFS, RMS ≈ −21). |
+| `js_madre` | 2 s | Jumpscare (**stereo**): ti prende dal basso. Lo scafo che si spacca sotto i piedi e la barca sollevata di colpo (un colpo enorme e sordo, il legno che si schianta), l'acqua che esplode, e la bocca: il ruggito di una balena enorme (due gole, la voce rotta) e dentro, alte e bagnate, le voci dei bambini che ha preso (cinque, appena scordate) che urlano tutte insieme. RMS ≈ −7,8 dBFS. |
+| `madre_dawn` | 24 s | Il finale all'alba (finale A), da suonare sopra l'alba: la Madre sale accanto alla barca, a sinistra (il mare che si gonfia e si rompe, l'acqua che le scroscia giù dal corpo, la barca che dondola e geme), lo sbuffo dallo sfiatatoio con la pioggia dello spruzzo (4,6 s), un mormorio senza parole; attorno a lei affiorano i sette figli uno dopo l'altro (7–10 s); la sua pinna bagnata sul capodibanda e la barca che s'inclina, il secchio preso (10,6–13 s: i pesci che scivolano nella lamiera, il manico che sbatte, l'acqua che ne cola); tornano giù tutti, i figli e poi lei, enorme e lenta (13–17 s); dal fondo canticchia la fine della ninna nanna, che **per la prima volta si risolve** (La Si Do♯ \| La, in maggiore: proposta); il mare si calma, le ultime onde arrivano allo scafo e a 21 s un primo gabbiano. |
+
+**Come li dovrebbe usare il gioco** (proposta, il codice della notte 6 non c'è ancora): `madre_far_*` ogni tanto durante
+tutta la notte, spazializzati dove sta l'ombra sul sonar, mai lo stesso due volte di fila. A ogni passata: `madre_approach`;
+a 3,5 s il gioco abbassa `amb_sea` (in un secondo: il mare del file si ferma lì) e zittisce i mostri; verso 8 s parte
+`madre_lullaby` (con una dissolvenza di 3 s) e verso 13 s la passata (`madre_pass_1`, `_2` o `_3`). Quando la passata
+finisce, la ninna nanna si spegne in 4–5 s e il mare torna. Se ti muovi: `js_madre`. All'alba del finale A
+`madre_dawn`, con `amb_dawn` che entra piano dai 20 s.
+
+**Ascolti di prova** (mp3 in `docs/concept/suoni/`, montati con il mare e la lampara del gioco):
+`madre_passa_sotto.mp3` (la scena intera: il mare, l'avvicinamento, la ninna nanna, la seconda passata, il ritorno del
+mare), `madre_lontana.mp3` (i tre richiami lontani sul mare), `madre_ninna_nanna.mp3` (la ninna nanna da sola, un giro e
+l'inizio del successivo), `madre_jumpscare.mp3` (due secondi di passata e il jumpscare), `madre_finale_alba.mp3` (il
+finale, con l'alba del gioco che entra alla fine).
 
 ## Musica e stinger (stereo) — DA APPROVARE
 
