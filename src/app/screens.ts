@@ -104,9 +104,16 @@ export class Screens {
     );
   }
 
-  pause(o: { onResume: () => void; onOptions: () => void; onMenu: () => void }): void {
+  pause(o: { onResume: () => void; onRestart: () => void; onOptions: () => void; onMenu: () => void }): void {
     const S = this.S;
-    this.show(h('div', { class: 'screen pause' }, h('h2', {}, S.paused), h('div', { class: 'menu' }, button(S.resume, o.onResume), button(S.options, o.onOptions), button(S.menu, o.onMenu, 'back'))));
+    this.show(
+      h(
+        'div',
+        { class: 'screen pause' },
+        h('h2', {}, S.paused),
+        h('div', { class: 'menu' }, button(S.resume, o.onResume), button(S.restartNight, o.onRestart), button(S.options, o.onOptions), button(S.menu, o.onMenu, 'back')),
+      ),
+    );
   }
 
   options(opts: Options, o: { onChange: (k: keyof Options | 'lang', v: number | boolean | string) => void; onBack: () => void; fullscreen: (() => void) | null }): void {
@@ -142,6 +149,15 @@ export class Screens {
       qb.textContent = qLabel(v);
     });
     rows.append(h('label', {}, h('span', {}, S.quality), qb));
+    // dimensione dei testi: normale, grande, molto grande
+    const sizes = [1, 1.2, 1.4];
+    const tLabel = (v: number) => S.textSizes[Math.max(0, sizes.indexOf(v))]!;
+    const tb = button(tLabel(opts.textSize), () => {
+      const v = sizes[(Math.max(0, sizes.indexOf(opts.textSize)) + 1) % sizes.length]!;
+      o.onChange('textSize', v);
+      tb.textContent = tLabel(v);
+    });
+    rows.append(h('label', {}, h('span', {}, S.textSize), tb));
     const lang = button(this.lang === 'it' ? 'Italiano' : 'English', () => o.onChange('lang', this.lang === 'it' ? 'en' : 'it'));
     rows.append(h('label', {}, h('span', {}, S.language), lang));
     if (o.fullscreen) {

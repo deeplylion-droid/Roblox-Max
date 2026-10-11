@@ -505,10 +505,12 @@ export class Robin {
     this.timer = 1.6;
   }
 
-  /** La lampara al massimo in faccia: se è durata abbastanza scappa (vero = è scappato). */
+  /**
+   * La lampara al massimo: se è durata abbastanza scappa (vero = è scappato). Non serve guardarlo: basta la luce alta
+   * (deciso dall'utente l'11 ottobre; prima bisognava anche guardarlo in faccia).
+   */
   private light(dt: number, w: WorldView): boolean {
-    const inFace = w.lamp === 2 && !w.hidden && !w.sonarOpen && Math.abs(angleDiff(w.viewYaw, YAW.robin)) <= VIEW.robinHalfAngle;
-    if (inFace) {
+    if (w.lamp === 2) {
       this.lit += dt;
       if (this.lit >= this.cfg.scare) {
         w.emit({ t: 'robin', e: 'scared' });
