@@ -51,7 +51,8 @@ export class Sonar {
     if (lp && (lp.present || lp.state === 'lurking')) out.push({ a: YAW.lampy, r: lp.visible ? 0.45 : 0.55 });
     // Fangy: arriva dal largo a destra, dietro di te, e resta attaccato alla fiancata
     const fg = sim.fangy;
-    if (fg?.state === 'approaching') out.push({ a: YAW.fangy, r: 0.9 - 0.65 * fg.approach });
+    // (la fila gira verso la barca da 34° più a poppa, come le lucine in night.ts)
+    if (fg?.state === 'approaching') out.push({ a: YAW.fangy + 34 * (1 - fg.approach) ** 1.5, r: 0.9 - 0.65 * fg.approach });
     else if (fg?.present) out.push({ a: YAW.fangy, r: 0.22 });
     const h = sim.hatch;
     if (h.state === 'counting') out.push({ a: 180, r: 0.85 - 0.6 * h.countProgress });
