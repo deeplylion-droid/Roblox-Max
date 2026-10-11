@@ -32,7 +32,7 @@ const IT = {
     // notte 3 (approvati l'11 ottobre)
     archie: 'Archie prende fiato: spegni la lampara (Q)',
     archieWait: 'Resta al buio finché non va giù',
-    // notte 4 (da approvare)
+    // notte 4 (approvato l'11 ottobre)
     lampy: 'Tre colpi uguali: è Lampy, non ferrare',
     // notte 5 (da approvare)
     fangy: 'Fangy ascolta: niente rumori',
@@ -66,7 +66,7 @@ const IT = {
     robin: 'Robin ha svuotato il secchio. Poi te.',
     // notte 3 (approvata l'11 ottobre): da bambino spegneva le candeline degli altri alle feste
     archie: 'Archie ha spento la tua candelina.',
-    // notte 4 (da approvare): da bambina in piscina tirava giù gli altri per le gambe, per scherzo
+    // notte 4 (approvata l'11 ottobre): da bambina in piscina tirava giù gli altri per le gambe, per scherzo
     lampy: 'Lampy ti ha tirato giù, per scherzo.',
     // notte 5 (da approvare): giocava a Marco Polo a occhi chiusi e vinceva sempre
     fangy: '«Marco.» Hai risposto.',
@@ -189,7 +189,7 @@ const IT = {
     archieWait: 'aspetta al buio',
     archieDive: 'si rituffa',
     archieBlow: 'il vetro della lampara esplode',
-    // notte 4 (da approvare)
+    // notte 4 (approvate l'11 ottobre)
     lampyBeat: 'il campanellino, a tempo',
     lampyGiggle: 'una risatina sott’acqua',
     lampySurface: 'qualcosa affiora sulla lenza',
@@ -486,7 +486,7 @@ export const RADIO_NIGHT3: Record<Lang, RadioLine[]> = {
   ],
 };
 
-/** La chiamata della quarta notte (Lampy), corta come le altre: da approvare. */
+/** La chiamata della quarta notte (Lampy), corta come le altre: approvata l'11 ottobre. */
 export const RADIO_NIGHT4: Record<Lang, RadioLine[]> = {
   it: [
     { at: 0.0, text: 'Quarta notte. Dodici pesci.' },
@@ -509,7 +509,7 @@ export const RADIO_NIGHT4: Record<Lang, RadioLine[]> = {
 /** La chiamata della quinta notte (Fangy), corta come le altre: da approvare. */
 export const RADIO_NIGHT5: Record<Lang, RadioLine[]> = {
   it: [
-    { at: 0.0, text: 'Quinta notte. Tredici pesci.' },
+    { at: 0.0, text: 'Quinta notte. Dodici pesci.' },
     { at: 2.4, text: 'Fangy non vede. Sente.' },
     { at: 4.6, text: 'Quando le luci salgono, zitto.' },
     { at: 7.0, text: 'Niente mulinello, niente lampara.' },
@@ -517,7 +517,7 @@ export const RADIO_NIGHT5: Record<Lang, RadioLine[]> = {
     { at: 11.0, text: '' },
   ],
   en: [
-    { at: 0.0, text: 'Fifth night. Thirteen fish.' },
+    { at: 0.0, text: 'Fifth night. Twelve fish.' },
     { at: 2.4, text: 'Fangy can’t see. He hears.' },
     { at: 4.6, text: 'When the lights come up, not a sound.' },
     { at: 7.0, text: 'No reel, no lamp.' },

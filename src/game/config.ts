@@ -310,7 +310,7 @@ export const NIGHTS: Record<number, NightConfig> = {
   // uguali e una risatina, poi affiora e ti guarda e molla (l'esca resta lì); ferrare è morire. È lei la protagonista:
   // viene presto e spesso. Gulpy passa più di rado (mangiava metà della quota), gli altri un po' più spesso della terza
   // notte e i pesci abboccano più in fretta. Lampy non viene con Hatch (ci si nasconde e la lenza resta lì) né con
-  // Archie (due cose da sentire nello stesso momento). Quota 12. Da approvare con la notte
+  // Archie (due cose da sentire nello stesso momento). Quota 12. Approvata l'11 ottobre; la difficoltà la prova l'utente
   4: {
     night: 4,
     quota: 12,
