@@ -71,9 +71,10 @@ Revisione del branch `claude/notte6` (bozza: `NIGHTS[6].bozza`), 11 ottobre. Le 
    quindi i risultati del finale dicono «Fine della demo. Altre notti in arrivo.» al posto dei titoli di coda (le regole:
    «I titoli di coda, e si sblocca la notte 7»). Va bene finché la notte 7 e i titoli non ci sono; da ricordare quando
    arrivano. Riprodurre: vincere la notte 6 con `?bozze`.
-6. **Durante il finale resta il suggerimento della canna.** Nel finale (28 s, i comandi fermi) sotto resta scritto
-   «Tieni premuto per recuperare…» se all'alba avevi un pesce in canna (`updateHud`, il suggerimento non guarda
-   `finished`). Piccolo; si vede nella schermata della radio dell'alba.
+6. **Durante il finale resta la barra del mulinello.** `src/app/night.ts:2545`: se all'alba avevi un pesce in canna,
+   per tutti i 28 s del finale (i comandi fermi) restano la barra della tensione e «Tieni premuto per recuperare, molla
+   quando tira», perché `hud.reel` guarda solo la fase della pesca e non `finished`. Piccolo (succede anche alle altre
+   notti, ma lì l'alba dura 7 s); si vede nella prova del finale.
 7. **Nota sulle prove nel browser.** I suoni si decodificano tutti dopo il primo tasto; nel browser di prova (CPU
    lenta, quattro pagine insieme) i `madre_*` non erano ancora pronti nelle prime prove saltate avanti nel tempo, e
    sono partiti i ripieghi (`splash_big`, `mus_title`, `creak_2`). Su una macchina vera non dovrebbe succedere; se si
