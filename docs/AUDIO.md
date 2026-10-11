@@ -165,7 +165,7 @@ gioco (`sfx.lampyBell`, senza variazioni d'altezza né di volume: i tre colpi de
 | `lampy_climb` | 1,2 s | Agganciata, risale la lenza a baci risucchiati sempre più svelti, il filo e la canna che gemono, una risatina che si stringe in un gorgoglio. |
 | `js_lampy` | 1,4 s | Jumpscare (**stereo**): il risucchio enorme della ventosa che si spalanca e si attacca, gli anelli di denti che girano come una macina (un ticchettio fitto che va e viene), lo strillo di una neonata (tre voci) con sotto la stessa voce da una gola più grande. RMS ≈ −7,3 dBFS. |
 
-### Fangy — notte 5, stare zitti (11 ottobre, da approvare)
+### Fangy — notte 5, stare zitti (11 ottobre, approvati)
 Un mastino degli abissi, cieco, con una gola enorme (formanti a ×0,62): non parla, respira. Quasi tutto il suo suono
 è acqua e fiato, vicinissimo e dietro le spalle (sta accanto alla barca, a destra dietro il pescatore). Mentre ascolta
 il gioco tiene acceso il suo respiro in loop (`fangy_listen`, il volume segue quanto è su); a ogni rumore che sente
