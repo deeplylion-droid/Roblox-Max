@@ -299,3 +299,15 @@ html, body {
 .book-screen .book-nav .turnbtn:disabled { opacity: .2; cursor: default; }
 .book-nav .hint { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
 @media (prefers-reduced-motion: reduce) { .leaf { transition: none; } }
+
+/* ── le cinematiche dei finali: le bande nere, la scritta; il resto dell'interfaccia sparisce ── */
+.hud.cinema > :not(.hud-sub):not(.hud-cine):not(.hud-bars) { opacity: 0 !important; transition: opacity .6s; }
+.hud-bars { position: absolute; inset: 0; pointer-events: none; }
+.hud-bars::before, .hud-bars::after { content: ''; position: absolute; left: 0; right: 0; height: 0; background: #000; transition: height 1.4s ease; }
+.hud-bars::before { top: 0; }
+.hud-bars::after { bottom: 0; }
+.hud.cinema .hud-bars::before, .hud.cinema .hud-bars::after { height: 9vh; }
+.hud.cinema .hud-sub { bottom: calc(9vh + 18px); }
+.hud-cine { position: absolute; left: 50%; bottom: calc(9vh + 70px); transform: translateX(-50%); width: min(900px, 86vw); text-align: center; font-size: calc(27px * var(--ts)); line-height: 1.35; color: var(--ink); opacity: 0; transition: opacity 1.2s; }
+.hud-cine.show { opacity: 1; }
+

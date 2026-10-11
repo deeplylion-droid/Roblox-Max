@@ -8,7 +8,7 @@ import type { LayerInfo, Vec3 } from '../engine/assets.ts';
 import { dirPos, type AudioEngine, type Voice } from '../engine/audio.ts';
 import type { BinoPlace, LayerDraw, LightGlow, Overlay, Stroke, TubeDraw } from '../engine/renderer.ts';
 import { CHILD, RADIO_VOICE, speak, type Utterance } from '../engine/voice.ts';
-import { EXTRA_NIGHT, FISHING, HOUR_SECONDS, NIGHTS, VIEW, YAW, type LampLevel, type MonsterId, type NightConfig } from '../game/config.ts';
+import { FISHING, HOUR_SECONDS, NIGHTS, VIEW, YAW, type LampLevel, type MonsterId, type NightConfig } from '../game/config.ts';
 import type { GameEvent } from '../game/events.ts';
 import { LAMPY_FIRST_BEAT } from '../game/monsters.ts';
 import { NightSim, type MotherCause } from '../game/sim.ts';
@@ -17,6 +17,7 @@ import { LORE_TEXT, RADIO, RADIO_FINALE, STRINGS, type Lang, type RadioLine } fr
 import { Hud } from './hud.ts';
 import type { Options } from './save.ts';
 import type { Sfx } from './sfx.ts';
+import { FINALE_A, between, sample, textAt, type CinematicScript } from './cinematic.ts';
 import { Sonar } from './sonar.ts';
 import { Rod } from './rod.ts';
 import { ROD_COLORS } from './rod_colori.ts';
@@ -343,9 +344,14 @@ export class Night {
    *  momenti dell'avvicinamento: il mare che si ferma, la lampara che trema, la ninna nanna) */
   private motherSong: Voice | null = null;
   private motherPassV: Voice | null = null;
+  /** il suono dell'avvicinamento (12 s): si tronca se muori prima che finisca */
+  private motherApproachV: Voice | null = null;
   private motherPrevT = 0;
-  /** il finale A all'alba della notte 6: secondi dalle sei (−1: niente finale) */
-  private finaleT = -1;
+  /** la cinematica in corso (i finali): la sequenza, a che punto è, le voci da fermare se la si salta */
+  private cine: { s: CinematicScript; t: number; voices: Voice[] } | null = null;
+  /** il secchio svuotato dalla cinematica (i pesci non si disegnano) e il buio della cinematica (0..1) */
+  private cineEmptyBucket = false;
+  private cineBlack = 0;
 
   constructor(private d: NightDeps) {
     this.S = STRINGS[d.lang];
@@ -362,8 +368,11 @@ export class Night {
     d.ui.appendChild(this.sonarEl);
     this.sonar.onPing = () => d.audio.play('sonar_ping', { pos: [0.3, -1.42, -0.5], gain: 0.25 });
     this.sonar.onWarn = () => d.sfx.sonarWarn();
-    // l'eco della Madre: un bip lungo e basso, più forte quando si avvicina
-    this.sonar.onMother = (near) => d.audio.play('sonar_warn', { gain: 0.35 + 0.45 * near, rate: 0.5 });
+    // l'eco della Madre: un bip lungo e basso, più forte quando si avvicina (solo a sonar aperto o quando arriva: tutta
+    // la notte, ogni giro del fascio, sarebbe troppo)
+    this.sonar.onMother = (near) => {
+      if (this.sonarOpen || this.sim.mother?.near) d.audio.play('sonar_warn', { gain: 0.35 + 0.45 * near, rate: 0.5 });
+    };
     // Molly sta dove l'hanno messa i render: lo sguardo va verificato verso quelle direzioni
     const L = d.stage.man.layers;
     this.gulpyFar = dirPos(L[POSE.gulpySale]?.yaw ?? -15, 7.5, -4);
@@ -407,7 +416,10 @@ export class Night {
     this.archieBreath = null;
     this.motherSong?.stop(0.4);
     this.motherPassV?.stop(0.4);
-    this.motherSong = this.motherPassV = null;
+    for (const v of this.cine?.voices ?? []) v.stop(0.3);
+    this.cine = null;
+    this.motherApproachV?.stop(0.4);
+    this.motherSong = this.motherPassV = this.motherApproachV = null;
     this.d.stage.lampSick = 0;
     this.d.sfx.stopLoops();
     this.hud.destroy();
@@ -495,6 +507,14 @@ export class Night {
 
   private keyDown(e: KeyboardEvent): void {
     const k = e.key.toLowerCase();
+    if (this.cine) {
+      // la cinematica di un finale: Esc (o Invio, Spazio) la salta
+      if (k === 'escape' || k === 'enter' || k === ' ') {
+        e.preventDefault();
+        this.skipCinematic();
+      }
+      return;
+    }
     if (k === 'tab') e.preventDefault();
     if (k === 'escape') {
       if (!this.finished) this.d.onPause();
@@ -730,7 +750,6 @@ export class Night {
     for (const e of sim.drainEvents()) this.handle(e);
 
     this.updateVisuals(dt);
-    this.updateFinale(dt);
     this.updateAudio(dt);
     this.updateRadio(dt);
     this.updateHud(dt);
@@ -1144,10 +1163,13 @@ export class Night {
             cap(S.captions.motherCall);
             break;
           case 'approach':
-            fx.motherApproach();
+            this.motherApproachV = fx.motherApproach();
             cap(S.captions.motherApproach);
             break;
           case 'pass':
+            // il mouse rimasto nella fascia del bordo non gira più lo sguardo da solo (sarebbe la morte senza un gesto):
+            // gira di nuovo solo se lo muovi (revisione dell'11 ottobre)
+            this.edgeArmed = false;
             this.motherPassV?.stop(1);
             this.motherPassV = fx.motherPass(e.n ?? 1);
             cap(S.captions.motherPass);
@@ -1167,6 +1189,9 @@ export class Night {
         this.finished = true;
         this.sim.setReelHeld(false);
         this.stopReel();
+        // l'avvicinamento della Madre non continua sopra il jumpscare o il buio
+        this.motherApproachV?.stop(0.2);
+        this.motherApproachV = null;
         if (e.killer === 'mother' && this.sim.outcome.kind === 'dead' && this.sim.outcome.cause === 'moved') {
           // ti sei mosso mentre passava sotto la barca: ti prende dal basso
           this.motherSong?.stop(0.05);
@@ -1185,6 +1210,8 @@ export class Night {
             // la canzone è finita al buio: sotto la barca sale qualcosa di enorme
             this.lullabyV?.stop(0.2);
             this.lullabyV = null;
+            this.motherSong?.stop(0.2);
+            this.motherSong = null;
             a.play('splash_big', { pos: [0, 1.2, -2.2], gain: 1, rate: 0.7 });
             a.play('mus_madre', { gain: 1 });
             this.d.stage.view.shake = this.d.options.reduceFlash ? 0.4 : 1.6;
@@ -1192,11 +1219,16 @@ export class Night {
             // le campane della festa, ovattate, e sotto la Madre che si sveglia (se cantava, la canzone sfuma)
             this.lullabyV?.stop(2);
             this.lullabyV = null;
+            this.motherSong?.stop(2);
+            this.motherSong = null;
             a.play('bell_dawn', { pos: dirPos(BELL_YAW, 5, 4), gain: 0.35, lowpass: 900 });
             a.play('mus_madre', { gain: 0.9 });
             this.hud.toast(S.sixAm, S.quotaMissed, 4);
           }
         } else {
+          // (se stava arrivando la Madre, la sua ninna nanna si tronca col segnale)
+          this.motherSong?.stop(0.2);
+          this.motherSong = null;
           this.startJumpscare(e.killer);
           this.endResult = { kind: 'dead', killer: e.killer, stats: this.stats() };
           // il segnale salta appena finisce l'assalto, prima che l'immagine resti ferma
@@ -1218,13 +1250,13 @@ export class Night {
         this.loops.drone?.stop(3);
         this.loops.drone = null;
         this.hud.toast(S.sixAm, `${S.survived} · ${S.quotaMet}`, 6);
-        // il finale A è solo della notte 6: la notte extra, anche con la Madre, ha l'alba normale (o il finale B, che
-        // per ora è un segnaposto nell'App: Screens.extraEnding)
-        if (this.sim.mother && this.nightNo !== EXTRA_NIGHT) {
-          // il finale A (notte 6): la Madre sale accanto alla barca, si prende il secchio e torna giù coi figli; poi
-          // sorge il sole e la radio (updateFinale)
-          this.finaleT = 0;
-          this.endTimer = 28;
+        // solo la notte 6: la notte extra, anche con la Madre, ha l'alba normale (o il finale B, per ora un segnaposto
+        // nell'App: Screens.extraEnding)
+        if (this.nightNo === 6) {
+          // il finale A (notte 6), la cinematica: la Madre sale accanto alla barca, si prende il secchio e torna giù coi
+          // figli; poi sorge il sole e la radio
+          this.startCinematic(FINALE_A);
+          this.endTimer = FINALE_A.length + 0.2;
         } else {
           setTimeout(() => a.play('mus_6am', { gain: 0.85 }), 1500);
           this.loops.dawn = a.play('amb_dawn', { loop: true, fadeIn: 4, gain: 0.8 });
@@ -1436,7 +1468,7 @@ export class Night {
 
     // alba alle 6: il cielo si schiarisce, il mare si calma (nel finale della notte 6 il sole sorge dopo, quando lei se
     // n'è andata)
-    if (sim.outcome.kind === 'won' && (this.finaleT < 0 || this.finaleT > 15)) v.dawn = Math.min(1, v.dawn + dt / (this.finaleT < 0 ? 5 : 8));
+    if (sim.outcome.kind === 'won' && !this.cine) v.dawn = Math.min(1, v.dawn + dt / 5);
     // la Madre ti prende (la quota mancata, la canzone finita, o ti sei mosso): il buio, più in fretta se ti ha preso da sotto
     if (sim.outcome.kind === 'dead' && sim.outcome.killer === 'mother') {
       const moved = sim.outcome.cause === 'moved';
@@ -1470,13 +1502,14 @@ export class Night {
       }
       if (t < 0.12 && !this.d.options.reduceFlash) st.lampDip = 1;
     }
+    if (this.cine) this.playCinematic(dt);
     st.update(dt);
   }
 
   /**
    * La Madre (notte 6). Mentre si avvicina (10 s): a 3,5 s il mare si ferma (come nel suono dell'avvicinamento), a 6 e a
    * 9 s la lampara trema, da 8 s sale la sua ninna nanna. Mentre passa sotto, la barca si solleva piano sul suo dorso e
-   * s'inclina da sinistra a destra; quando se n'è andata il mare torna. Nel finale all'alba: updateFinale.
+   * s'inclina da sinistra a destra; quando se n'è andata il mare torna. Nei finali comanda la cinematica.
    */
   private updateMother(dt: number): void {
     const mo = this.sim.mother;
@@ -1500,35 +1533,80 @@ export class Night {
     const liftT = mo.state === 'passing' ? 1 : mo.state === 'attack' ? 3 : 0;
     v.mLift = approach(v.mLift, liftT, mo.state === 'attack' ? 6 : liftT > 0 ? 0.35 : 0.5, dt);
     const p = mo.state === 'passing' ? Math.min(1, t / mo.passTime) : mo.state === 'leaving' ? 1 : 0.5;
-    if (this.finaleT < 0) {
+    if (!this.cine) {
       st.view.liftPitch = 1.6 * v.mLift;
       st.view.liftRoll = -2.4 * v.mLift * Math.cos(Math.PI * p);
     }
   }
 
-  /**
-   * Il finale A all'alba della notte 6 (approvato l'11 ottobre), sui tempi del suono `madre_dawn` (24 s, da 1,5 s):
-   * lei sale accanto alla barca a sinistra e la barca dondola, i figli affiorano attorno, la sua pinna sul capodibanda
-   * inclina la barca mentre prende il secchio, tornano giù tutti; poi il sole e la radio.
-   */
-  private updateFinale(dt: number): void {
-    if (this.finaleT < 0) return;
-    const a = this.d.audio;
-    const t0 = this.finaleT;
-    const t = (this.finaleT += dt);
-    const at = (x: number) => t0 < x && t >= x;
-    if (at(1.5)) this.loops.finale = this.d.sfx.motherDawn();
-    if (at(21.5)) this.loops.dawn = a.play('amb_dawn', { loop: true, fadeIn: 5, gain: 0.8 });
-    if (at(23)) this.radio = { t: -0.8, next: 0, utt: null, hiss: null, lines: RADIO_FINALE[this.d.lang] };
-    // la barca: lei che sale a sinistra (2–6 s), la pinna sul capodibanda (12–14,5 s), poi giù tutti (14,5–18,5 s)
-    const k = (x0: number, x1: number) => smooth01(Math.max(0, Math.min(1, (t - x0) / (x1 - x0))));
-    const s = this.d.options.reduceFlash ? 0.5 : 1;
-    const rise = k(2, 6) * (1 - k(14.5, 18.5));
-    const fin = k(12, 12.8) * (1 - k(14.2, 15.5));
+  /** Comincia una cinematica (un finale): niente più comandi, l'interfaccia lascia il posto alle bande nere. */
+  private startCinematic(s: CinematicScript): void {
+    this.cine = { s, t: 0, voices: [] };
+    this.binoUp = false;
+    this.bino = 0;
+    if (this.sonarOpen) this.toggleSonar(false);
+    this.stopReel();
+    this.hud.cinema(true);
+  }
+
+  /** La cinematica salta alla fine (Esc): le sue voci si spengono, poi i risultati. */
+  private skipCinematic(): void {
+    const c = this.cine;
+    if (!c) return;
+    for (const v of c.voices) v.stop(0.25);
+    c.voices = [];
+    this.radio?.utt?.stop();
+    this.radio?.hiss?.stop(0.2);
+    this.radio = null;
+    c.t = c.s.length;
+    this.cineBlack = 1;
+    this.endTimer = Math.min(this.endTimer, 0.3);
+  }
+
+  /** Un passo della cinematica: lo sguardo, la luce, le creature, la barca, i suoni, le scritte e il buio. */
+  private playCinematic(dt: number): void {
+    const c = this.cine!;
+    const s = c.s;
+    const t0 = c.t;
+    const t = Math.min(s.length, (c.t += dt));
     const st = this.d.stage;
-    st.view.liftRoll = s * (-1.8 * rise * (0.7 + 0.3 * Math.sin(t * 1.3)) - 4.2 * fin);
-    st.view.liftPitch = s * 0.8 * rise;
-    if (at(12)) st.view.shake = Math.max(st.view.shake, 0.5 * s);
+    const view = st.view;
+    const v = this.v;
+    const [yaw, pitch, hfov] = sample(s.view, t);
+    view.yaw = view.targetYaw = yaw;
+    view.pitch = pitch;
+    view.hfov = hfov;
+    view.swayYaw = view.swayPitch = view.steady = 0;
+    if (s.dawn) v.dawn = sample(s.dawn, t);
+    if (s.lamp) st.lampTarget = sample(s.lamp, t);
+    const cr = s.creatures ?? {};
+    if (cr.gulpy) {
+      v.gRise = sample(cr.gulpy, t);
+      v.gSale = v.gRise > 0.001 ? 1 : 0;
+    }
+    if (cr.archie) v.aRise = sample(cr.archie, t);
+    if (cr.lampy) v.lRise = sample(cr.lampy, t);
+    if (cr.fangy) v.fRise = sample(cr.fangy, t);
+    if (cr.hatch) v.hRise = sample(cr.hatch, t);
+    const soft = this.d.options.reduceFlash ? 0.5 : 1;
+    if (s.tilt) {
+      const [roll, pt] = sample(s.tilt, t);
+      view.liftRoll = roll * soft;
+      view.liftPitch = pt * soft;
+    }
+    this.cineBlack = s.black ? sample(s.black, t) : 0;
+    for (const x of between(s.sounds, t0, t)) {
+      const vo = this.d.audio.play(x.id, { gain: x.gain ?? 1, loop: x.loop, fadeIn: x.fadeIn });
+      if (vo) c.voices.push(vo);
+    }
+    for (const x of between(s.events, t0, t)) {
+      if (x.e === 'emptyBucket') this.cineEmptyBucket = true;
+      else if (x.e === 'shake') view.shake = Math.max(view.shake, 0.9 * soft);
+      else if (x.e === 'lampOff') st.lampTarget = 0;
+      else if (x.e === 'dip') st.lampDip = this.d.options.reduceFlash ? 0.6 : 1;
+      else if (x.e === 'radio') this.radio = { t: -0.8, next: 0, utt: null, hiss: null, lines: RADIO_FINALE[this.d.lang] };
+    }
+    this.hud.cineText(textAt(s, t, this.d.lang));
   }
 
   /** Batteria (dalla notte 2): l'ago del voltmetro e la lampara che trema quando è quasi scarica. */
@@ -1682,7 +1760,7 @@ export class Night {
     // la canna: il manico e il mulinello sono uno strato, il fusto lo disegna il motore (render: tubes)
     layers.push(has('rod_base') ? 'rod_base' : this.rodKey());
     const n = sim.fish;
-    if (n > 0) layers.push(n <= 3 ? 'fish2' : n <= 6 ? 'fish5' : 'fish9');
+    if (n > 0 && !this.cineEmptyBucket) layers.push(n <= 3 ? 'fish2' : n <= 6 ? 'fish5' : 'fish9');
     layers.push(...aboard);
     return layers;
   }
@@ -2409,7 +2487,7 @@ export class Night {
       flash,
       flashColor,
       glitch,
-      fade: 1 - v.dark * 0.9,
+      fade: (1 - v.dark * 0.9) * (1 - this.cineBlack),
       glows,
       boatGlows: binoOn ? [] : tk ? [...eyes.boat, ...tk.glows] : eyes.boat,
       glowSprites: be > 0

@@ -28,6 +28,8 @@ export class NightSim {
   hideTimer = 0;
   viewYaw = 0;
   sonarOpen = false;
+  /** il sonar (o il binocolo) come lo tiene il pescatore, anche al buio quando lo schermo resta nero */
+  private sonarAsked = false;
   reelHeld = false;
   outcome: Outcome = { kind: 'playing' };
   readonly fishing: Fishing;
@@ -150,8 +152,9 @@ export class NightSim {
 
   setView(yaw: number, sonarOpen: boolean): void {
     this.viewYaw = yaw;
-    // aprire il sonar mentre la Madre passa sotto la barca è un gesto
-    if (sonarOpen && !this.sonarOpen) this.stir();
+    // aprire il sonar mentre la Madre passa sotto la barca è un gesto (tenerlo aperto no, anche se al buio si spegne)
+    if (sonarOpen && !this.sonarAsked) this.stir();
+    this.sonarAsked = sonarOpen;
     // al buio anche il sonar è spento
     this.sonarOpen = sonarOpen && !this.blackout;
   }
@@ -403,14 +406,15 @@ export class NightSim {
 
   /**
    * La Madre (notte 6): quando comincia ad avvicinarsi i figli tornano giù; mentre passa sotto la barca il mulinello
-   * tenuto o il telone che si muove sono gesti (lo sguardo lo controlla lei).
+   * tenuto è un gesto (lo sguardo lo controlla lei; il telone toccato mentre passa lo prende toggleHide, ma quello
+   * tirato mentre si avvicinava può finire di muoversi da solo, come la vista che si ferma).
    */
   private updateMother(dt: number, w: WorldView): void {
     const m = this.mother!;
     const before = m.state;
     m.update(dt, w);
     if (m.state === 'approaching' && before !== 'approaching') this.retreatAll();
-    if (m.passing && (this.reelHeld || this.hide === 'goingIn' || this.hide === 'goingOut')) m.moved(w);
+    if (m.passing && this.reelHeld) m.moved(w);
   }
 
   private land(c: Catch): void {

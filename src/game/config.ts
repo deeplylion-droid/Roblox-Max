@@ -427,7 +427,7 @@ export const NIGHTS: Record<number, NightConfig> = {
     lampy: { firstAt: 0.7 * H, cooldown: [70, 105], grab: [1.5, 4], lurkMax: 30, beat: 0.62, surface: 0.6, stay: 2.4, climb: 1.1 },
     fangy: { firstAt: 0.5 * H, cooldown: [80, 120], approach: 5, rise: 1.4, listen: 7, noises: 3, deaf: 0.8, reelNoise: 1.2, leave: 2 },
     mother: { passes: [2 * H - 10, 4 * H - 10, 5.5 * H - 10], approach: 10, pass: [10, 15, 20], leave: 6, still: 4, circle: 70 },
-    battery: { drain: [0, 1 / 700, 1 / 320], sonar: 1 / 1100, low: 0.15, lullaby: 64 },
+    battery: { drain: [0, 1 / 560, 1 / 240], sonar: 1 / 800, low: 0.15, lullaby: 64 },
     hideTime: 0.7,
     unhideTime: 0.6,
   },

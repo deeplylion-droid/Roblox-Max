@@ -207,6 +207,22 @@
     "gain": 0.9,
     "category": "mon"
   },
+  "finale_nessuno": {
+    "file": "finale_nessuno.ogg",
+    "duration": 18.0,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.85,
+    "category": "mon"
+  },
+  "finale_tuoi": {
+    "file": "finale_tuoi.ogg",
+    "duration": 18.0,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.85,
+    "category": "mon"
+  },
   "fish_bucket": {
     "file": "fish_bucket.ogg",
     "duration": 0.95,
@@ -610,6 +626,14 @@
   "madre_dawn": {
     "file": "madre_dawn.ogg",
     "duration": 24.0,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.85,
+    "category": "mon"
+  },
+  "madre_dawn_breve": {
+    "file": "madre_dawn_breve.ogg",
+    "duration": 17.0,
     "loop": false,
     "channels": 2,
     "gain": 0.85,
