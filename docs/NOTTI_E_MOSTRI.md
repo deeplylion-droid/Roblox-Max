@@ -382,7 +382,9 @@ finale saranno 2560×1440, codificate come i jumpscare (`post.encode_light_pass`
 `public/assets/img/fin_molo.webp` e `fin_edicola.webp`, con la voce `endings.<scena>` in `overlays.json` (file,
 scala, proporzioni ed esposizione); il comando è lo stesso con `--finale`.
 
-- **«I tuoi» — il molo all'alba** (`docs/concept/finali_molo_anteprima.jpg`). Un molo di legno nuovo sotto il
+- **«I tuoi» — il molo all'alba** (`docs/concept/finali_molo_anteprima.jpg`). **Approvato l'11 ottobre** (seconda
+  anteprima); **render finale fatto**: `public/assets/img/fin_molo.webp` (2560×1440, 256 campioni), voce
+  `endings.molo` in `overlays.json` (scala 6, esposizione +0,2 EV da dare al tonemap del motore). Un molo di legno nuovo sotto il
   paese, a sinistra del campanile: la costa, il paese, il faro, i faraglioni e il parco sono quelli della baia
   (`env.py`, `landmarks.py`), spostati e girati in modo che il gozzo del gioco (`boat.py`, senza il pescatore,
   lampara spenta, secchio vuoto) sia ormeggiato al molo con due cime e i parabordi. La camera sta in cima al molo,
