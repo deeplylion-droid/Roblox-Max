@@ -128,6 +128,44 @@
     }
    ]
   },
+  "fangy": {
+   "aspect": 1.7778,
+   "fps": 10,
+   "frames": [
+    {
+     "file": "js_fangy_00.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_fangy_01.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_fangy_02.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_fangy_03.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_fangy_04.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_fangy_05.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_fangy_06.webp",
+     "scale": 0.35000000000000003
+    },
+    {
+     "file": "js_fangy_07.webp",
+     "scale": 0.41000000000000003
+    }
+   ]
+  },
   "gulpy": {
    "aspect": 1.7778,
    "fps": 10,
