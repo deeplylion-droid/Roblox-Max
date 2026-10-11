@@ -371,3 +371,49 @@ breve. **Da fare**: il «regista» delle cinematiche nel motore; i render del mo
 la tua foto; le immagini della Madre; i suoni dei due finali segreti e un taglio più corto del finale all'alba
 (`madre_dawn` oggi dura 24 s). Si fanno dopo la notte 6 e le immersioni, da cui dipendono.
 
+### Le ultime inquadrature dei due finali segreti
+
+> **Da approvare** (11 ottobre): solo le anteprime, a pochi campioni (1600×900, 24 campioni); i render finali si
+> fanno dopo l'approvazione. Script: `tools/render/finali.py` (`tools/.venv/bin/python tools/render/finali.py
+> [molo|edicola] [--fast]`).
+
+Due immagini fisse, 16:9, che il motore mostra alla fine della cinematica con un lento movimento di camera. Nel
+finale saranno 2560×1440, codificate come i jumpscare (`post.encode_light_pass` con la sua scala, webp) in
+`public/assets/img/fin_molo.webp` e `fin_edicola.webp`, con la voce `endings.<scena>` in `overlays.json` (file,
+scala, proporzioni ed esposizione); il comando è lo stesso con `--finale`.
+
+- **«I tuoi» — il molo all'alba** (`docs/concept/finali_molo_anteprima.jpg`). Un molo di legno nuovo sotto il
+  paese, a sinistra del campanile: la costa, il paese, il faro, i faraglioni e il parco sono quelli della baia
+  (`env.py`, `landmarks.py`), spostati e girati in modo che il gozzo del gioco (`boat.py`, senza il pescatore,
+  lampara spenta, secchio vuoto) sia ormeggiato al molo con due cime e i parabordi. La camera sta in cima al molo,
+  dalla parte della riva, e guarda verso il largo: il sole appena sorto sopra le colline del parco, il mare rosa,
+  la ruota panoramica lontana. Sulle assi umide di rugiada, le **sette file di impronte bagnate** salgono dalla
+  scaletta in fondo al molo e vengono verso la camera, cioè verso il paese che sta alle sue spalle: col sole
+  davanti, quelle nella sua scia brillano, le altre sono scure sul legno chiaro. Le impronte, come proposte:
+  - **Gulpy**: palmate, tre dita lunghe a ventaglio con la membrana a festoni;
+  - **Molly**: piedini nudi da bambina, cinque ditini;
+  - **Hatch**: scarpette da bambino col battistrada, piccole ma col passo lunghissimo (lui è altissimo);
+  - **Robin**: tante zampette a puntini, a ventaglio, e la coda che striscia in mezzo;
+  - **Lampy**: gli anelli della ventosa coi denti da latte dentro, distanziati, come una sanguisuga che cammina;
+  - **Fangy**: graffi sottili e lunghi degli artigli, con le nocche;
+  - **Archie**: una scia che serpeggia, continua.
+
+  Attorno a dove sono saliti, gocce. Le impronte sono una maschera dipinta (4 mm per pixel) sotto il materiale delle
+  assi: dove è bagnato il legno è scuro e lucido.
+  **Ancora da sistemare**: fuori dalla scia del sole (le file a sinistra, Lampy, Robin, Fangy e Hatch) le impronte
+  si leggono poco; prima del finale vanno rese più scure o più grandi.
+- **«Nessuno» — l'edicola da vicino** (`docs/concept/finali_edicola_anteprima.jpg`). L'edicola votiva dello scoglio
+  (la stessa del binocolo: `landmarks.build_chapel` e `binocolo.lore_photos`) vista da dentro, sotto il tetto, nella
+  luce grigia di un mattino coperto; i lumini sono quasi consumati. Le foto dei bambini sono quelle della scena,
+  ammorbidite per il primo piano. **La tua foto** (proposta): una **Polaroid nuova**, l'unica non sbiadita, infilata
+  nell'angolo della cornice di mezzo del 1997. Dentro, la barca di notte con la lampara accesa e la sagoma del
+  pescatore col berretto, vista da sotto, dal pelo dell'acqua, a sinistra di poppa, come da qualcuno che nuotava lì
+  accanto: è un render vero della scena del gioco (il pescatore, che nel gioco proietta solo l'ombra, qui si vede in
+  controluce), passato in colori da Polaroid (neri slavati, grana, vignetta). È grande come una Polaroid vera
+  (8,8×10,7 cm); il fuoco è su di lei e il movimento di camera del motore dovrebbe avvicinarsi piano.
+
+**Da decidere**: le impronte una per mostro come sopra; la Polaroid (cosa c'è nella foto e dove è appesa); se la
+Polaroid va ingrandita per leggersi meglio nell'inquadratura ferma; e se per il primo piano servono foto dei bambini
+più dettagliate (oggi sono quelle pensate per il binocolo, da lontano). Nell'anteprima del molo il paese non si vede
+(è alle spalle della camera): le impronte vanno verso di lui.
+
