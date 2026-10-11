@@ -525,7 +525,7 @@ def _blow(rng, dur=1.8):
 def _dawn(s, rng):
     """Il finale all'alba (finale A): la Madre sale accanto alla barca, a sinistra (il mare che si gonfia, l'acqua
     che le scroscia giù dal corpo enorme, lo sbuffo, la barca che dondola); attorno a lei emergono i figli uno dopo
-    l'altro; la sua mano bagnata sul capodibanda, il secchio preso (i pesci che scivolano nella lamiera, l'acqua che
+    l'altro; la sua pinna bagnata sul capodibanda, il secchio preso (i pesci che scivolano nella lamiera, l'acqua che
     ne cola mentre si alza); poi tornano giù tutti, lei per ultima, canticchiando la fine della ninna nanna, che per
     la prima volta si risolve (in La maggiore); il mare si calma, arriva un primo gabbiano."""
     n, d = s.n, s.dur
@@ -563,7 +563,7 @@ def _dawn(s, rng):
         place(out, pan(br, p), tk + rng.uniform(0.25, 0.45))
         for _ in range(4):
             place(out, pan(droplet(rng, amp=rng.uniform(0.03, 0.08), tonal=0.4), p), tk + rng.uniform(0.2, 1.0))
-    # 3) il secchio: la sua mano bagnata sul bordo (la barca s'inclina verso di lei), il secchio preso
+    # 3) il secchio: la sua pinna bagnata sul bordo (la barca s'inclina verso di lei), il secchio preso
     place(out, pan(0.55 * wet_slap(rng, size=1.6, surface='wood', dur=0.6, wood_base=110.0, drops=1.0), P * 0.7), 10.6)
     cr = boat_creak(rng, 1.6, [(0, 14), (0.8, 30), (1.6, 12)], [(0, 0.3), (0.4, 1), (1.6, 0)], base=100, t60=0.16,
                     bright=0.8, hull=0.7)
