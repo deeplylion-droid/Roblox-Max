@@ -1,10 +1,13 @@
 import { FISHING, HOUR_SECONDS, LAMP, LORE, NIGHT_HOURS, VIEW, YAW, angleDiff, type LampLevel, type MonsterId, type NightConfig } from './config.ts';
 import type { GameEvent } from './events.ts';
 import { Fishing, type Catch } from './fishing.ts';
-import { Archie, Fangy, Hatch, Lampy, Molly, Gulpy, Robin, SONAR_WARN, type LampyLine, type WorldView } from './monsters.ts';
+import { Archie, Fangy, Hatch, Lampy, Molly, Gulpy, Mother, Robin, SONAR_WARN, type LampyLine, type WorldView } from './monsters.ts';
 import { Rng } from './rng.ts';
 
-export type Outcome = { kind: 'playing' } | { kind: 'won' } | { kind: 'dead'; killer: MonsterId | 'mother'; cause?: 'lullaby' };
+/** come si muore con la Madre: la ninna nanna finita al buio, o ti sei mosso mentre passava sotto la barca (notte 6);
+ *  senza causa, la quota mancata alle sei */
+export type MotherCause = 'lullaby' | 'moved';
+export type Outcome = { kind: 'playing' } | { kind: 'won' } | { kind: 'dead'; killer: MonsterId | 'mother'; cause?: MotherCause };
 export type HideState = 'out' | 'goingIn' | 'in' | 'goingOut';
 
 /**
@@ -39,6 +42,8 @@ export class NightSim {
   readonly lampy: Lampy | null;
   /** dalla notte 5 */
   readonly fangy: Fangy | null;
+  /** la notte 6: la Madre */
+  readonly mother: Mother | null;
   /** la lenza come la vede Lampy */
   private readonly lampyLine: LampyLine;
   /** Archie ha soffiato con la lampara accesa: il vetro è esploso, non si riaccende più */
@@ -73,6 +78,7 @@ export class NightSim {
     this.archie = cfg.archie ? new Archie(cfg.archie) : null;
     this.lampy = cfg.lampy ? new Lampy(cfg.lampy) : null;
     this.fangy = cfg.fangy ? new Fangy(cfg.fangy) : null;
+    this.mother = cfg.mother ? new Mother(cfg.mother) : null;
     const fishing = this.fishing;
     this.lampyLine = {
       get waiting() {
@@ -144,6 +150,8 @@ export class NightSim {
 
   setView(yaw: number, sonarOpen: boolean): void {
     this.viewYaw = yaw;
+    // aprire il sonar mentre la Madre passa sotto la barca è un gesto
+    if (sonarOpen && !this.sonarOpen) this.stir();
     // al buio anche il sonar è spento
     this.sonarOpen = sonarOpen && !this.blackout;
   }
@@ -152,9 +160,15 @@ export class NightSim {
     this.reelHeld = held;
   }
 
+  /** Un gesto del pescatore: se la Madre sta passando sotto la barca, lo prende (notte 6). */
+  private stir(): void {
+    if (this.mother?.passing && this.playing) this.mother.moved(this.world);
+  }
+
   /** Clic sulla canna / Spazio: lancia oppure ferra. */
   pressRod(): boolean {
     if (!this.playing) return false;
+    this.stir();
     if (this.hide !== 'out' || this.sonarOpen) {
       this.emit({ t: 'denied', reason: 'busy' });
       return false;
@@ -176,6 +190,7 @@ export class NightSim {
 
   throwFish(): boolean {
     if (!this.playing) return false;
+    this.stir();
     if (this.hide !== 'out' || this.sonarOpen) {
       this.emit({ t: 'denied', reason: 'busy' });
       return false;
@@ -204,6 +219,7 @@ export class NightSim {
 
   toggleHide(): boolean {
     if (!this.playing) return false;
+    this.stir();
     if (this.hide === 'out') {
       this.fishing.abandon();
       this.hide = 'goingIn';
@@ -224,6 +240,7 @@ export class NightSim {
 
   setLamp(level: LampLevel): void {
     if (!this.playing || level === this.lamp) return;
+    this.stir();
     if (this.blackout) {
       this.emit({ t: 'denied', reason: 'dark' });
       return;
@@ -302,6 +319,7 @@ export class NightSim {
     this.archie?.update(dt, w);
     this.lampy?.update(dt, w, this.lampyLine);
     this.fangy?.update(dt, w);
+    if (this.mother) this.updateMother(dt, w);
     // il mulinello mentre recuperi (Fangy)
     this.fangy?.reel(dt, w, this.reelHeld && this.fishing.phase === 'reeling' && this.hide === 'out' && !this.sonarOpen);
     if (this.archie?.state === 'blowing' && !this.lampBroken) {
@@ -331,6 +349,10 @@ export class NightSim {
                     : null;
     if (killer) {
       this.die(killer);
+      return;
+    }
+    if (this.mother?.state === 'attack') {
+      this.die('mother', 'moved');
       return;
     }
 
@@ -363,15 +385,32 @@ export class NightSim {
       this.emit({ t: 'lullaby', e: 'start' });
       // quando canta la Madre i bambini scappano (come in FNAF, quando salta la corrente resta solo
       // Freddy): niente più visite fino alla fine della canzone (approvato il 10 ottobre)
-      const w = this.world;
-      this.gulpy.retreat(w);
-      this.molly.retreat();
-      this.hatch.retreat(w);
-      this.robin?.retreat(w);
-      this.archie?.retreat(w);
-      this.lampy?.retreat(w, this.lampyLine);
-      this.fangy?.retreat(w);
+      this.retreatAll();
     }
+  }
+
+  /** I figli tornano giù tutti insieme: quando canta la Madre, o quando arriva lei (notte 6). */
+  private retreatAll(): void {
+    const w = this.world;
+    this.gulpy.retreat(w);
+    this.molly.retreat();
+    this.hatch.retreat(w);
+    this.robin?.retreat(w);
+    this.archie?.retreat(w);
+    this.lampy?.retreat(w, this.lampyLine);
+    this.fangy?.retreat(w);
+  }
+
+  /**
+   * La Madre (notte 6): quando comincia ad avvicinarsi i figli tornano giù; mentre passa sotto la barca il mulinello
+   * tenuto o il telone che si muove sono gesti (lo sguardo lo controlla lei).
+   */
+  private updateMother(dt: number, w: WorldView): void {
+    const m = this.mother!;
+    const before = m.state;
+    m.update(dt, w);
+    if (m.state === 'approaching' && before !== 'approaching') this.retreatAll();
+    if (m.passing && (this.reelHeld || this.hide === 'goingIn' || this.hide === 'goingOut')) m.moved(w);
   }
 
   private land(c: Catch): void {
@@ -450,13 +489,15 @@ export class NightSim {
       if (who === a && this.active(b)) return false;
       if (who === b && this.active(a)) return false;
     }
-    // niente nuovi eventi negli ultimi secondi prima dell'alba, né mentre canta la Madre
+    // niente nuovi eventi negli ultimi secondi prima dell'alba, né mentre canta la Madre o mentre lei è vicina (e
+    // nemmeno appena prima che arrivi: i figli lo sanno)
     if (this.nightLength - this.time < 12) return false;
     if (this.blackout) return false;
+    if (this.mother && (this.mother.near || this.mother.nextPassIn(this.time) < 8)) return false;
     return true;
   }
 
-  private die(killer: MonsterId | 'mother', cause?: 'lullaby'): void {
+  private die(killer: MonsterId | 'mother', cause?: MotherCause): void {
     this.outcome = cause ? { kind: 'dead', killer, cause } : { kind: 'dead', killer };
     this.emit({ t: 'dead', killer });
   }

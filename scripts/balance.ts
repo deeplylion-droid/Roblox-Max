@@ -2,7 +2,7 @@
  * Bilanciamento: fa giocare la notte a bot di diversa abilità e riassume i risultati.
  * Uso: node scripts/balance.ts [notte] [partite]
  * Notte extra: node scripts/balance.ts 7 [partite] [livelli], coi livelli nell'ordine di EXTRA_IDS
- * (gulpy,molly,hatch,robin,archie,lampy,fangy e, ottava, la Madre, che la simulazione non usa ancora), per esempio 5,5,5,5,5,5,5; un numero solo vale per tutti.
+ * (gulpy,molly,hatch,robin,archie,lampy,fangy e, ottava, la Madre), per esempio 5,5,5,5,5,5,5,10; un numero solo vale per tutti.
  */
 import { EXTRA_IDS, EXTRA_NIGHT, NIGHTS, extraLevels, extraNight, type ExtraLevels } from '../src/game/config.ts';
 import { NightSim } from '../src/game/sim.ts';
@@ -36,7 +36,9 @@ for (const skill of Object.values(SKILLS)) {
     loreSum += sim.loreThisNight.length;
     if (sim.outcome.kind === 'won') wins++;
     else if (sim.outcome.kind === 'dead') {
-      deaths[sim.outcome.killer] = (deaths[sim.outcome.killer] ?? 0) + 1;
+      // «mother» da sola è la quota mancata; mother:moved la Madre che ti prende, mother:lullaby la batteria morta
+      const k = sim.outcome.cause ? `${sim.outcome.killer}:${sim.outcome.cause}` : sim.outcome.killer;
+      deaths[k] = (deaths[k] ?? 0) + 1;
       deathHour.push(sim.hour);
     }
   }

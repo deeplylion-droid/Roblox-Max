@@ -190,11 +190,6 @@ export class Screens {
         e.preventDefault();
         set(who, lv[who] + (e.deltaY < 0 ? 1 : -1));
       });
-      // la Madre: il livello si sceglie già, ma nella notte non c'è ancora (la sua meccanica arriva con la notte 6)
-      if (who === 'mother') {
-        card.classList.add('soon');
-        card.append(h('div', { class: 'soon-tag' }, S.extraSoon));
-      }
       paint.push(() => {
         num.textContent = String(lv[who]);
         what.textContent = word(lv[who]);

@@ -127,8 +127,6 @@ html, body {
 .extra-card .lv-word { font-size: 12px; font-style: italic; color: var(--ink); opacity: .7; min-height: 1.4em; }
 .extra-screen .extra-card button.step { font-family: Georgia, 'Times New Roman', serif; font-size: 28px; padding: 0 8px; line-height: 1; }
 .extra-screen .extra-card button.step:disabled { opacity: .15; cursor: default; }
-.extra-card.soon { border-style: dashed; }
-.extra-card .soon-tag { font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--amber); opacity: .8; margin-top: 2px; }
 .extra-card.off { opacity: .45; border-color: rgba(233,226,208,.06); }
 .extra-card.off .who { text-decoration: line-through; text-decoration-thickness: 1px; }
 .extra-presets { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 10px; margin-top: 18px; }

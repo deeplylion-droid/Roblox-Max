@@ -310,11 +310,37 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
   testa avanti e le zanne puntate su di te, tutte le lucine accese; arriva a 55 cm dall'occhio chinandosi un poco, con
   una luce calda dalla parte della lanterna sulla faccia. Finché non c'è il render finale il gioco zooma sulla posa.
 
-## Notte 7 · La notte extra
+### Notte 6 · La Madre — *IL FINALE*
 
-> ⚠️ **PROPOSTA DA APPROVARE** (11 ottobre, tutta la sezione: regole, numeri, testi e schermata). La notte 6, la
-> Madre, la progetta un'altra sessione: qui non c'è niente di lei, solo il posto (la notte extra è la 7 e si
-> sblocca finendo l'ultima notte giocabile, che sarà la sesta).
+> **Approvato l'11 ottobre** (come si gioca e il finale A; l'aspetto della Madre è in arrivo con la tavola delle sagome).
+
+- **Come si gioca**: tornano tutti e sette i mostri e la regia ne manda di più insieme (è la notte più dura). Quota 12,
+  la batteria come sempre. In più c'è lei: sul sonar un'**ombra enorme** gira attorno alla barca, lontana, per tutta
+  la notte. Tre volte (verso le 2, le 4 e le 5:30) si avvicina e **passa sotto la barca**.
+- **Gli avvisi**: l'ombra sul sonar si stringe verso il centro; i mostri si zittiscono e tornano giù tutti insieme
+  (anche loro hanno paura della mamma); il mare si calma di colpo; dal fondo sale la ninna nanna della Madre
+  canticchiata da una voce di balena (la stessa ninna nanna di quando la batteria muore); la lampara trema.
+- **Mentre passa sotto** (da 10 a 20 s, sempre più a lungo): **immobilità totale**. Niente canna, lampara, telone,
+  pesci o sonar, e non girare lo sguardo (un tremito piccolo si perdona). La barca si solleva piano sul suo dorso e
+  scricchiola. Se abbocca un pesce, lo lasci andare.
+- **Se ti muovi** ti prende: il jumpscare viene dal basso, con la barca sollevata. La frase della morte (proposta):
+  «Mama Marina ama i suoi piccoli. Adesso anche te.» Quando è passata, tornano i figli.
+- **La radio** (proposta): «Sesta notte. Dodici pesci. / Stanotte viene anche lei. / Quando passa sotto la barca, non
+  muoverti. / Non toccare niente, non guardarti intorno. / Buona pesca.»
+- **Il finale A «La quota»** (scelto l'11 ottobre): all'alba la Madre sale accanto alla barca (l'unica volta che la
+  vedi davvero) e attorno a lei emergono tutti i suoi figli; prende il secchio e torna giù con loro. Sorge il sole;
+  la radio: «Ce l'hai fatta. Per quest'anno.» I titoli di coda, e si sblocca la notte 7.
+
+### Notte 7 · La notte extra
+
+> **Deciso l'11 ottobre**: la notte coi livelli da scegliere (come la notte personalizzata di FNAF), con anche **la
+> Madre come ottavo livello** (quanto spesso passa sotto la barca). Ha un suo finale, il **finale B «Il ricordo»**:
+> come il finale A, ma prima di andarsene la Madre ti lascia sul banco una foto dell'edicola, e sei tu da bambino, a
+> Splashland nel 1997 (c'eri anche tu, e sei l'unico che è tornato a casa). Si vede **solo vincendo la notte 7 con
+> impostazioni difficili** (tutti, Madre compresa, almeno a 10); con impostazioni più facili un'alba normale.
+
+> ⚠️ **PROPOSTA DA APPROVARE** (11 ottobre, tutto quello che segue: regole, numeri, testi e schermata). La notte
+> extra si sblocca finendo l'ultima notte giocabile: oggi la quinta, quando la sesta uscirà dalla bozza la sesta.
 
 Come la *custom night* di FNAF: per ognuno dei sette mostri, e per **la Madre** (ottava, confermato dall'utente
 l'11 ottobre), si sceglie un **livello da 0 a 20**. A 0 non viene, a
@@ -332,13 +358,16 @@ Lampy, il terzo rumore di Fangy): cambiano solo **quando arriva, quanto spesso t
     più a lungo, Robin ruba più spesso, Archie prende fiato in meno tempo e resta più a lungo al buio, Lampy prende la
     lenza prima, Fangy arriva più svelto e ascolta di più).
   - Fra 5 e 20 la curva sale piano all'inizio e più in fretta alla fine (se no a 10 era già quasi impossibile).
-- **La Madre** (**confermato l'11 ottobre** che c'è, come ottavo livello; la sua meccanica è quella approvata per la
-  notte 6 e la fa la sessione principale: si avvicina con l'ombra enorme sul sonar, i mostri si zittiscono e tornano
-  giù, mentre passa sotto la barca serve immobilità totale). Il suo livello dice **quante volte passa e quanto dura ogni
-  passata** (`extraMother()`, numeri da approvare): a 1 una passata di 5 s, al **10 tre passate come nella notte 6**
-  (7,5 s), al 20 cinque passate di 10 s. Nella schermata la sua scheda c'è già, tratteggiata e con la scritta **«in
-  arrivo»**: il livello si sceglie e si salva, ma la simulazione non lo usa finché la sua meccanica non arriva
-  (l'aggancio è segnato in `extraNight()`). Le simulazioni qui sotto quindi sono senza di lei.
+- **La Madre** (**confermato l'11 ottobre** che c'è, come ottavo livello): è la stessa della notte 6 (l'ombra enorme
+  sul sonar, i figli che si zittiscono e tornano giù, l'immobilità totale mentre passa sotto la barca). Il suo livello
+  dice **quante volte passa, quanto dura ogni passata e quanto avvisa prima** (`extraMother()`, numeri da approvare):
+  - **1**: una passata sola, verso le 3, di 8 s, con 12 s di avviso e un tremito di 5° perdonato;
+  - **10**: **esattamente come nella notte 6** (tre passate, verso le 2, le 4 e le 5:30, di 10, 15 e 20 s, 10 s di
+    avviso, 4° di tremito; un test lo controlla);
+  - **20**: cinque passate (verso l'1, le 2, le 3, le 4:15 e le 5:30) da 14 a 26 s, con 8 s di avviso e 3° di tremito.
+
+  Le passate sono 1 + livello/5 (arrotondato: 2 dal 3, 3 dall'8, 4 dal 13, 5 dal 18); durate, avviso e tremito si
+  sfumano. A 0 non viene. Il finale A della notte 6 (lei che si prende il secchio) nella notte extra non c'è.
 - **Il finale speciale** (**confermato l'11 ottobre**): si vede solo **vincendo con tutti, Madre compresa, almeno a
   10** (`extraEndingEarned()`); con impostazioni più facili all'alba c'è l'alba normale. Il finale vero è da fare:
   per ora dopo l'alba compare una **schermata segnaposto** (`Screens.extraEnding`, il titolo «Il finale della notte
@@ -363,29 +392,38 @@ Lampy, il terzo rumore di Fangy): cambiano solo **quando arriva, quanto spesso t
   «Scegli chi viene stanotte. 0: non viene. 20: feroce.» / «Choose who comes tonight. 0: stays away. 20: ferocious.»;
   le regole sotto i nomi «sfamalo, guardala, nasconditi, luce in faccia, spegni la luce, non ferrare, stai zitto» /
   «feed him, watch her, hide, light in his face, lamp off, don't strike, stay quiet»; per la Madre «La Madre, non
-  muoverti, in arrivo» / «The Mother, don't move, coming soon»; «Salpa» / «Cast off». Il finale segnaposto: «Il finale
-  della notte extra» / «The end of the extra night» (con una riga che dice che è un segnaposto).
+  muoverti» / «The Mother, don't move»; «Salpa» / «Cast off». Il finale segnaposto: «Il finale
+  della notte extra» / «The end of the extra night» (con una riga che dice che è un segnaposto; il finale B vero si fa
+  quando la Madre sarà renderizzata).
   La radio, corta: «Notte extra. Dieci pesci. / Stanotte vengono quelli che hai chiamato tu. / Buona pesca.» /
   «Extra night. Ten fish. / Tonight the ones you called are coming. / Good fishing.»
-- **Giocatori simulati** (`npm run sim -- 7 300 <livelli>`; un numero vale per tutti, se no i sette livelli in
-  ordine Gulpy, Molly, Hatch, Robin, Archie, Lampy, Fangy, e la Madre per ottava, che però non conta ancora). Vittorie di esperto / medio / maldestro:
+- **Giocatori simulati, con la Madre** (`npm run sim -- 7 300 <livelli>`; un numero vale per tutti e otto, se no gli
+  otto livelli in ordine Gulpy, Molly, Hatch, Robin, Archie, Lampy, Fangy, Madre). Vittorie di esperto / medio /
+  maldestro; fra le morti, «la quota» è la quota mancata alle sei e «la Madre» è lei che ti prende perché ti sei
+  mosso:
 
   | Livelli | Esperto | Medio | Maldestro | Chi uccide |
   |---|---|---|---|---|
   | tutti a 0 | 100% | 100% | 100% | nessuno: si pesca e basta |
-  | tutti a 1 | 100% | 88% | 70% | Lampy (i bot sbagliano a sentire i tre colpi) |
-  | tutti a 3 | 100% | 86% | 64% | Lampy, Fangy |
-  | tutti a 5 | 97% | 79% | 50% | Lampy; poi la quota |
-  | tutti a 10 | 82% | 71% | 36% | la quota mancata, Lampy, Archie |
-  | tutti a 15 | 4% | 18% | 11% | quasi sempre la quota: non resta tempo per pescare |
-  | tutti a 20 | 0% | 0% | 0% | la quota, Molly |
-  | i primi tre a 15 | 96% | 90% | 70% | Molly |
-  | i primi quattro a 20 (Gulpy, Molly, Hatch, Robin) | 11% | 4% | 2% | la quota, Molly |
-  | gli ultimi quattro a 20 (Robin, Archie, Lampy, Fangy) | 99% | 79% | 4% | Archie, Lampy |
-  | tutti a 5, Lampy e Fangy a 15 | 92% | 74% | 45% | Lampy, la quota |
+  | tutti a 1 | 98% | 87% | 64% | Lampy (i bot sbagliano a sentire i tre colpi), la Madre |
+  | tutti a 3 | 99% | 81% | 58% | Lampy, la Madre |
+  | tutti a 5 | 99% | 76% | 42% | Lampy, la Madre, Fangy |
+  | **tutti a 10** (il minimo per il finale B) | 90% | 67% | 26% | la Madre, Lampy, la quota; il maldestro anche Archie |
+  | tutti a 15 | 28% | 24% | 4% | la quota (non resta tempo per pescare), la Madre |
+  | tutti a 20 | 0,3% | 0,3% | 0% | la quota, la Madre, Molly |
+  | solo la Madre a 10 | 98% | 78% | 65% | la Madre |
+  | solo la Madre a 20 | 95% | 67% | 38% | la Madre |
+  | tutti a 5, Lampy e Fangy a 15, Madre a 5 | 92% | 65% | 33% | Lampy, la quota, la Madre |
+  | i primi tre a 15, il resto a 0 | 96% | 90% | 70% | Molly |
+  | i primi quattro a 20, il resto a 0 | 11% | 4% | 2% | la quota, Molly |
+  | Robin, Archie, Lampy e Fangy a 20, il resto a 0 | 99% | 79% | 4% | Archie, Lampy |
 
-  Ogni mostro da solo a 20 si batte (l'esperto vince sempre o quasi, il medio fra il 68% con Lampy e il 100%; il maldestro muore ad Archie nel 95% delle notti); insieme
-  rubano troppo tempo alla pesca. **Tutti a 20** per ora è la sfida impossibile, come il 20/20/20/20 di FNAF: i bot
-  non la vincono mai (l'esperto tiene la lampara alta e attira tutti, quindi da 15 in su fa peggio del medio). Se
-  l'utente la vuole difficile ma possibile, le strade sono due: pause più lunghe al 20, o una quota che scende quando
-  i livelli sono alti (sarebbe una regola nuova: da decidere).
+  Senza la Madre (i sette a 10 e lei a 0) l'esperto vince l'82%: **con lei vince di più** (90%), perché quando passa
+  i figli tornano giù e per un po' non salgono. La Madre uccide soprattutto chi si muove (il maldestro e il medio).
+  Ogni mostro da solo a 20 si batte (l'esperto vince sempre o quasi; il medio fra il 67% con la Madre o Lampy e il
+  100%; il maldestro muore ad Archie nel 95% delle notti); insieme rubano troppo tempo alla pesca. **Tutti a 20** per
+  ora è la sfida quasi impossibile, come il 20/20/20/20 di FNAF (i bot ne vincono una su trecento; l'esperto tiene la
+  lampara alta e attira tutti, quindi da 15 in su non fa meglio del medio). Se l'utente la vuole difficile ma
+  possibile, le strade sono due: pause più lunghe al 20, o una quota che scende quando i livelli sono alti (sarebbe
+  una regola nuova: da decidere). Il finale B (tutti almeno a 10) per l'esperto è alla portata, per il medio due volte
+  su tre.

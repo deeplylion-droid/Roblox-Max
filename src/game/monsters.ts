@@ -1,4 +1,4 @@
-import { LAMP, angleDiff, VIEW, YAW, type ArchieConfig, type FangyConfig, type HatchConfig, type LampLevel, type LampyConfig, type MollyConfig, type MonsterId, type GulpyConfig, type RobinConfig, type Side } from './config.ts';
+import { LAMP, angleDiff, VIEW, YAW, type ArchieConfig, type FangyConfig, type HatchConfig, type LampLevel, type LampyConfig, type MollyConfig, type MonsterId, type MotherConfig, type GulpyConfig, type RobinConfig, type Side } from './config.ts';
 import type { GameEvent } from './events.ts';
 import type { Rng } from './rng.ts';
 
@@ -950,5 +950,122 @@ export class Fangy {
       w.emit({ t: 'fangy', e: 'leave' });
       this.go('leaving', this.cfg.leave);
     }
+  }
+}
+
+// ───────────────────────── la Madre: notte 6, il finale ─────────────────────────
+
+export type MotherState = 'far' | 'approaching' | 'passing' | 'leaving' | 'attack';
+
+/** all'inizio della passata, per quanti secondi lo sguardo può ancora assestarsi (la vista che rallenta dopo un giro) */
+export const MOTHER_SETTLE = 0.6;
+
+/**
+ * La Madre (notte 6). Per tutta la notte la sua ombra gira lontana attorno alla barca, sul sonar; poche volte, a ore
+ * fisse, si avvicina (l'avviso: i figli tornano giù, il mare si calma, sale la sua ninna nanna) e passa sotto la barca.
+ * Mentre passa serve l'immobilità totale: un gesto qualunque (la canna, il mulinello, la lampara, il telone, un pesce,
+ * il sonar) o lo sguardo girato più di un tremito, e ti prende. Poi si allontana e i figli possono tornare.
+ */
+export class Mother {
+  state: MotherState = 'far';
+  /** secondi passati dentro lo stato (per la grafica e l'audio) */
+  stateTime = 0;
+  /** la passata in corso o l'ultima (0, 1, 2…; −1 prima della prima) */
+  pass = -1;
+  /** l'ombra sul sonar: angolo (gradi, come lo sguardo) e distanza (1 = lontanissima, 0 = sotto la barca) */
+  angle = 150;
+  dist = 0.9;
+  /** dove guardava il pescatore quando ha cominciato a passare sotto (lo sguardo deve restare lì) */
+  private yaw0 = 0;
+  private callTimer = 20;
+
+  constructor(private cfg: MotherConfig) {}
+
+  /** vicina: dall'avviso finché non si è allontanata (i figli stanno giù, la regia non manda nessuno) */
+  get near(): boolean {
+    return this.state === 'approaching' || this.state === 'passing' || this.state === 'leaving';
+  }
+
+  /** sotto la barca: adesso non ci si muove */
+  get passing(): boolean {
+    return this.state === 'passing';
+  }
+
+  /** quanto dura la passata in corso (s) */
+  get passTime(): number {
+    return this.cfg.pass[Math.max(0, Math.min(this.cfg.pass.length - 1, this.pass))] ?? 10;
+  }
+
+  /** secondi alla prossima passata (Infinity se non ce ne sono più) */
+  nextPassIn(time: number): number {
+    const t = this.cfg.passes[this.pass + 1];
+    return t === undefined ? Infinity : t - time;
+  }
+
+  private go(s: MotherState): void {
+    this.state = s;
+    this.stateTime = 0;
+  }
+
+  update(dt: number, w: WorldView): void {
+    this.stateTime += dt;
+    switch (this.state) {
+      case 'far': {
+        // l'ombra gira lontana; ogni tanto il suo richiamo arriva dal fondo
+        this.angle = angleDiff(this.angle + (360 / this.cfg.circle) * dt, 0);
+        this.dist = 0.88 + 0.06 * Math.sin(w.time * 0.21);
+        this.callTimer -= dt;
+        if (this.callTimer <= 0) {
+          w.emit({ t: 'mother', e: 'call' });
+          this.callTimer = w.rng.range(26, 48);
+        }
+        if (this.nextPassIn(w.time) <= 0) {
+          this.pass++;
+          w.emit({ t: 'mother', e: 'approach', n: this.pass + 1 });
+          this.go('approaching');
+        }
+        break;
+      }
+      case 'approaching':
+        this.dist = Math.max(0, 0.88 * (1 - this.stateTime / this.cfg.approach));
+        if (this.stateTime >= this.cfg.approach) {
+          this.dist = 0;
+          this.yaw0 = w.viewYaw;
+          w.emit({ t: 'mother', e: 'pass', n: this.pass + 1 });
+          this.go('passing');
+        }
+        break;
+      case 'passing':
+        this.dist = 0;
+        // lo sguardo: un tremito si perdona, girarsi no (nel primo mezzo secondo la vista finisce di fermarsi da sola,
+        // se ti eri appena girato)
+        if (this.stateTime < MOTHER_SETTLE) this.yaw0 = w.viewYaw;
+        else if (Math.abs(angleDiff(w.viewYaw, this.yaw0)) > this.cfg.still) {
+          this.moved(w);
+          break;
+        }
+        if (this.stateTime >= this.passTime) {
+          w.emit({ t: 'mother', e: 'leave', n: this.pass + 1 });
+          this.go('leaving');
+        }
+        break;
+      case 'leaving':
+        this.dist = Math.min(0.88, 0.88 * (this.stateTime / this.cfg.leave));
+        if (this.stateTime >= this.cfg.leave) {
+          w.emit({ t: 'mother', e: 'gone', n: this.pass + 1 });
+          this.callTimer = w.rng.range(18, 30);
+          this.go('far');
+        }
+        break;
+      case 'attack':
+        break;
+    }
+  }
+
+  /** Il pescatore si è mosso mentre lei passa sotto la barca: lo prende. */
+  moved(w: WorldView): void {
+    if (this.state !== 'passing') return;
+    this.state = 'attack';
+    w.emit({ t: 'mother', e: 'attack' });
   }
 }

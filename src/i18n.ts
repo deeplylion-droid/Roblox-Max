@@ -36,6 +36,8 @@ const IT = {
     lampy: 'Tre colpi uguali: è Lampy, non ferrare',
     // notte 5 (approvato l'11 ottobre)
     fangy: 'Fangy ascolta: niente rumori',
+    // notte 6 (approvato l'11 ottobre: «immobilità totale»)
+    mother: 'Non muoverti',
   },
   denied: {
     noFish: 'Il secchio è vuoto.',
@@ -56,6 +58,8 @@ const IT = {
   sixAm: '6:00',
   survived: 'Notte superata',
   quotaMet: 'Quota raggiunta',
+  // il finale A della notte 6 (approvato l'11 ottobre): la scritta sotto i risultati
+  finaleA: 'Ce l’hai fatta. Per quest’anno.',
   quotaMissed: 'Quota mancata',
   deathTitle: 'Game over',
   deaths: {
@@ -73,6 +77,8 @@ const IT = {
     mother: 'Alle sei il secchio non era pieno. Stanotte la Madre si prenderà un altro bambino.',
     // notte 2 (approvato il 10 ottobre): la batteria è morta e la ninna nanna è finita prima delle sei
     lullaby: 'La canzone è finita prima dell’alba.',
+    // notte 6 (la frase proposta e approvata l'11 ottobre): ti sei mosso mentre la Madre passava sotto la barca
+    moved: 'Mama Marina ama i suoi piccoli. Adesso anche te.',
   },
   // notte 7, la notte extra coi livelli (DA APPROVARE: tutti i testi qui sotto)
   extraNight: 'Notte extra',
@@ -83,8 +89,6 @@ const IT = {
   /** la regola di ogni mostro in due parole, sotto il nome */
   extraRules: { gulpy: 'sfamalo', molly: 'guardala', hatch: 'nasconditi', robin: 'luce in faccia', archie: 'spegni la luce', lampy: 'non ferrare', fangy: 'stai zitto', mother: 'non muoverti' },
   extraMother: 'La Madre',
-  /** sulla scheda della Madre finché la sua meccanica non è nel gioco */
-  extraSoon: 'in arrivo',
   // il finale speciale della notte extra: SEGNAPOSTO, il testo vero è da scrivere
   extraEndingTitle: 'Il finale della notte extra',
   extraEndingText: '(Segnaposto: qui andrà il finale speciale, che si vede solo vincendo con tutti almeno a 10.)',
@@ -111,7 +115,7 @@ const IT = {
   resume: 'Riprendi',
   radioName: 'Radio · canale 16',
   labels: { rod: 'Canna', bucket: 'Secchio', tarp: 'Telone', lamp: 'Lampara', sonar: 'Sonar' },
-  look: 'Bordi dello schermo o A/D per guardarti intorno',
+  look: 'Bordi dello schermo per guardarti intorno, W A S D per voltarti di scatto',
   sonarHint: 'Tab: sonar',
   lampHint: 'Q/E o rotella: lampara',
   turnBar: 'VOLTATI',
@@ -215,6 +219,12 @@ const IT = {
     fangyRise: 'qualcosa sale accanto alla barca, dietro di te',
     fangySnap: 'si volta di scatto',
     fangyLeave: 'torna giù',
+    // notte 6 (DA APPROVARE)
+    motherCall: 'un richiamo enorme, dal fondo',
+    motherApproach: 'tornano giù tutti; il mare si ferma',
+    motherLullaby: 'una ninna nanna, sotto la barca',
+    motherPass: 'qualcosa di enorme passa sotto la barca',
+    motherLeave: 'si allontana',
   },
   hatchCount: ['Uno…', 'Due…', 'Tre…', 'Quattro…', 'Cinque…', 'Sei…', 'Sette…', 'Otto…', 'Nove…', 'Dieci!'],
   hatchReady: 'Chi c’è c’è, chi non c’è non c’è!',
@@ -252,6 +262,7 @@ const EN: typeof IT = {
     archieWait: 'Stay in the dark until he goes under',
     lampy: 'Three even rings: it’s Lampy, don’t strike',
     fangy: 'Fangy is listening: not a sound',
+    mother: 'Don’t move',
   },
   denied: {
     noFish: 'The bucket is empty.',
@@ -270,6 +281,7 @@ const EN: typeof IT = {
   sixAm: '6:00 AM',
   survived: 'Night survived',
   quotaMet: 'Quota met',
+  finaleA: 'You made it. For this year.',
   quotaMissed: 'Quota missed',
   deathTitle: 'Game over',
   deaths: {
@@ -282,6 +294,7 @@ const EN: typeof IT = {
     fangy: '"Marco." You answered.',
     mother: 'At six the bucket wasn’t full. Tonight the Mother will take another child.',
     lullaby: 'The song ended before dawn.',
+    moved: 'Mama Marina loves her little ones. Now you too.',
   },
   // night 7, the extra night with levels (TO BE APPROVED: all the texts below)
   extraNight: 'Extra night',
@@ -291,7 +304,6 @@ const EN: typeof IT = {
   extraPresets: { all0: 'All at 0', all5: 'All at 5', all10: 'All at 10', all20: 'All at 20', first3: 'The first three' },
   extraRules: { gulpy: 'feed him', molly: 'watch her', hatch: 'hide', robin: 'light in his face', archie: 'lamp off', lampy: "don't strike", fangy: 'stay quiet', mother: "don't move" },
   extraMother: 'The Mother',
-  extraSoon: 'coming soon',
   extraEndingTitle: 'The end of the extra night',
   extraEndingText: '(Placeholder: the special ending goes here; you only see it by winning with everyone at 10 or more.)',
   extraLevelNames: ['stays away', 'calm', 'like their first night', 'quick', 'ferocious'],
@@ -317,7 +329,7 @@ const EN: typeof IT = {
   resume: 'Resume',
   radioName: 'Radio · channel 16',
   labels: { rod: 'Rod', bucket: 'Bucket', tarp: 'Tarp', lamp: 'Lampara', sonar: 'Sonar' },
-  look: 'Screen edges or A/D to look around',
+  look: 'Screen edges to look around, W A S D to snap around',
   sonarHint: 'Tab: sonar',
   lampHint: 'Q/E or mouse wheel: lampara',
   turnBar: 'TURN AROUND',
@@ -417,6 +429,11 @@ const EN: typeof IT = {
     fangySnap: 'its head snaps round',
     fangyRise: 'something rises beside the boat, behind you',
     fangyLeave: 'it sinks back down',
+    motherCall: 'a huge call, from the deep',
+    motherApproach: 'they all go under; the sea goes still',
+    motherLullaby: 'a lullaby, under the boat',
+    motherPass: 'something huge passes under the boat',
+    motherLeave: 'it moves away',
   },
   hatchCount: ['One…', 'Two…', 'Three…', 'Four…', 'Five…', 'Six…', 'Seven…', 'Eight…', 'Nine…', 'Ten!'],
   hatchReady: 'Ready or not, here I come!',
@@ -569,8 +586,45 @@ export const RADIO_NIGHT7: Record<Lang, RadioLine[]> = {
   ],
 };
 
+/**
+ * La chiamata della sesta notte (la Madre): il testo proposto e approvato l'11 ottobre, con la quota portata a dieci
+ * pesci per il bilanciamento (DA APPROVARE: la proposta diceva dodici).
+ */
+export const RADIO_NIGHT6: Record<Lang, RadioLine[]> = {
+  it: [
+    { at: 0.0, text: 'Sesta notte. Dieci pesci.' },
+    { at: 2.4, text: 'Stanotte viene anche lei.' },
+    { at: 4.6, text: 'Quando passa sotto la barca, non muoverti.' },
+    { at: 7.4, text: 'Non toccare niente, non guardarti intorno.' },
+    { at: 10.2, text: 'Buona pesca.' },
+    { at: 11.6, text: '' },
+  ],
+  en: [
+    { at: 0.0, text: 'Sixth night. Ten fish.' },
+    { at: 2.4, text: 'Tonight she comes too.' },
+    { at: 4.6, text: 'When she passes under the boat, don’t move.' },
+    { at: 7.4, text: 'Don’t touch anything, don’t look around.' },
+    { at: 10.2, text: 'Good fishing.' },
+    { at: 11.6, text: '' },
+  ],
+};
+
+/** La radio all'alba del finale A (approvato l'11 ottobre), dopo che la Madre se n'è andata col secchio. */
+export const RADIO_FINALE: Record<Lang, RadioLine[]> = {
+  it: [
+    { at: 0.0, text: 'Ce l’hai fatta.' },
+    { at: 1.6, text: 'Per quest’anno.' },
+    { at: 3.4, text: '' },
+  ],
+  en: [
+    { at: 0.0, text: 'You made it.' },
+    { at: 1.6, text: 'For this year.' },
+    { at: 3.4, text: '' },
+  ],
+};
+
 /** La chiamata alla radio di ogni notte. */
-export const RADIO: Record<number, Record<Lang, RadioLine[]>> = { 1: RADIO_NIGHT1, 2: RADIO_NIGHT2, 3: RADIO_NIGHT3, 4: RADIO_NIGHT4, 5: RADIO_NIGHT5, 7: RADIO_NIGHT7 };
+export const RADIO: Record<number, Record<Lang, RadioLine[]>> = { 1: RADIO_NIGHT1, 2: RADIO_NIGHT2, 3: RADIO_NIGHT3, 4: RADIO_NIGHT4, 5: RADIO_NIGHT5, 6: RADIO_NIGHT6, 7: RADIO_NIGHT7 };
 
 export const STRINGS: Record<Lang, typeof IT> = { it: IT, en: EN };
 
