@@ -342,13 +342,14 @@ export const NIGHTS: Record<number, NightConfig> = {
   // pesce a Gulpy, il telone) lo fa voltare; al terzo è addosso. Va contro tutto il resto: con lui non vengono Hatch
   // (nascondersi fa rumore), Archie (spegnere la lampara) né Robin (accenderla al massimo); Gulpy sì (sfamarlo è un
   // rumore). Fangy viene meno spesso degli altri protagonisti, ma ogni visita ferma la pesca (gli altri sono più radi
-  // e i pesci abboccano più in fretta). Quota 12. Da approvare con la notte
+  // e i pesci abboccano più in fretta). Quota 11: ogni visita ferma la pesca per una decina di secondi. Da approvare con
+  // la notte (giocatori simulati: esperto 96%, medio 81%, maldestro 53%)
   5: {
     night: 5,
     bozza: true,
-    quota: 12,
+    quota: 11,
     hourlyRamp: 0.16,
-    biteMul: 0.14,
+    biteMul: 0.12,
     guaranteedLoreAt: 3,
     loreChance: 0.08,
     exclusive: [
@@ -369,7 +370,7 @@ export const NIGHTS: Record<number, NightConfig> = {
     robin: { firstAt: 1.9 * H, cooldown: [100, 150], climb: 3.5, stealEvery: 3, scare: 2.5 },
     archie: { firstAt: 1.2 * H, cooldown: [95, 145], rise: 3, inhale: 4.5, relight: 2.2, dark: 7, dive: 2 },
     lampy: { firstAt: 0.8 * H, cooldown: [75, 110], grab: [1.5, 4], lurkMax: 30, beat: 0.62, surface: 0.6, stay: 2.4, climb: 1.1 },
-    fangy: { firstAt: 0.4 * H, cooldown: [100, 150], approach: 5, rise: 1.4, listen: 5.5, noises: 3, deaf: 0.8, reelNoise: 1.2, leave: 2 },
+    fangy: { firstAt: 0.4 * H, cooldown: [85, 125], approach: 5, rise: 1.4, listen: 7, noises: 3, deaf: 0.8, reelNoise: 1.2, leave: 2 },
     battery: { drain: [0, 1 / 700, 1 / 320], sonar: 1 / 1100, low: 0.15, lullaby: 64 },
     hideTime: 0.7,
     unhideTime: 0.6,

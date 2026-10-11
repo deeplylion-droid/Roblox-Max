@@ -509,7 +509,7 @@ export const RADIO_NIGHT4: Record<Lang, RadioLine[]> = {
 /** La chiamata della quinta notte (Fangy), corta come le altre: da approvare. */
 export const RADIO_NIGHT5: Record<Lang, RadioLine[]> = {
   it: [
-    { at: 0.0, text: 'Quinta notte. Dodici pesci.' },
+    { at: 0.0, text: 'Quinta notte. Undici pesci.' },
     { at: 2.4, text: 'Fangy non vede. Sente.' },
     { at: 4.6, text: 'Quando le luci salgono, zitto.' },
     { at: 7.0, text: 'Niente mulinello, niente lampara.' },
@@ -517,7 +517,7 @@ export const RADIO_NIGHT5: Record<Lang, RadioLine[]> = {
     { at: 11.0, text: '' },
   ],
   en: [
-    { at: 0.0, text: 'Fifth night. Twelve fish.' },
+    { at: 0.0, text: 'Fifth night. Eleven fish.' },
     { at: 2.4, text: 'Fangy can’t see. He hears.' },
     { at: 4.6, text: 'When the lights come up, not a sound.' },
     { at: 7.0, text: 'No reel, no lamp.' },

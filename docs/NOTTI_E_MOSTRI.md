@@ -295,9 +295,11 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
   insieme, sempre più in fretta a ogni rumore che ha sentito (al buio si vedono solo loro). Se resti zitto torna giù
   (2 s). Il suo respiro bagnato si sente dietro le spalle finché è su, e il cuore batte più forte a ogni rumore. Il
   suggerimento dice «Fangy ascolta: niente rumori»; il sonar lo mostra mentre arriva e accanto alla fiancata. Quando
-  canta la Madre torna giù anche lui. Non viene con Hatch, Archie né Robin. Quota 12. Giocatori simulati (primo
-  bilanciamento, da rifinire): esperto 89%, medio 82%, maldestro 60%.
-- **Testi** (*da approvare*): la radio «Quinta notte. Dodici pesci. / Fangy non vede. Sente. / Quando le luci salgono,
+  canta la Madre torna giù anche lui. Non viene con Hatch, Archie né Robin. Viene ogni 85-125 s e ascolta 7 s: ogni
+  visita ferma la pesca per una decina di secondi, quindi la quota scende a 11 e i pesci abboccano più in fretta.
+  Giocatori simulati (`npm run sim -- 5 400`, da rifinire): **esperto 96%, medio 81%, maldestro 53%**; Fangy prende
+  soprattutto chi continua a recuperare quando sale.
+- **Testi** (*da approvare*): la radio «Quinta notte. Undici pesci. / Fangy non vede. Sente. / Quando le luci salgono,
   zitto. / Niente mulinello, niente lampara. / Buona pesca.»; la frase della morte «"Marco." Hai risposto.» (giocava a
   Marco Polo a occhi chiusi: chi sente la voce trova chi risponde); il suggerimento «Fangy ascolta: niente rumori»; le
   didascalie «lucine sott'acqua, si avvicinano», «qualcosa sale accanto alla barca, dietro di te», «si volta di scatto»,
