@@ -309,3 +309,51 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
   `js_fangy.gif`; `jumpscare.py`, `ATTACKS['fangy']`): si lancia dalla fiancata con la
   testa avanti e le zanne puntate su di te, tutte le lucine accese; arriva a 55 cm dall'occhio chinandosi un poco, con
   una luce calda dalla parte della lanterna sulla faccia. Finché non c'è il render finale il gioco zooma sulla posa.
+
+### Notte 6 · La Madre — *IL FINALE*
+
+> ⚠️ **PROPOSTA DA APPROVARE** (11 ottobre): tutto quello che segue è da decidere con l'utente. Per ora c'è solo la
+> tavola delle sagome (`docs/concept/madre_sagome.png`, `tools/render/madre_sagome.py`); niente teste né modello
+> finché non è scelta una sagoma.
+
+- **Da dove viene** (da approvare): la balena, ma di quelle degli abissi e dei relitti più che dei cartoni: la pelle
+  liscia e pallida, la gola a pieghe che si gonfia, i fanoni al posto dei denti. È la Madre di cui parla la radio, quella
+  che si sveglia quando manca la quota e che sale quando finisce la ninna nanna. Ha preso tutti i bambini di Splashland:
+  i sette mostri sono i suoi piccoli.
+- **Dal parco** (da approvare): è **Mama Marina**, la mascotte, diventata vera. Addosso ha ancora la **vernice da
+  cartone animato** (il blu del dorso, la pancia color crema, le guance rosa) che si stacca a grandi croste come sulla
+  statua all'ingresso; il **sorriso dipinto** che le arriva fin sotto l'occhio; le **ciglia da cartone** sopra gli occhi;
+  il ciuffo d'acqua dello sfiatatoio. Come la statua coi pesciolini in grembo, **tiene stretti i suoi piccoli**
+  («Mama Marina loves her little ones!»). Come gli altri è bagnata e coperta della stessa melma.
+- **Il suo colore** (da approvare): **bianco latte**, come la pancia di una balena morta e come le ossa. Dove la vernice
+  blu della mascotte si stacca sotto c'è lei, bianca: è l'unico mostro bianco, si legge anche al buio e stacca da tutti
+  gli altri (il blu della mascotte da solo si confonderebbe con Fangy). Alternativa, se il bianco non convince: il
+  **verde acqua delle piastrelle della piscina**, l'unico colore saturo che nessuno ha ancora (Hatch l'ha lasciato).
+- **Nella notte 6** (da approvare, da progettare insieme alle regole): tornano tutti e sette i mostri. Sul sonar, a un
+  certo punto, l'ombra sotto la barca non è un pesce: è grande quanto tutto lo schermo e si muove piano (è l'ombra rara
+  della prima notte, «Sotto di te», che stavolta resta). Quando lei è sotto, la regola è l'**immobilità totale**: niente
+  lampara, niente mulinello, niente pesci, niente telone. Alla fine qualcosa di lei sale accanto alla barca, ma non tutta:
+  è troppo grande per entrare nel quadro. Come gli altri **non parla**: solo il lamento da balena (`mus_madre`) e la ninna
+  nanna.
+
+**Le sagome** (`docs/concept/madre_sagome.png`; in grigio la barca, 5,6 m, e un uomo di 1,80 m in piedi dentro; il mare
+è velato, così si vede anche quello che resta sotto e che dalla barca è solo l'ombra sul sonar):
+
+- **A «Abbraccio»**: la testa sale dritta accanto alla barca, una ventina di metri fuori dall'acqua, e la bocca si spalanca
+  sopra di te; dentro, i fanoni pendono come **le sbarre di un lettino**. Dall'altra parte della barca si alza la pinna e
+  si piega sopra la poppa: è **l'abbraccio della statua**, con la barca in mezzo. *Dalla barca*: guardi in su e vedi
+  l'angolo del sorriso dipinto, l'occhio con le ciglia, la gola; di lato, la pinna che si chiude. *Perché*: è la più
+  diretta, la mascotte riconoscibile subito (bocca, sorriso, pinne aperte), e il finale si scrive da sé: l'abbraccio si
+  chiude.
+- **B «Occhio»**: resta quasi tutta sott'acqua, lunga una trentina di metri, e passa proprio sotto la barca; fuori sale
+  solo la fronte e **un occhio grande quanto la barca**, con le ciglia da cartone animato che escono dall'acqua. Sotto,
+  la pinna ripiegata sul ventre stringe i suoi piccoli, come la statua coi pesciolini in grembo. *Dalla barca*: a un
+  metro dal bordo un occhio azzurro dipinto che ti guarda e non sbatte; il resto è buio e l'ombra sul sonar. *Perché*: è
+  la più fedele all'immobilità totale (lei ti guarda, tu non ti muovi) e la più spaventosa per quello che non si vede;
+  entra nel quadro senza tagliarla, e nel gioco basta un'immagine sola, l'occhio, con l'ombra sul sonar a fare il resto.
+- **C «Culla»**: non è più una balena: una figura altissima e magrissima, come gli altri mostri ma enorme, immersa fino ai
+  fianchi e **china sulla barca come su una culla**, le braccia lunghissime che scendono ai due lati con le dita in acqua.
+  Della mascotte le resta **la testa tonda dipinta**, col sorriso e il ciuffo dello sfiatatoio, girata in giù su di te; i
+  piccoli le stanno **aggrappati alla schiena**, come i ragnetti sul dorso della mamma. *Dalla barca*: due braccia
+  bianche che salgono nel buio ai lati e, molto in alto, il sorriso. *Perché*: lega la Madre ai suoi figli (è fatta come
+  loro, allungata e sproporzionata) e la ninna nanna diventa letterale: tu sei nella culla.
