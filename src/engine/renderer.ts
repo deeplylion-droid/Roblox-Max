@@ -3,7 +3,7 @@
  * atmosfera (faro, luci), schermo del sonar, lenza, bloom e composizione finale.
  */
 import { FULLSCREEN_VS, FullscreenTri, Program, Target, createGL, hdrSupported, textureFromCanvas, type GL } from './gl.ts';
-import { ATMOS_FS, BRIGHT_FS, DOWN_FS, FINAL_FS, GAUGE_FS, LAYER_FS, LINE_FS, LINE_VS, OVERLAY_FS, PERSP_FS, SCREEN_FS, SPRITE_FS, SPRITE_VS, TUBE_FS, TUBE_VS, UP_FS } from './shaders.ts';
+import { ATMOS_FS, BRIGHT_FS, DOWN_FS, FINAL_FS, GAUGE_FS, LAYER_FS, LINE_FS, LINE_VS, MIST_FS, MIST_VS, OVERLAY_FS, PERSP_FS, SCREEN_FS, SPRITE_FS, SPRITE_VS, TUBE_FS, TUBE_VS, UP_FS } from './shaders.ts';
 import type { LoadedLayer, Manifest, Vec3 } from './assets.ts';
 import type { View } from './view.ts';
 
@@ -37,6 +37,24 @@ export interface LayerDraw {
   light?: [number, number, number];
   /** fino a due toppe che entrano sopra questo strato (chiave, quanto): dove sono vuote questo strato sfuma */
   masks?: { key: string; k: number }[];
+}
+
+/**
+ * Uno sbuffo di foschia attorno a una creatura che compare o se ne va: copre il bordo della barca (o il pelo
+ * dell'acqua) che la taglia mentre sale e scende. Sta nello spazio del suo strato e si misura sul suo riquadro.
+ */
+export interface MistPuff {
+  /** lo strato della creatura (la posa) */
+  key: string;
+  /** centro dello sbuffo, in frazioni del riquadro dello strato (0,0 in alto a sinistra) */
+  at: [number, number];
+  /** mezza larghezza e mezza altezza, in frazioni del riquadro */
+  size: [number, number];
+  /** 0..1 */
+  amount: number;
+  /** quanta luce della lampara e della lanterna la prende (0 lontano, 1 accanto alla barca) */
+  lamp: number;
+  seed: number;
 }
 
 /** Polilinea 3D (spazio barca) disegnata come nastro sottile: la lenza, i cerchi sull'acqua. */
@@ -125,6 +143,10 @@ export interface FrameParams {
   glowSprites?: LightGlow[];
   /** strati da disegnare in ordine (chiavi del manifest, o con dissolvenza/spostamento) */
   layers: (string | LayerDraw)[];
+  /** sbuffi di foschia delle creature che salgono dall'acqua o da dietro il bordo: sotto la barca, che li copre */
+  mistBack?: MistPuff[];
+  /** sbuffi davanti alla barca (le creature sul bordo: coprono il legno dove si compenetrano) */
+  mistFront?: MistPuff[];
   /** immagine a tutto schermo sopra la scena */
   overlay?: Overlay | null;
   sonar: HTMLCanvasElement | null;
@@ -165,6 +187,9 @@ export class Renderer {
   private lineBuf: WebGLBuffer;
   private peloBuf = new Float32Array(PELO_N);
   private pSprite: Program;
+  private pMist: Program;
+  private mistVao: WebGLVertexArrayObject;
+  private mistBuf: WebGLBuffer;
   private spriteVao: WebGLVertexArrayObject;
   private spriteBuf: WebGLBuffer;
   readonly layers = new Map<string, LoadedLayer>();
@@ -214,6 +239,24 @@ export class Renderer {
     gl.enableVertexAttribArray(2);
     gl.vertexAttribPointer(2, 4, gl.FLOAT, false, 28, 12);
     gl.vertexAttribDivisor(2, 1);
+    gl.bindVertexArray(null);
+    this.pMist = new Program(gl, MIST_VS, MIST_FS, 'mist');
+    this.mistVao = gl.createVertexArray()!;
+    this.mistBuf = gl.createBuffer()!;
+    gl.bindVertexArray(this.mistVao);
+    gl.bindBuffer(gl.ARRAY_BUFFER, corners);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 8, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.mistBuf);
+    gl.enableVertexAttribArray(1);
+    gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 40, 0);
+    gl.vertexAttribDivisor(1, 1);
+    gl.enableVertexAttribArray(2);
+    gl.vertexAttribPointer(2, 4, gl.FLOAT, false, 40, 12);
+    gl.vertexAttribDivisor(2, 1);
+    gl.enableVertexAttribArray(3);
+    gl.vertexAttribPointer(3, 3, gl.FLOAT, false, 40, 28);
+    gl.vertexAttribDivisor(3, 1);
     gl.bindVertexArray(null);
     this.tubeVao = gl.createVertexArray()!;
     this.tubeBuf = gl.createBuffer()!;
@@ -277,11 +320,20 @@ export class Renderer {
       .f1('uFogDensity', 1 / 3200)
       .f1('uShimmer', 1.0);
     let atmosDone = false;
+    let mistBackDone = false;
     for (const item of f.layers) {
       const d: LayerDraw = typeof item === 'string' ? { key: item } : item;
       const key = d.key;
       const l = this.layers.get(key);
       if (!l || (d.opacity ?? 1) <= 0.001) continue;
+      // la foschia delle creature che salgono dall'acqua o da dietro il bordo: subito prima della barca, che la copre
+      if (key === 'boat' && !mistBackDone) {
+        mistBackDone = true;
+        if (f.mistBack?.length) {
+          this.drawMist(view, f.mistBack, f);
+          this.pLayer.use();
+        }
+      }
       // l'atmosfera va disegnata dopo il mondo e prima della barca
       if (!atmosDone && l.info.space === 'boat') {
         this.drawAtmos(view, f);
@@ -331,6 +383,7 @@ export class Renderer {
       this.drawAtmos(view, f);
       if (f.glowSprites?.length) this.drawSprites(view, f.glowSprites, true);
     }
+    if (f.mistFront?.length) this.drawMist(view, f.mistFront, f);
     if (f.boatGlows?.length) this.drawGlows(view, f.boatGlows);
     if (f.sonar) this.drawScreen(view, f);
     if (f.gauge) this.drawGauge(view, f.gauge);
@@ -428,6 +481,41 @@ export class Renderer {
     gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, glows.length);
     gl.bindVertexArray(null);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+  }
+
+  /** Gli sbuffi di foschia (uno per creatura), divisi fra spazio del mondo e della barca. */
+  private drawMist(view: View, puffs: MistPuff[], f: FrameParams): void {
+    const gl = this.gl;
+    const pano = this.man.pano;
+    const latSpan = (pano.latMax - pano.latMin) * D2R;
+    for (const world of [true, false]) {
+      const data: number[] = [];
+      for (const pf of puffs) {
+        const l = this.layers.get(pf.key);
+        if (!l || pf.amount <= 0.002 || (l.info.space === 'world') !== world) continue;
+        const [x0, y0, x1, y1] = l.info.rect;
+        const px = x0 + pf.at[0] * (x1 - x0), py = y0 + pf.at[1] * (y1 - y0);
+        const yaw = (px / pano.width - 0.5) * 2 * Math.PI + l.info.yaw * D2R;
+        const lat = pano.latMax * D2R - (py / pano.height) * latSpan;
+        const hw = Math.tan(Math.min(1.2, ((pf.size[0] * (x1 - x0)) / pano.width) * 2 * Math.PI));
+        const hh = Math.tan(Math.min(1.2, ((pf.size[1] * (y1 - y0)) / pano.height) * latSpan));
+        // la foschia presa dalla luna (fredda) e, vicino alla barca, dalla lampara e dalla lanterna (calde)
+        const a = f.ambient, lm = f.lamp * pf.lamp, ln = f.lantern * pf.lamp;
+        data.push(Math.sin(yaw) * Math.cos(lat), Math.cos(yaw) * Math.cos(lat), Math.sin(lat), hw, hh, pf.amount, pf.seed);
+        data.push(0.014 * a + 0.085 * lm + 0.03 * ln, 0.018 * a + 0.066 * lm + 0.024 * ln, 0.025 * a + 0.042 * lm + 0.015 * ln);
+      }
+      if (!data.length) continue;
+      this.pMist
+        .use()
+        .m3('uRot', new Float32Array(world ? view.worldRot : view.boatRot))
+        .f2('uTan', view.tanX, view.tanY)
+        .f1('uTime', f.time);
+      gl.bindVertexArray(this.mistVao);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.mistBuf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.DYNAMIC_DRAW);
+      gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, data.length / 10);
+      gl.bindVertexArray(null);
+    }
   }
 
   private drawScreen(view: View, f: FrameParams): void {

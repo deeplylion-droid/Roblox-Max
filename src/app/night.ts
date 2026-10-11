@@ -6,7 +6,7 @@
  */
 import type { LayerInfo, Vec3 } from '../engine/assets.ts';
 import { dirPos, type AudioEngine, type Voice } from '../engine/audio.ts';
-import type { BinoPlace, LayerDraw, LightGlow, Overlay, Stroke, TubeDraw } from '../engine/renderer.ts';
+import type { BinoPlace, LayerDraw, LightGlow, MistPuff, Overlay, Stroke, TubeDraw } from '../engine/renderer.ts';
 import { CHILD, RADIO_VOICE, speak, type Utterance } from '../engine/voice.ts';
 import { FISHING, HOUR_SECONDS, NIGHTS, VIEW, YAW, type LampLevel, type MonsterId } from '../game/config.ts';
 import type { GameEvent } from '../game/events.ts';
@@ -166,6 +166,26 @@ const POSE = {
   fangyBow: 'fangy_testa_prua',
   fangyStern: 'fangy_testa_poppa',
 } as const;
+
+/**
+ * Gli sbuffi di foschia attorno alle creature che compaiono e se ne vanno (proposta dell'utente, 11 ottobre: coprono il
+ * leggero compenetrarsi con la barca). Per ognuna: lo strato su cui si misura, dove sta (frazioni del suo riquadro;
+ * `water`: all'altezza del pelo dell'acqua dello strato), quanto è grande, quanta luce della lampara la prende, e se va
+ * davanti alla barca (le creature sul bordo) o dietro (quelle che salgono dall'acqua).
+ */
+const MIST: Record<string, { key: string; at: [number, number | 'water']; size: [number, number]; lamp: number; front: boolean }> = {
+  // al largo: la foschia sta sul pelo dell'acqua attorno a dove esce (dietro la barca, che la copre)
+  gulpySale: { key: POSE.gulpySale, at: [0.5, 'water'], size: [0.85, 0.26], lamp: 0.3, front: false },
+  lampy: { key: POSE.lampy, at: [0.4, 0.85], size: [0.36, 0.22], lamp: 0.3, front: false },
+  // vicino alla barca: sul bordo dove lo scafo li taglia (misurato sull'alfa della barca alla loro direzione), davanti
+  gulpy: { key: POSE.gulpyPretende, at: [0.5, 0.8], size: [0.34, 0.16], lamp: 1, front: true },
+  mollyR: { key: POSE.mollyRight, at: [0.45, 0.645], size: [0.36, 0.16], lamp: 1, front: true },
+  mollyL: { key: POSE.mollyLeft, at: [0.55, 0.62], size: [0.36, 0.16], lamp: 1, front: true },
+  robin: { key: POSE.robin, at: [0.36, 0.39], size: [0.2, 0.2], lamp: 1, front: true },
+  hatch: { key: POSE.hatchConta, at: [0.5, 0.43], size: [0.75, 0.13], lamp: 0.6, front: true },
+  archie: { key: POSE.archie, at: [0.5, 0.69], size: [1.0, 0.15], lamp: 0.6, front: true },
+  fangy: { key: POSE.fangy, at: [0.5, 0.595], size: [0.38, 0.14], lamp: 0.7, front: true },
+};
 
 /** le toppe degli occhi di Molly sui due lati: il primo occhio (quello che ti fissa) e il secondo */
 const MOLLY_EYES = {
@@ -337,6 +357,8 @@ export class Night {
   private lullabyV: Voice | null = null;
   /** il risucchio di Archie in corso: si ferma quando smette di prendere fiato */
   private archieBreath: { stop(fade?: number): void } | null = null;
+  /** la foschia attorno a ogni creatura che compare o se ne va: quanta (0..1) e dov'era la creatura al fotogramma prima */
+  private mist: Record<string, { m: number; p: number }> = {};
 
   constructor(private d: NightDeps) {
     this.S = STRINGS[d.lang];
@@ -712,6 +734,7 @@ export class Night {
     for (const e of sim.drainEvents()) this.handle(e);
 
     this.updateVisuals(dt);
+    this.updateMist(dt);
     this.updateAudio(dt);
     this.updateRadio(dt);
     this.updateHud(dt);
@@ -1425,6 +1448,55 @@ export class Night {
         this.flickerTimer = (3.2 - 2.4 * sick) * (0.5 + Math.random());
       }
     }
+  }
+
+  /**
+   * Gli sbuffi di foschia: mentre una creatura sale o scende (dall'acqua o da dietro il bordo) la avvolge la foschia,
+   * che si gonfia appena comincia a muoversi e si disperde in poco più di mezzo secondo quando si ferma.
+   */
+  private updateMist(dt: number): void {
+    const v = this.v;
+    const now: Record<string, number> = {
+      gulpySale: v.gRise * v.gSale,
+      gulpy: v.gPret,
+      mollyR: v.mR,
+      mollyL: v.mL,
+      robin: v.robin,
+      hatch: v.hRise,
+      archie: v.aRise,
+      lampy: v.lRise,
+      fangy: v.fRise,
+    };
+    for (const [id, p] of Object.entries(now)) {
+      const s = (this.mist[id] ??= { m: 0, p });
+      const moving = !this.js && p > 0.004 && p < 0.996 && Math.abs(p - s.p) > dt * 0.15;
+      const target = moving ? 1 : 0;
+      s.m += (target - s.m) * (1 - Math.exp(-dt / (target > s.m ? 0.15 : 0.6)));
+      if (this.js) s.m = 0;
+      s.p = p;
+    }
+  }
+
+  /** Gli sbuffi da disegnare: [dietro la barca, davanti alla barca]. */
+  private mistPuffs(): [MistPuff[], MistPuff[]] {
+    const back: MistPuff[] = [], front: MistPuff[] = [];
+    const L = this.d.stage.man.layers;
+    let seed = 0;
+    for (const [id, def] of Object.entries(MIST)) {
+      seed += 1;
+      const s = this.mist[id];
+      const info = L[def.key];
+      if (!s || s.m < 0.003 || !info) continue;
+      let y = def.at[1];
+      if (y === 'water') {
+        // all'altezza del pelo dell'acqua misurato sotto la creatura (la media delle colonne)
+        const rows = info.pelo ?? [];
+        const w = rows.length ? rows.reduce((a, b) => a + b, 0) / rows.length : info.rect[3];
+        y = (w - info.rect[1]) / Math.max(1, info.rect[3] - info.rect[1]);
+      }
+      (def.front ? front : back).push({ key: def.key, at: [def.at[0], y], size: def.size, amount: smooth01(s.m), lamp: def.lamp, seed: seed * 0.137 });
+    }
+    return [back, front];
   }
 
   /** L'ago in radianti (0 = in alto, positivo a destra), con un filo di tremolio. */
@@ -2237,6 +2309,7 @@ export class Night {
     const tk = this.sim.hide === 'out' && !binoOn ? this.tackle() : null;
     const man = st.man;
     let layers = this.layerDraws();
+    const [mistBack, mistFront] = this.mistPuffs();
     if (binoOn) layers = layers.filter((d) => man.layers[typeof d === 'string' ? d : d.key]?.space === 'world');
     const B = this.d.assets.binocular;
     const places = this.bino > 0
@@ -2254,6 +2327,9 @@ export class Night {
     this.hud.root.style.opacity = String(1 - 0.8 * be);
     st.frame({
       layers,
+      // col binocolo si vede solo il mondo: anche la foschia delle creature nel mondo
+      mistBack: binoOn ? mistBack.filter((p) => man.layers[p.key]?.space === 'world') : mistBack,
+      mistFront: binoOn ? [] : mistFront,
       bino: this.bino > 0 ? { amount: be, places } : null,
       overlay: this.overlay(),
       line: tk?.line ?? null,

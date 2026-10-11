@@ -592,3 +592,59 @@ void main() {
   col += (hash12(uv * uRes * 1.3 + 7.0) - 0.5) / 255.0;   // dithering
   frag = vec4(col, 1.0);
 }`;
+
+/**
+ * Uno sbuffo di foschia attorno a una creatura che compare o se ne va (copre il bordo della barca o il pelo dell'acqua
+ * che la tagliano mentre si muove): un quadrato tangente alla direzione dello sbuffo, uno per sbuffo (istanze).
+ */
+export const MIST_VS = /* glsl */ `#version 300 es
+layout(location = 0) in vec2 aCorner;   // -1..1
+layout(location = 1) in vec3 aDir;      // centro dello sbuffo (spazio dello strato)
+layout(location = 2) in vec4 aSize;     // mezza larghezza e mezza altezza (tangenti), quanto (0..1), seme
+layout(location = 3) in vec3 aCol;      // colore della foschia illuminata (lineare)
+uniform mat3 uRot;
+uniform vec2 uTan;
+out vec2 vLocal;
+out vec4 vSize;
+out vec3 vCol;
+void main() {
+  vec3 f = normalize(aDir);
+  vec3 r = normalize(cross(f, vec3(0.0, 0.0, 1.0)));   // orizzontale, a destra
+  vec3 u = cross(r, f);                                // in su
+  // mentre si gonfia lo sbuffo si allarga un poco
+  float grow = 0.82 + 0.28 * aSize.z;
+  vec3 w = f + (r * aCorner.x * aSize.x + u * aCorner.y * aSize.y) * grow;
+  vec3 c = transpose(uRot) * w;
+  vec3 cc = transpose(uRot) * f;
+  vLocal = aCorner;
+  vSize = aSize;
+  vCol = aCol;
+  if (cc.y < 0.1) { gl_Position = vec4(2.0, 2.0, 0.0, 1.0); return; }
+  gl_Position = vec4(vec2(c.x, c.z) / max(c.y, 0.02) / uTan, 0.0, 1.0);
+}`;
+
+export const MIST_FS = /* glsl */ `#version 300 es
+precision highp float;
+in vec2 vLocal;
+in vec4 vSize;
+in vec3 vCol;
+out vec4 frag;
+uniform float uTime;
+${NOISE}
+void main() {
+  float amount = vSize.z, seed = vSize.w;
+  vec2 q = vLocal;
+  // la forma: un'ellisse morbida, più densa in basso (dove la creatura incontra l'acqua o il bordo) e sfrangiata in alto
+  float r = length(q * vec2(1.0, 1.1));
+  float shape = 1.0 - smoothstep(0.2, 1.0, r);
+  shape *= mix(1.0, 0.45, smoothstep(-0.3, 0.95, q.y));
+  // il fumo: volute che salgono e si torcono (rumore deformato da altro rumore), diverse per ogni sbuffo
+  float t = uTime * 0.32 + seed * 11.3;
+  vec2 p = q * vec2(1.9, 2.3) + vec2(seed * 7.7, -t);
+  vec2 warp = vec2(fbm(p + vec2(0.0, 0.7 * t)), fbm(p + vec2(5.2, 1.3) - 0.45 * t)) - 0.5;
+  float n = fbm(p * 1.35 + warp * 2.0);
+  float wisps = smoothstep(0.30, 0.80, n);
+  float dens = shape * (0.28 + 1.0 * wisps);
+  float a = clamp(dens * amount * 0.9, 0.0, 0.82);
+  frag = vec4(vCol * a, a);
+}`;
