@@ -244,6 +244,18 @@ describe('Notte 2', () => {
     expect(sim.blackout).toBe(false);
   });
 
+  it('il binocolo alzato tiene gli occhi lontani dalla barca ma non consuma la batteria; il sonar aperto sì', () => {
+    const conBinocolo = new NightSim(quiet2(), 2);
+    conBinocolo.setLamp(0);
+    run(conBinocolo, 60, (s) => s.setView(0, true, false));
+    expect(conBinocolo.sonarOpen).toBe(true);
+    expect(conBinocolo.battery).toBe(1);
+    const colSonar = new NightSim(quiet2(), 2);
+    colSonar.setLamp(0);
+    run(colSonar, 60, (s) => s.setView(0, true));
+    expect(colSonar.battery).toBeCloseTo(1 - 60 * N2.battery!.sonar, 2);
+  });
+
   it('la lampara consuma la batteria; al buio sale la ninna nanna e, se finisce prima delle sei, la Madre', () => {
     const sim = new NightSim(quiet2(), 2);
     sim.setLamp(2);
