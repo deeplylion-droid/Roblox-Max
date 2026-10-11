@@ -51,9 +51,12 @@ OVERLAYS = os.path.join(OUT_IMG, 'overlays.json')
 CAM_POS = (-1.0, -0.45, 1.22)
 CAM_YAW, CAM_PITCH, CAM_LENS = -84.0, -60.0, 22.0
 # l'occhio, all'ultimo fotogramma: l'apice della calotta appena sotto il pelo dell'acqua, dove guarda il centro del quadro
-APICE_Z = -0.85
+APICE_Z = -2.05
+# quanto manca alla fine, fotogramma per fotogramma (1 = in fondo, 0 = arrivato): il fotogramma 0 è solo buio, dal
+# fotogramma 1 la cosa chiara è già lì sotto e sale sempre più in fretta
+SALITA = [1.0, 0.52, 0.42, 0.33, 0.25, 0.17, 0.08, 0.0]
 # da dove parte: più in fondo, più sotto la barca (verso +X) e più a prua; girato via di tanti gradi
-PARTENZA = {'giu': 6.2, 'verso_barca': 1.6, 'prua': 1.0, 'girato': 80.0, 'occhio_girato': 38.0}
+PARTENZA = {'giu': 7.0, 'verso_barca': 1.6, 'prua': 1.0, 'girato': 80.0, 'occhio_girato': 38.0}
 # l'acqua che si gonfia sopra l'occhio (metri, per fotogramma) e quanto è larga
 GONFIA = [0.0, 0.0, 0.0, 0.0, 0.03, 0.09, 0.18, 0.28]
 GONFIA_SIGMA = 1.5
@@ -66,10 +69,16 @@ def cam_dir():
 
 
 def apice_finale():
-    """Dove il centro del quadro tocca il mare, appena sotto."""
+    """Sotto il punto dove il centro del quadro tocca il mare, alla profondità APICE_Z lungo il raggio rifratto (così
+    l'occhio resta in mezzo al quadro anche più in fondo)."""
     d = cam_dir()
     t = (0.0 - CAM_POS[2]) / d.z
     p = Vector(CAM_POS) + d * t
+    h = Vector((d.x, d.y, 0.0))
+    sin_i = h.length
+    h.normalize()
+    rif = math.asin(sin_i / 1.333)
+    p = p + h * (-APICE_Z) * math.tan(rif)
     return Vector((p.x, p.y, APICE_Z))
 
 
@@ -92,10 +101,10 @@ def water_volume_material():
     for nd in list(nt.nodes):
         nt.nodes.remove(nd)
     ab = nt.nodes.new('ShaderNodeVolumeAbsorption')
-    ab.inputs['Color'].default_value = (0.10, 0.50, 0.46, 1)
-    ab.inputs['Density'].default_value = 0.24
+    ab.inputs['Color'].default_value = (0.22, 0.50, 0.56, 1)
+    ab.inputs['Density'].default_value = 0.19
     scat = nt.nodes.new('ShaderNodeVolumeScatter')
-    scat.inputs['Color'].default_value = (0.25, 0.62, 0.56, 1)
+    scat.inputs['Color'].default_value = (0.35, 0.58, 0.62, 1)
     scat.inputs['Density'].default_value = 0.022
     scat.inputs['Anisotropy'].default_value = 0.55
     add = nt.nodes.new('ShaderNodeAddShader')
@@ -238,7 +247,7 @@ def luce_sottacqua():
     t = (-0.12 - lamp.z) / d.z
     pos = lamp + d * t
     ld = bpy.data.lights.new('QuotaUnderwaterLamp', 'SPOT')
-    ld.energy = 2600.0
+    ld.energy = 3400.0
     ld.color = (1.0, 0.80, 0.55)
     ld.spot_size = math.radians(75)
     ld.spot_blend = 0.8
@@ -314,8 +323,7 @@ def poses():
     out = []
     for i in range(FRAMES):
         t = i / (FRAMES - 1)
-        u = t ** 1.3                                  # sale dal buio, sempre più in fretta
-        k = (1 - u)
+        k = SALITA[i]
         apex = apex1 + Vector((PARTENZA['verso_barca'] * k ** 1.3, PARTENZA['prua'] * k ** 1.3, -PARTENZA['giu'] * k))
         ang = math.radians(PARTENZA['girato']) * k ** 1.2
         R = Matrix.Rotation(ang, 3, side)
@@ -329,12 +337,87 @@ def poses():
     return out
 
 
+def pelle_quota(ma):
+    """La pelle per questa scena: carne bianco latte, pallida e bagnata, che nella luce sembra quasi accesa da dentro
+    (più subsurface); le croste della mascotte tolte, ne restano solo pochi brandelli blu in alto, vicino alle ciglia.
+    Le chiazze perla, le vene azzurrine e la melma come in madre.pelle_madre. Coordinate dell'oggetto: la Madre."""
+    m, g = material('QuotaPelle')
+    co = g.texcoord('Object')
+    n1 = g.noise(co, scale=0.32, detail=4.0, rough=0.55, distortion=0.4)
+    pelle = g.mix(g.mul(g.smoothstep(0.52, 0.72, n1.fac), 0.45), ma.LATTE, ma.LATTE_OMBRA)
+    warp = g.vmath('ADD', co, g.vmath('SCALE', n1.color, scale=0.6))
+    vv = g.voronoi(warp, scale=0.9, feature='DISTANCE_TO_EDGE')
+    pelle = g.mix(g.mul(g.smoothstep(0.035, 0.0, vv), 0.40), pelle, ma.VENA)
+    vv2 = g.voronoi(warp, scale=2.6, feature='DISTANCE_TO_EDGE')
+    pelle = g.mix(g.mul(g.smoothstep(0.02, 0.0, vv2), 0.22), pelle, ma.VENA)
+    # i brandelli di vernice blu: solo attorno alla base delle ciglia
+    _, v = ma.base_occhio(ma.OCCHIO_ASSE)
+    base = ma.OCCHIO + ma.OCCHIO_ASSE * (ma.OCCHIO_DENTRO + 0.2) + v * (ma.APERTURA + 1.3)
+    dist = g.vmath('LENGTH', g.vmath('SUBTRACT', co, tuple(float(x) for x in base)))
+    vicino = g.smoothstep(1.3, 0.6, dist)
+    sto = g.noise(co, scale=0.9, detail=6.0, rough=0.7)
+    wco = g.vmath('ADD', co, g.vmath('SCALE', g.vmath('SUBTRACT', sto.color, (0.5, 0.5, 0.5)), scale=1.2))
+    rnd = g.bw(g.voronoi(wco, scale=1.3, feature='F1', out='Color'))
+    brandelli = g.mul(g.smoothstep(0.80, 0.81, rnd), vicino)
+    col = g.mix(brandelli, pelle, ma.BLU)
+    ao = g.ao(distance=0.6, samples=8)
+    col = g.mix(g.sub(1.0, ao), col, (0.40, 0.40, 0.44), blend='MULTIPLY')
+    patch = g.noise(co, scale=0.9, detail=4.0, rough=0.55, distortion=0.7)
+    sl = g.smoothstep(0.50, 0.60, patch.fac)
+    col = g.mix(g.mul(sl, 0.18), col, (ma.MELMA[0] * 0.9, ma.MELMA[1] * 0.9, ma.MELMA[2] * 0.85), blend='MULTIPLY')
+    grain = g.noise(co, scale=14.0, detail=3.0, rough=0.6)
+    nrm = g.bump(g.add(g.mul(grain.fac, 0.15), g.mul(brandelli, 0.8)), strength=0.45, distance=0.012)
+    g.output_material(g.principled(color=col, rough=g.mixf(sl, 0.32, 0.08), coat=g.add(0.45, g.mul(sl, 0.5)),
+                                   coat_rough=0.04, coat_tint=ma.MELMA, sss=0.35, sss_radius=(1.0, 0.75, 0.6),
+                                   sss_scale=0.14, normal=nrm))
+    return m
+
+
+def occhio_quota():
+    """L'occhio per il primo piano attraverso l'acqua: come madre.occhio_madre, ma il contorno scuro dell'iride più
+    largo e marcato, le fibre più fini, la cornea che luccica bagnata e qualche venuzza rossa nel bianco."""
+    m, g = material('QuotaOcchio')
+    co = g.texcoord('Object')
+    x, y, z = g.sep(co)
+    r = g.vmath('LENGTH', g.comb(x, z, 0.0))
+    front = g.smoothstep(0.1, -0.3, y)
+    iris = g.mul(g.smoothstep(0.57, 0.54, r), front)
+    pupil = g.mul(g.smoothstep(0.30, 0.28, r), front)
+    ang = g.math('ARCTAN2', z, x)
+    rays = g.noise(g.comb(g.mul(ang, 16.0), g.mul(r, 12.0), 0.0), scale=3.0, detail=6.0, rough=0.65)
+    rays2 = g.noise(g.comb(g.mul(ang, 40.0), g.mul(r, 3.0), 0.0), scale=2.0, detail=3.0)
+    fib = g.add(g.mul(rays.fac, 0.7), g.mul(rays2.fac, 0.3))
+    irc = g.mix(g.smoothstep(0.38, 0.68, fib), (0.015, 0.09, 0.30), (0.12, 0.52, 0.90))
+    # il collare chiaro attorno alla pupilla e il contorno scuro (limbo) largo
+    irc = g.mix(g.mul(g.smoothstep(0.36, 0.31, r), 0.5), irc, (0.35, 0.62, 0.80))
+    irc = g.mix(g.smoothstep(0.43, 0.55, r), irc, (0.004, 0.015, 0.05))
+    sclera = g.mix(g.smoothstep(0.6, 1.0, r), (0.84, 0.84, 0.80), (0.72, 0.60, 0.56))
+    vn = g.noise(co, scale=3.0)
+    vv = g.voronoi(g.vmath('ADD', co, g.vmath('SCALE', vn.color, scale=0.35)), scale=3.0, feature='DISTANCE_TO_EDGE')
+    vene = g.mul(g.mul(g.smoothstep(0.022, 0.0, vv), g.smoothstep(0.58, 0.9, r)), g.smoothstep(0.40, 0.58, vn.fac))
+    sclera = g.mix(g.mul(vene, 0.9), sclera, (0.55, 0.06, 0.06))
+    col = g.mix(iris, sclera, irc)
+    col = g.mix(pupil, col, (0.002, 0.002, 0.003))
+    g.output_material(g.principled(color=col, rough=0.18, coat=1.0, coat_rough=0.006, spec=0.7, sss=0.06,
+                                   sss_radius=(1.0, 0.6, 0.5), sss_scale=0.05))
+    return m
+
+
 def build_madre():
     import madre as ma
     t = time.time()
     obs = ma.build(viewer=tuple(float(x) for x in (ma.OCCHIO + ma.OCCHIO_ASSE * 30.0)), bocca=0.0, piccoli=False,
                    spruzzo_on=False, corpo_on=False)
     log('madre costruita', round(time.time() - t), 's', len(obs), 'oggetti')
+    # per questa scena: la carne bianca senza le croste, e l'occhio per il primo piano
+    head = bpy.data.objects.get('MadreHead')
+    if head:
+        head.data.materials[0] = pelle_quota(ma)
+    oq = occhio_quota()
+    for n in ('MadreEye0', 'MadreEye1'):
+        e = bpy.data.objects.get(n)
+        if e:
+            e.data.materials[0] = oq
     base = {o.name: o.matrix_world.copy() for o in obs}
     lash = bpy.data.objects.get('MadreLashes')
     wave = None
