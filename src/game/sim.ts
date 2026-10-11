@@ -1,4 +1,4 @@
-import { FISHING, HOUR_SECONDS, LAMP, LORE, NIGHT_HOURS, VIEW, YAW, angleDiff, type LampLevel, type MonsterId, type NightConfig } from './config.ts';
+import { FISHING, HOUR_SECONDS, LAMP, LORE, LORE_PER_NIGHT, NIGHT_HOURS, VIEW, YAW, angleDiff, type LampLevel, type MonsterId, type NightConfig } from './config.ts';
 import type { GameEvent } from './events.ts';
 import { Fishing, type Catch } from './fishing.ts';
 import { Archie, Fangy, Hatch, Lampy, Molly, Gulpy, Robin, SONAR_WARN, type LampyLine, type WorldView } from './monsters.ts';
@@ -397,7 +397,9 @@ export class NightSim {
     const remaining = LORE.filter((l) => l.night <= this.cfg.night && !this.foundLore.has(l.id));
     const n = this.landedCount + 1;
     let lore: string | null = null;
-    if (remaining.length > 0) {
+    // al massimo LORE_PER_NIGHT frammenti per notte: ognuno prende il posto di un pesce, e il bilanciamento delle notti è
+    // fatto con quanti ne uscivano quando c'erano solo i due della prima notte
+    if (remaining.length > 0 && this.loreThisNight.length < LORE_PER_NIGHT) {
       if (n === this.cfg.guaranteedLoreAt && this.loreThisNight.length === 0) lore = remaining[0]!.id;
       else if (n > 1 && this.rng.chance(this.cfg.loreChance)) lore = this.rng.pick(remaining).id;
     }
