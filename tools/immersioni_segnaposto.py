@@ -3,8 +3,8 @@ Panorami SEGNAPOSTO delle immersioni all'alba (docs/IMMERSIONI.md, «Il motore»
 finché non arrivano i render veri delle grotte e delle camerette. Brutti di proposito: roccia procedurale, buchi
 scuri per i passaggi, una stanza a scatola con un letto e qualche macchia di colore, un mostro-sagoma che dorme.
 
-I due posti delle grotte sono equirettangolari a sfera intera (360° × 180°); la cameretta è un pezzo di
-equirettangolare (160° × 80°, CAM qui sotto): un'inquadratura fissa che si gira di 30° per parte. I passi:
+La grotta grande è un equirettangolare a sfera intera (360° × 180°); sotto la barca (BARCA) e la cameretta (CAM) sono
+pezzi di equirettangolare: inquadrature fisse che si girano di 30° per parte (deciso l'11 ottobre). I passi:
   *_ambient.webp   la luce dell'acqua (quasi buio, un po' di chiarore dall'alto)
   *_lantern.webp   la stessa scena accesa dalla torcia del sub (il motore la mostra solo nel cono della torcia)
   *_data.webp      R = sqrt(distanza / 2500 m) (la nebbia dell'acqua torbida), G = quanto trema l'immagine
@@ -116,24 +116,30 @@ def holes(alb, dist, spots):
     return alb, dist
 
 
+# l'inquadratura fissa di sotto la barca (deciso l'11 ottobre sera: come le camerette): 160° × 95° verso la parete
+BARCA = dict(lon0=-80, lon1=80, lat0=-45, lat1=50)
+BARCA_PX = 11
+
+
 def sotto_barca():
-    """Sotto la barca: sopra l'acqua aperta e la chiglia scura, la cima dell'ancora che scende; davanti la parete di
-    roccia con l'imboccatura della grotta (yaw 0), sotto il fondo."""
+    """Sotto la barca, un'inquadratura fissa (BARCA): davanti la parete di roccia con l'imboccatura della grotta (yaw 0),
+    sopra la parete l'acqua aperta che si schiarisce verso la superficie, a sinistra la cima dell'ancora che scende
+    dalla barca (yaw −28), sotto il fondo."""
+    set_grid((BARCA['lon1'] - BARCA['lon0']) * BARCA_PX, (BARCA['lat1'] - BARCA['lat0']) * BARCA_PX, **BARCA)
     alb = rock([0.9, 1.0, 0.95])
-    # la parete davanti a 6 m, il fondo sotto a 5 m; dietro e ai lati acqua aperta (lontana)
-    wall = np.where(DY > 0.05, 6.0 / np.maximum(DY, 0.05), 80.0)
+    # la parete davanti a 6 m (alta 4 m sopra l'occhio), il fondo sotto a 5 m; sopra la parete l'acqua aperta
+    wall_t = 6.0 / np.maximum(DY, 0.05)
+    wall = np.where((DY > 0.05) & (DZ * wall_t < 4.0 + 0.8 * noise(1.1)), wall_t, 80.0)
     floor = np.where(DZ < -0.05, 5.0 / np.maximum(-DZ, 0.05), 80.0)
     dist = np.minimum(np.minimum(wall, floor), 60.0) * (1 + 0.15 * noise(1.3))
-    open_water = (dist > 30)
+    open_water = dist > 30
     alb[open_water] *= 0.1
     alb, dist = holes(alb, dist, [(0, -6, 13, 45)])
-    # la superficie: un chiarore che tremola, e la sagoma della barca proprio sopra
-    surf = np.clip(DZ, 0, 1) ** 5 * (0.6 + 0.4 * noise(0.9)) * 0.9
-    keel = np.exp(-((DX / 0.08) ** 2 + (DY / 0.35) ** 2)) * (DZ > 0.85)
-    sky = (surf * (1 - 0.95 * keel))[..., None] * np.array([0.35, 0.75, 0.8])
-    dist = np.where(DZ > 0.2, np.minimum(dist, 3.0 / np.maximum(DZ, 0.2) + 20 * (1 - keel)), dist)
-    # la cima dell'ancora: una riga chiara che sale verso la barca, a destra un po' dietro
-    rope = np.exp(-((np.angle(np.exp(1j * (LON - np.radians(150)))) / 0.012) ** 2)) * (DZ > -0.2)
+    # l'acqua aperta si schiarisce salendo verso la superficie, e tremola
+    surf = np.clip((DZ - 0.25) / 0.55, 0, 1) ** 2 * (0.6 + 0.4 * noise(0.9)) * 0.5 * open_water
+    sky = surf[..., None] * np.array([0.35, 0.75, 0.8])
+    # la cima dell'ancora: una riga chiara che scende dalla barca fino al fondo, a 2,5 m
+    rope = np.exp(-(((LON - np.radians(-28)) / 0.008) ** 2))
     alb = alb * (1 - rope[..., None]) + rope[..., None] * np.array([0.45, 0.40, 0.30])
     dist = np.where(rope > 0.5, 2.5, dist)
     write_place('sotto_barca', alb, dist, sky)
@@ -155,6 +161,7 @@ GROTTA_BUCHI = [
 
 def grotta_grande():
     """La grotta grande: una sala chiusa con un buco per ogni tana, l'uscita alle spalle e il fondo enorme davanti."""
+    set_grid(2048, 1024)
     alb = rock([0.85, 0.95, 1.0], rough=1.4)
     # una sala schiacciata di circa 7 m di raggio, il soffitto più basso, la roccia irregolare
     r = 7.0 * (1 + 0.25 * noise(1.2))

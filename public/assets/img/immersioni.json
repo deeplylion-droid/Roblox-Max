@@ -1,12 +1,9 @@
 {
- "_nota": "Le immersioni all'alba (docs/IMMERSIONI.md, «Il motore»): i posti, i passaggi fra un posto e l'altro (yaw e pitch in gradi nel panorama del posto, r = raggio cliccabile in gradi), le tane. I panorami sono SEGNAPOSTO (tools/immersioni_segnaposto.py): quando arrivano i render veri basta cambiare i file e le posizioni qui. Solo le grotte sono panorami a 360°; le camerette delle tane sono inquadrature fisse (frame, deciso l'11 ottobre). Le regole dell'aria sono da approvare.",
+ "_nota": "Le immersioni all'alba (docs/IMMERSIONI.md, «Il motore»): i posti, i passaggi fra un posto e l'altro (yaw e pitch in gradi nel panorama del posto, r = raggio cliccabile in gradi), le tane, i suoni dei posti. I panorami sono SEGNAPOSTO (tools/immersioni_segnaposto.py): quando arrivano i render veri basta cambiare i file e le posizioni qui. Solo la grotta grande è a 360°; sotto la barca e le camerette delle tane sono inquadrature fisse (frame). Aria (11 ottobre sera): due tane, la tana vuota non conta; uscendo dalla seconda si risale.",
  "start": "sotto_barca",
  "air": {
-  "perDen": 0.42,
-  "denSeconds": 30,
-  "reserveSeconds": 25,
-  "warnAt": 0.08,
-  "maxDens": 2
+  "maxDens": 2,
+  "emptyDenFree": true
  },
  "water": {
   "fog": [
@@ -35,7 +32,7 @@
  },
  "places": {
   "sotto_barca": {
-   "_nota": "Sotto la barca: la cima dell'ancora che sale verso la chiglia, la parete di roccia con l'imboccatura della grotta davanti.",
+   "_nota": "Sotto la barca, un'inquadratura fissa (deciso l'11 ottobre sera): la parete di roccia con l'imboccatura della grotta davanti, la cima dell'ancora a sinistra. SEGNAPOSTO.",
    "pano": {
     "ambient": {
      "file": "immersioni/segnaposto/sotto_barca_ambient.webp",
@@ -48,16 +45,12 @@
     "data": "immersioni/segnaposto/sotto_barca_data.webp"
    },
    "size": [
-    2048,
-    1024
+    1760,
+    1045
    ],
-   "latMin": -90,
-   "latMax": 90,
+   "latMin": -45,
+   "latMax": 50,
    "yaw": 0,
-   "look": {
-    "yaw": 0,
-    "pitch": -5
-   },
    "rays": 1.0,
    "links": [
     {
@@ -69,12 +62,20 @@
     },
     {
      "ascend": true,
-     "yaw": 150,
-     "pitch": 35,
-     "r": 14,
+     "yaw": -28,
+     "pitch": 22,
+     "r": 7,
      "label": "ascend"
     }
-   ]
+   ],
+   "lonMin": -80,
+   "lonMax": 80,
+   "frame": {
+    "yaw": 0,
+    "pitch": 5,
+    "yawRange": 30,
+    "pitchRange": 6
+   }
   },
   "grotta_grande": {
    "_nota": "La grotta grande: un'apertura per ogni tana (si vedono solo quelle dei mostri già arrivati), l'uscita alle spalle, il fondo enorme e buio davanti (la Madre: non ci si entra).",
@@ -156,6 +157,15 @@
      "yaw": -152,
      "pitch": -4,
      "r": 8
+    }
+   ],
+   "sounds": [
+    {
+     "id": "madre_breath",
+     "yaw": 0,
+     "pitch": -4,
+     "dist": 10,
+     "gain": 1
     }
    ]
   },

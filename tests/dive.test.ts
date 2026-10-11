@@ -5,15 +5,6 @@ import { DiveRun, type DiveData } from '../src/app/dive_run.ts';
 /** i dati veri del gioco (con i panorami segnaposto) */
 const DATA = JSON.parse(readFileSync(new URL('../public/assets/img/immersioni.json', import.meta.url), 'utf8')) as DiveData;
 
-function walk(r: DiveRun, seconds: number, dt = 0.1) {
-  const ev: string[] = [];
-  for (let t = 0; t < seconds; t += dt) {
-    r.update(dt);
-    ev.push(...r.drainEvents().map((e) => e.t));
-  }
-  return ev;
-}
-
 describe('Immersioni: i dati', () => {
   it('ogni passaggio porta a un posto che esiste, e ogni posto ha il suo panorama', () => {
     expect(DATA.places[DATA.start]).toBeDefined();
@@ -62,22 +53,16 @@ describe('Immersioni: le regole', () => {
     expect(r.feed()).toBe('noFish');
   });
 
-  it('l’aria scende a ogni tana e basta per due; poi l’avviso e la risalita', () => {
+  it('l’aria basta per due tane: nuotare e restare nelle tane non costa; uscendo dalla seconda si risale', () => {
     const r = new DiveRun(DATA, 5, 1);
     r.enter('grotta_grande');
-    expect(walk(r, 60)).toEqual([]);
-    expect(r.air).toBe(1); // nuotare nella grotta non costa
     r.enter('tana_gulpy');
-    walk(r, DATA.air.denSeconds + 1);
-    expect(r.air).toBeCloseTo(1 - DATA.air.perDen, 5);
+    expect(r.outOfAirOnLeave()).toBe(false);
     r.enter('grotta_grande');
     r.enter('tana_molly');
-    r.enter('grotta_grande');
-    expect(r.canEnter('tana_hatch')).toBe('tooFar');
-    expect(r.canEnter('tana_molly')).toBe('ok'); // in una tana già vista si torna
-    const ev = walk(r, DATA.air.reserveSeconds + 10);
-    expect(ev).toEqual(['airLow', 'airOut']);
-    expect(r.air).toBe(0);
+    // dalla seconda tana non si torna nella grotta: l'aria è finita (la presentazione fa partire la risalita)
+    expect(r.outOfAirOnLeave()).toBe(true);
+    expect(r.dens).toEqual(['gulpy', 'molly']);
   });
 });
 
@@ -91,27 +76,38 @@ describe('Immersioni: le camerette', () => {
       expect(p.links.some((l) => l.to === 'grotta_grande')).toBe(true);
     }
     expect(DATA.places.grotta_grande!.frame).toBeUndefined();
+    // anche sotto la barca è un'inquadratura fissa (deciso l'11 ottobre sera); si risale dalla cima dell'ancora
+    const sb = DATA.places.sotto_barca!;
+    expect(sb.frame?.yawRange).toBe(30);
+    expect((sb.lonMax ?? 180) - (sb.lonMin ?? -180)).toBeGreaterThanOrEqual(150);
+    expect(sb.links.some((l) => l.ascend)).toBe(true);
+    // i passaggi stanno dentro l'inquadratura
+    for (const l of sb.links) expect(Math.abs(l.yaw - sb.frame!.yaw)).toBeLessThanOrEqual(sb.frame!.yawRange + 45);
   });
 });
 
 describe('Immersioni: la tana vuota e l’aria', () => {
-  it('di solito la tana vuota conta fra le due; con emptyDenFree no (da confermare)', () => {
-    const base = new DiveRun(DATA, 2, 1);
-    base.enter('grotta_grande');
-    base.enter('tana_robin');
-    base.enter('grotta_grande');
-    base.enter('tana_gulpy');
-    base.enter('grotta_grande');
-    expect(base.canEnter('tana_molly')).toBe('tooFar');
+  it('la tana vuota del mostro nuovo non costa aria (deciso l’11 ottobre sera): si vedono lo stesso due mostri', () => {
+    expect(DATA.air.emptyDenFree).toBe(true);
+    const r = new DiveRun(DATA, 2, 1);
+    r.enter('grotta_grande');
+    r.enter('tana_robin');
+    expect(r.outOfAirOnLeave()).toBe(false);
+    r.enter('grotta_grande');
+    r.enter('tana_gulpy');
+    expect(r.outOfAirOnLeave()).toBe(false);
+    r.enter('grotta_grande');
+    r.enter('tana_molly');
+    expect(r.outOfAirOnLeave()).toBe(true);
+    expect(r.dens).toEqual(['robin', 'gulpy', 'molly']);
+  });
 
-    const free = new DiveRun({ ...DATA, air: { ...DATA.air, emptyDenFree: true } }, 2, 1);
-    free.enter('grotta_grande');
-    free.enter('tana_robin');
-    expect(free.air).toBe(1);
-    free.enter('grotta_grande');
-    free.enter('tana_gulpy');
-    free.enter('grotta_grande');
-    expect(free.canEnter('tana_molly')).toBe('ok');
-    expect(free.dens).toEqual(['robin', 'gulpy']);
+  it('senza emptyDenFree la tana vuota conta come le altre', () => {
+    const r = new DiveRun({ ...DATA, air: { maxDens: 2 } }, 2, 1);
+    r.enter('grotta_grande');
+    r.enter('tana_robin');
+    r.enter('grotta_grande');
+    r.enter('tana_gulpy');
+    expect(r.outOfAirOnLeave()).toBe(true);
   });
 });

@@ -22,8 +22,8 @@ ai pesci in più (oggi a fine notte non servono a niente).
 - **All'alba** (dopo ogni notte vinta, dalla prima alla quinta): sulla barca, accanto al banco, ci sono le bombole
   che il pescatore ha tirato fuori dalla cambusa. Si può **scendere** o passare subito alla notte dopo
   (l'immersione è facoltativa).
-- **L'aria** basta per **due tane**: il manometro delle bombole (un ago come quello del voltmetro) scende a ogni
-  tana visitata e a metà del ritorno suona l'avviso. Quando l'aria finisce si risale da soli.
+- **L'aria** basta per **due tane** (la tana vuota del mostro nuovo non conta). **Niente indicatore** (deciso l'11
+  ottobre sera): quando lasci la seconda tana compare «Aria finita: risali.» e si risale da soli.
 - **Niente pericoli**: i mostri dormono. Si muovono nel sonno, respirano, fanno bolle, qualche volta sembrano
   svegliarsi, ma non succede niente. Solo atmosfera.
 - **Il pesce**: se alle sei avevi più pesci della quota, **uno** te lo porti giù e lo puoi lasciare accanto a **uno**
@@ -75,9 +75,9 @@ salvataggio deve quindi ricordare, alba per alba, se sei sceso e se hai lasciato
 ## Cosa serve
 
 - **Motore**: la modalità immersione (panorami collegati, la torcia, l'acqua torbida con le particelle e i raggi di
-  luce, le bolle dell'erogatore, il manometro), l'offerta del pesce (si clicca il mostro tenendo il pesce),
+  luce, le bolle dell'erogatore), l'offerta del pesce (si clicca il mostro tenendo il pesce),
   la schermata dell'alba con la scelta, i salvataggi (chi hai sfamato, le tane viste).
-- **Render**: il panorama a 360° della grotta grande (più la discesa sotto la barca), sette camerette come
+- **Render**: il panorama a 360° della grotta grande, l'inquadratura fissa sotto la barca (11 ottobre sera), sette camerette come
   inquadrature fisse larghe abbastanza da girarle di 30° per parte, sette pose addormentate con le loro toppe.
 - **Suoni**: l'ambiente sott'acqua, l'erogatore, il respiro nel sonno di ognuno, le conchiglie di Fangy.
 - **Simulazione**: il mostro sfamato non parte; il bot sfama il più pericoloso; si ribilanciano le notti.
@@ -93,39 +93,49 @@ salvataggio deve quindi ricordare, alba per alba, se sei sceso e se hai lasciato
 
 > **Fatto l'11 ottobre, con contenuti segnaposto.** Il motore, il flusso, la simulazione e il salvataggio ci sono;
 > i panorami sono **finti** (grotte procedurali e una «cameretta» qualsiasi, brutti di proposito) finché non
-> arrivano i render veri delle grotte e le camerette approvate. **Da approvare**: le regole dell'aria, i testi,
-> l'aspetto dell'acqua, il manometro disegnato, i punti cliccabili.
+> arrivano i render veri delle grotte e le camerette approvate.
+>
+> **Decisioni dell'utente, 11 ottobre sera**: approvati le anteprime della grotta grande, i 26 suoni delle
+> immersioni e i testi; **niente indicatore dell'aria** (via il manometro, l'avviso e la riserva: uscendo dalla
+> seconda tana compare «Aria finita: risali.» e si risale da soli); la **tana vuota** del mostro nuovo **non costa
+> aria**; **sotto la barca** è un'inquadratura fissa come le camerette. **Da rivedere nel prototipo con la tana di
+> Gulpy**: l'aspetto dell'acqua e i cerchietti cliccabili.
 
 ### Come si gioca, oggi
 
 - **All'alba** di una notte vinta, dalla prima alla quinta (se la notte dopo è giocabile in questa build), la
   schermata dei risultati mostra anche **«Oltre la quota»** (i pesci avanzati alle sei) e il tasto **«Scendi con le
   bombole»** sopra «Notte successiva». L'immersione è facoltativa.
-- **Giù**: si parte **sotto la barca**. Ti guardi attorno come sulla barca (bordi dello schermo, `A`/`D`), e anche in
-  su e in giù (bordo alto e basso, `W`/`S`): in alto la luce della superficie e la chiglia. I passaggi sono cerchietti
-  tenui che si accendono passandoci sopra, col nome; si clicca e si passa con una dissolvenza al nero con le bolle
-  davanti alla maschera. In basso a destra c'è sempre **«Risali»**; si risale anche cliccando la cima dell'ancora.
+- **Giù**: si parte **sotto la barca**, un'inquadratura fissa (11 ottobre sera): la parete di roccia con
+  l'imboccatura della grotta davanti, la cima dell'ancora a sinistra; lo sguardo si gira di 30° per parte (bordi dello
+  schermo, `A`/`D`) e di pochi gradi in su e in giù (`W`/`S`). I passaggi sono cerchietti tenui che si accendono
+  passandoci sopra, col nome; si clicca e si passa con una dissolvenza al nero con le bolle davanti alla maschera.
+  In basso a destra c'è sempre **«Risali»**; si risale anche cliccando la cima dell'ancora.
 - **La torcia** segue lo sguardo con un piccolo ritardo e trema appena: fuori dal cono resta quasi buio.
   **L'acqua**: la nebbia verde-blu (dalla distanza del passo dati), le particelle sospese che vanno alla deriva e si
   accendono nella torcia, i raggi che scendono dall'alto, l'immagine che trema appena, si galleggia ondeggiando.
-- **La grotta grande**: un'apertura per ogni tana dei mostri **già arrivati** (dopo la prima notte: Gulpy, Molly,
+- **La grotta grande**, l'unico posto a 360° (ci si guarda attorno anche in su e in giù): un'apertura per ogni tana dei mostri **già arrivati** (dopo la prima notte: Gulpy, Molly,
   Hatch e Robin); le altre non si vedono ancora. Il fondo enorme davanti si guarda soltanto («Dal fondo, nel buio,
-  respira qualcosa di enorme»): non ci si entra.
+  respira qualcosa di enorme»): non ci si entra. Da lì si sente sempre il respiro della Madre (`madre_breath`).
 - **Le tane** (deciso l'11 ottobre): ogni cameretta è un'**inquadratura fissa**, come una telecamera di FNAF: lo
   sguardo si gira di 30° a destra e a sinistra (e di pochi gradi in su e in giù) e basta; in basso c'è il tasto
-  **«Torna alla grotta»**. La grotta grande è un panorama a 360°; anche **sotto la barca** oggi lo è: l'approvazione
-  dice «solo la grotta grande a 360°» ma fra i render elenca «più la discesa sotto la barca», quindi è **da
-  confermare** con l'utente (per farla diventare un'inquadratura fissa basta darle `frame` e un panorama parziale
-  nei dati, come le camerette). Il mostro dorme sul letto e respira (la toppa del respiro si dissolve sopra la posa) e fa salire le
+  **«Torna alla grotta»**. Il mostro dorme sul letto e respira (la toppa del respiro si dissolve sopra la posa) e fa salire le
   bolle. Cliccandolo, se hai un pesce, compare la conferma **«Lasci il pesce accanto a Gulpy?»**; sì, e quel
   mostro **la notte dopo non viene**. La tana del **mostro nuovo** della notte dopo è **vuota** («La tana è vuota.
   Chi ci dorme è già in giro.»).
-- **L'aria** (proposta, numeri in `immersioni.json` → `air`): nuotare nelle grotte non costa; ogni tana nuova costa
-  0,42 dell'aria, che l'ago fa scendere nei 30 secondi in cui ci resti (uscendo prima scende subito). Dopo due tane
-  non si entra in una terza («Non c'è abbastanza aria per un'altra tana»; nelle tane già viste si torna) e resta
-  una riserva di 25 secondi: a metà suona l'avviso («L'aria sta finendo»), quando finisce si risale da soli. Il
-  manometro è un ago su un quadrante disegnato nell'angolo in basso a sinistra (TODO: il quadrante renderizzato,
-  come quello del voltmetro).
+- **L'aria** (decisa l'11 ottobre sera; `immersioni.json` → `air`): basta per **due tane**; il tempo dentro le tane è
+  libero e nuotare non costa. **Non c'è un indicatore**: quando lasci la seconda tana («Torna alla grotta») invece di
+  tornare nella grotta compare **«Aria finita: risali.»**, l'erogatore smette di dare aria (`dive_air_out`) e si
+  risale da soli (`dive_up`). A una terza tana quindi non si arriva mai. La **tana vuota** del mostro nuovo **non
+  conta** (`emptyDenFree: true`): dopo la prima notte si può vedere la tana vuota di Robin e poi due mostri che
+  dormono. **«Risali»** resta sempre disponibile.
+- **I suoni** (approvati, `docs/AUDIO.md`): l'ambiente della grotta (`amb_dive`) e l'erogatore (`dive_breath`) per
+  tutta l'immersione, la discesa (`dive_down`), le nuotate fra un posto e l'altro (`dive_swim_1`, `_2`, alternate),
+  le bolle quando un passaggio è bloccato (`dive_bubbles`), l'aria finita e la risalita, il pesce nella sabbia
+  (`offer_fish`), nelle tane il respiro nel sonno in loop (`sleep_<mostro>`, dal letto) e ogni 14-28 secondi un
+  movimento (`stir_<mostro>`), dalla grotta grande il respiro della Madre. Restano fuori `dive_air_low` (l'avviso
+  del manometro, che non c'è più) e `dive_breath_fast` (il respiro affannato ad aria bassa): si potrebbe usare
+  nella seconda tana, quando l'aria sta per finire, se l'utente vuole un segnale senza indicatore.
 - **Risaliti**, si va all'intro della notte dopo.
 
 ### La simulazione
@@ -159,26 +169,26 @@ piccole (`wonNight`, `afterDive`, `skipDawn`, `newGame`, `fedFor`, `pendingDawn`
 
 | File | Cosa c'è |
 |---|---|
-| `src/app/dive_run.ts` | Le regole di un'immersione senza grafica (`DiveRun`): passaggi visibili, tane chiuse/vuote/col mostro, l'aria, il pesce. E i tipi del file di dati. Test in `tests/dive.test.ts`. |
-| `src/app/dive.ts` | La modalità immersione: carica i posti, lo sguardo, la torcia, l'acqua, i punti cliccabili, il manometro, la conferma del pesce, i suoni. |
+| `src/app/dive_run.ts` | Le regole di un'immersione senza grafica (`DiveRun`): passaggi visibili, tane chiuse/vuote/col mostro, l'aria (due tane, `outOfAirOnLeave`), il pesce. E i tipi del file di dati. Test in `tests/dive.test.ts`. |
+| `src/app/dive.ts` | La modalità immersione: carica i posti, lo sguardo, la torcia, l'acqua, i punti cliccabili, la conferma del pesce, i suoni. |
 | `src/app/app.ts` | Il flusso: alba → «Scendi con le bombole» → immersione → notte dopo (col mostro sfamato). |
 | `src/engine/renderer.ts`, `shaders.ts` | Nuovo nel motore: la nebbia degli strati configurabile (`fog`), la torcia sul passo lanterna (`torch`), la tinta di uno strato, il passo dell'acqua `WATER_FS` (raggi, particelle, alone della torcia, colonne di bolle, le bolle dell'erogatore) al posto dell'atmosfera della notte, `removeLayer` per liberare le texture. Le notti non cambiano. |
-| `public/assets/img/immersioni.json` | I posti, i passaggi, le tane, l'aria e l'aspetto dell'acqua. |
+| `public/assets/img/immersioni.json` | I posti, i passaggi, le tane, i suoni dei posti, l'aria e l'aspetto dell'acqua. |
 | `tools/immersioni_segnaposto.py` | Genera i panorami segnaposto in `public/assets/img/immersioni/segnaposto/`. |
 
 ### Come si aggiungono i posti veri
 
 Tutto sta in `public/assets/img/immersioni.json`; il codice non cambia.
 
-1. **Il panorama** di un posto: un equirettangolare a 360° (meglio la sfera intera, `latMin` −90 e `latMax` 90,
+1. **Il panorama** di un posto: per la grotta grande un equirettangolare a sfera intera (`latMin` −90 e `latMax` 90,
    così si guarda in su e in giù), con i passi `ambient` (la luce dell'acqua, quasi buio), `lantern` (la scena
    accesa da una luce sull'occhio: il motore la mostra solo nel cono della torcia) e `data` (R = sqrt(distanza /
    2500 m), come il passo dati del mondo, per la nebbia; G = quanto trema l'immagine, 0,1 circa). Si codificano
    come gli altri render (gamma 4, con la loro `scale`). `size` è la larghezza e l'altezza in pixel, `yaw` la
    rotazione, `look` dove guardi arrivando, `rays` quanta luce scende dall'alto.
-   **Le camerette** sono inquadrature fisse: un panorama **parziale** (`lonMin`/`lonMax` e `latMin`/`latMax`, i
-   bordi in gradi; i segnaposto sono 160° × 80°) con `frame`: `yaw` e `pitch` del centro, `yawRange` (30) e
-   `pitchRange` (4), i gradi di cui si gira. Il panorama deve coprire il campo visivo (90° in orizzontale, fino a
+   **Sotto la barca e le camerette** sono inquadrature fisse: un panorama **parziale** (`lonMin`/`lonMax` e
+   `latMin`/`latMax`, i bordi in gradi; i segnaposto sono 160° × 95° sotto la barca e 160° × 80° le camerette) con `frame`: `yaw` e `pitch` del centro, `yawRange` (30) e
+   `pitchRange` (4 nelle camerette, 6 sotto la barca), i gradi di cui si gira. Il panorama deve coprire il campo visivo (90° in orizzontale, fino a
    68° in verticale) più quanto si gira: almeno 150° × 76°. Lo zoom non cambia.
 2. **I passaggi** (`links`): `to` (il posto), `yaw` e `pitch` (gradi, nel panorama del posto: dove sta l'apertura),
    `r` (il raggio cliccabile in gradi), `label` (il nome che compare: chiave di `STRINGS.dive.links`). Con
@@ -194,31 +204,31 @@ Tutto sta in `public/assets/img/immersioni.json`; il codice non cambia.
 4. **La memoria**: un panorama a sfera intera con tre passi pesa molto in GPU (8192 × 4096 RGBA sono 128 MB a
    passo). Il motore tiene in memoria **un posto solo**: lo carica quando ci arrivi (durante la dissolvenza al nero)
    e lo libera quando te ne vai. Il passo `lantern` può stare a mezza risoluzione, come quello del mondo.
-5. **I suoni** nuovi si mettono nel manifest dell'audio con i nomi già previsti in `src/app/dive.ts` (`dive_amb`,
-   `dive_breath`, `dive_bubbles`, `dive_air_low`, `dive_sleep_<mostro>`, `dive_mother`…): il motore li usa al
-   posto dei ripieghi (oggi il ronzio della barca ovattato, gli schizzi, il bip del sonar, il respiro di Gulpy).
+5. **I suoni** di un posto: `sounds` (id, `yaw`, `pitch`, `dist` in metri, `gain`) suonano in loop finché ci sei
+   (la Madre dalla grotta grande). Il mostro che dorme usa da solo `sleep_<mostro>` e `stir_<mostro>` dal punto
+   `sleeper`.
 
 ### La prova nel browser
 
 Provato l'11 ottobre nel Chromium headless con `?step` (nessun errore in console): la prima notte vinta con tre
 pesci oltre la quota, «Scendi con le bombole», sotto la barca, la grotta grande, la tana di Gulpy col pesce lasciato,
-la tana vuota di Robin, la terza tana rifiutata per l'aria, l'aria che finisce e la risalita da soli, l'intro della
+la tana vuota di Robin, la terza tana rifiutata per l'aria, l'aria che finisce e la risalita da soli (prima delle
+decisioni della sera: allora c'erano ancora il manometro e la riserva), l'intro della
 seconda notte e la notte con Gulpy che dorme. Le schermate sono in `docs/concept/immersioni_prova_*.jpg` (i panorami
 sono i segnaposto). Dopo la decisione delle inquadrature fisse: `immersioni_prova_11_cameretta_inquadratura.jpg`
-(la cameretta girata tutta a sinistra, al centro, tutta a destra).
+(la cameretta girata tutta a sinistra, al centro, tutta a destra). Dopo le decisioni della sera:
+`immersioni_prova_12_sotto_barca_fissa.jpg` e `immersioni_prova_13_aria_finita.jpg`.
 
 ### Se qualcosa va storto
 
 - Se un file di un posto manca o non si scarica, le texture già create si liberano, non si spende aria e la tana
-  non si conta; si torna nel posto di prima con la didascalia «Di là non si passa. Torni indietro.» (*da
-  approvare*). Se non si carica nemmeno quello, si risale. Se manca il primo posto, si passa alla notte dopo.
+  non si conta; si torna nel posto di prima con la didascalia «Di là non si passa. Torni indietro.» Se non si carica nemmeno quello, si risale. Se manca il primo posto, si passa alla notte dopo.
 - Se si risale (il tasto o l'aria finita) mentre si carica un posto, la risalita vince.
-- **La tana vuota conta fra le due tane** (il disegno non lo dice): è **da confermare**. Con `"emptyDenFree": true`
-  in `air` la tana vuota del mostro nuovo non costa aria.
 
 ### Cosa manca
 
 - I render veri (le grotte le sta facendo un altro lavoro; le camerette e le pose addormentate sono da approvare),
-  il quadrante del manometro e le bombole sulla barca all'alba (oggi solo il tasto).
+  e le bombole sulla barca all'alba (oggi solo il tasto).
 - Il pesce posato accanto al letto (una toppa nella tana), le scoperte delle tane nel diario.
-- I suoni nuovi (vedi sopra) e il ribilanciamento delle notti col mostro sfamato.
+- Il ribilanciamento delle notti col mostro sfamato; il prototipo con la tana di Gulpy per rivedere l'acqua e i
+  cerchietti.

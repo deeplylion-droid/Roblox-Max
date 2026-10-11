@@ -105,19 +105,16 @@ const IT = {
   turnBar: 'VOLTATI',
   intro: { quota: 'Quota', fishUnit: 'pesci', time: '00:00' },
   results: { caught: 'Pesci pescati', fed: 'Dati a Gulpy', lore: 'Oggetti ripescati', time: 'Ora', spare: 'Oltre la quota' },
-  // Le immersioni all'alba (docs/IMMERSIONI.md): DA APPROVARE, tutti (proposte scritte col motore, 11 ottobre)
+  // Le immersioni all'alba (docs/IMMERSIONI.md): approvati l'11 ottobre sera
   dive: {
     descend: 'Scendi con le bombole',
     loading: 'Ti infili le bombole…',
     ascend: 'Risali',
-    air: 'ARIA',
     hint: 'Guardati attorno. Clicca un passaggio per nuotarci.',
     links: { cave: 'La grotta', back: 'Indietro', toCave: 'Torna alla grotta', ascend: 'Risali lungo la cima' } as Record<string, string>,
     notes: { mother: 'Dal fondo, nel buio, respira qualcosa di enorme.' } as Record<string, string>,
     emptyDen: 'La tana è vuota. Chi ci dorme è già in giro.',
-    tooFar: 'Non c’è abbastanza aria per un’altra tana.',
     blocked: 'Di là non si passa. Torni indietro.',
-    airLow: 'L’aria sta finendo.',
     airOut: 'Aria finita: risali.',
     offer: (who: string) => `Lasci il pesce accanto a ${who}?`,
     offerYes: 'Lascia il pesce',
@@ -323,19 +320,16 @@ const EN: typeof IT = {
   turnBar: 'TURN AROUND',
   intro: { quota: 'Quota', fishUnit: 'fish', time: '12:00 AM' },
   results: { caught: 'Fish caught', fed: 'Fed to Gulpy', lore: 'Things fished up', time: 'Time', spare: 'Over the quota' },
-  // dawn dives: TO BE APPROVED
+  // dawn dives: approved on 11 October (evening)
   dive: {
     descend: 'Dive with the tanks',
     loading: 'Strapping on the tanks…',
     ascend: 'Surface',
-    air: 'AIR',
     hint: 'Look around. Click a passage to swim through it.',
     links: { cave: 'The cave', back: 'Back', toCave: 'Back to the cave', ascend: 'Climb the anchor line' } as Record<string, string>,
     notes: { mother: 'Down in the dark, something enormous is breathing.' } as Record<string, string>,
     emptyDen: 'The den is empty. Whoever sleeps here is already out.',
-    tooFar: 'Not enough air for another den.',
     blocked: 'You can’t get through there. You turn back.',
-    airLow: 'The air is running out.',
     airOut: 'Out of air: surfacing.',
     offer: (who: string) => `Leave the fish beside ${who}?`,
     offerYes: 'Leave the fish',

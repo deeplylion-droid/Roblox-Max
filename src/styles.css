@@ -278,7 +278,7 @@ html, body {
 .book-nav .hint { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
 @media (prefers-reduced-motion: reduce) { .leaf { transition: none; } }
 
-/* Immersioni all'alba (src/app/dive.ts): i passaggi, il manometro, le didascalie, la conferma del pesce. Da approvare */
+/* Immersioni all'alba (src/app/dive.ts): i passaggi, le didascalie, la conferma del pesce. I cerchietti dei passaggi sono da rivedere nel prototipo con la tana di Gulpy */
 .dive-spots { position: absolute; inset: 0; overflow: hidden; }
 .dive-spot { position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; transition: opacity .3s; }
 .dive-spot.show { opacity: .35; }
@@ -286,7 +286,6 @@ html, body {
 .dive-spot::before { content: ''; position: absolute; left: -9px; top: -9px; width: 14px; height: 14px; border: 2px solid rgba(160,230,220,.7); border-radius: 50%; box-shadow: 0 0 10px rgba(120,220,210,.35); }
 .dive-spot span { position: absolute; left: 16px; top: -10px; white-space: nowrap; font-size: 13px; letter-spacing: .18em; text-transform: uppercase; color: #bfe9e2; opacity: 0; transition: opacity .2s; }
 .dive-spot.hover span { opacity: 1; }
-.dive-gauge { position: absolute; left: 22px; bottom: 22px; width: 132px; height: 132px; filter: drop-shadow(0 4px 10px rgba(0,0,0,.7)); }
 .dive-cap { position: absolute; bottom: 104px; left: 50%; transform: translateX(-50%); max-width: min(820px, 86vw); padding: 10px 18px; background: rgba(0,10,12,.55); border-left: 2px solid #7fd3c8; font-size: 18px; line-height: 1.35; opacity: 0; transition: opacity .4s; }
 .dive-cap.show { opacity: 1; }
 .dive-up { position: absolute; right: 22px; bottom: 26px; pointer-events: auto; background: none; border: 1px solid rgba(160,230,220,.45); color: #bfe9e2; font: inherit; font-size: 14px; letter-spacing: .25em; text-transform: uppercase; padding: 8px 16px; cursor: pointer; }

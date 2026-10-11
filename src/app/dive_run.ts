@@ -70,24 +70,18 @@ export interface DivePlace {
   den?: MonsterId;
   /** panorama della tana vuota, se diverso (se la posa è dipinta nel panorama invece che in sleeper.layers) */
   panoEmpty?: DivePano;
+  /** suoni in loop del posto (la Madre che respira dal fondo della grotta grande): dove stanno, in gradi e metri */
+  sounds?: { id: string; yaw: number; pitch: number; dist?: number; gain?: number }[];
   /** il mostro che dorme: dove si clicca per lasciargli il pesce, i suoi strati, da dove salgono le bolle */
   sleeper?: { yaw: number; pitch: number; r: number; layers?: DiveSprite[]; bubbles?: { yaw: number; pitch: number } };
   links: DiveLink[];
 }
 
-/** Regole dell'aria (da approvare): l'aria basta per maxDens tane, poi resta una riserva per tornare. */
+/** Regole dell'aria (decise l'11 ottobre sera): l'aria basta per maxDens tane; il tempo dentro le tane è libero e
+ *  nuotare non costa. Non c'è un indicatore: quando lasci l'ultima tana l'aria è finita e si risale da soli. */
 export interface AirRules {
-  /** quanta aria costa una tana (su 1) */
-  perDen: number;
-  /** in quanti secondi dentro la tana l'ago scende della sua parte (uscendo prima scende subito) */
-  denSeconds: number;
-  /** dopo l'ultima tana, quanto dura la riserva */
-  reserveSeconds: number;
-  /** sotto questa aria suona l'avviso */
-  warnAt: number;
   maxDens: number;
-  /** la tana vuota del mostro nuovo non costa aria (non conta fra le due). Da confermare con l'utente: il disegno non
-   *  lo dice; senza, la tana vuota conta come le altre */
+  /** la tana vuota del mostro nuovo non costa aria (non conta fra le due): deciso l'11 ottobre sera */
   emptyDenFree?: boolean;
 }
 
@@ -115,16 +109,8 @@ export interface DiveData {
  *  già in giro), con il mostro che dorme. */
 export type DenState = 'locked' | 'empty' | 'asleep';
 
-export type DiveEvent = { t: 'airLow' } | { t: 'airOut' };
-
 export class DiveRun {
   place: string;
-  /** aria nelle bombole, da 1 a 0 */
-  air = 1;
-  /** dove deve arrivare l'ago */
-  private airTarget = 1;
-  /** quanto scende l'ago al secondo */
-  private airRate = 0;
   /** le tane in cui sei entrato in questa immersione, in ordine */
   readonly dens: MonsterId[] = [];
   /** le tane che sono costate aria (di solito tutte quelle viste; vedi AirRules.emptyDenFree) */
@@ -133,9 +119,6 @@ export class DiveRun {
   fed: MonsterId | null = null;
   /** pesci portati giù (al massimo uno) */
   fish: number;
-  private warned = false;
-  private out = false;
-  private events: DiveEvent[] = [];
 
   constructor(
     readonly data: DiveData,
@@ -168,7 +151,8 @@ export class DiveRun {
     });
   }
 
-  /** Si può entrare? Una tana nuova costa aria: dopo maxDens tane non ce n'è più per un'altra. */
+  /** Si può entrare? Una tana nuova costa aria: dopo maxDens tane non ce n'è più per un'altra (nel gioco non succede:
+   *  uscendo dall'ultima tana si risale, outOfAirOnLeave; resta per sicurezza, se i dati collegassero due tane). */
   canEnter(to: string): 'ok' | 'tooFar' | 'missing' {
     const p = this.data.places[to];
     if (!p) return 'missing';
@@ -184,20 +168,17 @@ export class DiveRun {
 
   enter(to: string): boolean {
     if (this.canEnter(to) !== 'ok') return false;
-    const leaving = this.current;
     this.place = to;
     const p = this.current;
-    const a = this.data.air;
     if (p.den && !this.dens.includes(p.den)) this.dens.push(p.den);
-    if (p.den && this.costsAir(p.den)) {
-      this.spent.push(p.den);
-      this.airTarget = Math.max(0, 1 - a.perDen * this.spent.length);
-      this.airRate = a.perDen / a.denSeconds;
-    } else if (leaving.den) {
-      // uscendo da una tana prima del tempo l'ago finisce di scendere subito
-      this.airRate = Math.max(this.airRate, a.perDen / 2);
-    }
+    if (p.den && this.costsAir(p.den)) this.spent.push(p.den);
     return true;
+  }
+
+  /** Uscendo dalla tana in cui sei, l'aria finisce? Sì dall'ultima tana che costa aria (la seconda): invece di tornare
+   *  nella grotta si risale. */
+  outOfAirOnLeave(): boolean {
+    return !!this.current.den && this.spent.length >= this.data.air.maxDens;
   }
 
   /** Lascia il pesce accanto al mostro della tana in cui sei. */
@@ -209,31 +190,5 @@ export class DiveRun {
     this.fish--;
     this.fed = who;
     return 'ok';
-  }
-
-  update(dt: number): void {
-    if (this.out) return;
-    const a = this.data.air;
-    if (this.air > this.airTarget) this.air = Math.max(this.airTarget, this.air - this.airRate * dt);
-    else if (this.spent.length >= a.maxDens && this.airTarget > 0) {
-      // finita l'ultima tana, la riserva per tornare
-      this.airTarget = 0;
-      this.airRate = this.air / a.reserveSeconds;
-    }
-    if (!this.warned && this.air < a.warnAt) {
-      this.warned = true;
-      this.events.push({ t: 'airLow' });
-    }
-    if (this.air <= 0) {
-      this.air = 0;
-      this.out = true;
-      this.events.push({ t: 'airOut' });
-    }
-  }
-
-  drainEvents(): DiveEvent[] {
-    const e = this.events;
-    this.events = [];
-    return e;
   }
 }

@@ -25,30 +25,24 @@ import type { Stage } from './stage.ts';
 export const DIVE_DATA_URL = ASSET_BASE + 'img/immersioni.json';
 
 /**
- * I suoni delle immersioni. Quelli nuovi non ci sono ancora: quando arrivano basta metterli nel manifest dell'audio
- * con questi nomi e il motore li usa al posto dei ripieghi (i suoni della barca, ovattati).
- * TODO suoni nuovi (da fare e approvare, docs/AUDIO.md):
- *  - dive_amb: l'ambiente sott'acqua (il ronzio sordo, la roccia che scricchiola lontano);
- *  - dive_breath: il respiro nell'erogatore, in loop (inspira, espira con le bolle);
- *  - dive_bubbles: la raffica di bolle delle dissolvenze fra un posto e l'altro;
- *  - dive_air_low: l'avviso del manometro;
- *  - dive_sleep_<mostro>: il respiro nel sonno di ognuno (dive_sleep_gulpy, dive_sleep_molly…), le conchiglie di Fangy;
- *  - dive_mother: il respiro enorme dal fondo della grotta grande.
+ * I suoni delle immersioni (approvati l'11 ottobre sera, docs/AUDIO.md, «Immersioni»; tools/audio/sounds/immersioni.py).
+ * Sono già fatti per stare sott'acqua: niente filtri. Non si usano dive_air_low (l'avviso del manometro: il manometro
+ * non c'è più) e dive_breath_fast (il respiro affannato ad aria bassa: senza indicatore non c'è un momento in cui
+ * l'aria cala).
  */
 const SND = {
-  amb: ['dive_amb', 'amb_drone'],
-  breath: ['dive_breath'],
-  bubbles: ['dive_bubbles', 'splash_s1'],
-  descend: ['dive_descend', 'splash_big'],
-  airLow: ['dive_air_low', 'sonar_warn'],
-  offer: ['dive_offer', 'plop'],
-  mother: ['dive_mother'],
+  amb: 'amb_dive',
+  breath: 'dive_breath',
+  down: 'dive_down',
+  swim: ['dive_swim_1', 'dive_swim_2'],
+  bubbles: 'dive_bubbles',
+  airOut: 'dive_air_out',
+  up: 'dive_up',
+  offer: 'offer_fish',
 } as const;
-
-/** Il respiro nel sonno: il suono nuovo, o un ripiego dove c'è (Gulpy ha già il respiro della notte). */
-function sleepSounds(who: MonsterId): string[] {
-  return [`dive_sleep_${who}`, ...(who === 'gulpy' ? ['gulpy_breath_1', 'gulpy_breath_2'] : [])];
-}
+/** il respiro nel sonno (in loop) e i movimenti ogni tanto, per ogni mostro */
+const sleepSound = (who: MonsterId) => `sleep_${who}`;
+const stirSound = (who: MonsterId) => `stir_${who}`;
 
 export interface DiveResult {
   /** il mostro sfamato (dorme la notte dopo) */
@@ -150,10 +144,17 @@ export class Dive {
   private held = new Set<string>();
   private mouse = { x: 0.5, y: 0.5, inside: false };
   private listeners: [EventTarget, string, EventListener][] = [];
+  /** i loop di tutta l'immersione (l'ambiente, l'erogatore) */
   private loops: Voice[] = [];
-  private breathTimer = 2;
+  /** il respiro nell'erogatore (si ferma quando l'aria finisce) */
+  private breathV: Voice | null = null;
+  /** i loop del posto (il respiro del mostro che dorme, la Madre dal fondo): si fermano quando te ne vai */
+  private placeLoops: Voice[] = [];
+  /** fra quanto il mostro che dorme si muove nel sonno */
+  private stirTimer = 0;
+  /** fra quanto parte il suono della risalita (dopo «Aria finita») */
+  private upTimer = -1;
   private root: HTMLDivElement;
-  private gauge: HTMLCanvasElement;
   private capEl: HTMLDivElement;
   private hintEl: HTMLDivElement;
   private spotsEl: HTMLDivElement;
@@ -161,8 +162,10 @@ export class Dive {
   private confirmEl: HTMLDivElement | null = null;
   private capTimer = 0;
   private hintTimer = 0;
-  /** dove sta l'ago disegnato (per non ridisegnare il manometro quando non si muove) */
-  private gaugeShown = -1;
+  /** quanto dura la dissolvenza della risalita */
+  private ascendTime = 1.6;
+  /** le nuotate si alternano fra le due varianti */
+  private swims = 0;
   /** i bordi dello schermo girano lo sguardo; dopo un tasto di direzione non più finché il mouse non si muove (come
    *  sulla barca: se il mouse era rimasto fermo nella fascia del bordo, la vista continuava a girare da sola) */
   private edgeArmed = true;
@@ -174,8 +177,6 @@ export class Dive {
     this.root = el('div', 'hud dive-hud');
     this.spotsEl = el('div', 'dive-spots');
     this.buttonsEl = el('div', 'dive-buttons');
-    this.gauge = el('canvas', 'dive-gauge');
-    this.gauge.width = this.gauge.height = 176;
     this.capEl = el('div', 'dive-cap');
     this.hintEl = el('div', 'hud-hint', S.dive.hint);
     const up = el('button', 'dive-up', S.dive.ascend);
@@ -184,7 +185,7 @@ export class Dive {
       e.stopPropagation();
       this.ascend();
     });
-    this.root.append(this.spotsEl, this.buttonsEl, this.gauge, this.capEl, this.hintEl, up);
+    this.root.append(this.spotsEl, this.buttonsEl, this.capEl, this.hintEl, up);
     d.ui.appendChild(this.root);
   }
 
@@ -198,12 +199,10 @@ export class Dive {
     v.rockBoost = 0;
     v.hfov = 90;
     this.bind();
-    for (const ids of [SND.amb, SND.breath]) {
-      const id = this.sound(ids);
-      // l'ambiente della barca, sott'acqua, si sente solo ovattato
-      if (id) this.loops.push(...[this.d.audio.play(id, { loop: true, fadeIn: 2, gain: 0.8, lowpass: id.startsWith('dive_') ? undefined : 380 })].filter((x): x is Voice => !!x));
-    }
-    this.play(SND.descend, { gain: 0.8, lowpass: 900 });
+    const amb = this.d.audio.play(SND.amb, { loop: true, fadeIn: 2 });
+    if (amb) this.loops.push(amb);
+    this.breathV = this.d.audio.play(SND.breath, { loop: true, fadeIn: 2, gain: 0.7 });
+    this.play(SND.down, { gain: 0.9 });
     this.caption(this.S.dive.loading, 30);
     // se il primo posto non si carica l'errore arriva all'App, che passa alla notte dopo (le texture sono già liberate)
     await this.load(this.run.place);
@@ -325,20 +324,36 @@ export class Dive {
     }
     this.phase = 'in';
     if (p.den && this.run.denState(p.den) === 'empty') this.caption(this.S.dive.emptyDen, 5);
-    this.breathTimer = 1.5;
+    this.placeSounds(p);
+  }
+
+  /** I loop del posto: il mostro che dorme respira dal letto; i suoni dei dati (la Madre dal fondo della grotta). */
+  private placeSounds(p: DivePlace): void {
+    for (const v of this.placeLoops) v.stop(0.8);
+    this.placeLoops = [];
+    const yaw0 = p.yaw ?? 0;
+    const loop = (id: string, yaw: number, pitch: number, dist: number, gain: number) => {
+      const v = this.d.audio.play(id, { loop: true, fadeIn: 1.5, gain, pos: dirPos(yaw + yaw0, dist, pitch) });
+      if (v) this.placeLoops.push(v);
+    };
+    for (const snd of p.sounds ?? []) loop(snd.id, snd.yaw, snd.pitch, snd.dist ?? 6, snd.gain ?? 1);
+    if (p.den && p.sleeper && this.run.denState(p.den) === 'asleep') {
+      loop(sleepSound(p.den), p.sleeper.yaw, p.sleeper.pitch, 2.5, 1);
+      this.stirTimer = 9 + Math.random() * 8;
+    }
   }
 
   private go(to: string): void {
-    const ok = this.run.canEnter(to);
-    if (ok === 'tooFar') {
-      this.caption(this.S.dive.tooFar, 3.5);
+    if (this.run.canEnter(to) !== 'ok' || this.phase !== 'look') return;
+    // uscendo dall'ultima tana l'aria è finita: invece di tornare nella grotta si risale (deciso l'11 ottobre sera)
+    if (this.run.outOfAirOnLeave()) {
+      this.ascend(true);
       return;
     }
-    if (ok !== 'ok' || this.phase !== 'look') return;
     this.goingTo = to;
     this.phase = 'out';
     this.hintEl.classList.remove('show');
-    this.play(SND.bubbles, { gain: 0.6, lowpass: 700 });
+    this.play(SND.swim[(this.swims++) % 2]!, { gain: 0.8 });
   }
 
   /** Al buio: carica il posto e ci entra. Se non si carica si torna dov'eri (ricaricandolo: quello di prima è già stato
@@ -358,6 +373,7 @@ export class Dive {
           () => {
             this.arrive();
             this.caption(this.S.dive.blocked, 4);
+            this.play(SND.bubbles, { gain: 0.7 });
           },
           (e2: unknown) => {
             console.error(e2);
@@ -368,11 +384,23 @@ export class Dive {
     );
   }
 
-  private ascend(): void {
+  /** Si risale: col tasto o la cima dell'ancora, o da soli quando l'aria finisce (uscendo dall'ultima tana). */
+  private ascend(outOfAir = false): void {
     if (this.phase === 'ascend' || this.phase === 'done') return;
     this.closeConfirm();
     this.phase = 'ascend';
-    this.play(SND.bubbles, { gain: 0.8, lowpass: 900 });
+    this.buttonsEl.replaceChildren();
+    this.ascendTime = outOfAir ? 3.2 : 1.6;
+    for (const v of this.placeLoops) v.stop(1.2);
+    this.placeLoops = [];
+    if (outOfAir) {
+      this.caption(this.S.dive.airOut, 4);
+      this.play(SND.airOut, { gain: 0.9 });
+      // l'erogatore non dà più aria
+      this.breathV?.stop(0.3);
+      this.breathV = null;
+      this.upTimer = 1.6;
+    } else this.play(SND.up, { gain: 0.9 });
   }
 
   // ───────────────────────── il pesce ─────────────────────────
@@ -393,7 +421,8 @@ export class Dive {
       this.closeConfirm();
       if (this.run.feed() === 'ok') {
         // TODO render: il pesce posato accanto al letto (una toppa nella tana, quando ci sono le camerette vere)
-        this.play(SND.offer, { gain: 0.7, lowpass: 600 });
+        const sl = this.run.current.sleeper;
+        this.play(SND.offer, { gain: 0.9, ...(sl ? { pos: dirPos(sl.yaw + (this.run.current.yaw ?? 0), 2, sl.pitch) } : {}) });
         this.caption(S.offered(MONSTER_NAME[who]), 5);
       }
     });
@@ -457,7 +486,6 @@ export class Dive {
     else if (l.to) this.go(l.to);
     else if (l.note) {
       this.caption(this.S.dive.notes[l.note] ?? '', 5);
-      if (l.note === 'mother') this.play(SND.mother, { gain: 0.9 });
     }
   }
 
@@ -529,7 +557,7 @@ export class Dive {
         }
         break;
       case 'ascend':
-        this.fade = Math.max(0, this.fade - dt / 1.6);
+        this.fade = Math.max(0, this.fade - dt / this.ascendTime);
         if (this.fade <= 0) {
           this.phase = 'done';
           this.d.onEnd({ fed: this.run.fed, dens: [...this.run.dens] });
@@ -542,26 +570,20 @@ export class Dive {
     this.burst += (wantBurst - this.burst) * (1 - Math.exp(-dt * 6));
     if (this.burst < 0.01) this.burst = 0;
 
-    // l'aria
-    this.run.update(dt);
-    for (const e of this.run.drainEvents()) {
-      if (e.t === 'airLow') {
-        this.caption(this.S.dive.airLow, 4);
-        this.play(SND.airLow, { gain: 0.6, lowpass: 1200 });
-      } else if (e.t === 'airOut') {
-        this.caption(this.S.dive.airOut, 4);
-        this.ascend();
-      }
+    // la risalita dopo «Aria finita»
+    if (this.upTimer > 0) {
+      this.upTimer -= dt;
+      if (this.upTimer <= 0) this.play(SND.up, { gain: 0.9 });
     }
-
-    // il respiro del mostro che dorme
+    // i suoni seguono lo sguardo
+    this.d.audio.setListenerYaw(v.yaw);
+    // ogni tanto il mostro che dorme si muove nel sonno
     const p = this.run.current;
-    if (this.phase === 'look' && p.den && this.run.denState(p.den) === 'asleep') {
-      this.breathTimer -= dt;
-      if (this.breathTimer <= 0) {
-        this.breathTimer = 4.2;
-        const s = p.sleeper;
-        this.play(sleepSounds(p.den), { gain: 0.5, lowpass: 600, ...(s ? { pos: dirPos(s.yaw + (p.yaw ?? 0), 3, s.pitch) } : {}) });
+    if (this.phase === 'look' && p.den && p.sleeper && this.run.denState(p.den) === 'asleep') {
+      this.stirTimer -= dt;
+      if (this.stirTimer <= 0) {
+        this.stirTimer = 14 + Math.random() * 14;
+        this.play(stirSound(p.den), { gain: 1, pos: dirPos(p.sleeper.yaw + (p.yaw ?? 0), 2.5, p.sleeper.pitch) });
       }
     }
     if (this.hintTimer > 0) {
@@ -573,7 +595,6 @@ export class Dive {
       if (this.capTimer <= 0) this.capEl.classList.remove('show');
     }
     this.updateSpots();
-    this.drawGauge();
   }
 
   private updateSpots(): void {
@@ -601,60 +622,6 @@ export class Dive {
       s.el.classList.toggle('hover', s === best);
       if (on) s.el.style.transform = `translate(${(q[0] * 100).toFixed(2)}vw, ${((1 - q[1]) * 100).toFixed(2)}vh)`;
     }
-  }
-
-  /** Il manometro delle bombole: un ago come quello del voltmetro della batteria (TODO render: il quadrante vero). */
-  private drawGauge(): void {
-    // l'ago trema solo quando l'aria è poca: altrimenti si ridisegna solo quando si muove
-    const air = this.run.air;
-    const shake = air < 0.2 ? 0.02 * Math.sin(this.time * 37) * Math.sin(this.time * 11.3) : 0;
-    const f = Math.max(0, Math.min(1, air)) + shake;
-    if (Math.abs(f - this.gaugeShown) < 0.0015) return;
-    this.gaugeShown = f;
-    const g = this.gauge.getContext('2d');
-    if (!g) return;
-    const n = this.gauge.width, c = n / 2, R = n * 0.42;
-    g.clearRect(0, 0, n, n);
-    g.fillStyle = 'rgba(18,22,20,0.82)';
-    g.strokeStyle = 'rgba(200,190,160,0.55)';
-    g.lineWidth = 3;
-    g.beginPath();
-    g.arc(c, c, R + 8, 0, Math.PI * 2);
-    g.fill();
-    g.stroke();
-    const a0 = -Math.PI * 1.25, a1 = Math.PI * 0.25; // da sinistra in basso (vuoto) a destra in basso (pieno)
-    const at = (f: number) => a0 + (a1 - a0) * f;
-    // la zona rossa e le tacche
-    g.lineWidth = 7;
-    g.strokeStyle = 'rgba(170,30,25,0.8)';
-    g.beginPath();
-    g.arc(c, c, R - 6, at(0), at(0.18));
-    g.stroke();
-    g.strokeStyle = 'rgba(220,210,180,0.7)';
-    g.lineWidth = 2;
-    for (let i = 0; i <= 10; i++) {
-      const a = at(i / 10), l = i % 5 === 0 ? 14 : 8;
-      g.beginPath();
-      g.moveTo(c + Math.cos(a) * (R - 2), c + Math.sin(a) * (R - 2));
-      g.lineTo(c + Math.cos(a) * (R - 2 - l), c + Math.sin(a) * (R - 2 - l));
-      g.stroke();
-    }
-    g.fillStyle = 'rgba(220,210,180,0.75)';
-    g.font = `${Math.round(n * 0.085)}px Limelight, Georgia, serif`;
-    g.textAlign = 'center';
-    g.fillText(this.S.dive.air, c, c + R * 0.55);
-    // l'ago
-    const a = at(f);
-    g.strokeStyle = '#8c1a12';
-    g.lineWidth = 3.5;
-    g.beginPath();
-    g.moveTo(c - Math.cos(a) * 10, c - Math.sin(a) * 10);
-    g.lineTo(c + Math.cos(a) * (R - 12), c + Math.sin(a) * (R - 12));
-    g.stroke();
-    g.fillStyle = '#111';
-    g.beginPath();
-    g.arc(c, c, 6, 0, Math.PI * 2);
-    g.fill();
   }
 
   render(): void {
@@ -699,24 +666,19 @@ export class Dive {
     this.capTimer = seconds;
   }
 
-  /** Il primo suono della lista che esiste (i nuovi prima, poi i ripieghi). */
-  private sound(ids: readonly string[]): string | null {
-    return ids.find((id) => this.d.audio.has(id)) ?? null;
-  }
-
-  private play(ids: readonly string[], o: Parameters<AudioEngine['play']>[1] = {}): void {
-    const id = this.sound(ids);
-    if (!id) return;
-    // i suoni nuovi sono già fatti per stare sott'acqua; i ripieghi della barca si ovattano
-    this.d.audio.play(id, id.startsWith('dive_') ? { ...o, lowpass: undefined } : o);
+  private play(id: string, o: Parameters<AudioEngine['play']>[1] = {}): void {
+    this.d.audio.play(id, o);
   }
 
   destroy(): void {
     this.destroyed = true;
     for (const [t, ev, fn] of this.listeners) t.removeEventListener(ev, fn);
     this.listeners = [];
-    for (const l of this.loops) l.stop(0.6);
+    for (const l of [...this.loops, ...this.placeLoops]) l.stop(0.6);
+    this.breathV?.stop(0.6);
+    this.breathV = null;
     this.loops = [];
+    this.placeLoops = [];
     this.unload();
     this.root.remove();
     this.d.canvas.style.cursor = '';
