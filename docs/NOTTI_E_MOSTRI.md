@@ -55,7 +55,11 @@ eccetera, un po' come gli animatronics», quindi tinte sature e iconiche, ricono
   lucina ambra dietro la carta, come i cruscotti di una volta. Si legge anche a lampara spenta; quando la
   batteria è quasi scarica cala e trema insieme alla lampara; quando muore si spegne con lei.
 - La **lampara** consuma secondo il livello (spenta niente, bassa poco, alta molto); il **sonar** aperto
-  consuma un po'. La carica basta per tenere la lampara bassa tutta la notte, non alta.
+  consuma un po'. La carica basta per tenere la lampara bassa tutta la notte, non alta. **Più rapida dall'11
+  ottobre** (dopo la prova dell'utente: «si consuma troppo lentamente»): bassa tutta la notte, all'alba resta circa un
+  quinto della carica; alta dura circa metà notte (`drain: [0, 1/560, 1/240]`, sonar `1/800`); l'ago corre su gran
+  parte del quadrante prima del rosso (da 14,6 V a 11,2 V), così si vede calare. Il tasto **E** alza la lampara e dal
+  massimo la spegne (gira in tondo); **Q** la abbassa.
 - Quando l'ago scende nel rosso la lampara comincia a tremolare.
 - **Quando la batteria muore** si spengono lampara e sonar. Dal fondo, piano, sale la ninna nanna della
   Madre (quella del menu, al carillon). Se suonano le sei prima che la canzone finisca, sei salvo; se
@@ -68,7 +72,8 @@ eccetera, un po' come gli animatronics», quindi tinte sature e iconiche, ricono
 - **La scelta di ogni minuto**: la luce attira i pesci (serve per la quota) e scaccia Robin, ma costa. Al
   buio si pesca poco e le creature arrivano più vicine prima che te ne accorga.
 - **Quota 10 pesci** (prima notte 8). Gulpy, Molly e Hatch tornano più spesso; Hatch può arrivare mentre
-  c'è Molly.
+  c'è Molly. **Sotto il telone Molly non ti vede** (11 ottobre, dopo la prova dell'utente: ti uccideva mentre ti
+  nascondevi da Hatch): aspetta senza offendersi, e quando esci vuole di nuovo che la guardi.
 - La radio spiega la batteria e Robin in poche frasi; due o tre oggetti di lore nuovi da pescare.
 
 ### Stato nel gioco (10 ottobre)
@@ -106,6 +111,10 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
   **puntargli in faccia la lampara al massimo** finché non scappa. Se non lo fai ti porta via pesci (e la
   quota si allontana); se il secchio è vuoto, prende te.
 - **Perché funziona**: con la batteria la luce costa; con Robin in giro non puoi risparmiare sempre.
+- **Basta la luce** (**deciso dall'utente l'11 ottobre**, dopo la sua prova: «non deve servire guardare Robin per
+  mandarlo via, basta avere la luce al massimo»): Robin scappa dopo 2,5 s di **lampara al massimo**, da qualunque parte
+  tu guardi (prima serviva anche guardarlo in faccia, entro 20° da lui). Il suggerimento e la radio dicono «lampara al
+  massimo».
 - **Modello e posa approvati** (10 ottobre; `tools/render/robin.py`, posa `robin_secchio` in
   `scena_creature.py`, anteprime `docs/concept/pose_robin.jpg`, `pose_robin_vicino.jpg`, `robin_vetrina.jpg`):
   steso di traverso sul capodibanda di sinistra verso prua, la faccia (a −38° dall'occhio) girata verso il
@@ -314,24 +323,37 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
 
 ### Notte 6 · La Madre — *IL FINALE*
 
-> **Approvato l'11 ottobre** (come si gioca e il finale A; l'aspetto della Madre è in arrivo con la tavola delle sagome).
+> **Approvato l'11 ottobre** (come si gioca e il finale A). **Questionario della sera (11 ottobre)**: la sagoma è la
+> **B «Occhio»**, col jumpscare fatto con la bocca coi fanoni a sbarre di lettino della A; il colore **bianco latte**
+> (sotto la vernice blu della mascotte che si stacca a croste); i suoi suoni (`madre_*`, `docs/AUDIO.md`) **approvati**;
+> la quota **10 pesci**; alzare il binocolo mentre passa è un movimento (si muore).
 
-- **Come si gioca**: tornano tutti e sette i mostri e la regia ne manda di più insieme (è la notte più dura). Quota 12,
+- **Il suo aspetto** (approvato l'11 ottobre, la tavola `docs/concept/madre_sagome.png`): resta quasi tutta sott'acqua,
+  lunga una trentina di metri, e passa proprio sotto la barca; fuori sale solo la fronte e **un occhio grande quanto
+  la barca**, con le ciglia da cartone animato. Sotto, la pinna ripiegata sul ventre stringe i suoi piccoli, come la
+  statua coi pesciolini in grembo. Il **jumpscare** viene da sotto con la **bocca** spalancata e i **fanoni come le
+  sbarre di un lettino** (dalla sagoma A).
+
+- **Come si gioca**: tornano tutti e sette i mostri e la regia ne manda di più insieme (è la notte più dura). Quota 10
+  (proposta 12; con 12 l'esperto simulato vinceva 5 notti su 100; **approvato 10** l'11 ottobre),
   la batteria come sempre. In più c'è lei: sul sonar un'**ombra enorme** gira attorno alla barca, lontana, per tutta
   la notte. Tre volte (verso le 2, le 4 e le 5:30) si avvicina e **passa sotto la barca**.
 - **Gli avvisi**: l'ombra sul sonar si stringe verso il centro; i mostri si zittiscono e tornano giù tutti insieme
   (anche loro hanno paura della mamma); il mare si calma di colpo; dal fondo sale la ninna nanna della Madre
   canticchiata da una voce di balena (la stessa ninna nanna di quando la batteria muore); la lampara trema.
 - **Mentre passa sotto** (da 10 a 20 s, sempre più a lungo): **immobilità totale**. Niente canna, lampara, telone,
-  pesci o sonar, e non girare lo sguardo (un tremito piccolo si perdona). La barca si solleva piano sul suo dorso e
+  pesci, sonar o binocolo (alzarlo è un movimento: approvato l'11 ottobre), e non girare lo sguardo (un tremito
+  piccolo si perdona). La barca si solleva piano sul suo dorso e
   scricchiola. Se abbocca un pesce, lo lasci andare.
 - **Se ti muovi** ti prende: il jumpscare viene dal basso, con la barca sollevata. La frase della morte (proposta):
   «Mama Marina ama i suoi piccoli. Adesso anche te.» Quando è passata, tornano i figli.
-- **La radio** (proposta): «Sesta notte. Dodici pesci. / Stanotte viene anche lei. / Quando passa sotto la barca, non
+- **La radio**: «Sesta notte. Dieci pesci. / Stanotte viene anche lei. / Quando passa sotto la barca, non
   muoverti. / Non toccare niente, non guardarti intorno. / Buona pesca.»
 - **Il finale A «La quota»** (scelto l'11 ottobre): all'alba la Madre sale accanto alla barca (l'unica volta che la
   vedi davvero) e attorno a lei emergono tutti i suoi figli; prende il secchio e torna giù con loro. Sorge il sole;
-  la radio: «Ce l'hai fatta. Per quest'anno.» I titoli di coda, e si sblocca la notte 7.
+  la radio: «Ce l'hai fatta. Per quest'anno.» I titoli di coda, e si sblocca la notte 7. La **cinematica di 17 s**
+  (`src/app/cinematic.ts`, `FINALE_A`, sul suono `madre_dawn_breve`) è **approvata** (11 ottobre): manca solo la Madre
+  renderizzata.
 
 ### Notte 7 · La notte extra
 
@@ -340,3 +362,30 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
 > come il finale A, ma prima di andarsene la Madre ti lascia sul banco una foto dell'edicola, e sei tu da bambino, a
 > Splashland nel 1997 (c'eri anche tu, e sei l'unico che è tornato a casa). Si vede **solo vincendo la notte 7 con
 > impostazioni difficili** (tutti, Madre compresa, almeno a 10); con impostazioni più facili un'alba normale.
+> **Tutti a 20** (questionario dell'11 ottobre): **difficilissima ma possibile**, il traguardo da raccontare (come il
+> 20/20/20/20 di FNAF): un giocatore bravissimo deve poterla vincere.
+
+## I finali
+
+> **Approvati l'11 ottobre** (i due segreti: proposta dell'utente, storie e regole proposte e approvate).
+> **Ogni finale è una cinematica breve, 15–20 secondi, fatta nel motore del gioco** (la vista che si muove da sola, le
+> pose delle creature, la luce, i suoni e i sottotitoli; saltabile con Esc), poi i titoli di coda. Le immagini della
+> Madre arrivano quando è scelta la sua sagoma.
+
+All'alba della **sesta notte** il finale dipende dal pesce che hai lasciato ai mostri che dormono nelle tane, nelle
+immersioni all'alba (`docs/IMMERSIONI.md`; durante le notti Gulpy va sfamato per forza, quindi non conta):
+
+| Finale | Quando | La cinematica |
+|---|---|---|
+| **«I tuoi»** (segreto) | hai lasciato un pesce a qualcuno **a ogni alba**, dalla prima alla quinta | All'alba la Madre sale e canta per richiamare i figli, ma loro non la seguono: restano attorno alla tua barca. Lei torna giù da sola, col suo lamento. Sorge il sole, la barca rientra verso il porto e sul sonar, dietro di te, sette ombre la seguono. Ultima inquadratura: il molo all'alba, la barca ormeggiata, e sulle assi bagnate sette file di piccole impronte che vanno verso il paese. «Non sei tornato da solo.» |
+| **«Nessuno»** (segreto) | sei sceso nelle tane **almeno tre volte** e **non hai mai lasciato un pesce**, nemmeno quando ti avanzava | All'alba la Madre sale accanto alla barca, ma non guarda il secchio: guarda te. I figli affiorano attorno, uno dopo l'altro, e restano fermi a fissarti. La vista scende verso l'acqua, la lampara si spegne, nel buio la ninna nanna canticchiata. Ultima inquadratura: l'edicola del parco con le foto dei bambini scomparsi; fra le foto, una nuova: la tua. «Non hai mai dato niente ai suoi piccoli. Adesso sei uno di loro.» |
+| **A «La quota»** | in tutti gli altri casi: hai sfamato qualcuno una o due volte (o fino a quattro), oppure non sei mai sceso | La Madre sale accanto alla barca, attorno a lei emergono i figli, prende il secchio e torna giù con loro; sorge il sole; la radio: «Ce l'hai fatta. Per quest'anno.» |
+
+**L'ultima inquadratura di «I tuoi»** (il molo all'alba con le sette file di impronte, `docs/concept/finali_molo_anteprima.jpg`)
+è **approvata** (11 ottobre), con le impronte più scure e bagnate perché si leggano anche fuori dal riflesso del sole.
+
+La **notte 7** ha il suo finale, **B «Il ricordo»** (con impostazioni difficili; sopra), anche lui come cinematica
+breve. **Da fare**: il «regista» delle cinematiche nel motore; i render del molo all'alba e dell'edicola da vicino con
+la tua foto; le immagini della Madre; i suoni dei due finali segreti e un taglio più corto del finale all'alba
+(`madre_dawn` oggi dura 24 s). Si fanno dopo la notte 6 e le immersioni, da cui dipendono.
+
