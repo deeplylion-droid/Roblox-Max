@@ -123,8 +123,10 @@ def yaw_of(p):
 
 # ───────────────────────── codifica ─────────────────────────
 
-def encode_layer(key, exr, space, width, rect=None, yaw_center=0.0, with_alpha=False, data=False, extra=None, quality=90):
-    p = post.read_exr(exr)
+def encode_layer(key, exr, space, width, rect=None, yaw_center=0.0, with_alpha=False, data=False, extra=None, quality=90,
+                 passes=None):
+    # passes: i passi già letti (e magari ritoccati, come l'acqua cotta nella grotta) al posto dell'EXR
+    p = post.read_exr(exr) if passes is None else passes
     if rect is not None:
         # Blender a volte rende una riga in più in fondo alla regione (i conti in float32 sul bordo): si taglia alle
         # misure del riquadro, se no l'immagine non combacia col rect
@@ -706,7 +708,146 @@ def job_bordo(q):
     log('bordo: %d direzioni, da %.1f° a %.1f°' % (len(out), min(out), max(out)))
 
 
-JOBS = {'world': job_world, 'boat': job_boat, 'props': job_props, 'creature': job_creature, 'reencode': job_reencode, 'tarp': job_tarp, 'jumpscare': job_jumpscare, 'binocolo': job_binocolo, 'bordo': job_bordo, 'pelo': job_pelo}
+# ───────────────────────── la grotta grande delle immersioni (look-dev, da approvare) ─────────────────────────
+
+CONCEPT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'docs', 'concept')
+
+
+def grotte_vista(q, nome, pos, target, lens, size, torcia=False, pesi=None, esposizione=0.0, samples=None, cono=42.0):
+    """Un'anteprima prospettica della grotta (la scena deve essere già costruita): render, acqua cotta, tone mapping
+    del gioco → docs/concept/<nome>.jpg."""
+    import grotte
+    from common import perspective_camera
+    from PIL import Image
+    cam = perspective_camera(pos, target, lens=lens, name='Cam_' + nome)
+    luce = grotte.torcia_faretto(cam, target, cone=cono) if torcia else None
+    exr = os.path.join(CACHE, q.name, f'{nome}.exr')
+    t = time.time()
+    render(exr, samples or q.samples, size, data_passes=('Mist',))
+    log(nome, 'render', round(time.time() - t), 's')
+    p = post.read_exr(exr)
+    # la scia della torcia solo nel suo cono (il faretto è quasi sulla camera)
+    W, H = size
+    tx = 18.0 / lens
+    xs = (np.arange(W) + 0.5) / W * 2 - 1
+    ys = ((np.arange(H) + 0.5) / H * 2 - 1) * H / W
+    X, Y = np.meshgrid(xs * tx, ys * tx)
+    ang = np.degrees(np.arctan(np.hypot(X, Y)))
+    cone = np.clip((cono / 2 - ang) / (cono * 0.25), 0, 1).astype(np.float32)
+    baked = grotte.acqua(p, blur_px=W / 10, cone_mask=cone)
+    pesi = pesi or {'ambient': 1.0, 'lantern': 1.0 if torcia else 0.0}
+    lin = post.compose(baked, pesi)
+    img = post.tonemap(lin, esposizione)
+    os.makedirs(CONCEPT, exist_ok=True)
+    out = os.path.join(CONCEPT, nome + '.jpg')
+    Image.fromarray((img * 255 + 0.5).astype(np.uint8)).save(out, quality=90)
+    if luce is not None:
+        bpy.data.objects.remove(luce)
+    log('anteprima', out)
+    return out
+
+
+def _grotte_scena(neve=True):
+    import grotte
+    reset_scene()
+    return grotte.build_grotta(neve=neve)
+
+
+def job_grotte_anteprime(q):
+    """Le anteprime prospettiche della grotta grande (docs/concept/grotte_anteprima*.jpg), da approvare."""
+    import grotte
+    tane = _grotte_scena(neve=True)
+    s = q.persp_scale
+    big = (round(1600 * s), round(900 * s))
+    # la vista d'insieme: da dietro, sotto il pozzo, verso la tana della Madre
+    grotte_vista(q, 'grotte_anteprima_insieme', (-0.6, -4.6, 1.4), (0.4, 9.0, -1.6), 14.0, big, esposizione=0.6)
+    # la tana della Madre dall'occhio, con la torcia (non arriva fin laggiù)
+    grotte_vista(q, 'grotte_anteprima_madre', grotte.OCCHIO, (0.0, 12.0, -2.4), 20.0, big, torcia=True, esposizione=0.6)
+    # la torcia su un'apertura: quella di Gulpy, dall'occhio
+    g = tane['gulpy']
+    grotte_vista(q, 'grotte_anteprima_torcia', grotte.OCCHIO, tuple(g['appoggio'] + np.array((0, 0, -0.9))), 26.0, big,
+                 torcia=True, esposizione=0.6)
+
+
+def job_grotte_tane(q):
+    """Le sette aperture da vicino, con la torcia: una tavola (docs/concept/grotte_anteprima_tane.jpg)."""
+    import grotte
+    from PIL import Image, ImageDraw, ImageFont
+    tane = _grotte_scena(neve=True)
+    s = q.persp_scale
+    size = (round(720 * s), round(480 * s))
+    tiles = []
+    for chi, *_ in grotte.TANE:
+        t = tane[chi]
+        a = t['appoggio']
+        d = a - np.array(grotte.OCCHIO)
+        d[2] = 0
+        d /= np.linalg.norm(d)
+        pos = a - d * 3.0 + np.array((0, 0, -0.35))
+        tgt = a + np.array((0, 0, -0.45))
+        out = grotte_vista(q, f'grotte_tana_{chi}', tuple(pos), tuple(tgt), 30.0, size, torcia=True, esposizione=0.6,
+                           cono=50.0)
+        tiles.append((chi, out))
+    W, H = size
+    sheet = Image.new('RGB', (W * 4, H * 2), (8, 10, 12))
+    font = ImageFont.truetype(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fonts', 'Limelight-Regular.ttf'), max(14, H // 14))
+    dr = ImageDraw.Draw(sheet)
+    for k, (chi, path) in enumerate(tiles):
+        im = Image.open(path)
+        x, y = (k % 4) * W, (k // 4) * H
+        sheet.paste(im, (x, y))
+        dr.text((x + 12, y + 8), chi.capitalize(), fill=(230, 220, 200), font=font)
+        os.remove(path)
+    out = os.path.join(CONCEPT, 'grotte_anteprima_tane.jpg')
+    sheet.save(out, quality=88)
+    log('tavola', out)
+
+
+def job_grotte(q):
+    """Il panorama a 360° della grotta grande → strato 'grotta' a panorama intero (come 'world'), con l'acqua
+    torbida già cotta nei passi di luce e il passo dati (R = distanza/mist, B = superficie vista dal pozzo).
+    La latitudine del panorama della grotta è diversa da quella della barca: è nella voce del manifest."""
+    import grotte
+    tane = _grotte_scena(neve=False)
+    cam = panorama_camera(location=grotte.OCCHIO, name='GrottaCam')
+    cam.data.latitude_min = math.radians(grotte.LAT_MIN_G)
+    cam.data.latitude_max = math.radians(grotte.LAT_MAX_G)
+    grotte.torcia_panorama()
+    W = q.pano_width
+    H = round(W * (grotte.LAT_MAX_G - grotte.LAT_MIN_G) / 360.0)
+    H -= H % 2
+    exr = os.path.join(CACHE, q.name, 'grotta.exr')
+    t = time.time()
+    render(exr, q.samples, (W, H), data_passes=('Mist', 'Object Index'))
+    log('grotta render', round(time.time() - t), 's')
+    p = post.read_exr(exr)
+    baked = grotte.acqua(p, blur_px=W / 24)
+    passes = dict(p)
+    passes.update(baked)
+
+    def dirz(v):
+        d = np.array(v) - np.array(grotte.OCCHIO)
+        return {'yaw': round(math.degrees(math.atan2(d[0], d[1])), 2),
+                'pitch': round(math.degrees(math.atan2(d[2], math.hypot(d[0], d[1]))), 2)}
+    hot = {}
+    for chi, t_ in tane.items():
+        dist = float(np.linalg.norm(t_['bocca'] - np.array(grotte.OCCHIO)))
+        hot[chi] = dict(dirz(t_['bocca']), raggio=round(math.degrees(math.atan2(t_['raggio'], dist)), 2),
+                        oggetto=dirz(t_['appoggio'] + np.array((0, 0, -0.4))))
+    extra = {'rect': [0, 0, W, H], 'latMin': grotte.LAT_MIN_G, 'latMax': grotte.LAT_MAX_G, 'mistDepth': grotte.MIST_DEPTH,
+             'acquaCotta': True, 'tane': hot}
+    encode_layer('grotta', exr, 'grotta', W, data=True, extra=extra, passes=passes)
+    # un'anteprima del panorama (con e senza torcia) per controllarlo
+    lin = post.compose(baked, {'ambient': 1.0})
+    post.save_png(post.tonemap(lin, 0.6), os.path.join(CACHE, q.name, 'grotta_pano.png'))
+    for nome, yaw in (('avanti', 0.0), ('gulpy', hot['gulpy']['yaw'])):
+        v = post.pano_to_view(post.tonemap(post.compose(baked, {'ambient': 1.0, 'lantern': 1.0}), 0.6), yaw, -8.0, 90,
+                              (960, 540), grotte.LAT_MIN_G, grotte.LAT_MAX_G)
+        post.save_png(v, os.path.join(CACHE, q.name, f'grotta_vista_{nome}.png'))
+
+
+JOBS = {'grotte': job_grotte, 'grotte_anteprime': job_grotte_anteprime, 'grotte_tane': job_grotte_tane,
+        'world': job_world, 'boat': job_boat, 'props': job_props, 'creature': job_creature, 'reencode': job_reencode, 'tarp': job_tarp, 'jumpscare': job_jumpscare, 'binocolo': job_binocolo, 'bordo': job_bordo, 'pelo': job_pelo}
 
 
 def main():
