@@ -192,16 +192,20 @@ def build(viewer=None, testa=0.0, luci=1.0, solo_testa=False):
     f = sdf.subtract(f, TF.bounded(fr.field(cut), fr.pos, head_r), k=0.005)
     f = sdf.subtract(f, body.gills(), k=0.006)
     # le lucine: le file del ventre (dal basso in su, a coppie) e quelle della testa, posate sulla pelle, con le
-    # coppette e l'orlo; quelle sott'acqua non si fanno
+    # coppette e l'orlo; quelle sott'acqua non si fanno. Quelle del ventre si posano sul corpo da solo e le loro
+    # coppette si scavano a parte: così, quando la testa gira, il corpo e le sue lucine restano identici
     want, rr = body.light_rows()
     nb = len(want)
-    want += [fr.pt(p) for p, _, _ in LUCI_TESTA]
-    rr += [r * fr.S for _, r, _ in LUCI_TESTA]
-    pts, nrm = TF.snap(f, want)
-    rr = np.asarray(rr, F)
+    pb, nbm = TF.snap(sdf.subtract(body.field(), body.gills(), k=0.006), want)
+    ph, nhm = TF.snap(f, [fr.pt(p) for p, _, _ in LUCI_TESTA])
+    pts, nrm = np.concatenate([pb, ph]), np.concatenate([nbm, nhm])
+    rr = np.asarray(rr + [r * fr.S for _, r, _ in LUCI_TESTA], F)
     keep = pts[:, 2] > 0.01
-    holes, rims = TF.cups(pts[keep], nrm[keep], rr[keep])
-    f = sdf.subtract(sdf.union(f, rims, k=0.003), holes, k=0.002)
+    for m in (np.arange(len(pts)) < nb, np.arange(len(pts)) >= nb):
+        m = m & keep
+        if m.any():
+            holes, rims = TF.cups(pts[m], nrm[m], rr[m])
+            f = sdf.subtract(sdf.union(f, rims, k=0.003), holes, k=0.002)
     attrs = {'ventre': body.ventre(fr, head_r), 'mouth': attr_mouth}
     zona = sdf.sphere(HEAD, R_ZONA)
     pelle = TF.pelle_fangy()
@@ -225,7 +229,7 @@ def build(viewer=None, testa=0.0, luci=1.0, solo_testa=False):
     for fila in ('ventre_dentro', 'ventre_fuori'):
         idx = [i for i in range(nb) if nomi[i] == fila and keep[i]]
         ordine += sorted(idx, key=lambda i: (-round(float(pts[i, 2]), 3), float(pts[i, 0])))
-    ordine += [i for i in range(nb, len(want)) if keep[i]]
+    ordine += [i for i in range(nb, len(pts)) if keep[i]]
     mat = luce_material(luci)
     for j, i in enumerate(ordine):
         if solo_testa and i < nb:
