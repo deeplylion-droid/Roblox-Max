@@ -413,7 +413,11 @@ export class Screens {
     this.clear();
   }
 
-  results(o: { won: boolean; text: string; caught: number; fed: number; lore: number; demoEnd: boolean; onNext?: (() => void) | null; onWishlist?: (() => void) | null; onRetry: () => void; onMenu: () => void }): void {
+  results(o: { won: boolean; text: string; caught: number; fed: number; lore: number; demoEnd: boolean; onNext?: (() => void) | null; onWishlist?: (() => void) | null; onRetry: () => void; onMenu: () => void;
+    /** pesci avanzati oltre la quota (immersioni) */
+    spare?: number;
+    /** scendere con le bombole prima della notte dopo (l'immersione è facoltativa) */
+    onDive?: (() => void) | null }): void {
     const S = this.S;
     const stats = h(
       'div',
@@ -422,8 +426,10 @@ export class Screens {
       h('div', {}, h('span', {}, S.results.fed), h('b', {}, String(o.fed))),
       h('div', {}, h('span', {}, S.results.lore), h('b', {}, String(o.lore))),
     );
+    if (o.won && o.spare !== undefined) stats.append(h('div', {}, h('span', {}, S.results.spare), h('b', {}, String(o.spare))));
     const menu = h('div', { class: 'menu' });
     if (!o.won) menu.append(button(S.retry, o.onRetry, 'start'));
+    if (o.won && o.onDive) menu.append(button(S.dive.descend, o.onDive, 'start'));
     if (o.won && o.onNext) menu.append(button(S.nextNight, o.onNext, 'start'));
     if (o.demoEnd && o.onWishlist) menu.append(button(S.wishlist, o.onWishlist, 'start'));
     menu.append(button(S.menu, o.onMenu, 'back'));
