@@ -68,7 +68,7 @@ TANE = [
     ('lampy', 128.0, 1.8, 0.95, -25.0),     # alta, vicino al soffitto: lei dorme attaccata in alto
     ('fangy', -160.0, -0.4, 0.95, 30.0),
 ]
-MADRE = dict(a=(0.0, 12.5, -1.6), b=(0.0, 21.0, -5.5), c=(2.0, 28.0, -8.0), r=(4.7, 4.2, 3.6))
+MADRE = dict(a=(0.0, 14.5, -2.9), b=(0.0, 21.0, -6.2), c=(2.0, 28.0, -8.5), r=(3.7, 4.2, 3.6))
 
 
 def _dir(yaw):
@@ -127,7 +127,7 @@ def cavita(p):
     m = MADRE
     tm = sdf.round_cone(m['a'], m['b'], m['r'][0], m['r'][1])(p)
     tm = np.minimum(tm, sdf.round_cone(m['b'], m['c'], m['r'][1], m['r'][2])(p))
-    d = sdf.smin(d, tm, 2.5)
+    d = sdf.smin(d, tm, 0.8)        # raccordo stretto: la bocca ha un orlo, non è il proseguimento della sala
     # la roccia scavata dal mare: grandi bozze, poi le increspature e qualche cengia orizzontale
     n = 0.62 * _N(p, 3.2, 3) + 0.16 * _N(p + 50.0, 0.9, 2)
     cengie = 0.10 * np.sin(p[:, 2] * 3.1 + 2.0 * _N(p, 2.0, 1))
@@ -324,12 +324,30 @@ def da_oggetto(ob):
     return me
 
 
+def dentro_le_tane(P, margine=0.6):
+    """Vero per i punti dentro i tunnel delle tane (oltre la bocca): lì niente anemoni né spugne, la bocca deve
+    restare un buco nero e pulito dove si legge la cosa appesa."""
+    P = np.asarray(P, F)
+    out = np.zeros(len(P), bool)
+    for t in TANE:
+        a, b, c, r = tunnel(t)
+        d = (b - a) / np.linalg.norm(b - a)
+        start = a + d * 2.0
+        for p0, p1 in ((start, b), (b, c)):
+            ab = p1 - p0
+            h = np.clip(((P - p0) @ ab) / float(ab @ ab), 0, 1)
+            dist = np.linalg.norm(P - p0 - h[:, None] * ab, axis=1)
+            out |= dist < r + margine
+    return out
+
+
 def campiona_pareti(v, n, sab, count, seed, dmin=2.5, dmax=12.5, zmin=-6.0, zmax=5.0, nz=(-1.0, 1.0), cluster=None):
     """Punti (posizione, normale) sulla roccia, lontano dalla sabbia, a distanza [dmin, dmax] dall'occhio.
     cluster=(centri, per_centro, raggio): a gruppi, come crescono davvero."""
     rr = np.random.default_rng(seed)
     d = np.linalg.norm(v - np.array(OCCHIO), axis=1)
     ok = (sab < 0.05) & (d > dmin) & (d < dmax) & (v[:, 2] > zmin) & (v[:, 2] < zmax) & (n[:, 2] >= nz[0]) & (n[:, 2] <= nz[1])
+    ok &= ~dentro_le_tane(v)
     idx = np.nonzero(ok)[0]
     if cluster is None:
         pick = rr.choice(idx, size=min(count, len(idx)), replace=False)
@@ -618,7 +636,7 @@ def build_parco():
     # il cartello di Splashland, inclinato e mezzo sepolto nella sabbia
     x, y = -3.4, 9.6
     z = poggia(x, y)
-    rz = math.atan2(-x, -y) + math.radians(12)
+    rz = math.atan2(-x, y) + math.radians(12)     # il davanti (−Y locale) verso l'occhio
     board = geo.rbox('Cartello', (2.6, 0.07, 0.85), (0, 0, 0), bevel=0.02, col=COL)
     board.data.materials.append(plastica('CartelloTinta', (0.05, 0.30, 0.32), rough=0.5, melma=0.5))
     cu = bpy.data.curves.new('CartelloScritta', 'FONT')
@@ -1078,7 +1096,7 @@ def build_grotta(neve=True, res=0.08):
     build_raggi()
     if neve:
         build_neve()
-    bocca_madre = np.array(MADRE['a']) + np.array((0.0, 1.5, 0.3))
+    bocca_madre = np.array(MADRE['a']) + np.array((0.0, -1.0, 0.7))
     tane['madre'] = {'bocca': bocca_madre, 'appoggio': bocca_madre, 'dir': np.array((0.0, 1.0, -0.3)), 'raggio': MADRE['r'][0]}
     return tane
 
