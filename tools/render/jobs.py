@@ -50,10 +50,17 @@ def build_scene(fish=0, rod=False):
     reset_scene()
     info = env.build_environment(with_glow=True)
     LIGHT_POINTS.clear()
+    prima = set(bpy.data.objects.keys())
     LIGHT_POINTS.update(landmarks.build_landmarks())
+    luoghi = set(bpy.data.objects.keys()) - prima
     LIGHT_POINTS['lighthouse'] = tuple(info['lighthouse'])
     parts, mats = boat.build_boat(fish_in_bucket=fish, rod=rod)
     parts['props'] += props.build_props()
+    if os.environ.get('ATMOSFERA'):
+        # l'atmosfera dell'11 ottobre (atmosfera.py): la baia più buia e la nebbia volumetrica
+        import atmosfera
+        atmosfera.applica_buio(luoghi)
+        atmosfera.costruisci_nebbia()
     return info, parts, mats
 
 
