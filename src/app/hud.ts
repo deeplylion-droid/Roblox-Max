@@ -29,6 +29,9 @@ export class Hud {
   private cardEl: HTMLDivElement;
   private cardTimer = 0;
   private lastHint = '';
+  /** la scritta dei finali (cinematiche) */
+  private cineEl: HTMLDivElement;
+  private lastCine = '';
 
   constructor(
     parent: HTMLElement,
@@ -53,6 +56,20 @@ export class Hud {
     this.reelEl = el('div', 'hud-reel', this.root);
     this.reelBar = el('div', 'bar', this.reelEl);
     el('div', 'zone', this.reelEl);
+    el('div', 'hud-bars', this.root);
+    this.cineEl = el('div', 'hud-cine', this.root);
+  }
+
+  /** Le cinematiche dei finali: restano solo i sottotitoli della radio e la scritta, con le bande nere. */
+  cinema(on: boolean): void {
+    this.root.classList.toggle('cinema', on);
+  }
+
+  cineText(text: string): void {
+    if (text === this.lastCine) return;
+    this.lastCine = text;
+    if (text) this.cineEl.textContent = text;
+    this.cineEl.classList.toggle('show', !!text);
   }
 
   setClock(night: number, hour: number, minutes: number): void {
