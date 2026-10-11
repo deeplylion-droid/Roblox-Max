@@ -402,6 +402,10 @@ def run():
         acqua(i, apex1)
         if CAUSTICHE is not None:
             CAUSTICHE.inputs['W'].default_value = 0.35 * i
+        # il punto luce nell'occhio solo quando c'è la pupilla da vicino (prima, nel torbido, è un alone fermo)
+        cl = bpy.data.objects.get('QuotaCatchLight')
+        if cl:
+            cl.hide_render = i < FRAMES - 2
         exr = os.path.join(out_dir, f'quota_{i:02d}.exr')
         t = time.time()
         render(exr, samples, (W, H), data_passes=())
