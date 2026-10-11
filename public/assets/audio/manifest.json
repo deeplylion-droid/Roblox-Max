@@ -495,6 +495,14 @@
     "gain": 1.0,
     "category": "mon"
   },
+  "js_madre": {
+    "file": "js_madre.ogg",
+    "duration": 2.0,
+    "loop": false,
+    "channels": 2,
+    "gain": 1.0,
+    "category": "mon"
+  },
   "js_molly": {
     "file": "js_molly.ogg",
     "duration": 1.35,
@@ -590,6 +598,78 @@
     "channels": 1,
     "gain": 0.5,
     "category": "sfx"
+  },
+  "madre_approach": {
+    "file": "madre_approach.ogg",
+    "duration": 12.0,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.85,
+    "category": "mon"
+  },
+  "madre_dawn": {
+    "file": "madre_dawn.ogg",
+    "duration": 24.0,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.85,
+    "category": "mon"
+  },
+  "madre_far_1": {
+    "file": "madre_far_1.ogg",
+    "duration": 10.5,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.7,
+    "category": "mon"
+  },
+  "madre_far_2": {
+    "file": "madre_far_2.ogg",
+    "duration": 11.5,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.7,
+    "category": "mon"
+  },
+  "madre_far_3": {
+    "file": "madre_far_3.ogg",
+    "duration": 12.0,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.7,
+    "category": "mon"
+  },
+  "madre_lullaby": {
+    "file": "madre_lullaby.ogg",
+    "duration": 40.0,
+    "loop": true,
+    "channels": 2,
+    "gain": 0.8,
+    "category": "mon"
+  },
+  "madre_pass_1": {
+    "file": "madre_pass_1.ogg",
+    "duration": 12.0,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.9,
+    "category": "mon"
+  },
+  "madre_pass_2": {
+    "file": "madre_pass_2.ogg",
+    "duration": 16.0,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.9,
+    "category": "mon"
+  },
+  "madre_pass_3": {
+    "file": "madre_pass_3.ogg",
+    "duration": 20.0,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.9,
+    "category": "mon"
   },
   "molly_giggle_1": {
     "file": "molly_giggle_1.ogg",
