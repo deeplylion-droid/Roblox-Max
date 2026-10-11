@@ -46,6 +46,72 @@ scivoli, cartelli di Splashland).
   attorno con la torcia; si clicca il passaggio per andare avanti (dissolvenza con le bolle e il respiro
   dell'erogatore).
 
+### La grotta grande: prima anteprima (look-dev dell'11 ottobre, **tutto da approvare**)
+
+Scena in `tools/render/grotte.py`, job in `tools/render/jobs.py`:
+
+| Job | Cosa fa |
+|---|---|
+| `grotte_anteprime` | tre viste prospettiche: `docs/concept/grotte_anteprima_insieme.jpg` (la sala da sotto il pozzo, verso la Madre), `grotte_anteprima_madre.jpg` (la tana della Madre dall'occhio, con la torcia), `grotte_anteprima_torcia.jpg` (la torcia sulla bocca di Gulpy) |
+| `grotte_tane` | la tavola delle sette bocche da vicino, con la torcia: `docs/concept/grotte_anteprima_tane.jpg` |
+| `grotte` | il panorama a 360° della sala → strato `grotta` a panorama intero (come `world`) |
+
+**Com'è fatta.** Una sala naturale di circa 14 × 20 m e 9 m d'altezza, scavata dal mare: un'unica roccia scolpita
+come campo SDF (unione di ellissoidi, rumore per le bozze e le cengie orizzontali), quasi nera e lucida d'acqua,
+con la patina d'alghe sulle facce in su e qualche chiazza rosata di alghe calcaree. Il fondo è sabbia grigia
+increspata con i ciottoli e qualche masso caduto, e in fondo scivola giù nella tana della Madre. Dietro, in alto,
+c'è il **pozzo** da cui si è scesi: da lì entra l'alba (un faretto con le caustiche e i raggi nell'acqua), e in
+cima si vede la superficie chiara. Sulle pareti, a gruppi, anemoni pallidi e spugne a tubo spente; ciuffi di alghe a
+nastro sul fondo e sulle cenge; due banchi di pesciolini argentati (uno gira in tondo a mezz'acqua, uno fila lungo la
+parete destra); la neve marina sospesa (solo nelle anteprime: nel gioco la fa il motore).
+
+**I pezzi del parco** (proposta): tre boe bianche e rosse (una sul fondo, una che galleggia trattenuta dalla sua
+cima, una incastrata sotto il soffitto); tre pezzi di scivolo a tubo coi colori di quelli del parco (giallo sul
+fondo, blu che sale contro la parete, rosso spezzato sull'orlo della tana della Madre); il **cartello
+SPLASHLAND** (insegna verde acqua con le lettere fucsia, il carattere dell'insegna del parco) inclinato e mezzo
+sepolto nella sabbia.
+
+**Le bocche delle tane** (proposta: posizioni e oggetti). L'occhio del sub galleggia in mezzo alla sala; attorno,
+da sinistra a destra nell'ordine in cui arrivano i mostri, sette bocche di tunnel che entrano dritti nella roccia e
+poi piegano nel buio. A ognuna è appesa all'architrave la cosa del bambino, girata verso chi guarda:
+
+| Tana | Dove (yaw dall'occhio) | La cosa appesa |
+|---|---|---|
+| Gulpy | −128°, a mezza parete | il **salvagente a paperella** giallo, appeso per la testa della papera |
+| Molly | −88° | due **ciocche bagnate coi codini**, legate dagli **elastici rosa** con le palline (la ciocca è un'aggiunta mia: gli elastici da soli sono troppo piccoli per leggersi; si possono togliere) |
+| Hatch | −48°, bassa e stretta, quasi sul fondo (un nascondiglio) | il **pesciolino luminoso** del negozio, **acceso**: l'unica luce che non viene dal pozzo |
+| Robin | +46° | la **striscia dei biglietti** della sala giochi, arancio, che pende attorcigliata |
+| Archie | +88° | la **trombetta da festa** bianca e rossa, arrotolata |
+| Lampy | +128°, alta, vicino al soffitto (dorme attaccata in alto) | la **cuffia di gomma bianca coi fiori** fucsia e rosa in rilievo |
+| Fangy | −160°, dietro, vicino al pozzo | gli **occhialini con le lenti dipinte di nero**, appesi per l'elastico |
+| **La Madre** | 0°, in fondo | nessun oggetto: un'apertura enorme (quasi 10 m) dove la sabbia scivola giù nel nero. La torcia non ci arriva. |
+
+Le bocche delle tane che non ci sono ancora (i mostri che arrivano più avanti) per ora sono tutte aperte; il motore
+potrà nasconderle con una toppa di roccia, o si fa un panorama per alba (da decidere).
+
+**Le luci.** Due light group come la baia: `ambient` (l'alba dal pozzo, la luce diffusa dall'acqua, i raggi, il
+pesciolino di Hatch) e `lantern` (la **torcia del sub**). Nel panorama la torcia è una luce puntiforme sull'occhio
+che illumina tutto attorno: il motore la ritaglia con un cono attorno allo sguardo e la accende o spegne. Nelle
+anteprime è un faretto sulla camera.
+
+**L'acqua torbida.** Niente volume (su CPU costa troppo): il passo dati porta la distanza (mist lineare, 0
+sull'occhio e 1 a 40 m) e dopo il render `grotte.acqua()` la cuoce nei passi di luce: l'assorbimento (il rosso
+sparisce per primo, poi il verde) e la luce rimandata dall'acqua (una sfocatura larga della luce ambiente: vicino
+al pozzo l'acqua brilla, in fondo alla tana della Madre resta nero). La torcia fa andata e ritorno e lascia una
+scia chiara davanti al sub. I raggi sono coni emissivi trasparenti resi in un secondo passaggio leggero (se no
+rovinerebbero il passo della distanza) e sommati dopo.
+
+**Lo strato `grotta` per il motore** (voce `layers.grotta` del manifest): `space: 'grotta'`, panorama intero
+equirettangolare ma con la sua latitudine (`latMin` −62°, `latMax` +62°: si guarda più in alto e più in basso che
+dalla barca); passi `ambient` e `lantern` (metà risoluzione) **con l'acqua già cotta** (`acquaCotta: true`: il
+motore non deve aggiungere altra nebbia, solo le particelle e la torcia); `grotta_data.webp` con R = distanza
+(× `mistDepth` = metri) e B = la superficie vista dal pozzo; `tane`: per ogni bocca (e la Madre) yaw e pitch del
+centro, il raggio angolare (per il clic) e la direzione dell'oggetto appeso.
+
+**Da approvare**: l'aspetto della sala (roccia, colori, quanta vita), la luce del pozzo e quanto è torbida l'acqua;
+i pezzi del parco e il cartello; la disposizione delle bocche; le sette cose appese (soprattutto le ciocche di
+Molly); la tana della Madre così (solo buio, senza niente che si veda dentro).
+
 ## Le tane (proposte)
 
 Ogni tana è una cameretta rifatta dalla Madre con le cose del bambino, in una grotta laterale: il letto, i

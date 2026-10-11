@@ -723,9 +723,8 @@ def grotte_vista(q, nome, pos, target, lens, size, torcia=False, pesi=None, espo
     luce = grotte.torcia_faretto(cam, target, cone=cono) if torcia else None
     exr = os.path.join(CACHE, q.name, f'{nome}.exr')
     t = time.time()
-    render(exr, samples or q.samples, size, data_passes=('Mist',))
+    p = grotte.render_con_raggi(exr, samples or q.samples, size)
     log(nome, 'render', round(time.time() - t), 's')
-    p = post.read_exr(exr)
     # la scia della torcia solo nel suo cono (il faretto è quasi sulla camera)
     W, H = size
     tx = 18.0 / lens
@@ -818,11 +817,11 @@ def job_grotte(q):
     H -= H % 2
     exr = os.path.join(CACHE, q.name, 'grotta.exr')
     t = time.time()
-    render(exr, q.samples, (W, H), data_passes=('Mist', 'Object Index'))
+    p = grotte.render_con_raggi(exr, q.samples, (W, H), data_passes=('Mist', 'Object Index'))
     log('grotta render', round(time.time() - t), 's')
-    p = post.read_exr(exr)
     baked = grotte.acqua(p, blur_px=W / 24)
     passes = dict(p)
+    passes.pop('raggi', None)
     passes.update(baked)
 
     def dirz(v):

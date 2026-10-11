@@ -96,7 +96,7 @@ def tunnel(t):
     chi, yaw, z, r, piega = t
     d = _dir(yaw)
     a = d * 3.0 + (0, 0, z)
-    b = d * 12.5 + (0, 0, z - 0.3)
+    b = d * 16.5 + (0, 0, z - 0.3)
     c = b + _dir(yaw + piega) * 5.0 + (0, 0, -1.6)
     return a, b, c, r
 
@@ -171,7 +171,7 @@ def build_rock(res=0.08):
     """La roccia della grotta (un'unica mesh). Restituisce (oggetto, vertici, normali, sabbia)."""
     import time
     t = time.time()
-    v, f, n = sdf.mesh_banded(roccia, (-19.0, -15.0, -14.0), (19.0, 33.5, 13.0), res=res, coarse=4)
+    v, f, n = sdf.mesh_banded(roccia, (-24.0, -22.0, -14.0), (24.0, 33.5, 13.0), res=res, coarse=4)
     zf = fondo_z(v[:, 0], v[:, 1])
     sab = np.clip((0.45 - (v[:, 2] - zf)) / 0.35, 0, 1) * np.clip((n[:, 2] - 0.45) / 0.35, 0, 1)
     ob = mesh_obj('GrottaRoccia', v, f, {'sabbia': sab})
@@ -216,7 +216,7 @@ def rock_material():
     sab = g.smoothstep(0.2, 0.8, g.attr('sabbia'))
     col = g.mix(sab, rock, sand)
     h = g.mixf(sab, h_rock, g.add(g.mul(rip, 0.6), g.mul(grani, 0.15)))
-    g.output_material(g.principled(color=col, rough=g.mixf(sab, rough, 0.85), spec=0.6,
+    g.output_material(g.principled(color=col, rough=g.mixf(sab, g.add(rough, 0.12), 0.85), spec=0.45,
                                    normal=g.bump(h, strength=g.mixf(sab, 0.45, 0.25), distance=0.03)))
     return m
 
@@ -238,7 +238,7 @@ def plastica(name, color, rough=0.35, melma=0.45, color2=None, stripes=None):
         if color2 is not None:
             col = g.mix(g.smoothstep(stripes * 0.45, stripes * 0.55, g.math('PINGPONG', g.sep(co)[2], stripes)),
                         color, color2)
-        sl = g.smoothstep(1.0 - melma, 1.0 - melma + 0.12, g.noise(co, scale=3.0, detail=6.0, distortion=0.5).fac)
+        sl = g.smoothstep(1.0 - melma, 1.0 - melma + 0.12, g.noise(co, scale=7.0, detail=6.0, distortion=0.5).fac)
         col = g.mix(sl, col, (0.035, 0.045, 0.02))
         g.output_material(g.principled(color=col, rough=g.mixf(sl, rough, 0.6), coat=0.3, coat_rough=0.2,
                                        normal=g.bump(g.noise(co, scale=25.0, detail=3.0).fac, strength=0.1, distance=0.004)))
@@ -453,17 +453,17 @@ def build_life(v, n, sab):
     # anemoni: a gruppi sulle pareti e sulle cenge; colori pallidi e malati
     an_mat = per_oggetto('GrottaAnemone', rough=0.45, sss=0.6, tips=(0.10, 0.2))
     modelli = [anemone_mesh('Anemone%d' % k, 40 + k, tent=18 + 4 * k, h=0.08 + 0.03 * k, r=0.03 + 0.01 * k) for k in range(3)]
-    colori = [(0.62, 0.30, 0.30), (0.60, 0.56, 0.48), (0.70, 0.30, 0.10), (0.42, 0.25, 0.45), (0.55, 0.12, 0.12)]
-    P, N = campiona_pareti(v, n, sab, 0, 11, nz=(-0.3, 1.0), cluster=(34, 7, 0.7))
+    colori = [(0.55, 0.36, 0.34), (0.58, 0.55, 0.48), (0.55, 0.32, 0.16), (0.40, 0.30, 0.40), (0.50, 0.42, 0.38)]
+    P, N = campiona_pareti(v, n, sab, 0, 11, nz=(-0.3, 1.0), cluster=(24, 6, 0.6))
     for k, (p, nn) in enumerate(zip(P, N)):
-        istanza('Anemone', modelli[k % 3], tuple(p - nn * 0.01), tuple(nn), rr.uniform(0, 6.28), rr.uniform(0.7, 1.7),
-                an_mat, colori[(k // 7) % len(colori)])
+        istanza('Anemone', modelli[k % 3], tuple(p - nn * 0.01), tuple(nn), rr.uniform(0, 6.28), rr.uniform(1.2, 2.6),
+                an_mat, colori[(k // 6) % len(colori)])
     # spugne a tubo, gialle e arancio spente
     sp_mat = per_oggetto('GrottaSpugna', rough=0.8, sss=0.2)
     modelli = [spugna_mesh('Spugna%d' % k, 70 + k) for k in range(3)]
-    P, N = campiona_pareti(v, n, sab, 0, 12, nz=(-0.2, 1.0), cluster=(18, 4, 0.9))
+    P, N = campiona_pareti(v, n, sab, 0, 12, nz=(-0.2, 1.0), cluster=(12, 3, 0.8))
     for k, (p, nn) in enumerate(zip(P, N)):
-        c = [(0.55, 0.36, 0.06), (0.50, 0.20, 0.05), (0.40, 0.38, 0.22)][k % 3]
+        c = [(0.34, 0.25, 0.08), (0.30, 0.15, 0.06), (0.28, 0.27, 0.19)][k % 3]
         istanza('Spugna', modelli[k % 3], tuple(p - nn * 0.02), tuple(nn), rr.uniform(0, 6.28), rr.uniform(0.8, 2.0),
                 sp_mat, c)
     # alghe a nastro: a ciuffi sulla sabbia vicino alle pareti e sulle cenge
@@ -951,6 +951,15 @@ def build_alba(energy=26000.0, diffusa=3200.0):
     collection(COL).objects.link(o2)
     o2.location = (0.4, -1.2, 1.2)
     set_lightgroup(o2, 'ambient')
+    # un filo di luce più avanti, perché il bordo della tana della Madre si stacchi dal suo buio
+    d3 = bpy.data.lights.new('AlbaBordo', 'POINT')
+    d3.energy = diffusa * 0.2
+    d3.color = (0.45, 0.80, 0.80)
+    d3.shadow_soft_size = 1.5
+    o3 = bpy.data.objects.new('AlbaBordo', d3)
+    collection(COL).objects.link(o3)
+    o3.location = (0.0, 6.5, 0.8)
+    set_lightgroup(o3, 'ambient')
     return o
 
 
@@ -985,6 +994,44 @@ def build_raggi(n=6, seed=2):
         set_lightgroup(ob, 'ambient')
         obs.append(ob)
     return obs
+
+
+def raggi():
+    return [o for o in bpy.data.objects if o.name.startswith('Raggio')]
+
+
+def render_con_raggi(exr, samples, size, data_passes=('Mist',)):
+    """Due render: la scena senza i raggi (i coni trasparenti rovinerebbero il passo mist: Cycles scrive i passi
+    dati solo al primo incontro) e i soli raggi, con tutto il resto come maschera (holdout), senza rimbalzi e con
+    pochi campioni (sono solo emissione). Restituisce i passi della scena con 'raggi' a parte."""
+    from common import render
+    import post
+    sc = bpy.context.scene
+    rg = raggi()
+    for o in rg:
+        o.visible_camera = False
+    render(exr, samples, size, data_passes=data_passes)
+    p = post.read_exr(exr)
+    if not rg:
+        return p
+    salva = {o.name: (o.visible_camera, o.is_holdout) for o in bpy.data.objects if o.type in ('MESH', 'FONT', 'CURVE')}
+    for o in bpy.data.objects:
+        if o.type in ('MESH', 'FONT', 'CURVE'):
+            o.is_holdout = not o.name.startswith('Raggio')
+    for o in rg:
+        o.visible_camera = True
+    bounces = sc.cycles.max_bounces
+    sc.cycles.max_bounces = 0
+    exr_r = exr.replace('.exr', '_raggi.exr')
+    render(exr_r, 8, size, groups=('ambient',), transparent=True, data_passes=(), denoise=False)
+    sc.cycles.max_bounces = bounces
+    for o in bpy.data.objects:
+        if o.name in salva:
+            o.visible_camera, o.is_holdout = salva[o.name]
+    for o in rg:
+        o.visible_camera = False
+    p['raggi'] = post.read_exr(exr_r)['ambient']
+    return p
 
 
 def torcia_panorama(energy=260.0):
@@ -1060,6 +1107,9 @@ def acqua(passes, blur_px, cone_mask=None):
         bl = np.repeat(np.repeat(bl, s, 0), s, 1)[:a.shape[0], :a.shape[1]]
         tint = np.array((0.55, 1.0, 0.95), F)
         out['ambient'] = a * T + (1 - T) * bl * tint * DIFFUSA
+        if 'raggi' in passes:
+            # i raggi stanno nell'acqua fra la camera e la roccia: si attenuano poco
+            out['ambient'] = out['ambient'] + passes['raggi'][..., :3] * np.sqrt(T)
     if 'lantern' in passes:
         lt = passes['lantern'][..., :3]
         scia = (1 - np.exp(-0.12 * d)) * TORCIA_SCIA
