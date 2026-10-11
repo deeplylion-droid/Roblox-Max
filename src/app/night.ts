@@ -44,6 +44,8 @@ export interface NightStats {
   lore: string[];
   /** secondi giocati */
   time: number;
+  /** pesci nel secchio alla fine (quelli oltre la quota servono alle immersioni all'alba) */
+  bucket: number;
 }
 
 export type NightEnd = { kind: 'won'; stats: NightStats } | { kind: 'dead'; killer: MonsterId | 'mother'; cause?: 'lullaby'; stats: NightStats };
@@ -60,6 +62,8 @@ export interface NightDeps {
   assets: NightAssets;
   /** quale notte (1, 2…); senza, la prima */
   night?: number;
+  /** il mostro sfamato all'alba (immersione): stanotte dorme (NightOptions.fed) */
+  fed?: MonsterId | null;
   seed: number;
   onEnd: (r: NightEnd) => void;
   onPause: () => void;
@@ -338,7 +342,7 @@ export class Night {
   constructor(private d: NightDeps) {
     this.S = STRINGS[d.lang];
     this.nightNo = NIGHTS[d.night ?? 1] ? (d.night ?? 1) : 1;
-    this.sim = new NightSim(NIGHTS[this.nightNo]!, d.seed, d.foundLore);
+    this.sim = new NightSim(NIGHTS[this.nightNo]!, d.seed, d.foundLore, { fed: d.fed ?? null });
     this.hud = new Hud(d.ui, d.lang);
     this.sonarEl = document.createElement('div');
     this.sonarEl.className = 'sonar-full';
@@ -685,7 +689,7 @@ export class Night {
 
   private stats(): NightStats {
     const s = this.sim;
-    return { caught: s.caught, fed: s.fed, lore: [...s.loreThisNight], time: s.time };
+    return { caught: s.caught, fed: s.fed, lore: [...s.loreThisNight], time: s.time, bucket: s.fish };
   }
 
   private handle(e: GameEvent): void {

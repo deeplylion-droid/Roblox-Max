@@ -1,0 +1,217 @@
+/**
+ * Le regole di un'immersione all'alba (docs/IMMERSIONI.md), senza grafica né audio: dove sei, quali passaggi si
+ * vedono, quali tane sono vuote, l'aria, il pesce. La presentazione (src/app/dive.ts) chiama i metodi e legge lo stato;
+ * i test la provano da sola.
+ *
+ * I posti, i passaggi e le tane stanno in un file di dati (public/assets/img/immersioni.json, tipo DiveData): quando
+ * arrivano i panorami veri basta aggiungerli lì.
+ */
+import type { PassInfo, Vec3 } from '../engine/assets.ts';
+import { ARRIVAL, canFeed, type MonsterId } from '../game/config.ts';
+
+/** I passi di un panorama a 360° di un posto (come gli strati del manifest dei render). */
+export interface DivePano {
+  ambient?: PassInfo;
+  lantern?: PassInfo;
+  lamp?: PassInfo;
+  /** R = sqrt(distanza / 2500 m) per la nebbia dell'acqua, G = quanto trema l'immagine */
+  data?: string;
+}
+
+/** Un punto cliccabile del panorama: un passaggio verso un altro posto, la risalita o una cosa da guardare. Gradi. */
+export interface DiveLink {
+  to?: string;
+  ascend?: boolean;
+  /** una cosa che si guarda soltanto (il fondo della Madre): una didascalia (STRINGS.dive.notes) */
+  note?: string;
+  yaw: number;
+  pitch: number;
+  /** raggio cliccabile (gradi) */
+  r: number;
+  /** testo che compare passandoci sopra (STRINGS.dive.links); senza, niente */
+  label?: string;
+}
+
+/** Uno strato ritagliato sopra il panorama (la posa del mostro che dorme, la toppa del respiro). */
+export interface DiveSprite {
+  passes: { ambient?: PassInfo; lantern?: PassInfo };
+  /** riquadro in pixel del panorama del posto */
+  rect: [number, number, number, number];
+  /** toppa del respiro: periodo in secondi con cui si dissolve sopra la posa */
+  breath?: number;
+}
+
+export interface DivePlace {
+  pano: DivePano;
+  /** larghezza e altezza del panorama (pixel) */
+  size: [number, number];
+  /** latitudini del bordo basso e alto del panorama (−90, 90 per la sfera intera) */
+  latMin: number;
+  latMax: number;
+  /** gradi di cui è ruotato il panorama */
+  yaw?: number;
+  /** tinta (un panorama riusato per più posti, come i segnaposto) */
+  tint?: Vec3;
+  /** dove guardi quando arrivi */
+  look?: { yaw: number; pitch: number };
+  /** quanta luce scende dall'alto (raggi) */
+  rays?: number;
+  /** è la tana di questo mostro */
+  den?: MonsterId;
+  /** panorama della tana vuota, se diverso (se la posa è dipinta nel panorama invece che in sleeper.layers) */
+  panoEmpty?: DivePano;
+  /** il mostro che dorme: dove si clicca per lasciargli il pesce, i suoi strati, da dove salgono le bolle */
+  sleeper?: { yaw: number; pitch: number; r: number; layers?: DiveSprite[]; bubbles?: { yaw: number; pitch: number } };
+  links: DiveLink[];
+}
+
+/** Regole dell'aria (da approvare): l'aria basta per maxDens tane, poi resta una riserva per tornare. */
+export interface AirRules {
+  /** quanta aria costa una tana (su 1) */
+  perDen: number;
+  /** in quanti secondi dentro la tana l'ago scende della sua parte (uscendo prima scende subito) */
+  denSeconds: number;
+  /** dopo l'ultima tana, quanto dura la riserva */
+  reserveSeconds: number;
+  /** sotto questa aria suona l'avviso */
+  warnAt: number;
+  maxDens: number;
+}
+
+/** L'aspetto dell'acqua (WaterFx e la nebbia del passo dati). */
+export interface WaterLook {
+  fog: Vec3;
+  fogDensity: number;
+  rayColor: Vec3;
+  snowColor: Vec3;
+  glowColor: Vec3;
+  /** mezzo angolo del cono della torcia (gradi) */
+  torchAngle: number;
+  /** esposizione in più (stop) rispetto alla luminosità scelta nelle opzioni */
+  exposure: number;
+}
+
+export interface DiveData {
+  start: string;
+  air: AirRules;
+  water: WaterLook;
+  places: Record<string, DivePlace>;
+}
+
+/** Com'è una tana per la notte che viene: chiusa (il mostro non è ancora arrivato), vuota (è il nuovo della notte,
+ *  già in giro), con il mostro che dorme. */
+export type DenState = 'locked' | 'empty' | 'asleep';
+
+export type DiveEvent = { t: 'airLow' } | { t: 'airOut' };
+
+export class DiveRun {
+  place: string;
+  /** aria nelle bombole, da 1 a 0 */
+  air = 1;
+  /** dove deve arrivare l'ago */
+  private airTarget = 1;
+  /** quanto scende l'ago al secondo */
+  private airRate = 0;
+  /** le tane in cui sei entrato in questa immersione, in ordine */
+  readonly dens: MonsterId[] = [];
+  /** il mostro a cui hai lasciato il pesce */
+  fed: MonsterId | null = null;
+  /** pesci portati giù (al massimo uno) */
+  fish: number;
+  private warned = false;
+  private out = false;
+  private events: DiveEvent[] = [];
+
+  constructor(
+    readonly data: DiveData,
+    /** la notte che viene dopo questa alba */
+    readonly nextNight: number,
+    /** pesci avanzati alle sei oltre la quota */
+    spare: number,
+  ) {
+    this.place = data.start;
+    this.fish = Math.min(1, Math.max(0, spare));
+  }
+
+  get current(): DivePlace {
+    return this.data.places[this.place]!;
+  }
+
+  denState(who: MonsterId): DenState {
+    if (ARRIVAL[who] > this.nextNight) return 'locked';
+    return canFeed(this.nextNight, who) ? 'asleep' : 'empty';
+  }
+
+  /** I passaggi che si vedono nel posto: quelli verso le tane dei mostri non ancora arrivati no («notte dopo notte se
+   *  ne aggiungono»), né quelli verso posti che non esistono nei dati. */
+  visibleLinks(): DiveLink[] {
+    return this.current.links.filter((l) => {
+      if (!l.to) return true;
+      const p = this.data.places[l.to];
+      if (!p) return false;
+      return !p.den || this.denState(p.den) !== 'locked';
+    });
+  }
+
+  /** Si può entrare? Una tana nuova costa aria: dopo maxDens tane non ce n'è più per un'altra. */
+  canEnter(to: string): 'ok' | 'tooFar' | 'missing' {
+    const p = this.data.places[to];
+    if (!p) return 'missing';
+    if (p.den && !this.dens.includes(p.den) && this.dens.length >= this.data.air.maxDens) return 'tooFar';
+    return 'ok';
+  }
+
+  enter(to: string): boolean {
+    if (this.canEnter(to) !== 'ok') return false;
+    const leaving = this.current;
+    this.place = to;
+    const p = this.current;
+    const a = this.data.air;
+    if (p.den && !this.dens.includes(p.den)) {
+      this.dens.push(p.den);
+      this.airTarget = Math.max(0, 1 - a.perDen * this.dens.length);
+      this.airRate = a.perDen / a.denSeconds;
+    } else if (leaving.den) {
+      // uscendo da una tana prima del tempo l'ago finisce di scendere subito
+      this.airRate = Math.max(this.airRate, a.perDen / 2);
+    }
+    return true;
+  }
+
+  /** Lascia il pesce accanto al mostro della tana in cui sei. */
+  feed(): 'ok' | 'noFish' | 'already' | 'notHere' {
+    const who = this.current.den;
+    if (!who || this.denState(who) !== 'asleep') return 'notHere';
+    if (this.fed) return 'already';
+    if (this.fish <= 0) return 'noFish';
+    this.fish--;
+    this.fed = who;
+    return 'ok';
+  }
+
+  update(dt: number): void {
+    if (this.out) return;
+    const a = this.data.air;
+    if (this.air > this.airTarget) this.air = Math.max(this.airTarget, this.air - this.airRate * dt);
+    else if (this.dens.length >= a.maxDens && this.airTarget > 0) {
+      // finita l'ultima tana, la riserva per tornare
+      this.airTarget = 0;
+      this.airRate = this.air / a.reserveSeconds;
+    }
+    if (!this.warned && this.air < a.warnAt) {
+      this.warned = true;
+      this.events.push({ t: 'airLow' });
+    }
+    if (this.air <= 0) {
+      this.air = 0;
+      this.out = true;
+      this.events.push({ t: 'airOut' });
+    }
+  }
+
+  drainEvents(): DiveEvent[] {
+    const e = this.events;
+    this.events = [];
+    return e;
+  }
+}

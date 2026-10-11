@@ -1,4 +1,5 @@
-/** Salvataggio locale: progressi, diario, catalogo e opzioni. */
+/** Salvataggio locale: progressi, diario, catalogo, immersioni e opzioni. */
+import { ARRIVAL, type MonsterId } from '../game/config.ts';
 import type { Lang } from '../i18n.ts';
 
 export interface Options {
@@ -29,7 +30,16 @@ export interface SaveData {
   lore: string[];
   catalog: Record<string, CatalogEntry>;
   options: Options;
+  /** l'alba dell'ultima notte vinta (immersioni): quanti pesci avanzavano alle sei oltre la quota. Giù se ne porta
+   *  uno solo; gli altri restano alla Madre */
+  dawn: { night: number; spare: number } | null;
+  /** il mostro sfamato all'alba e la notte in cui dorme (anche se quella notte si rigioca, finché non la vinci) */
+  fed: { night: number; who: MonsterId } | null;
+  /** le tane viste nelle immersioni (anche quelle vuote) */
+  dens: MonsterId[];
 }
+
+const isMonster = (x: unknown): x is MonsterId => typeof x === 'string' && x in ARRIVAL;
 
 const KEY = 'splashland.save.v1';
 
@@ -38,7 +48,7 @@ export function defaultOptions(): Options {
 }
 
 function fresh(): SaveData {
-  return { version: 1, lang: null, night: 1, lore: [], catalog: {}, options: defaultOptions() };
+  return { version: 1, lang: null, night: 1, lore: [], catalog: {}, options: defaultOptions(), dawn: null, fed: null, dens: [] };
 }
 
 export function loadSave(): SaveData {
@@ -54,6 +64,9 @@ export function loadSave(): SaveData {
       lore: Array.isArray(d.lore) ? d.lore.filter((x) => typeof x === 'string') : [],
       catalog: d.catalog && typeof d.catalog === 'object' ? d.catalog : {},
       options: { ...f.options, ...(d.options ?? {}) },
+      dawn: d.dawn && typeof d.dawn.night === 'number' && typeof d.dawn.spare === 'number' ? { night: d.dawn.night, spare: d.dawn.spare } : null,
+      fed: d.fed && typeof d.fed.night === 'number' && isMonster(d.fed.who) ? { night: d.fed.night, who: d.fed.who } : null,
+      dens: Array.isArray(d.dens) ? d.dens.filter(isMonster) : [],
     };
   } catch {
     return fresh();

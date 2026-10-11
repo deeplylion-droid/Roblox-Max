@@ -3,7 +3,7 @@
  * atmosfera (faro, luci), schermo del sonar, lenza, bloom e composizione finale.
  */
 import { FULLSCREEN_VS, FullscreenTri, Program, Target, createGL, hdrSupported, textureFromCanvas, type GL } from './gl.ts';
-import { ATMOS_FS, BRIGHT_FS, DOWN_FS, FINAL_FS, GAUGE_FS, LAYER_FS, LINE_FS, LINE_VS, OVERLAY_FS, PERSP_FS, SCREEN_FS, SPRITE_FS, SPRITE_VS, TUBE_FS, TUBE_VS, UP_FS } from './shaders.ts';
+import { ATMOS_FS, BRIGHT_FS, DOWN_FS, FINAL_FS, GAUGE_FS, LAYER_FS, LINE_FS, LINE_VS, OVERLAY_FS, PERSP_FS, SCREEN_FS, SPRITE_FS, SPRITE_VS, TUBE_FS, TUBE_VS, UP_FS, WATER_FS } from './shaders.ts';
 import type { LoadedLayer, Manifest, Vec3 } from './assets.ts';
 import type { View } from './view.ts';
 
@@ -35,6 +35,8 @@ export interface LayerDraw {
   part?: 'back' | 'front';
   /** moltiplica le luci di questo strato: ambiente, lampara, lanterna (Robin con la luce in faccia) */
   light?: [number, number, number];
+  /** tinta dello strato (un panorama segnaposto riusato per più posti delle immersioni) */
+  tint?: Vec3;
   /** fino a due toppe che entrano sopra questo strato (chiave, quanto): dove sono vuote questo strato sfuma */
   masks?: { key: string; k: number }[];
 }
@@ -136,6 +138,28 @@ export interface FrameParams {
   strokes?: Stroke[];
   /** la canna disegnata dal motore (sopra gli strati, sotto la lenza) */
   tubes?: TubeDraw[];
+  /** nebbia degli strati col passo dati (colore, densità per metro); senza, quella della notte sulla baia */
+  fog?: { color: Vec3; density: number };
+  /** la torcia del sub: il passo lanterna degli strati del mondo si accende solo nel cono (direzione nello spazio
+   *  del mondo, coseno del bordo) */
+  torch?: { dir: Vec3; cos: number } | null;
+  /** sott'acqua (immersioni): al posto dell'atmosfera della notte (faro, bagliori) si disegna l'acqua */
+  water?: WaterFx | null;
+}
+
+/** L'acqua delle immersioni (WATER_FS): raggi dall'alto, particelle, alone della torcia, bolle. */
+export interface WaterFx {
+  rayColor: Vec3;
+  rays: number;
+  snowColor: Vec3;
+  snow: number;
+  glowColor: Vec3;
+  /** quanto è accesa la torcia (0..1); la direzione e il cono sono quelli di FrameParams.torch */
+  torchOn: number;
+  /** sorgenti di bolle (fino a 4): direzione nello spazio del mondo e intensità */
+  bubbles: { dir: Vec3; k: number }[];
+  /** 0..1: le bolle dell'erogatore davanti alla maschera */
+  burst: number;
 }
 
 export class Renderer {
@@ -155,6 +179,7 @@ export class Renderer {
   private pFinal: Program;
   private pOverlay: Program;
   private pPersp: Program;
+  private pWater: Program;
   private hdr!: Target;
   private bloom: Target[] = [];
   private w = 0;
@@ -189,6 +214,7 @@ export class Renderer {
     this.pFinal = new Program(gl, FULLSCREEN_VS, FINAL_FS, 'final');
     this.pOverlay = new Program(gl, FULLSCREEN_VS, OVERLAY_FS, 'overlay');
     this.pPersp = new Program(gl, FULLSCREEN_VS, PERSP_FS, 'persp');
+    this.pWater = new Program(gl, FULLSCREEN_VS, WATER_FS, 'water');
     this.lineVao = gl.createVertexArray()!;
     this.lineBuf = gl.createBuffer()!;
     gl.bindVertexArray(this.lineVao);
@@ -228,6 +254,14 @@ export class Renderer {
 
   addLayer(l: LoadedLayer): void {
     this.layers.set(l.key, l);
+  }
+
+  /** Toglie uno strato e libera le sue texture (i panorami delle immersioni, che pesano: si caricano quando servono). */
+  removeLayer(key: string): void {
+    const l = this.layers.get(key);
+    if (!l) return;
+    for (const t of [l.amb, l.lamp, l.lantern, l.data]) if (t) this.gl.deleteTexture(t);
+    this.layers.delete(key);
   }
 
   resize(): void {
@@ -273,8 +307,8 @@ export class Renderer {
       .f2('uPano', pano.width, pano.height)
       .f2('uLat', pano.latMin * D2R, pano.latMax * D2R)
       .f1('uTime', f.time)
-      .f3('uFogColor', 0.006, 0.010, 0.017)
-      .f1('uFogDensity', 1 / 3200)
+      .f3('uFogColor', ...(f.fog?.color ?? ([0.006, 0.010, 0.017] as Vec3)))
+      .f1('uFogDensity', f.fog?.density ?? 1 / 3200)
       .f1('uShimmer', 1.0);
     let atmosDone = false;
     for (const item of f.layers) {
@@ -284,7 +318,7 @@ export class Renderer {
       if (!l || (d.opacity ?? 1) <= 0.001) continue;
       // l'atmosfera va disegnata dopo il mondo e prima della barca
       if (!atmosDone && l.info.space === 'boat') {
-        this.drawAtmos(view, f);
+        this.drawAtmosOrWater(view, f);
         if (f.glowSprites?.length) this.drawSprites(view, f.glowSprites, true);
         this.pLayer.use();
         atmosDone = true;
@@ -304,6 +338,8 @@ export class Renderer {
         .f3('uPeloX', d.pelo?.x0 ?? 0, d.pelo?.x1 ?? 1, d.pelo ? Math.min(PELO_N, d.pelo.rows.length) : 0)
         .f1('uPart', d.part === 'back' ? 1 : d.part === 'front' ? 2 : 0)
         .f1('uHasData', l.data ? 1 : 0)
+        .f4('uTorch', ...(world && f.torch ? ([...f.torch.dir, f.torch.cos] as [number, number, number, number]) : ([0, 1, 0, 0] as [number, number, number, number])))
+        .f3('uTint', ...(d.tint ?? ([1, 1, 1] as Vec3)))
         .tex('uAmb', 0, l.amb)
         .tex('uLamp', 1, l.lamp)
         .tex('uLant', 2, l.lantern)
@@ -328,7 +364,7 @@ export class Renderer {
       }
     }
     if (!atmosDone) {
-      this.drawAtmos(view, f);
+      this.drawAtmosOrWater(view, f);
       if (f.glowSprites?.length) this.drawSprites(view, f.glowSprites, true);
     }
     if (f.boatGlows?.length) this.drawGlows(view, f.boatGlows);
@@ -341,6 +377,40 @@ export class Renderer {
     gl.disable(gl.BLEND);
     this.drawBloom();
     this.drawFinal(f);
+  }
+
+  /** Fra il mondo e la barca: l'atmosfera della notte, o l'acqua se si è sotto. */
+  private drawAtmosOrWater(view: View, f: FrameParams): void {
+    if (f.water) this.drawWater(view, f, f.water);
+    else this.drawAtmos(view, f);
+  }
+
+  private drawWater(view: View, f: FrameParams, w: WaterFx): void {
+    const gl = this.gl;
+    gl.blendFunc(gl.ONE, gl.ONE);
+    const bub = new Float32Array(16);
+    const n = Math.min(4, w.bubbles.length);
+    for (let i = 0; i < n; i++) bub.set([...w.bubbles[i]!.dir, w.bubbles[i]!.k], i * 4);
+    const torch = f.torch ?? { dir: [0, 1, 0] as Vec3, cos: 0.9 };
+    this.pWater
+      .use()
+      .m3('uRot', new Float32Array(view.worldRot))
+      .f2('uTan', view.tanX, view.tanY)
+      .f1('uTime', f.time)
+      .f3('uTorchDir', ...torch.dir)
+      .f1('uTorchCos', torch.cos)
+      .f1('uTorchOn', w.torchOn)
+      .f3('uRayColor', ...w.rayColor)
+      .f1('uRays', w.rays)
+      .f3('uSnowColor', ...w.snowColor)
+      .f1('uSnow', w.snow)
+      .f3('uGlowColor', ...w.glowColor)
+      .i1('uBubCount', n)
+      .v4('uBub', bub)
+      .f1('uBurst', w.burst)
+      .f1('uAspect', this.w / this.h);
+    this.tri.draw();
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
   }
 
   private drawAtmos(view: View, f: FrameParams): void {
