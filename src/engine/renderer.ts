@@ -189,6 +189,7 @@ export class Renderer {
   private lineVao: WebGLVertexArrayObject;
   private lineBuf: WebGLBuffer;
   private peloBuf = new Float32Array(PELO_N);
+  private bubBuf = new Float32Array(16);
   private pSprite: Program;
   private spriteVao: WebGLVertexArrayObject;
   private spriteBuf: WebGLBuffer;
@@ -338,8 +339,8 @@ export class Renderer {
         .f3('uPeloX', d.pelo?.x0 ?? 0, d.pelo?.x1 ?? 1, d.pelo ? Math.min(PELO_N, d.pelo.rows.length) : 0)
         .f1('uPart', d.part === 'back' ? 1 : d.part === 'front' ? 2 : 0)
         .f1('uHasData', l.data ? 1 : 0)
-        .f4('uTorch', ...(world && f.torch ? ([...f.torch.dir, f.torch.cos] as [number, number, number, number]) : ([0, 1, 0, 0] as [number, number, number, number])))
-        .f3('uTint', ...(d.tint ?? ([1, 1, 1] as Vec3)))
+        .f4('uTorch', world && f.torch ? f.torch.dir[0] : 0, world && f.torch ? f.torch.dir[1] : 1, world && f.torch ? f.torch.dir[2] : 0, world && f.torch ? f.torch.cos : 0)
+        .f3('uTint', d.tint ? d.tint[0] : 1, d.tint ? d.tint[1] : 1, d.tint ? d.tint[2] : 1)
         .tex('uAmb', 0, l.amb)
         .tex('uLamp', 1, l.lamp)
         .tex('uLant', 2, l.lantern)
@@ -388,9 +389,15 @@ export class Renderer {
   private drawWater(view: View, f: FrameParams, w: WaterFx): void {
     const gl = this.gl;
     gl.blendFunc(gl.ONE, gl.ONE);
-    const bub = new Float32Array(16);
+    const bub = this.bubBuf.fill(0);
     const n = Math.min(4, w.bubbles.length);
-    for (let i = 0; i < n; i++) bub.set([...w.bubbles[i]!.dir, w.bubbles[i]!.k], i * 4);
+    for (let i = 0; i < n; i++) {
+      const b = w.bubbles[i]!;
+      bub[i * 4] = b.dir[0];
+      bub[i * 4 + 1] = b.dir[1];
+      bub[i * 4 + 2] = b.dir[2];
+      bub[i * 4 + 3] = b.k;
+    }
     const torch = f.torch ?? { dir: [0, 1, 0] as Vec3, cos: 0.9 };
     this.pWater
       .use()

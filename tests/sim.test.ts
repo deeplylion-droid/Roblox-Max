@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { HOUR_SECONDS, NIGHTS, YAW, canFeed, monstersOfNight, type NightConfig } from '../src/game/config.ts';
+import { HOUR_SECONDS, NIGHTS, YAW, canFeed, type NightConfig } from '../src/game/config.ts';
 import type { GameEvent } from '../src/game/events.ts';
 import { NightSim } from '../src/game/sim.ts';
 import { SKILLS, playNight } from '../src/game/bot.ts';
@@ -691,20 +691,36 @@ describe('Immersioni all’alba: il mostro sfamato', () => {
     expect(canFeed(3, 'archie')).toBe(false);
     expect(canFeed(4, 'fangy')).toBe(false);
     expect(canFeed(6, 'fangy')).toBe(true);
-    expect(monstersOfNight(3)).toEqual(['gulpy', 'molly', 'hatch', 'robin', 'archie']);
   });
 
   it('il mostro sfamato dorme tutta la notte: non parte mai e il sonar non lo annuncia', () => {
-    for (const who of ['gulpy', 'molly', 'hatch', 'robin'] as const) {
-      const sim = new NightSim(NIGHTS[3]!, 11, [], { fed: who });
-      expect(sim.asleep).toBe(who);
-      let warned = false;
-      const ev = run(sim, HOUR_SECONDS * 6 + 1, (s) => {
-        s.fish = 99; // niente morti per Gulpy o Robin a secchio vuoto: si guarda solo chi arriva
-        if (s.incoming().some((i) => i.who === who)) warned = true;
-      });
-      expect(started(ev, who)).toBe(false);
-      expect(warned).toBe(false);
+    for (const who of ['gulpy', 'molly', 'hatch', 'robin', 'archie', 'lampy', 'fangy'] as const) {
+      // Archie, Lampy e Fangy si sfamano solo dopo il loro arrivo: la sesta notte non c'è ancora, si usa una quinta che fa
+      // da sesta (con tutti e sette i mostri)
+      const base = ['archie', 'lampy', 'fangy'].includes(who) ? { ...NIGHTS[5]!, night: 6 } : NIGHTS[3]!;
+      // gli altri mostri non vengono (se no ti uccidono prima e la prova finisce presto)
+      const cfg = { ...base } as NightConfig;
+      for (const m of ['gulpy', 'molly', 'hatch', 'robin', 'archie', 'lampy', 'fangy'] as const) {
+        const c = (cfg as unknown as Record<string, { firstAt: number } | undefined>)[m];
+        if (m !== who && c) (cfg as unknown as Record<string, unknown>)[m] = { ...c, firstAt: 1e9 };
+      }
+      const play = (fed: typeof who | null) => {
+        const sim = new NightSim(cfg, 11, [], { fed });
+        let warned = false;
+        const ev = run(sim, HOUR_SECONDS * 6 + 1, (s) => {
+          s.fish = 99; // niente morti per Gulpy o Robin a secchio vuoto: si guarda solo chi arriva
+          if (s.incoming().some((i) => i.who === who)) warned = true;
+        });
+        return { sim, warned, ev };
+      };
+      // controllo: senza pesce arriva (la prova non è vuota)
+      const ctl = play(null);
+      expect(ctl.warned || started(ctl.ev, who), who).toBe(true);
+      const fed = play(who);
+      expect(fed.sim.asleep).toBe(who);
+      expect(started(fed.ev, who), who).toBe(false);
+      expect(fed.warned, who).toBe(false);
+      expect(fed.sim.time, who).toBeGreaterThan(HOUR_SECONDS * 6 - 1);
     }
   });
 

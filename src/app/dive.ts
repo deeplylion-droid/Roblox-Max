@@ -1,7 +1,8 @@
 /**
  * L'immersione all'alba (docs/IMMERSIONI.md): scendi con le bombole sotto la barca e nuoti da un posto all'altro
- * come con le telecamere di FNAF. Ogni posto è un panorama a 360° (uno strato del mondo a sfera intera) in cui ti
- * guardi attorno; i passaggi si cliccano e si passa con una dissolvenza (le bolle e il respiro dell'erogatore). La
+ * come con le telecamere di FNAF. Le grotte sono panorami a 360° (uno strato del mondo a sfera intera) in cui ti
+ * guardi attorno; le camerette delle tane sono inquadrature fisse (un panorama parziale che si gira di 30° per parte,
+ * deciso l'11 ottobre). I passaggi si cliccano e si passa con una dissolvenza (le bolle e il respiro dell'erogatore). La
  * torcia segue lo sguardo con un piccolo ritardo, l'acqua è torbida (la nebbia del passo dati, le particelle, i raggi
  * dall'alto, un tremolio), il manometro dice quanta aria resta. Nelle tane i mostri dormono: cliccandone uno col pesce
  * glielo lasci, e la notte dopo non viene.
@@ -14,7 +15,7 @@ import type { AudioEngine, Voice } from '../engine/audio.ts';
 import { dirPos } from '../engine/audio.ts';
 import { textureFromImage, type GL } from '../engine/gl.ts';
 import type { LayerDraw } from '../engine/renderer.ts';
-import { apply } from '../engine/view.ts';
+import { apply, wrap180 } from '../engine/view.ts';
 import type { MonsterId } from '../game/config.ts';
 import { STRINGS, type Lang } from '../i18n.ts';
 import { DiveRun, type DiveData, type DiveLink, type DivePano, type DivePlace } from './dive_run.ts';
@@ -99,6 +100,24 @@ async function texture(gl: GL, file: string, wrap: number): Promise<WebGLTexture
   return t;
 }
 
+/** Uno strato del posto da disegnare, con il periodo del respiro se è una toppa che si dissolve sopra la posa. */
+interface Draw {
+  d: LayerDraw;
+  breath?: number;
+}
+
+/** Come Promise.all per le texture di uno strato, ma se una non si carica cancella quelle già create (e rifiuta). */
+async function settle(gl: GL, ps: (Promise<WebGLTexture> | null)[]): Promise<(WebGLTexture | null)[]> {
+  const res = await Promise.allSettled(ps.map((p) => p ?? Promise.resolve(null)));
+  const failed = res.find((x): x is PromiseRejectedResult => x.status === 'rejected');
+  const ok = res.map((x) => (x.status === 'fulfilled' ? x.value : null));
+  if (failed) {
+    for (const t of ok) if (t) gl.deleteTexture(t);
+    throw failed.reason;
+  }
+  return ok;
+}
+
 type Phase = 'loading' | 'in' | 'look' | 'out' | 'ascend' | 'done';
 
 /** Un punto cliccabile del posto, con la sua etichetta sullo schermo. */
@@ -120,7 +139,9 @@ export class Dive {
   private time = 0;
   /** chiavi degli strati del posto caricato (nel renderer) */
   private keys: string[] = [];
-  private draws: LayerDraw[] = [];
+  private draws: Draw[] = [];
+  /** gli stessi strati come li vuole il renderer (non si rifà la lista a ogni fotogramma) */
+  private layerList: LayerDraw[] = [];
   private spots: Spot[] = [];
   private hover: Spot | null = null;
   private goingTo: string | null = null;
@@ -140,6 +161,11 @@ export class Dive {
   private confirmEl: HTMLDivElement | null = null;
   private capTimer = 0;
   private hintTimer = 0;
+  /** dove sta l'ago disegnato (per non ridisegnare il manometro quando non si muove) */
+  private gaugeShown = -1;
+  /** i bordi dello schermo girano lo sguardo; dopo un tasto di direzione non più finché il mouse non si muove (come
+   *  sulla barca: se il mouse era rimasto fermo nella fascia del bordo, la vista continuava a girare da sola) */
+  private edgeArmed = true;
   private destroyed = false;
 
   constructor(private d: DiveDeps) {
@@ -178,13 +204,19 @@ export class Dive {
       if (id) this.loops.push(...[this.d.audio.play(id, { loop: true, fadeIn: 2, gain: 0.8, lowpass: id.startsWith('dive_') ? undefined : 380 })].filter((x): x is Voice => !!x));
     }
     this.play(SND.descend, { gain: 0.8, lowpass: 900 });
+    this.caption(this.S.dive.loading, 30);
+    // se il primo posto non si carica l'errore arriva all'App, che passa alla notte dopo (le texture sono già liberate)
     await this.load(this.run.place);
     this.arrive();
   }
 
   // ───────────────────────── posti ─────────────────────────
 
-  /** Carica il panorama del posto (e i suoi strati) nel renderer, liberando quello di prima. */
+  /**
+   * Carica il panorama del posto (e i suoi strati) nel renderer, liberando prima quello di adesso (un posto solo in
+   * memoria). Non tocca DiveRun: si entra nel posto (aria, tane viste) solo quando il caricamento è riuscito. Se un file
+   * manca, libera le texture che aveva già creato e rifiuta.
+   */
   private async load(id: string): Promise<void> {
     this.unload();
     const p = this.d.data.places[id]!;
@@ -207,41 +239,45 @@ export class Dive {
     const layer = async (key: string, passes: Partial<Record<'ambient' | 'lamp' | 'lantern', PassInfo>>, data: string | undefined, rect: [number, number, number, number], full: boolean): Promise<LoadedLayer> => {
       const wrap = full ? gl.REPEAT : gl.CLAMP_TO_EDGE;
       const info: LayerInfo = { space: 'world', yaw: p.yaw ?? 0, rect, passes, ...(data ? { data } : {}) };
-      const [amb, lamp, lantern, dat] = await Promise.all([
+      const [amb, lamp, lantern, dat] = await settle(gl, [
         passes.ambient ? texture(gl, passes.ambient.file, wrap) : null,
         passes.lamp ? texture(gl, passes.lamp.file, wrap) : null,
         passes.lantern ? texture(gl, passes.lantern.file, wrap) : null,
         data ? texture(gl, data, wrap) : null,
       ]);
-      return { key, info, amb, lamp, lantern, data: dat };
+      return { key, info, amb: amb!, lamp: lamp!, lantern: lantern!, data: dat! };
     };
-    const loads: Promise<{ l: LoadedLayer; draw: LayerDraw }>[] = [];
+    const loads: Promise<{ l: LoadedLayer; draw: Draw }>[] = [];
     const panoKey = `dive:${id}`;
     const { data, ...passes } = pano;
-    loads.push(layer(panoKey, passes, data, rectOf(0, 0, p.size[0], p.size[1]), fullPano).then((l) => ({ l, draw: { key: panoKey, ...(p.tint ? { tint: p.tint } : {}) } })));
+    loads.push(layer(panoKey, passes, data, rectOf(0, 0, p.size[0], p.size[1]), fullPano).then((l) => ({ l, draw: { d: { key: panoKey, ...(p.tint ? { tint: p.tint } : {}) } } })));
     if (state === 'asleep') {
       p.sleeper?.layers?.forEach((s, i) => {
         const key = `${panoKey}:${i}`;
-        loads.push(layer(key, s.passes, undefined, rectOf(...s.rect), false).then((l) => ({ l, draw: { key } })));
+        loads.push(layer(key, s.passes, undefined, rectOf(...s.rect), false).then((l) => ({ l, draw: { d: { key }, breath: s.breath } })));
       });
     }
-    const done = await Promise.all(loads);
-    if (this.destroyed) {
+    const res = await Promise.allSettled(loads);
+    const done = res.flatMap((x) => (x.status === 'fulfilled' ? [x.value] : []));
+    const failed = res.find((x): x is PromiseRejectedResult => x.status === 'rejected');
+    if (failed || this.destroyed) {
       for (const { l } of done) for (const t of [l.amb, l.lamp, l.lantern, l.data]) if (t) gl.deleteTexture(t);
+      if (failed) throw failed.reason;
       return;
     }
     for (const { l, draw } of done) {
       r.addLayer(l);
       this.keys.push(l.key);
       this.draws.push(draw);
+      this.layerList.push(draw.d);
     }
-    this.buildSpots(p, state);
   }
 
   private unload(): void {
     for (const k of this.keys) this.d.stage.renderer.removeLayer(k);
     this.keys = [];
     this.draws = [];
+    this.layerList = [];
     this.spotsEl.replaceChildren();
     this.buttonsEl.replaceChildren();
     this.spots = [];
@@ -272,10 +308,13 @@ export class Dive {
     if (state === 'asleep' && p.sleeper) this.spots.push({ dir: dirOf(p.sleeper.yaw + yaw0, p.sleeper.pitch), r: p.sleeper.r, sleeper: true, el: null });
   }
 
-  /** Appena arrivati in un posto (caricato): lo sguardo, la dissolvenza in entrata, le didascalie. */
+  /** Appena arrivati in un posto (caricato, e già dentro in DiveRun): i punti cliccabili, lo sguardo, la dissolvenza in
+   *  entrata, le didascalie. Se intanto è partita la risalita (il tasto, l'aria finita) non si arriva più. */
   private arrive(): void {
-    if (this.destroyed) return;
+    if (this.destroyed || this.phase === 'ascend' || this.phase === 'done') return;
     const p = this.run.current;
+    this.buildSpots(p, p.den ? this.run.denState(p.den) : null);
+    this.capEl.classList.remove('show');
     const v = this.d.stage.view;
     const look = p.frame ?? p.look;
     if (look) {
@@ -300,6 +339,33 @@ export class Dive {
     this.phase = 'out';
     this.hintEl.classList.remove('show');
     this.play(SND.bubbles, { gain: 0.6, lowpass: 700 });
+  }
+
+  /** Al buio: carica il posto e ci entra. Se non si carica si torna dov'eri (ricaricandolo: quello di prima è già stato
+   *  liberato), e se nemmeno quello si carica si risale. Senza aria spesa né tane contate per il posto mancato. */
+  private travel(to: string): void {
+    const from = this.run.place;
+    this.load(to).then(
+      () => {
+        if (this.phase !== 'loading') return;
+        this.run.enter(to);
+        this.arrive();
+      },
+      (e: unknown) => {
+        console.error(e);
+        if (this.phase !== 'loading' || this.destroyed) return;
+        this.load(from).then(
+          () => {
+            this.arrive();
+            this.caption(this.S.dive.blocked, 4);
+          },
+          (e2: unknown) => {
+            console.error(e2);
+            this.ascend();
+          },
+        );
+      },
+    );
   }
 
   private ascend(): void {
@@ -359,14 +425,17 @@ export class Dive {
     this.on(window, 'keydown', (e) => {
       const k = (e as KeyboardEvent).key.toLowerCase();
       this.held.add(k);
+      if (['a', 'd', 'w', 's', 'arrowleft', 'arrowright', 'arrowup', 'arrowdown'].includes(k)) this.edgeArmed = false;
       if (k === 'escape') this.closeConfirm();
     });
     this.on(window, 'keyup', (e) => this.held.delete((e as KeyboardEvent).key.toLowerCase()));
     this.on(window, 'blur', () => this.held.clear());
     this.on(c, 'mousemove', (e) => {
       const m = e as MouseEvent;
-      this.mouse.x = m.clientX / innerWidth;
-      this.mouse.y = m.clientY / innerHeight;
+      const x = m.clientX / innerWidth, y = m.clientY / innerHeight;
+      if (Math.hypot((x - this.mouse.x) * innerWidth, (y - this.mouse.y) * innerHeight) > 6) this.edgeArmed = true;
+      this.mouse.x = x;
+      this.mouse.y = y;
       this.mouse.inside = true;
     });
     this.on(c, 'mouseleave', () => {
@@ -404,7 +473,7 @@ export class Dive {
       const edge = 0.2;
       let spin = 0, tilt = 0;
       const { x: mx, y: my } = this.mouse;
-      if (this.mouse.inside) {
+      if (this.mouse.inside && this.edgeArmed) {
         if (mx < edge) spin = -(((edge - mx) / edge) ** 1.5);
         else if (mx > 1 - edge) spin = ((mx - (1 - edge)) / edge) ** 1.5;
         if (my < edge * 0.8) tilt = ((edge * 0.8 - my) / (edge * 0.8)) ** 1.5;
@@ -423,7 +492,7 @@ export class Dive {
     const fr = this.phase === 'loading' ? undefined : this.run.current.frame;
     if (fr) {
       const c = fr.yaw + (this.run.current.yaw ?? 0);
-      const off = ((v.targetYaw - c + 540) % 360) - 180;
+      const off = wrap180(v.targetYaw - c);
       v.targetYaw = c + Math.max(-fr.yawRange, Math.min(fr.yawRange, off));
       v.pitch = Math.max(fr.pitch - fr.pitchRange, Math.min(fr.pitch + fr.pitchRange, v.pitch));
       v.hfov = 90;
@@ -435,7 +504,7 @@ export class Dive {
     st.update(dt);
     // la torcia segue lo sguardo con un piccolo ritardo, e la mano trema appena
     const lag = 1 - Math.exp(-dt * 5);
-    this.torchYaw += (((v.yaw - this.torchYaw + 540) % 360) - 180) * lag;
+    this.torchYaw = wrap180(this.torchYaw + wrap180(v.yaw - this.torchYaw) * lag);
     this.torchPitch += (v.pitch - this.torchPitch) * lag;
 
     // dissolvenze
@@ -456,8 +525,7 @@ export class Dive {
           const to = this.goingTo;
           this.goingTo = null;
           this.phase = 'loading';
-          this.run.enter(to);
-          void this.load(to).then(() => this.arrive());
+          this.travel(to);
         }
         break;
       case 'ascend':
@@ -523,20 +591,26 @@ export class Dive {
         }
       }
     }
+    if (best !== this.hover) this.d.canvas.style.cursor = best ? 'pointer' : '';
     this.hover = best;
-    this.d.canvas.style.cursor = best ? 'pointer' : '';
     for (const s of this.spots) {
       if (!s.el) continue;
       const q = look ? v.project(s.dir, true) : null;
       const on = !!q && q[0] > -0.1 && q[0] < 1.1 && q[1] > -0.1 && q[1] < 1.1;
       s.el.classList.toggle('show', on);
       s.el.classList.toggle('hover', s === best);
-      if (q) s.el.style.transform = `translate(${(q[0] * 100).toFixed(2)}vw, ${((1 - q[1]) * 100).toFixed(2)}vh)`;
+      if (on) s.el.style.transform = `translate(${(q[0] * 100).toFixed(2)}vw, ${((1 - q[1]) * 100).toFixed(2)}vh)`;
     }
   }
 
   /** Il manometro delle bombole: un ago come quello del voltmetro della batteria (TODO render: il quadrante vero). */
   private drawGauge(): void {
+    // l'ago trema solo quando l'aria è poca: altrimenti si ridisegna solo quando si muove
+    const air = this.run.air;
+    const shake = air < 0.2 ? 0.02 * Math.sin(this.time * 37) * Math.sin(this.time * 11.3) : 0;
+    const f = Math.max(0, Math.min(1, air)) + shake;
+    if (Math.abs(f - this.gaugeShown) < 0.0015) return;
+    this.gaugeShown = f;
     const g = this.gauge.getContext('2d');
     if (!g) return;
     const n = this.gauge.width, c = n / 2, R = n * 0.42;
@@ -569,10 +643,8 @@ export class Dive {
     g.font = `${Math.round(n * 0.085)}px Limelight, Georgia, serif`;
     g.textAlign = 'center';
     g.fillText(this.S.dive.air, c, c + R * 0.55);
-    // l'ago (trema appena, e di più quando l'aria è poca)
-    const air = this.run.air;
-    const shake = (0.006 + (air < 0.2 ? 0.02 : 0)) * Math.sin(this.time * 37) * Math.sin(this.time * 11.3);
-    const a = at(Math.max(0, Math.min(1, air)) + shake);
+    // l'ago
+    const a = at(f);
     g.strokeStyle = '#8c1a12';
     g.lineWidth = 3.5;
     g.beginPath();
@@ -590,19 +662,13 @@ export class Dive {
     const st = this.d.stage;
     const w = this.d.data.water;
     const p = this.run.current;
-    const layers: LayerDraw[] = this.draws.map((dr) => {
-      // le toppe del respiro si dissolvono sopra la posa
-      const sl = p.sleeper?.layers;
-      const idx = dr.key.split(':')[2];
-      const def = idx !== undefined && sl ? sl[Number(idx)] : undefined;
-      if (def?.breath) return { ...dr, opacity: 0.5 - 0.5 * Math.cos((this.time / def.breath) * Math.PI * 2) };
-      return dr;
-    });
+    // le toppe del respiro si dissolvono sopra la posa
+    for (const dr of this.draws) if (dr.breath) dr.d.opacity = 0.5 - 0.5 * Math.cos((this.time / dr.breath) * Math.PI * 2);
     const tdir = dirOf(this.torchYaw + 0.4 * Math.sin(this.time * 2.3), this.torchPitch + 0.3 * Math.sin(this.time * 1.7));
     const yaw0 = p.yaw ?? 0;
     const bubbles = p.den && this.run.denState(p.den) === 'asleep' && p.sleeper?.bubbles ? [{ dir: dirOf(p.sleeper.bubbles.yaw + yaw0, p.sleeper.bubbles.pitch), k: 1 }] : [];
     st.frame({
-      layers,
+      layers: this.layerList,
       ambient: 1,
       lamp: 0,
       lantern: 1 + 0.04 * Math.sin(this.time * 13) * Math.sin(this.time * 7.1),

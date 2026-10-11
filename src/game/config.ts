@@ -379,11 +379,6 @@ export const NIGHTS: Record<number, NightConfig> = {
 /** La notte in cui arriva ogni mostro (uno nuovo per notte dalla seconda; deciso il 10 ottobre). */
 export const ARRIVAL: Record<MonsterId, number> = { gulpy: 1, molly: 1, hatch: 1, robin: 2, archie: 3, lampy: 4, fangy: 5 };
 
-/** I mostri che girano nella notte n (tutti quelli arrivati fin lì: nelle notti avanzate tornano tutti). */
-export function monstersOfNight(n: number): MonsterId[] {
-  return (Object.keys(ARRIVAL) as MonsterId[]).filter((m) => ARRIVAL[m] <= n);
-}
-
 /**
  * Le immersioni all'alba (docs/IMMERSIONI.md): il pesce lasciato accanto a un mostro addormentato lo tiene a dormire
  * tutta la notte dopo. Si può sfamare chi gira nella notte n, tranne il mostro nuovo di quella notte: la sua tana è

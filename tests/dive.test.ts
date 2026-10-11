@@ -93,3 +93,25 @@ describe('Immersioni: le camerette', () => {
     expect(DATA.places.grotta_grande!.frame).toBeUndefined();
   });
 });
+
+describe('Immersioni: la tana vuota e l’aria', () => {
+  it('di solito la tana vuota conta fra le due; con emptyDenFree no (da confermare)', () => {
+    const base = new DiveRun(DATA, 2, 1);
+    base.enter('grotta_grande');
+    base.enter('tana_robin');
+    base.enter('grotta_grande');
+    base.enter('tana_gulpy');
+    base.enter('grotta_grande');
+    expect(base.canEnter('tana_molly')).toBe('tooFar');
+
+    const free = new DiveRun({ ...DATA, air: { ...DATA.air, emptyDenFree: true } }, 2, 1);
+    free.enter('grotta_grande');
+    free.enter('tana_robin');
+    expect(free.air).toBe(1);
+    free.enter('grotta_grande');
+    free.enter('tana_gulpy');
+    free.enter('grotta_grande');
+    expect(free.canEnter('tana_molly')).toBe('ok');
+    expect(free.dens).toEqual(['robin', 'gulpy']);
+  });
+});

@@ -106,7 +106,10 @@ addormentata, con una piccola animazione (il respiro, le bolle).
   respira qualcosa di enorme»): non ci si entra.
 - **Le tane** (deciso l'11 ottobre): ogni cameretta è un'**inquadratura fissa**, come una telecamera di FNAF: lo
   sguardo si gira di 30° a destra e a sinistra (e di pochi gradi in su e in giù) e basta; in basso c'è il tasto
-  **«Torna alla grotta»**. Solo le grotte (sotto la barca e la grotta grande) sono panorami a 360°. Il mostro dorme sul letto e respira (la toppa del respiro si dissolve sopra la posa) e fa salire le
+  **«Torna alla grotta»**. La grotta grande è un panorama a 360°; anche **sotto la barca** oggi lo è: l'approvazione
+  dice «solo la grotta grande a 360°» ma fra i render elenca «più la discesa sotto la barca», quindi è **da
+  confermare** con l'utente (per farla diventare un'inquadratura fissa basta darle `frame` e un panorama parziale
+  nei dati, come le camerette). Il mostro dorme sul letto e respira (la toppa del respiro si dissolve sopra la posa) e fa salire le
   bolle. Cliccandolo, se hai un pesce, compare la conferma **«Lasci il pesce accanto a Gulpy?»**; sì, e quel
   mostro **la notte dopo non viene**. La tana del **mostro nuovo** della notte dopo è **vuota** («La tana è vuota.
   Chi ci dorme è già in giro.»).
@@ -134,10 +137,16 @@ addormentata, con una piccola animazione (il respiro, le bolle).
 
 ### Il salvataggio
 
-In `src/app/save.ts`, oltre a quello che c'era: `dawn` (l'ultima alba: la notte vinta e quanti pesci avanzavano oltre
-la quota; giù se ne porta uno solo, gli altri restano alla Madre), `fed` (il mostro sfamato e la notte in cui dorme:
-vale anche se quella notte si rigioca, finché non la vinci) e `dens` (le tane viste, anche quelle vuote). I vecchi
-salvataggi si leggono lo stesso.
+In `src/app/save.ts`, oltre a quello che c'era: `dawn` (l'alba aperta: la notte vinta e quanti pesci avanzavano oltre
+la quota; giù se ne porta uno solo, gli altri restano alla Madre), `fed` (il mostro sfamato e la notte in cui dorme)
+e `dens` (le tane viste, anche quelle vuote). I vecchi salvataggi si leggono lo stesso. Le regole stanno in funzioni
+piccole (`wonNight`, `afterDive`, `skipDawn`, `newGame`, `fedFor`, `pendingDawn`), provate in `tests/save.test.ts`:
+
+- l'alba resta aperta finché non scendi o passi alla notte dopo: se chiudi il gioco sullo schermo dei risultati (o
+  torni al menu), **«Continua» riprende l'alba** e si può ancora scendere; l'immersione prende i pesci da lì;
+- il mostro sfamato dorme nella notte dopo quell'alba, anche se la perdi e la rigiochi; **vincere una notte qualsiasi**
+  lo cancella (ha dormito, o era di un'altra alba): un'alba senza discesa non eredita mai un pesce vecchio;
+- **«Nuova partita»** azzera l'alba, il mostro sfamato e le tane viste (il diario e il Catalogo restano).
 
 ### I file
 
@@ -190,6 +199,15 @@ la tana vuota di Robin, la terza tana rifiutata per l'aria, l'aria che finisce e
 seconda notte e la notte con Gulpy che dorme. Le schermate sono in `docs/concept/immersioni_prova_*.jpg` (i panorami
 sono i segnaposto). Dopo la decisione delle inquadrature fisse: `immersioni_prova_11_cameretta_inquadratura.jpg`
 (la cameretta girata tutta a sinistra, al centro, tutta a destra).
+
+### Se qualcosa va storto
+
+- Se un file di un posto manca o non si scarica, le texture già create si liberano, non si spende aria e la tana
+  non si conta; si torna nel posto di prima con la didascalia «Di là non si passa. Torni indietro.» (*da
+  approvare*). Se non si carica nemmeno quello, si risale. Se manca il primo posto, si passa alla notte dopo.
+- Se si risale (il tasto o l'aria finita) mentre si carica un posto, la risalita vince.
+- **La tana vuota conta fra le due tane** (il disegno non lo dice): è **da confermare**. Con `"emptyDenFree": true`
+  in `air` la tana vuota del mostro nuovo non costa aria.
 
 ### Cosa manca
 

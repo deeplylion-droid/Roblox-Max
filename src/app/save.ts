@@ -39,7 +39,7 @@ export interface SaveData {
   dens: MonsterId[];
 }
 
-const isMonster = (x: unknown): x is MonsterId => typeof x === 'string' && x in ARRIVAL;
+const isMonster = (x: unknown): x is MonsterId => typeof x === 'string' && Object.hasOwn(ARRIVAL, x);
 
 const KEY = 'splashland.save.v1';
 
@@ -71,6 +71,45 @@ export function loadSave(): SaveData {
   } catch {
     return fresh();
   }
+}
+
+// ───────── le immersioni all'alba nel salvataggio (funzioni pure: l'App le chiama, i test le provano) ─────────
+
+/** Nuova partita: si riparte senza pesci da portare giù, senza mostri sfamati e senza tane viste. */
+export function newGame(d: SaveData): void {
+  d.dawn = null;
+  d.fed = null;
+  d.dens = [];
+}
+
+/** Notte vinta: il mostro sfamato ha dormito (o era di un'altra partita): non vale più. Si apre l'alba, con i pesci
+ *  avanzati oltre la quota. */
+export function wonNight(d: SaveData, night: number, spare: number): void {
+  d.night = Math.max(d.night, night + 1);
+  d.fed = null;
+  d.dawn = { night, spare };
+}
+
+/** Il mostro che dorme nella notte `night` (sfamato all'alba prima), se c'è. */
+export function fedFor(d: SaveData, night: number): MonsterId | null {
+  return d.fed?.night === night ? d.fed.who : null;
+}
+
+/** L'alba ancora aperta prima della notte `next` (il gioco chiuso sullo schermo dei risultati): i pesci avanzati. */
+export function pendingDawn(d: SaveData, next: number): { night: number; spare: number } | null {
+  return d.dawn && d.dawn.night + 1 === next ? d.dawn : null;
+}
+
+/** Si passa alla notte dopo senza scendere: il pesce resta alla Madre, l'alba è chiusa. */
+export function skipDawn(d: SaveData): void {
+  d.dawn = null;
+}
+
+/** Risaliti: chi è stato sfamato dorme la notte `next`; le tane viste restano; l'alba è chiusa. */
+export function afterDive(d: SaveData, next: number, r: { fed: MonsterId | null; dens: MonsterId[] }): void {
+  d.fed = r.fed ? { night: next, who: r.fed } : null;
+  for (const m of r.dens) if (!d.dens.includes(m)) d.dens.push(m);
+  d.dawn = null;
 }
 
 export function writeSave(d: SaveData): void {

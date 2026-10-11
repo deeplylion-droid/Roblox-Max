@@ -86,6 +86,9 @@ export interface AirRules {
   /** sotto questa aria suona l'avviso */
   warnAt: number;
   maxDens: number;
+  /** la tana vuota del mostro nuovo non costa aria (non conta fra le due). Da confermare con l'utente: il disegno non
+   *  lo dice; senza, la tana vuota conta come le altre */
+  emptyDenFree?: boolean;
 }
 
 /** L'aspetto dell'acqua (WaterFx e la nebbia del passo dati). */
@@ -124,6 +127,8 @@ export class DiveRun {
   private airRate = 0;
   /** le tane in cui sei entrato in questa immersione, in ordine */
   readonly dens: MonsterId[] = [];
+  /** le tane che sono costate aria (di solito tutte quelle viste; vedi AirRules.emptyDenFree) */
+  private spent: MonsterId[] = [];
   /** il mostro a cui hai lasciato il pesce */
   fed: MonsterId | null = null;
   /** pesci portati giù (al massimo uno) */
@@ -167,8 +172,14 @@ export class DiveRun {
   canEnter(to: string): 'ok' | 'tooFar' | 'missing' {
     const p = this.data.places[to];
     if (!p) return 'missing';
-    if (p.den && !this.dens.includes(p.den) && this.dens.length >= this.data.air.maxDens) return 'tooFar';
+    if (p.den && this.costsAir(p.den) && this.spent.length >= this.data.air.maxDens) return 'tooFar';
     return 'ok';
+  }
+
+  /** Entrare in questa tana costerebbe aria? (non se l'hai già vista, né la tana vuota con emptyDenFree) */
+  private costsAir(who: MonsterId): boolean {
+    if (this.spent.includes(who)) return false;
+    return !(this.data.air.emptyDenFree && this.denState(who) === 'empty');
   }
 
   enter(to: string): boolean {
@@ -177,9 +188,10 @@ export class DiveRun {
     this.place = to;
     const p = this.current;
     const a = this.data.air;
-    if (p.den && !this.dens.includes(p.den)) {
-      this.dens.push(p.den);
-      this.airTarget = Math.max(0, 1 - a.perDen * this.dens.length);
+    if (p.den && !this.dens.includes(p.den)) this.dens.push(p.den);
+    if (p.den && this.costsAir(p.den)) {
+      this.spent.push(p.den);
+      this.airTarget = Math.max(0, 1 - a.perDen * this.spent.length);
       this.airRate = a.perDen / a.denSeconds;
     } else if (leaving.den) {
       // uscendo da una tana prima del tempo l'ago finisce di scendere subito
@@ -203,7 +215,7 @@ export class DiveRun {
     if (this.out) return;
     const a = this.data.air;
     if (this.air > this.airTarget) this.air = Math.max(this.airTarget, this.air - this.airRate * dt);
-    else if (this.dens.length >= a.maxDens && this.airTarget > 0) {
+    else if (this.spent.length >= a.maxDens && this.airTarget > 0) {
       // finita l'ultima tana, la riserva per tornare
       this.airTarget = 0;
       this.airRate = this.air / a.reserveSeconds;
