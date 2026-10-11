@@ -47,6 +47,54 @@
     "gain": 0.5,
     "category": "amb"
   },
+  "archie_blow": {
+    "file": "archie_blow.ogg",
+    "duration": 1.3,
+    "loop": false,
+    "channels": 1,
+    "gain": 1.0,
+    "category": "mon"
+  },
+  "archie_dive": {
+    "file": "archie_dive.ogg",
+    "duration": 2.4,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.85,
+    "category": "mon"
+  },
+  "archie_inhale": {
+    "file": "archie_inhale.ogg",
+    "duration": 4.85,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.9,
+    "category": "mon"
+  },
+  "archie_relight": {
+    "file": "archie_relight.ogg",
+    "duration": 2.5,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.95,
+    "category": "mon"
+  },
+  "archie_rise": {
+    "file": "archie_rise.ogg",
+    "duration": 2.8,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.85,
+    "category": "mon"
+  },
+  "archie_wait": {
+    "file": "archie_wait.ogg",
+    "duration": 1.7,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.85,
+    "category": "mon"
+  },
   "bell_dawn": {
     "file": "bell_dawn.ogg",
     "duration": 9.0,
@@ -133,6 +181,14 @@
     "loop": false,
     "channels": 2,
     "gain": 0.6,
+    "category": "sfx"
+  },
+  "glass_break": {
+    "file": "glass_break.ogg",
+    "duration": 1.7,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.95,
     "category": "sfx"
   },
   "gulpy_breath_1": {
@@ -343,6 +399,14 @@
     "gain": 0.9,
     "category": "sfx"
   },
+  "js_archie": {
+    "file": "js_archie.ogg",
+    "duration": 1.4,
+    "loop": false,
+    "channels": 2,
+    "gain": 1.0,
+    "category": "mon"
+  },
   "js_gulpy": {
     "file": "js_gulpy.ogg",
     "duration": 1.4,
@@ -362,6 +426,14 @@
   "js_molly": {
     "file": "js_molly.ogg",
     "duration": 1.35,
+    "loop": false,
+    "channels": 2,
+    "gain": 1.0,
+    "category": "mon"
+  },
+  "js_robin": {
+    "file": "js_robin.ogg",
+    "duration": 1.4,
     "loop": false,
     "channels": 2,
     "gain": 1.0,
@@ -566,6 +638,46 @@
     "channels": 1,
     "gain": 0.6,
     "category": "sfx"
+  },
+  "robin_climb": {
+    "file": "robin_climb.ogg",
+    "duration": 1.75,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.85,
+    "category": "mon"
+  },
+  "robin_rattle_1": {
+    "file": "robin_rattle_1.ogg",
+    "duration": 1.05,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.8,
+    "category": "mon"
+  },
+  "robin_rattle_2": {
+    "file": "robin_rattle_2.ogg",
+    "duration": 1.15,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.8,
+    "category": "mon"
+  },
+  "robin_scared": {
+    "file": "robin_scared.ogg",
+    "duration": 1.75,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.9,
+    "category": "mon"
+  },
+  "robin_steal": {
+    "file": "robin_steal.ogg",
+    "duration": 1.6,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.85,
+    "category": "mon"
   },
   "rod_bell_1": {
     "file": "rod_bell_1.ogg",

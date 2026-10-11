@@ -254,7 +254,7 @@ export class Sfx {
   }
 
   // ───────────────────────── Robin (notte 2) ─────────────────────────
-  // Provvisori: file di scena e rumore sintetizzato finché Robin non ha i suoi suoni (robin_*).
+  // I suoi suoni sono i file robin_* (11 ottobre, docs/AUDIO.md); se mancano, il ripiego coi file di scena e il rumore.
 
   /** Zampette dure che ticchettano sul legno (una corsa di n colpetti). */
   private claws(pos: Vec3, n: number, gap: number, gain = 1): void {
@@ -297,7 +297,7 @@ export class Sfx {
   }
 
   // ───────────────────────── Archie (notte 3) ─────────────────────────
-  // Provvisori: sintetizzati finché Archie non ha i suoi suoni (archie_*).
+  // I suoi suoni sono i file archie_* e glass_break (11 ottobre, docs/AUDIO.md); se mancano, il ripiego sintetizzato.
 
   /** Archie sale dall'acqua: il mare che si apre, l'acqua che cola giù dal collo lunghissimo. */
   archieRise(pos: Vec3): void {

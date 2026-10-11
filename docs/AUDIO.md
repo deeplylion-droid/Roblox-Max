@@ -11,7 +11,7 @@ Rigenerazione: `tools/.venv/bin/python tools/audio/generate.py [id...] [--spectr
 - `dsp.py`: mattoni (filtri, rumori periodici, voce a formanti, riverberi, limitatore, misure).
 - `instruments.py`: modelli di medio livello (acqua: bolle, gocce, schizzi, colpi d'onda; legno; corpi bagnati; campane e lamelle; respiri, gabbiani, balene).
 - `creatures.py`: modelli dei versi (voce irregolare con jitter e shimmer variabili, diplofonia, fry, ruvidità da urlo; gola bagnata, saliva, deglutizioni; ossa, denti, masticazione; nocche, unghie, passi bagnati, gomma; compressione e saturazione per bande degli urli).
-- `sounds/`: un modulo per tema (`ambience`, `world`, `fishing`, `gulpy`, `molly`, `hatch`, `music`, `ui`); ogni id si registra con `@sound(...)` o `register(...)`.
+- `sounds/`: un modulo per tema (`ambience`, `world`, `fishing`, `gulpy`, `molly`, `hatch`, `robin`, `archie`, `music`, `ui`); ogni id si registra con `@sound(...)` o `register(...)`.
 - `master.py`: pulizia, livello (RMS "attivo"), limitatore, codifica Vorbis e verifica sul file decodificato (lunghezza, picco, giunzione del loop).
 
 ## Regole tecniche
@@ -119,6 +119,36 @@ Una bambina di sette anni (formanti a ×1,4, tanto soffio) ma bagnata e "doppia"
 | `js_hatch` | 1,4 s | Jumpscare (**stereo**): i denti di vetro che scattano, il chip del giocattolo che impazzisce (arpeggio quadro della ninna nanna che sale e si strozza), l'urlo di un ragazzino dentro una gola roca e vuota con il raspo sotto, tre morsi a vuoto. RMS ≈ −7,6 dBFS. |
 
 **La conta di Hatch** (`src/engine/voice.ts`, profilo `CHILD`, stessa API di `speak()`): ogni sillaba è ora un'onda glottale (non più un dente di sega) con tre formanti che scivolano da una sillaba all'altra, soffio sulle vocali, vibrato irregolare; il profilo del bambino ha formanti più alte (×1,36), la coda che cala alla fine di ogni parola, la "gola sotto" (la stessa sillaba poco meno di un'ottava più giù, da un tratto vocale enorme), un tremolio d'acqua nel fiato e la distanza (passa-basso e un'eco corta e scura dello scafo e dell'acqua). *Da approvare.*
+
+### Robin — notte 2, ruba dal secchio (11 ottobre, DA APPROVARE)
+La voce è quella delle gallinelle vere, che gracidano col tamburo della vescica natatoria: raffiche di colpi bassi e sordi
+(da 20 a 70 al secondo), un «grr-grr» da rana sott'acqua. Dentro, a tratti, una risatina soffocata dal naso, di bambino
+che l'ha fatta franca. Cammina sui raggi duri delle pinne (tic secchi sul legno, sulla lamiera del secchio) e ha i
+biglietti della sala giochi avvolti, fradici, sulle braccia. Sostituiscono i provvisori fatti coi file di scena.
+
+| id | durata | descrizione |
+|---|---|---|
+| `robin_climb` | 1,75 s | Sale dal mare sul capodibanda: l'acqua che si apre e gli cola di dosso, la mano bagnata che sbatte sul bordo, il legno che cede appena, le zampette dure che ticchettano in fila, i biglietti che sfregano, un gracidio corto quando è su. |
+| `robin_rattle_1`, `2` | 1,05 / 1,15 s | Fruga nel secchio: i raggi delle pinne che ticchettano sulla lamiera, i pesci bagnati che scivolano e sbattono contro le pareti, il secchio che si sposta sul pagliolo, un gracidio avido sotto. |
+| `robin_steal` | 1,6 s | Un pesce strappato dal secchio: la presa bagnata, il pesce che si dibatte contro la lamiera, trascinato sopra il bordo (la pancia che striscia sul legno), il tonfo in mare; poi la risatina soffocata. |
+| `robin_scared` | 1,75 s | Nella luce piena: un gracidio d'allarme velocissimo che sale, uno strillo strozzato dal naso, le zampette che raspano in fuga, il corpo che scivola giù per la fiancata, il tuffo. |
+| `js_robin` | 1,4 s | Jumpscare (**stereo**): lo schiocco bagnato con cui molla il bordo, i biglietti che frustano l'aria, lo strillo di un bambino (tre voci appena scordate) ruvido e bagnato, con dentro il tamburo della gallinella a raffica furiosa. RMS ≈ −7,6 dBFS, bilanciato come quelli di Hatch e Molly (i bassi del tamburo non coprono lo strillo). |
+
+### Archie — notte 3, spegne la luce (11 ottobre, DA APPROVARE; direzione approvata)
+La sua voce è la trombetta da festa fusa nel bocchino: un'ancia di plastica che sbatte (il ronzio nasale da kazoo), il
+tubo di carta a strisce che risuona, la carta che si arrotola e si srotola, la piuma in punta. Sostituiscono i provvisori
+sintetizzati al volo; le durate seguono i tempi della notte 3 (`config.ts`).
+
+| id | durata | descrizione |
+|---|---|---|
+| `archie_rise` | 2,8 s | Il mare che si apre accanto alla prua e il collo che sale dritto: l'acqua che si gonfia e si rompe, poi scorre giù per tutto il collo lunghissimo e gocciola dall'alto sul mare; la pelle che scivola mentre si piega in cima, la carta fradicia della trombetta, un soffio fra i denti. |
+| `archie_inhale` | 4,85 s | Il risucchio (4,5 s nel gioco, poi soffia: il culmine sta alla fine): l'aria tirata al contrario nella trombetta, un soffio che sale; l'ancia che strilla strozzata e s'inceppa, sempre più acuta; la carta che si arrotola sempre più stretta; la gola che si gonfia come un pallone (la pelle che cigola, la sacca che rimbomba sempre più grave); la saliva fra i denti. `sfx.ts` lo ferma con una dissolvenza quando la lampara si spegne o quando soffia. |
+| `archie_relight` | 2,5 s | Lo stesso risucchio quando riaccendi la lampara mentre aspetta: 2,2 s, più acuto e più rabbioso. |
+| `archie_wait` | 1,7 s | La lampara si è spenta in tempo: la trombetta si sgonfia in un lamento che scende (l'ancia che perde fiato e s'inceppa), la carta che si riavvolge, la gola che si svuota in un sospiro, uno schiocco umido delle labbra sul bocchino. |
+| `archie_blow` | 1,3 s | Il soffio a tutto fiato sulla lampara: la trombetta che si srotola di scatto, l'ancia che strepita forte e nasale (due voci appena scordate), la piuma che frulla, l'aria che si rovescia sul vetro. |
+| `glass_break` | 1,7 s | Il vetro della lampara che esplode (suona dalla lampara 0,12 s dopo il soffio): lo schianto, la lampadina che scoppia, l'arco che sfrigola mentre il reattore si spegne con un colpo sordo, la pioggia di schegge sul pagliolo e qualcuna in mare. Categoria `sfx`. |
+| `archie_dive` | 2,4 s | Si rituffa: la testa che si piega giù (la pelle che scivola, un soffio), il collo lunghissimo che rientra in mare tutto di seguito («shhhllup» lungo, l'acqua che gorgoglia), la testa che va sotto con un tonfo e le bolle che risalgono, le onde che arrivano allo scafo. |
+| `js_archie` | 1,4 s | Jumpscare (**stereo**): la trombetta che si riavvolge di scatto e frusta l'aria, e il grido dentro il bocchino: lo strillo di un bambino che passa per l'ancia e ne esce ronzante e nasale come da un kazoo enorme, il soffio del serpente fra i denti, le zanne che scattano a vuoto. RMS ≈ −7,8 dBFS. |
 
 ## Musica e stinger (stereo) — DA APPROVARE
 
