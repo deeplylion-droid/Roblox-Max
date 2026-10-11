@@ -246,7 +246,8 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
   e `js_lampy.gif`; `jumpscare.py`, `ATTACKS['lampy']`): agganciata, ti salta in
   faccia dalla lenza con la ventosa spalancata a disco (a 60 cm dall'occhio riempie mezzo quadro), e da un fotogramma
   all'altro gli anelli di denti da latte girano come una macina, quelli vicini in versi opposti; una luce calda dalla
-  parte della lanterna le prende la faccia, come per Robin. Finché non c'è il render finale il gioco zooma sulla posa.
+  parte della lanterna le prende la faccia, come per Robin. Il **render finale** (64 campioni, otto fotogrammi
+  `public/assets/img/js_lampy_00…07.webp`, 11 ottobre) è nel gioco.
 
 ### Notte 5 · Fangy — *STARE ZITTI*
 
@@ -308,4 +309,34 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
 - **Jumpscare** (**approvato l'11 ottobre** sull'anteprima, `docs/concept/jumpscare/js_fangy_fotogrammi.jpg` e
   `js_fangy.gif`; `jumpscare.py`, `ATTACKS['fangy']`): si lancia dalla fiancata con la
   testa avanti e le zanne puntate su di te, tutte le lucine accese; arriva a 55 cm dall'occhio chinandosi un poco, con
-  una luce calda dalla parte della lanterna sulla faccia. Finché non c'è il render finale il gioco zooma sulla posa.
+  una luce calda dalla parte della lanterna sulla faccia. Il **render finale** (64 campioni, otto fotogrammi
+  `public/assets/img/js_fangy_00…07.webp`, 11 ottobre) è nel gioco.
+
+### Notte 6 · La Madre — *IL FINALE*
+
+> **Approvato l'11 ottobre** (come si gioca e il finale A; l'aspetto della Madre è in arrivo con la tavola delle sagome).
+
+- **Come si gioca**: tornano tutti e sette i mostri e la regia ne manda di più insieme (è la notte più dura). Quota 12,
+  la batteria come sempre. In più c'è lei: sul sonar un'**ombra enorme** gira attorno alla barca, lontana, per tutta
+  la notte. Tre volte (verso le 2, le 4 e le 5:30) si avvicina e **passa sotto la barca**.
+- **Gli avvisi**: l'ombra sul sonar si stringe verso il centro; i mostri si zittiscono e tornano giù tutti insieme
+  (anche loro hanno paura della mamma); il mare si calma di colpo; dal fondo sale la ninna nanna della Madre
+  canticchiata da una voce di balena (la stessa ninna nanna di quando la batteria muore); la lampara trema.
+- **Mentre passa sotto** (da 10 a 20 s, sempre più a lungo): **immobilità totale**. Niente canna, lampara, telone,
+  pesci o sonar, e non girare lo sguardo (un tremito piccolo si perdona). La barca si solleva piano sul suo dorso e
+  scricchiola. Se abbocca un pesce, lo lasci andare.
+- **Se ti muovi** ti prende: il jumpscare viene dal basso, con la barca sollevata. La frase della morte (proposta):
+  «Mama Marina ama i suoi piccoli. Adesso anche te.» Quando è passata, tornano i figli.
+- **La radio** (proposta): «Sesta notte. Dodici pesci. / Stanotte viene anche lei. / Quando passa sotto la barca, non
+  muoverti. / Non toccare niente, non guardarti intorno. / Buona pesca.»
+- **Il finale A «La quota»** (scelto l'11 ottobre): all'alba la Madre sale accanto alla barca (l'unica volta che la
+  vedi davvero) e attorno a lei emergono tutti i suoi figli; prende il secchio e torna giù con loro. Sorge il sole;
+  la radio: «Ce l'hai fatta. Per quest'anno.» I titoli di coda, e si sblocca la notte 7.
+
+### Notte 7 · La notte extra
+
+> **Deciso l'11 ottobre**: la notte coi livelli da scegliere (come la notte personalizzata di FNAF), con anche **la
+> Madre come ottavo livello** (quanto spesso passa sotto la barca). Ha un suo finale, il **finale B «Il ricordo»**:
+> come il finale A, ma prima di andarsene la Madre ti lascia sul banco una foto dell'edicola, e sei tu da bambino, a
+> Splashland nel 1997 (c'eri anche tu, e sei l'unico che è tornato a casa). Si vede **solo vincendo la notte 7 con
+> impostazioni difficili** (tutti, Madre compresa, almeno a 10); con impostazioni più facili un'alba normale.

@@ -567,6 +567,9 @@ def job_pelo(q):
             post.update_manifest(MANIFEST, f'layers.{key}.pelo', pelo)
             log(f'{key}: pelo dell\'acqua dalla riga {min(pelo)} alla {max(pelo)} (riquadro {e["rect"]})')
         else:
+            # una posa che non tocca più il mare non deve tenersi la linea vecchia
+            if 'pelo' in e:
+                post.update_manifest(MANIFEST, f'layers.{key}', {k: v for k, v in e.items() if k != 'pelo'})
             log(f'{key}: non tocca il mare')
         for o in new:
             o.hide_render = True
