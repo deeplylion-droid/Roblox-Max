@@ -1,6 +1,6 @@
 /** Schermate in DOM sopra la scena: avvertenza, titolo, intro, pausa, opzioni, diario, alba, game over. */
 import { FISH, FISH_BY_ID, type FishFamily, type FishSpecies } from '../game/catalog.ts';
-import { LORE } from '../game/config.ts';
+import { EXTRA_MAX, EXTRA_PRESETS, LORE, MONSTERS, clampLevel, type ExtraLevels } from '../game/config.ts';
 import { LORE_TEXT, STRINGS, type Lang } from '../i18n.ts';
 import type { CatalogEntry, Options } from './save.ts';
 
@@ -82,10 +82,11 @@ export class Screens {
     el.addEventListener('pointerdown', go);
   }
 
-  title(o: { canContinue: boolean; onNew: () => void; onContinue: () => void; onJournal: () => void; onOptions: () => void; onQuit: (() => void) | null }): void {
+  title(o: { canContinue: boolean; onNew: () => void; onContinue: () => void; onExtraNight: (() => void) | null; onJournal: () => void; onOptions: () => void; onQuit: (() => void) | null }): void {
     const S = this.S;
     const menu = h('div', { class: 'menu' }, button(S.newGame, o.onNew, 'start'));
     if (o.canContinue) menu.append(button(S.continue, o.onContinue));
+    if (o.onExtraNight) menu.append(button(S.extraNight, o.onExtraNight));
     menu.append(button(S.extras, o.onJournal), button(S.options, o.onOptions));
     if (o.onQuit) menu.append(button(S.quit, o.onQuit));
     this.show(h('div', { class: 'screen title fade-in' }, h('h1', {}, S.title), menu));
@@ -149,6 +150,78 @@ export class Screens {
       rows.append(h('label', {}, h('span', {}, S.fullscreen), button('⛶', fs)));
     }
     this.show(h('div', { class: 'screen opts fade-in' }, h('h2', {}, S.optionsTitle), rows, h('div', { class: 'menu' }, button(S.back, o.onBack, 'back'))));
+  }
+
+  /**
+   * La notte extra (notte 7): per ognuno dei sette mostri il livello da 0 (non viene) a 20 (feroce), con − e +,
+   * e qualche preimpostazione. onChange a ogni modifica (l'App la salva), onStart per salpare.
+   */
+  extraNight(levels: ExtraLevels, o: { onChange: (l: ExtraLevels) => void; onStart: (l: ExtraLevels) => void; onBack: () => void }): void {
+    const S = this.S;
+    const lv: ExtraLevels = { ...levels };
+    const grid = h('div', { class: 'extra-grid' });
+    const paint: (() => void)[] = [];
+    /** la parola sotto il numero: non viene, calmo, come la sua notte, svelto, feroce */
+    const word = (n: number) => S.extraLevelNames[n === 0 ? 0 : n < 5 ? 1 : n === 5 ? 2 : n < 15 ? 3 : 4]!;
+    const set = (who: keyof ExtraLevels, n: number) => {
+      lv[who] = clampLevel(n);
+      for (const p of paint) p();
+      o.onChange({ ...lv });
+    };
+    for (const who of MONSTERS) {
+      const num = h('b', { class: 'lv' });
+      const what = h('div', { class: 'lv-word' });
+      const minus = button('−', () => set(who, lv[who] - 1));
+      const plus = button('+', () => set(who, lv[who] + 1));
+      minus.classList.add('step');
+      plus.classList.add('step');
+      minus.setAttribute('aria-label', `${who} −`);
+      plus.setAttribute('aria-label', `${who} +`);
+      const card = h(
+        'div',
+        { class: 'extra-card', 'data-who': who },
+        h('div', { class: 'who' }, who[0]!.toUpperCase() + who.slice(1)),
+        h('div', { class: 'rule' }, S.extraRules[who]),
+        h('div', { class: 'ctl' }, minus, num, plus),
+        what,
+      );
+      // la rotella sulla scheda alza e abbassa il livello
+      card.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        set(who, lv[who] + (e.deltaY < 0 ? 1 : -1));
+      });
+      paint.push(() => {
+        num.textContent = String(lv[who]);
+        what.textContent = word(lv[who]);
+        card.classList.toggle('off', lv[who] === 0);
+        card.style.setProperty('--fury', String(lv[who] / EXTRA_MAX));
+        minus.disabled = lv[who] === 0;
+        plus.disabled = lv[who] === EXTRA_MAX;
+      });
+      grid.append(card);
+    }
+    const presets = h('div', { class: 'extra-presets' });
+    for (const p of EXTRA_PRESETS) {
+      presets.append(
+        button(S.extraPresets[p.id as keyof typeof S.extraPresets] ?? p.id, () => {
+          Object.assign(lv, p.levels);
+          for (const f of paint) f();
+          o.onChange({ ...lv });
+        }),
+      );
+    }
+    for (const p of paint) p();
+    this.show(
+      h(
+        'div',
+        { class: 'screen extra-screen fade-in' },
+        h('h2', {}, S.extraNight),
+        h('p', {}, S.extraHelp),
+        grid,
+        presets,
+        h('div', { class: 'menu' }, button(S.extraStart, () => o.onStart({ ...lv }), 'start'), button(S.back, o.onBack, 'back')),
+      ),
+    );
   }
 
   journal(found: string[], onBack: () => void): void {

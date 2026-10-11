@@ -309,3 +309,69 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
   `js_fangy.gif`; `jumpscare.py`, `ATTACKS['fangy']`): si lancia dalla fiancata con la
   testa avanti e le zanne puntate su di te, tutte le lucine accese; arriva a 55 cm dall'occhio chinandosi un poco, con
   una luce calda dalla parte della lanterna sulla faccia. Finché non c'è il render finale il gioco zooma sulla posa.
+
+## Notte 7 · La notte extra
+
+> ⚠️ **PROPOSTA DA APPROVARE** (11 ottobre, tutta la sezione: regole, numeri, testi e schermata). La notte 6, la
+> Madre, la progetta un'altra sessione: qui non c'è niente di lei, solo il posto (la notte extra è la 7 e si
+> sblocca finendo l'ultima notte giocabile, che sarà la sesta).
+
+Come la *custom night* di FNAF: per ognuno dei sette mostri si sceglie un **livello da 0 a 20**. A 0 non viene, a
+20 è feroce. Le regole che il giocatore ha imparato non cambiano mai (i dieci della conta di Hatch, i tre colpi di
+Lampy, il terzo rumore di Fangy): cambiano solo **quando arriva, quanto spesso torna e quanta pazienza ha**.
+
+- **Da dove vengono i numeri** (`extraNight()` in `src/game/config.ts`): ogni mostro ha tre punti di riferimento e
+  fra l'uno e l'altro i numeri si sfumano.
+  - **1, calmo**: arriva tardi, le pause fra una visita e l'altra sono 1,6 volte quelle della sua notte, un filo più
+    di pazienza.
+  - **5, come la sua notte**: esattamente i numeri della notte in cui arriva per la prima volta (Gulpy, Molly e
+    Hatch la prima, Robin la seconda, Archie la terza, Lampy la quarta, Fangy la quinta). Un test lo controlla.
+  - **20, feroce**: arriva nel primo quarto d'ora, torna quasi il doppio più spesso che nella sua notte e ha meno
+    pazienza che nella quinta (Gulpy sale e pretende prima, Molly si offende prima, Hatch conta più svelto e cerca
+    più a lungo, Robin ruba più spesso, Archie prende fiato in meno tempo e resta più a lungo al buio, Lampy prende la
+    lenza prima, Fangy arriva più svelto e ascolta di più).
+  - Fra 5 e 20 la curva sale piano all'inizio e più in fretta alla fine (se no a 10 era già quasi impossibile).
+- **Il resto della notte**: quota **10**; i pesci abboccano in fretta come nella quinta notte; la batteria è quella
+  dalla notte 2 in poi (con la ninna nanna della Madre a batteria morta); le ore fanno salire l'attività come nella
+  quinta. La regia tiene le **esclusioni della quinta notte**: chi chiede il contrario dell'altro non viene insieme a
+  lui (Robin con Molly, Hatch o Archie; Hatch con Gulpy, Lampy o Fangy; Lampy con Archie; Fangy con Archie o Robin).
+  Gulpy, Molly e Hatch, che il gioco disegna in tutte le notti, a 0 restano semplicemente a casa.
+- **La schermata** (`docs/concept/notte7_livelli.jpg`): dal titolo, «Notte extra» (compare solo quando è sbloccata).
+  Sette schede in fila, una per mostro: il nome, la sua regola in due parole, il livello grande con − e + (anche la
+  rotella sulla scheda), e sotto una parola: *non viene* (0), *calmo* (1-4), *come la sua notte* (5), *svelto* (6-14),
+  *feroce* (15-20). Più è alto, più la scheda si tinge di rosso e il numero passa dall'ambra al rosso sangue; a 0 la
+  scheda si spegne e il nome è barrato. Sotto, le preimpostazioni **Tutti a 0, Tutti a 5, Tutti a 10, Tutti a 20,
+  I primi tre** (Gulpy, Molly e Hatch a 15, gli altri a 0). Poi **Salpa** e Indietro. I livelli scelti restano nel
+  salvataggio per la volta dopo (all'inizio tutti a 5). Per ora ci sono i nomi: i **ritratti** dei mostri (per esempio le
+  foto sbiadite dell'edicola) sono da fare.
+- **La notte**: l'intro dice «Notte 7» con la quota; vincerla non sblocca niente e non cambia «Continua»; alla fine
+  «Riprova» la rigioca con gli stessi livelli. Per le prove: `?notte=7` (Nuova partita apre la schermata dei livelli,
+  e il pulsante compare anche se non è sbloccata) e **Alt+7** sul titolo.
+- **Testi** (italiano e inglese, in `src/i18n.ts`, segnati da approvare): il pulsante «Notte extra» / «Extra night»;
+  «Scegli chi viene stanotte. 0: non viene. 20: feroce.» / «Choose who comes tonight. 0: stays away. 20: ferocious.»;
+  le regole sotto i nomi «sfamalo, guardala, nasconditi, luce in faccia, spegni la luce, non ferrare, stai zitto» /
+  «feed him, watch her, hide, light in his face, lamp off, don't strike, stay quiet»; «Salpa» / «Cast off».
+  La radio, corta: «Notte extra. Dieci pesci. / Stanotte vengono quelli che hai chiamato tu. / Buona pesca.» /
+  «Extra night. Ten fish. / Tonight the ones you called are coming. / Good fishing.»
+- **Giocatori simulati** (`npm run sim -- 7 300 <livelli>`; un numero vale per tutti, se no i sette livelli in
+  ordine Gulpy, Molly, Hatch, Robin, Archie, Lampy, Fangy). Vittorie di esperto / medio / maldestro:
+
+  | Livelli | Esperto | Medio | Maldestro | Chi uccide |
+  |---|---|---|---|---|
+  | tutti a 0 | 100% | 100% | 100% | nessuno: si pesca e basta |
+  | tutti a 1 | 100% | 88% | 70% | Lampy (i bot sbagliano a sentire i tre colpi) |
+  | tutti a 3 | 100% | 86% | 64% | Lampy, Fangy |
+  | tutti a 5 | 97% | 79% | 50% | Lampy; poi la quota |
+  | tutti a 10 | 82% | 71% | 36% | la quota mancata, Lampy, Archie |
+  | tutti a 15 | 4% | 18% | 11% | quasi sempre la quota: non resta tempo per pescare |
+  | tutti a 20 | 0% | 0% | 0% | la quota, Molly |
+  | i primi tre a 15 | 96% | 90% | 70% | Molly |
+  | i primi quattro a 20 (Gulpy, Molly, Hatch, Robin) | 11% | 4% | 2% | la quota, Molly |
+  | gli ultimi quattro a 20 (Robin, Archie, Lampy, Fangy) | 99% | 79% | 4% | Archie, Lampy |
+  | tutti a 5, Lampy e Fangy a 15 | 92% | 74% | 45% | Lampy, la quota |
+
+  Ogni mostro da solo a 20 si batte (l'esperto vince sempre o quasi, il medio fra il 68% con Lampy e il 100%; il maldestro muore ad Archie nel 95% delle notti); insieme
+  rubano troppo tempo alla pesca. **Tutti a 20** per ora è la sfida impossibile, come il 20/20/20/20 di FNAF: i bot
+  non la vincono mai (l'esperto tiene la lampara alta e attira tutti, quindi da 15 in su fa peggio del medio). Se
+  l'utente la vuole difficile ma possibile, le strade sono due: pause più lunghe al 20, o una quota che scende quando
+  i livelli sono alti (sarebbe una regola nuova: da decidere).

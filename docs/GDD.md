@@ -168,4 +168,4 @@ TypeScript + WebGL2 (renderer proprio), interfaccia in HTML/CSS, Web Audio. Desk
 | 4 | **Lampy** (non ferrare le abboccate finte). |
 | 5 | **Fangy** (stare zitti). |
 | 6 | **La Madre**, il finale: tutti e sette i mostri; il sonar mostra un'ombra enorme; immobilità totale. |
-| 7 | Notte extra con livelli di aggressività personalizzabili. |
+| 7 | Notte extra con livelli di aggressività personalizzabili (proposta da approvare in `NOTTI_E_MOSTRI.md`, «Notte 7 · La notte extra»). |

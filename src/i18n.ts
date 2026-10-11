@@ -74,6 +74,15 @@ const IT = {
     // notte 2 (approvato il 10 ottobre): la batteria è morta e la ninna nanna è finita prima delle sei
     lullaby: 'La canzone è finita prima dell’alba.',
   },
+  // notte 7, la notte extra coi livelli (DA APPROVARE: tutti i testi qui sotto)
+  extraNight: 'Notte extra',
+  extraHelp: 'Scegli chi viene stanotte. 0: non viene. 20: feroce.',
+  extraStart: 'Salpa',
+  extraLocked: 'Finisci tutte le notti per sbloccarla.',
+  extraPresets: { all0: 'Tutti a 0', all5: 'Tutti a 5', all10: 'Tutti a 10', all20: 'Tutti a 20', first3: 'I primi tre' },
+  /** la regola di ogni mostro in due parole, sotto il nome */
+  extraRules: { gulpy: 'sfamalo', molly: 'guardala', hatch: 'nasconditi', robin: 'luce in faccia', archie: 'spegni la luce', lampy: 'non ferrare', fangy: 'stai zitto' },
+  extraLevelNames: ['non viene', 'calmo', 'come la sua notte', 'svelto', 'feroce'],
   retry: 'Riprova',
   nextNight: 'Notte successiva',
   quality: 'Qualità grafica',
@@ -268,6 +277,14 @@ const EN: typeof IT = {
     mother: 'At six the bucket wasn’t full. Tonight the Mother will take another child.',
     lullaby: 'The song ended before dawn.',
   },
+  // night 7, the extra night with levels (TO BE APPROVED: all the texts below)
+  extraNight: 'Extra night',
+  extraHelp: 'Choose who comes tonight. 0: stays away. 20: ferocious.',
+  extraStart: 'Cast off',
+  extraLocked: 'Finish every night to unlock it.',
+  extraPresets: { all0: 'All at 0', all5: 'All at 5', all10: 'All at 10', all20: 'All at 20', first3: 'The first three' },
+  extraRules: { gulpy: 'feed him', molly: 'watch her', hatch: 'hide', robin: 'light in his face', archie: 'lamp off', lampy: "don't strike", fangy: 'stay quiet' },
+  extraLevelNames: ['stays away', 'calm', 'like their first night', 'quick', 'ferocious'],
   retry: 'Try again',
   nextNight: 'Next night',
   quality: 'Graphics quality',
@@ -526,8 +543,24 @@ export const RADIO_NIGHT5: Record<Lang, RadioLine[]> = {
   ],
 };
 
+/** La chiamata della notte extra (DA APPROVARE): non spiega niente, le regole le sai già. */
+export const RADIO_NIGHT7: Record<Lang, RadioLine[]> = {
+  it: [
+    { at: 0.0, text: 'Notte extra. Dieci pesci.' },
+    { at: 2.4, text: 'Stanotte vengono quelli che hai chiamato tu.' },
+    { at: 5.6, text: 'Buona pesca.' },
+    { at: 7.0, text: '' },
+  ],
+  en: [
+    { at: 0.0, text: 'Extra night. Ten fish.' },
+    { at: 2.4, text: 'Tonight the ones you called are coming.' },
+    { at: 5.6, text: 'Good fishing.' },
+    { at: 7.0, text: '' },
+  ],
+};
+
 /** La chiamata alla radio di ogni notte. */
-export const RADIO: Record<number, Record<Lang, RadioLine[]>> = { 1: RADIO_NIGHT1, 2: RADIO_NIGHT2, 3: RADIO_NIGHT3, 4: RADIO_NIGHT4, 5: RADIO_NIGHT5 };
+export const RADIO: Record<number, Record<Lang, RadioLine[]>> = { 1: RADIO_NIGHT1, 2: RADIO_NIGHT2, 3: RADIO_NIGHT3, 4: RADIO_NIGHT4, 5: RADIO_NIGHT5, 7: RADIO_NIGHT7 };
 
 export const STRINGS: Record<Lang, typeof IT> = { it: IT, en: EN };
 

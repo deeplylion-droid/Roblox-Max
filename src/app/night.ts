@@ -8,7 +8,7 @@ import type { LayerInfo, Vec3 } from '../engine/assets.ts';
 import { dirPos, type AudioEngine, type Voice } from '../engine/audio.ts';
 import type { BinoPlace, LayerDraw, LightGlow, Overlay, Stroke, TubeDraw } from '../engine/renderer.ts';
 import { CHILD, RADIO_VOICE, speak, type Utterance } from '../engine/voice.ts';
-import { FISHING, HOUR_SECONDS, NIGHTS, VIEW, YAW, type LampLevel, type MonsterId } from '../game/config.ts';
+import { FISHING, HOUR_SECONDS, NIGHTS, VIEW, YAW, type LampLevel, type MonsterId, type NightConfig } from '../game/config.ts';
 import type { GameEvent } from '../game/events.ts';
 import { LAMPY_FIRST_BEAT } from '../game/monsters.ts';
 import { NightSim } from '../game/sim.ts';
@@ -60,6 +60,8 @@ export interface NightDeps {
   assets: NightAssets;
   /** quale notte (1, 2…); senza, la prima */
   night?: number;
+  /** la config da giocare, se non è quella di NIGHTS (la notte extra, costruita dai livelli) */
+  config?: NightConfig;
   seed: number;
   onEnd: (r: NightEnd) => void;
   onPause: () => void;
@@ -337,8 +339,8 @@ export class Night {
 
   constructor(private d: NightDeps) {
     this.S = STRINGS[d.lang];
-    this.nightNo = NIGHTS[d.night ?? 1] ? (d.night ?? 1) : 1;
-    this.sim = new NightSim(NIGHTS[this.nightNo]!, d.seed, d.foundLore);
+    this.nightNo = d.config ? d.config.night : NIGHTS[d.night ?? 1] ? (d.night ?? 1) : 1;
+    this.sim = new NightSim(d.config ?? NIGHTS[this.nightNo]!, d.seed, d.foundLore);
     this.hud = new Hud(d.ui, d.lang);
     this.sonarEl = document.createElement('div');
     this.sonarEl.className = 'sonar-full';

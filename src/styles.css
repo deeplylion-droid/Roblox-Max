@@ -113,6 +113,28 @@ html, body {
 .journal .entry.locked h3 { color: var(--dim); }
 .journal .empty { color: var(--dim); }
 
+/* ── notte extra: i livelli dei sette mostri (da approvare) ── */
+.extra-screen { background: radial-gradient(ellipse at center, rgba(5,8,13,.7), rgba(5,8,13,.96)); padding: 4vh 16px; justify-content: center; }
+.extra-screen h2 { color: var(--amber); }
+.extra-screen > p { margin: 0 0 18px; font-size: 16px; }
+.extra-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 132px)); gap: 12px; max-width: 100%; }
+.extra-card { --fury: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 6px 12px; border: 1px solid rgba(233,226,208,.14);
+  background: linear-gradient(180deg, rgba(233,226,208,.05), rgba(122,14,20,calc(var(--fury) * .45))); border-radius: 3px; transition: background .2s, opacity .2s, border-color .2s; }
+.extra-card .who { font-family: 'Limelight', serif; font-size: 22px; letter-spacing: .06em; }
+.extra-card .rule { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); min-height: 2.6em; display: flex; align-items: center; }
+.extra-card .ctl { display: flex; align-items: center; gap: 2px; }
+.extra-card .lv { font-family: 'Limelight', serif; font-weight: normal; font-size: 40px; min-width: 1.6em; color: color-mix(in srgb, var(--blood) calc(var(--fury) * 100%), var(--amber)); }
+.extra-card .lv-word { font-size: 12px; font-style: italic; color: var(--ink); opacity: .7; min-height: 1.4em; }
+.extra-screen .extra-card button.step { font-family: Georgia, 'Times New Roman', serif; font-size: 28px; padding: 0 8px; line-height: 1; }
+.extra-screen .extra-card button.step:disabled { opacity: .15; cursor: default; }
+.extra-card.off { opacity: .45; border-color: rgba(233,226,208,.06); }
+.extra-card.off .who { text-decoration: line-through; text-decoration-thickness: 1px; }
+.extra-presets { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 10px; margin-top: 18px; }
+.extra-screen .extra-presets button { font-size: 17px; padding: 4px 10px; border: 1px solid rgba(233,226,208,.14); }
+.extra-screen .menu { flex-direction: row; gap: 28px; margin-top: 20px; }
+@media (max-width: 1000px) { .extra-grid { grid-template-columns: repeat(4, minmax(0, 132px)); } }
+@media (max-width: 560px) { .extra-grid { grid-template-columns: repeat(2, minmax(0, 150px)); } }
+
 /* ── fine della notte ── */
 .dawn { background: radial-gradient(ellipse at center, rgba(40,28,20,.45), rgba(5,8,13,.92)); }
 .dawn h2 { color: var(--amber); }

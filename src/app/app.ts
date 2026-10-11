@@ -3,7 +3,7 @@
  * Tiene il salvataggio, le opzioni e lo sfondo animato dei menu (la scena dalla barca).
  */
 import type { AudioEngine, Voice } from '../engine/audio.ts';
-import { NIGHTS, type MonsterId } from '../game/config.ts';
+import { EXTRA_NIGHT, NIGHTS, extraNight, type MonsterId, type NightConfig } from '../game/config.ts';
 import { STRINGS, type Lang } from '../i18n.ts';
 import { Night, type NightAssets, type NightEnd } from './night.ts';
 import { writeSave, type Options, type SaveData } from './save.ts';
@@ -94,28 +94,55 @@ export class App {
     this.titleMusic(true);
     this.stage.lampTarget = 1;
     this.stage.view.hfov = 90;
-    // ?notte=N: la nuova partita parte da quella notte (prove)
+    // ?notte=N: la nuova partita parte da quella notte (prove); ?notte=7 apre la notte extra
     const forced = Number(new URLSearchParams(location.search).get('notte'));
     const reached = Math.min(this.save.night, lastNight());
+    // la notte extra si sblocca finendo l'ultima notte giocabile (sarà la sesta, la Madre)
+    const extraOpen = this.save.night > lastNight() || forced === EXTRA_NIGHT;
     // Alt + numero sul titolo: comincia da quella notte (per provare le notti dopo la prima nelle build di prova;
     // la demo arriva solo alla prima)
     if (!this.nightKeys) {
       this.nightKeys = (e: KeyboardEvent) => {
         const n = Number(e.key);
-        if (this.mode !== 'title' || !e.altKey || !(n >= 1 && n <= lastNight())) return;
+        if (this.mode !== 'title' || !e.altKey || !((n >= 1 && n <= lastNight()) || n === EXTRA_NIGHT)) return;
         e.preventDefault();
-        this.intro(n);
+        // Alt+7: la schermata dei livelli della notte extra
+        if (n === EXTRA_NIGHT) this.extraNight();
+        else this.intro(n);
       };
       addEventListener('keydown', this.nightKeys);
     }
     this.screens.title({
       canContinue: reached >= 2,
-      onNew: () => this.intro(forced >= 1 && forced <= lastNight() ? forced : 1),
+      onNew: () => (forced === EXTRA_NIGHT ? this.extraNight() : this.intro(forced >= 1 && forced <= lastNight() ? forced : 1)),
       onContinue: () => this.intro(reached),
+      onExtraNight: extraOpen ? () => this.extraNight() : null,
       onJournal: () => this.extras(),
       onOptions: () => this.options(() => this.title()),
       onQuit: isElectron ? () => window.close() : null,
     });
+  }
+
+  /** La notte extra: si scelgono i livelli dei sette mostri, poi si salpa (restano salvati per la prossima volta). */
+  private extraNight(): void {
+    this.mode = 'title';
+    this.screens.extraNight(this.save.extra, {
+      onChange: (l) => {
+        this.save.extra = l;
+        writeSave(this.save);
+      },
+      onStart: (l) => {
+        this.save.extra = l;
+        writeSave(this.save);
+        this.intro(EXTRA_NIGHT);
+      },
+      onBack: () => this.title(),
+    });
+  }
+
+  /** la config della notte n: la notte extra si costruisce dai livelli scelti */
+  private config(n: number): NightConfig {
+    return n === EXTRA_NIGHT ? extraNight(this.save.extra) : NIGHTS[n]!;
   }
 
   private extras(): void {
@@ -171,8 +198,8 @@ export class App {
   private intro(n = this.nightNo): void {
     this.mode = 'intro';
     this.timer = 3.6;
-    this.nightNo = NIGHTS[n] ? n : 1;
-    this.screens.intro(this.nightNo, NIGHTS[this.nightNo]!.quota);
+    this.nightNo = NIGHTS[n] || n === EXTRA_NIGHT ? n : 1;
+    this.screens.intro(this.nightNo, this.config(this.nightNo).quota);
     this.titleMusic(false);
     this.audio.play('mus_night_start', { gain: 0.9 });
     setTimeout(() => this.audio.play('foghorn', { gain: 0.5, lowpass: 1800 }), 1500);
@@ -192,6 +219,7 @@ export class App {
       foundLore: this.save.lore,
       assets: this.assets,
       night: this.nightNo,
+      config: this.nightNo === EXTRA_NIGHT ? this.config(EXTRA_NIGHT) : undefined,
       seed: (Date.now() & 0x7fffffff) >>> 0,
       onEnd: (r) => this.endNight(r),
       onPause: () => this.pause(),
@@ -247,7 +275,9 @@ export class App {
   private endNight(r: NightEnd): void {
     // i ritrovamenti restano anche se la notte va male
     for (const l of r.stats.lore) if (!this.save.lore.includes(l)) this.save.lore.push(l);
-    if (r.kind === 'won') this.save.night = Math.max(this.save.night, this.nightNo + 1);
+    // la notte extra non sblocca niente (è fuori dal conto delle notti)
+    const extra = this.nightNo === EXTRA_NIGHT;
+    if (r.kind === 'won' && !extra) this.save.night = Math.max(this.save.night, this.nightNo + 1);
     writeSave(this.save);
     const S = this.S;
     const show = () => {
@@ -261,8 +291,8 @@ export class App {
         caught: r.stats.caught,
         fed: r.stats.fed,
         lore: r.stats.lore.length,
-        demoEnd: r.kind === 'won' && this.nightNo >= lastNight(),
-        onNext: r.kind === 'won' && this.nightNo < lastNight() ? () => this.intro(this.nightNo + 1) : null,
+        demoEnd: r.kind === 'won' && !extra && this.nightNo >= lastNight(),
+        onNext: r.kind === 'won' && !extra && this.nightNo < lastNight() ? () => this.intro(this.nightNo + 1) : null,
         onWishlist: STEAM_URL ? () => window.open(STEAM_URL, '_blank') : null,
         onRetry: () => this.intro(),
         onMenu: () => this.title(),
