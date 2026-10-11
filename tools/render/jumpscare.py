@@ -8,10 +8,12 @@ Molly si rende sul lato destro: per il sinistro il motore specchia l'immagine.
 Archie (notte 3) arriva dopo che il vetro della lampara è esploso: nella sua scena la lampara è spenta.
 Lampy (notte 4) arriva dalla lenza con la ventosa spalancata, e da un fotogramma all'altro gli anelli di denti girano.
 Fangy (notte 5) si lancia dalla fiancata con le zanne avanti e tutte le lucine accese.
+La Madre (notte 6, da approvare) viene da sotto: la barca è sbalzata e inclinata, e dal mare sale la bocca spalancata
+attorno alla barca, coi fanoni come le sbarre di un lettino; la camera si inclina con la barca (CAMERE).
 
 Uso: tools/.venv/bin/python tools/render/jobs.py jumpscare --quality preview   (JUMPSCARES=gulpy,molly,hatch,robin;
-JS_ANTEPRIMA=1 per lasciare i fotogrammi in cache senza toccare il gioco; Archie, Lampy e Fangy si chiedono a parte:
-JUMPSCARES=archie, JUMPSCARES=lampy, JUMPSCARES=fangy)
+JS_ANTEPRIMA=1 per lasciare i fotogrammi in cache senza toccare il gioco; Archie, Lampy, Fangy e la Madre si chiedono a
+parte: JUMPSCARES=archie, JUMPSCARES=lampy, JUMPSCARES=fangy, JUMPSCARES=madre)
 """
 from __future__ import annotations
 
@@ -221,8 +223,63 @@ def fangy_attack():
 # (gradi: le zanne vengono verso la camera)
 FANGY_JS = {'dist': 0.55, 'pitch': 6.0}
 
+def _barca_sbalzata(su, rollio, beccheggio):
+    """La barca sollevata e inclinata (dalla Madre che sale da sotto): tutti gli oggetti della barca, attorno al suo
+    centro. Restituisce la trasformazione, che vale anche per l'occhio del pescatore."""
+    B = (Matrix.Translation((0.0, 0.0, su)) @ Matrix.Rotation(math.radians(rollio), 4, 'Y')
+         @ Matrix.Rotation(math.radians(beccheggio), 4, 'X'))
+    col = bpy.data.collections.get('boat')
+    for o in (col.all_objects if col else []):
+        if o.parent is None:
+            o.matrix_world = B @ o.matrix_world
+    bpy.context.view_layer.update()
+    return B
+
+
+def madre_attack():
+    import madre as ma
+    # ti sei mosso mentre passava sotto: la Madre sale e ti prende con tutta la barca. La barca è sbalzata (sollevata e
+    # inclinata a sinistra, la prua su) e la bocca spalancata sale dal mare attorno a lei: la mascella passa sopra di
+    # te, la mandibola resta sotto lo scafo, e ai due lati della barca i fanoni pendono come le sbarre di un lettino.
+    # La camera guarda a sinistra, dove le sbarre salgono dall'acqua e si fermano a un paio di metri; sopra, il palato
+    B = _barca_sbalzata(MADRE_JS['su'], MADRE_JS['rollio'], MADRE_JS['beccheggio'])
+    occhio = B @ Vector(EYE)
+    # la Madre col muso verso prua (la sua −y verso la +y della barca), il palato sopra l'occhio
+    R = Matrix.Rotation(math.pi, 4, 'Z') @ Matrix.Rotation(math.radians(MADRE_JS['muso_su']), 4, 'X')
+    q = R @ Vector((0.0, -MADRE_JS['avanti'], ma.gape(-MADRE_JS['avanti'])))
+    target = occhio + Vector((MADRE_JS['lato'], 0.0, MADRE_JS['palato']))
+    M1 = Matrix.Translation(target - q) @ R
+    M0 = Matrix.Translation((0.0, 0.0, -MADRE_JS['giu'])) @ M1
+    viewer = tuple(float(x) for x in (M1.inverted() @ occhio))
+    obs = sc.place(ma.build(viewer=viewer, bocca=1.0, piccoli=False, spruzzo_on=False, corpo_on=False), M0)
+    sc.LAST_M['madre_sale'] = M1
+
+    def camera():
+        yaw, pitch = math.radians(MADRE_JS['yaw']), math.radians(MADRE_JS['pitch'])
+        d = Vector((math.sin(yaw) * math.cos(pitch), math.cos(yaw) * math.cos(pitch), math.sin(pitch)))
+        cam = perspective_camera(EYE, tuple(Vector(EYE) + d * 2.0), lens=MADRE_JS['lente'], name='JumpCam')
+        bpy.context.view_layer.update()
+        cam.matrix_world = B @ cam.matrix_world
+        return cam
+    CAMERE['madre'] = camera
+    aim = occhio + Vector((-2.0, 0.0, 0.5))
+    return obs, M0, M1, aim
+
+
+# La Madre: la barca sollevata di 'su' metri, inclinata a sinistra ('rollio', gradi) e con la prua su ('beccheggio');
+# la bocca: dove sta l'occhio sotto il palato ('avanti': metri dalla cerniera verso il muso, nel sistema della Madre;
+# 'palato': metri sopra l'occhio; 'lato': di quanto la Madre è spostata a destra, così le sbarre di sinistra stanno a
+# un paio di metri), il muso alzato di 'muso_su' gradi, e da quanto sotto parte ('giu', metri). La camera: dove guarda
+# (gradi, nel sistema della barca) e la lente
+MADRE_JS = {'su': 0.9, 'rollio': -14.0, 'beccheggio': 5.0, 'avanti': 6.5, 'palato': 2.6, 'lato': 1.6, 'muso_su': 8.0,
+            'giu': 9.0, 'yaw': -60.0, 'pitch': 10.0, 'lente': 20.0}
+
 ATTACKS = {'gulpy': gulpy_attack, 'molly': molly_attack, 'hatch': hatch_attack, 'robin': robin_attack,
-           'archie': archie_attack, 'lampy': lampy_attack, 'fangy': fangy_attack}
+           'archie': archie_attack, 'lampy': lampy_attack, 'fangy': fangy_attack, 'madre': madre_attack}
+
+# Le camere fatte dall'attacco (la Madre: la camera si inclina con la barca sbalzata); per gli altri la camera guarda la
+# creatura dall'occhio, come sempre
+CAMERE = {}
 
 # I pezzi che cambiano da un fotogramma all'altro (oltre a muoversi): funzione del numero del fotogramma, preparata
 # dall'attacco (i denti di Lampy che girano)
@@ -238,7 +295,9 @@ FILL = {'robin': {'energy': 3.0, 'dist': 0.35},
         'lampy': {'energy': 3.0, 'dist': 0.35},
         # Fangy arriva da dietro a destra, con la lampara alle spalle del pescatore: la faccia la fanno questa luce e le
         # sue lucine
-        'fangy': {'energy': 3.0, 'dist': 0.35}}
+        'fangy': {'energy': 3.0, 'dist': 0.35},
+        # la Madre: dentro la bocca la lampara arriva da sotto, questa luce fa leggere le sbarre vicine
+        'madre': {'energy': 3.0, 'dist': 0.35}}
 
 
 def _fill_light(cfg):
@@ -274,13 +333,16 @@ def run(q, who, post_mod, overlays_path, build_scene, coll_objects, renderable):
     meshes = [o for o in creature if o.type == 'MESH']
     base = {o.name: o.matrix_world.copy() for o in creature}
     M0inv = M0.inverted()
-    # la camera guarda la creatura, un po' sotto la testa (come quando alzi gli occhi di scatto)
-    d = (aim - Vector(EYE)).normalized()
-    hor = math.hypot(d.x, d.y)
-    max_up = math.tan(math.radians(22.0)) * hor
-    d = Vector((d.x, d.y, min(d.z, max_up) - 0.06)).normalized()
-    cam_target = tuple(Vector(EYE) + d * 2.0)
-    perspective_camera(EYE, cam_target, lens=22.0, name='JumpCam')
+    if who in CAMERE:
+        CAMERE[who]()
+    else:
+        # la camera guarda la creatura, un po' sotto la testa (come quando alzi gli occhi di scatto)
+        d = (aim - Vector(EYE)).normalized()
+        hor = math.hypot(d.x, d.y)
+        max_up = math.tan(math.radians(22.0)) * hor
+        d = Vector((d.x, d.y, min(d.z, max_up) - 0.06)).normalized()
+        cam_target = tuple(Vector(EYE) + d * 2.0)
+        perspective_camera(EYE, cam_target, lens=22.0, name='JumpCam')
     # la versione da approvare basta più piccola e con meno campioni (ci sono scosse e grana sopra)
     W, H = (1920, 1080) if q.name == 'final' else (960, 540) if q.name == 'preview' else (640, 360)
     samples = q.samples if q.name == 'final' else min(q.samples, 32)

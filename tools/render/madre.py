@@ -360,16 +360,16 @@ def ciglia():
         back = V(0, 1, 0) - a * float(a[1])
         back = unit(back)
         R = APERTURA + 0.30
-        for th, L in ((18.0, 2.2), (45.0, 2.6), (72.0, 2.3)):
+        for th, L in ((55.0, 2.3), (85.0, 2.7), (115.0, 2.3)):
             t = math.radians(th)
             r = unit(math.cos(t) * back + math.sin(t) * v)
             b = c + a * (OCCHIO_DENTRO + 0.30) + r * R
-            p1 = b + r * L * 0.35 + a * L * 0.05
-            p2 = p1 + r * L * 0.25 + back * L * 0.12
-            p3 = p2 + back * L * 0.22 + r * L * 0.04 - a * L * 0.05
+            p1 = b + r * L * 0.40 + a * L * 0.08
+            p2 = p1 + r * L * 0.25 + back * L * 0.10 + a * L * 0.10
+            p3 = p2 + back * L * 0.25 + a * L * 0.05 - r * L * 0.02
             P = catmull([b - r * 0.3, b, p1, p2, p3], 5)
             n = len(P)
-            out.append((P, 0.36 * (1.0 - 0.90 * (np.arange(n) / (n - 1)) ** 1.4)))
+            out.append((P, 0.30 * (1.0 - 0.90 * (np.arange(n) / (n - 1)) ** 1.4)))
     return out
 
 
@@ -449,7 +449,7 @@ def pelle_madre():
     wco = g.vmath('ADD', co, g.vmath('SCALE', g.vmath('SUBTRACT', sto.color, (0.5, 0.5, 0.5)), scale=2.2))
     rnd = g.bw(g.voronoi(wco, scale=0.42, feature='F1', out='Color'))
     quanta = g.noise(co, scale=0.11, detail=2.0)
-    p = g.map_range(quanta.fac, 0.35, 0.65, 0.40, 0.62)
+    p = g.map_range(quanta.fac, 0.35, 0.65, 0.47, 0.66)
     # l'orlo frastagliato: la soglia mossa da un rumore fine, così le croste non sono piastrelle
     fine = g.noise(co, scale=7.0, detail=4.0, rough=0.7)
     resta = g.smoothstep(p, g.add(p, 0.004), g.add(rnd, g.mul(g.sub(fine.fac, 0.5), 0.06)))
@@ -853,8 +853,8 @@ def alba():
 
 POSE_ANTEPRIME = {
     # (nome, yaw, pitch, lente, alba): la vista del gioco (90° di campo) girata a sinistra verso la Madre
-    'notte': (None, -2.0, 18.0, False),
-    'alba': (None, -2.0, 18.0, True),
+    'notte': (None, 4.0, 18.0, False),
+    'alba': (None, 4.0, 18.0, True),
 }
 
 
