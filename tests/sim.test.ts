@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { HOUR_SECONDS, NIGHTS, YAW, type NightConfig } from '../src/game/config.ts';
+import { HOUR_SECONDS, LORE, NIGHTS, YAW, type NightConfig } from '../src/game/config.ts';
+import { LORE_TEXT } from '../src/i18n.ts';
 import type { GameEvent } from '../src/game/events.ts';
 import { NightSim } from '../src/game/sim.ts';
 import { SKILLS, playNight } from '../src/game/bot.ts';
@@ -233,6 +234,21 @@ function quiet2(robinAt = 1e9): NightConfig {
     robin: { ...N2.robin!, firstAt: robinAt },
   };
 }
+
+describe('Frammenti da ripescare', () => {
+  it('ogni frammento ha titolo e testo in italiano e in inglese', () => {
+    for (const l of LORE) for (const lang of ['it', 'en'] as const) expect(LORE_TEXT[lang][l.id]?.body, `${l.id} ${lang}`).toBeTruthy();
+  });
+
+  it('dalla notte 2 se ne ripescano di nuovi anche con quelli della prima già nel Diario', () => {
+    for (const n of [2, 3, 4, 5]) {
+      const giaTrovati = LORE.filter((l) => l.night < n).map((l) => l.id);
+      const sim = new NightSim(NIGHTS[n]!, 11, giaTrovati);
+      playNight(sim, SKILLS.expert!, 11);
+      expect(sim.loreThisNight.some((id) => LORE.find((l) => l.id === id)!.night === n), `notte ${n}`).toBe(true);
+    }
+  });
+});
 
 describe('Notte 2', () => {
   it('la prima notte non ha né Robin né batteria', () => {

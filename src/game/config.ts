@@ -87,6 +87,17 @@ export interface LoreItem {
 export const LORE: LoreItem[] = [
   { id: 'wristband', night: 1 },
   { id: 'clipping', night: 1 },
+  // approvati l'11 ottobre sera: due per notte dalla 2 alla 6 (prima c'erano solo i due della notte 1)
+  { id: 'clipping_snack', night: 2 },
+  { id: 'tickets', night: 2 },
+  { id: 'flyer', night: 3 },
+  { id: 'clipping_birthday', night: 3 },
+  { id: 'swim_cap', night: 4 },
+  { id: 'clipping_lido', night: 4 },
+  { id: 'goggles', night: 5 },
+  { id: 'clipping_seventh', night: 5 },
+  { id: 'clipping_storm', night: 6 },
+  { id: 'notebook', night: 6 },
 ];
 
 export interface GulpyConfig {
