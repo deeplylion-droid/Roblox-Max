@@ -862,6 +862,7 @@ def job_grotte(q):
     baked = grotte.acqua(p, blur_px=W / 24)
     passes = dict(p)
     passes.pop('raggi', None)
+    passes.pop('lamp', None)          # in grotta non c'è la lampara (resterebbe solo il rumore del denoise)
     passes.update(baked)
 
     def dirz(v):

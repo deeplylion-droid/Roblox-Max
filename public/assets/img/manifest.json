@@ -1444,6 +1444,107 @@
    "space": "boat",
    "yaw": 18.0637
   },
+  "grotta": {
+   "acquaCotta": true,
+   "data": "grotta_data.webp",
+   "latMax": 62.0,
+   "latMin": -62.0,
+   "mistDepth": 40.0,
+   "passes": {
+    "ambient": {
+     "file": "grotta_ambient.webp",
+     "res": 1.0,
+     "scale": 0.76
+    },
+    "lantern": {
+     "file": "grotta_lantern.webp",
+     "res": 0.5,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    0,
+    0,
+    4096,
+    1410
+   ],
+   "space": "grotta",
+   "tane": {
+    "archie": {
+     "oggetto": {
+      "pitch": 12.6,
+      "yaw": 88.0
+     },
+     "pitch": 6.84,
+     "raggio": 8.72,
+     "yaw": 88.0
+    },
+    "fangy": {
+     "oggetto": {
+      "pitch": 0.18,
+      "yaw": -160.0
+     },
+     "pitch": -3.52,
+     "raggio": 6.37,
+     "yaw": -160.0
+    },
+    "gulpy": {
+     "oggetto": {
+      "pitch": -2.08,
+      "yaw": -128.0
+     },
+     "pitch": -5.12,
+     "raggio": 7.55,
+     "yaw": -128.0
+    },
+    "hatch": {
+     "oggetto": {
+      "pitch": -7.79,
+      "yaw": -48.0
+     },
+     "pitch": -9.51,
+     "raggio": 4.01,
+     "yaw": -48.0
+    },
+    "lampy": {
+     "oggetto": {
+      "pitch": 20.61,
+      "yaw": 128.0
+     },
+     "pitch": 15.46,
+     "raggio": 8.34,
+     "yaw": 128.0
+    },
+    "madre": {
+     "oggetto": {
+      "pitch": -10.9,
+      "yaw": 0.0
+     },
+     "pitch": -9.26,
+     "raggio": 15.14,
+     "yaw": 0.0
+    },
+    "molly": {
+     "oggetto": {
+      "pitch": 6.2,
+      "yaw": -88.0
+     },
+     "pitch": 2.33,
+     "raggio": 6.34,
+     "yaw": -88.0
+    },
+    "robin": {
+     "oggetto": {
+      "pitch": -3.09,
+      "yaw": 46.0
+     },
+     "pitch": -6.1,
+     "raggio": 5.12,
+     "yaw": 46.0
+    }
+   },
+   "yaw": 0.0
+  },
   "gulpy_mascella_aperta": {
    "base": "gulpy_pretende",
    "passes": {

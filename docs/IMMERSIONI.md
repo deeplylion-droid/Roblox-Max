@@ -54,7 +54,8 @@ Scena in `tools/render/grotte.py`, job in `tools/render/jobs.py`:
 |---|---|
 | `grotte_anteprime` | tre viste prospettiche: `docs/concept/grotte_anteprima_insieme.jpg` (la sala da sotto il pozzo, verso la Madre), `grotte_anteprima_madre.jpg` (la tana della Madre dall'occhio, con la torcia), `grotte_anteprima_torcia.jpg` (la torcia sulla bocca di Gulpy) |
 | `grotte_tane` | la tavola delle sette bocche da vicino, con la torcia: `docs/concept/grotte_anteprima_tane.jpg` |
-| `grotte` | il panorama a 360° della sala → strato `grotta` a panorama intero (come `world`) |
+| `grotte` | il panorama a 360° della sala → strato `grotta` a panorama intero (come `world`); fatto in qualità preview (4096 × 1410, un'ora di render): `public/assets/img/grotta_*.webp`, anteprima ridotta in `docs/concept/grotte_panorama.jpg` |
+| `grotte_ricomponi` | rifà le anteprime dagli EXR in cache senza rendere (per provare l'acqua o l'esposizione) |
 
 **Com'è fatta.** Una sala naturale di circa 14 × 20 m e 9 m d'altezza, scavata dal mare: un'unica roccia scolpita
 come campo SDF (unione di ellissoidi, rumore per le bozze e le cengie orizzontali), quasi nera e lucida d'acqua,
@@ -108,6 +109,12 @@ dalla barca); passi `ambient` e `lantern` (metà risoluzione) **con l'acqua già
 motore non deve aggiungere altra nebbia, solo le particelle e la torcia); `grotta_data.webp` con R = distanza
 (× `mistDepth` = metri) e B = la superficie vista dal pozzo; `tane`: per ogni bocca (e la Madre) yaw e pitch del
 centro, il raggio angolare (per il clic) e la direzione dell'oggetto appeso.
+
+**Problemi aperti**: gli occhialini di Fangy sono ancora piccoli rispetto al loro elastico; la luce della torcia
+nelle anteprime si nota poco (l'acqua chiara del pozzo la copre); l'arco della Madre potrebbe essere più nero (la
+luce rimandata dall'acqua lo schiarisce); i raggi nel panorama sono tenui; le bocche dei mostri non ancora arrivati
+sono tutte aperte (vedi sopra); il panorama non ha ancora le toppe animate (alghe che ondeggiano, pesci che si
+muovono: si possono fare come strati a parte o nel motore).
 
 **Da approvare**: l'aspetto della sala (roccia, colori, quanta vita), la luce del pozzo e quanto è torbida l'acqua;
 i pezzi del parco e il cartello; la disposizione delle bocche; le sette cose appese (soprattutto le ciocche di
