@@ -39,7 +39,21 @@ Si pescano al posto di un pesce e finiscono nel **Diario**.
 |---|---|---|
 | Braccialetto d'ingresso | Plastica fucsia scolorita: «MAMA MARINA'S SPLASHLAND · NIGHT SPLASH · 14·08·1997 · CHILD». | 1 (garantito alla 4ª cattura) |
 | Ritaglio di giornale in una busta di plastica | *Gazzetta del Golfo, 17 agosto 1997.* «SPLASHLAND, SPARITO UN TERZO BAMBINO. Il parco chiude a tempo indeterminato. Le ricerche dei sommozzatori nella piscina "Deep End" non hanno dato esito. Il proprietario: "Mama Marina ama i suoi piccoli, non…"» (il resto è illeggibile) | 1 (casuale) |
-| Volantino di Splashland | *"Mama Marina loves her little ones! Bring yours!"* | 3 |
+| Volantino di Splashland | Plastificato. Mama Marina abbraccia tre pesciolini: *"Mama Marina loves her little ones! Bring yours!"* Qualcuno ha disegnato a penna altri pesciolini, piccoli, sul fondo. | 3 |
+| Ritaglio di giornale | *Gazzetta del Golfo, 15 agosto 1997.* «NIGHT SPLASH, UN BAMBINO NON TORNA DALLA PISCINA. Alle undici era in fila allo Snack Shack, dice la madre. Alle undici e mezza il suo braccialetto galleggiava nella Deep End.» | 2 |
+| Biglietti della sala giochi | Un rotolo di biglietti della sala giochi, ancora attaccati. Sono più di mille: nessuno vince così tanto giocando. | 2 |
+| Ritaglio di giornale | *Gazzetta del Golfo, 3 maggio 1999.* «Festa di compleanno sulla spiaggia: il bambino che spegneva le candeline al posto del festeggiato corre in acqua e non torna. Sulla torta resta una candelina accesa.» | 3 |
+| Cuffia da piscina | Di gomma, a fiori rosa e bianchi, piena di sabbia. Dentro, il nome è stato grattato via. | 4 |
+| Ritaglio di giornale | *Gazzetta del Golfo, 22 luglio 2003.* «Lido Sirena: bambina scomparsa durante il bagno. I bagnini: "Giocava a tirare giù gli altri per le gambe. Stavolta qualcuno ha tirato giù lei."» | 4 |
+| Occhialini da nuoto | Le lenti sono dipinte di nero, dall'interno. Chi li ha dipinti non voleva vedere niente. | 5 |
+| Ritaglio di giornale | *Gazzetta del Golfo, 9 agosto 2008.* «Ancora un bambino scomparso nella baia, il settimo dal 1997. Il sindaco: "Nessun legame con Splashland." Da quell'estate i pescatori escono anche di notte.» | 5 |
+| Ritaglio di giornale | *Gazzetta del Golfo, 12 novembre 2001.* «Mareggiata: metà di Splashland sott'acqua. I sommozzatori dei vigili del fuoco si rifiutano di scendere nella Deep End.» | 6 |
+| Pagina di un quaderno | Strappata dal quaderno di un pescatore. «La quota è dieci. Se non la porti, se ne prende un altro. Mio padre la portava, suo padre la portava. Stanotte tocca a me.» | 6 |
+
+> **Approvati l'11 ottobre sera** i dieci frammenti dalla notte 2 alla 6 (con il volantino). Prima nel gioco c'erano
+> solo i due della notte 1: trovati quelli (restano nel Diario, anche con «Nuova partita»), non si ripescava più niente.
+> Ogni notte dalla 2 garantisce un frammento alla terza cattura (il primo non ancora trovato, in quest'ordine), gli
+> altri escono a caso.
 
 Evento raro (Notte 1): **Sotto di te**, per un giro del sonar un'ombra grande quanto la baia passa sotto la barca (3%).
 

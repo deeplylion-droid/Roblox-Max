@@ -411,12 +411,75 @@ export const LORE_TEXT: Record<Lang, Record<string, { title: string; body: strin
       title: 'Ritaglio di giornale',
       body: 'Gazzetta del Golfo, 17 agosto 1997. «SPLASHLAND, SPARITO UN TERZO BAMBINO. Il parco chiude a tempo indeterminato. Le ricerche dei sommozzatori nella piscina "Deep End" non hanno dato esito. Il proprietario: "Mama Marina ama i suoi piccoli, non…"» Il resto è illeggibile.',
     },
+    // approvati l'11 ottobre sera
+    clipping_snack: {
+      title: 'Ritaglio di giornale',
+      body: 'Gazzetta del Golfo, 15 agosto 1997. «NIGHT SPLASH, UN BAMBINO NON TORNA DALLA PISCINA. Alle undici era in fila allo Snack Shack, dice la madre. Alle undici e mezza il suo braccialetto galleggiava nella Deep End.»',
+    },
+    tickets: { title: 'Biglietti della sala giochi', body: 'Un rotolo di biglietti della sala giochi, ancora attaccati. Sono più di mille: nessuno vince così tanto giocando.' },
+    flyer: {
+      title: 'Volantino di Splashland',
+      body: 'Plastificato. Mama Marina abbraccia tre pesciolini: «Mama Marina loves her little ones! Bring yours!» Qualcuno ha disegnato a penna altri pesciolini, piccoli, sul fondo.',
+    },
+    clipping_birthday: {
+      title: 'Ritaglio di giornale',
+      body: 'Gazzetta del Golfo, 3 maggio 1999. «Festa di compleanno sulla spiaggia: il bambino che spegneva le candeline al posto del festeggiato corre in acqua e non torna. Sulla torta resta una candelina accesa.»',
+    },
+    swim_cap: { title: 'Cuffia da piscina', body: 'Di gomma, a fiori rosa e bianchi, piena di sabbia. Dentro, il nome è stato grattato via.' },
+    clipping_lido: {
+      title: 'Ritaglio di giornale',
+      body: 'Gazzetta del Golfo, 22 luglio 2003. «Lido Sirena: bambina scomparsa durante il bagno. I bagnini: "Giocava a tirare giù gli altri per le gambe. Stavolta qualcuno ha tirato giù lei."»',
+    },
+    goggles: { title: 'Occhialini da nuoto', body: 'Le lenti sono dipinte di nero, dall’interno. Chi li ha dipinti non voleva vedere niente.' },
+    clipping_seventh: {
+      title: 'Ritaglio di giornale',
+      body: 'Gazzetta del Golfo, 9 agosto 2008. «Ancora un bambino scomparso nella baia, il settimo dal 1997. Il sindaco: "Nessun legame con Splashland." Da quell’estate i pescatori escono anche di notte.»',
+    },
+    clipping_storm: {
+      title: 'Ritaglio di giornale',
+      body: 'Gazzetta del Golfo, 12 novembre 2001. «Mareggiata: metà di Splashland sott’acqua. I sommozzatori dei vigili del fuoco si rifiutano di scendere nella Deep End.»',
+    },
+    notebook: {
+      title: 'Pagina di un quaderno',
+      body: 'Strappata dal quaderno di un pescatore. «La quota è dieci. Se non la porti, se ne prende un altro. Mio padre la portava, suo padre la portava. Stanotte tocca a me.»',
+    },
   },
   en: {
     wristband: { title: 'Entry wristband', body: 'Faded fuchsia plastic: "MAMA MARINA’S SPLASHLAND · NIGHT SPLASH · 14·08·1997 · CHILD".' },
     clipping: {
       title: 'Newspaper clipping',
       body: 'Gulf Gazette, 17 August 1997. "SPLASHLAND: A THIRD CHILD MISSING. The park closes indefinitely. Divers searching the ‘Deep End’ pool found nothing. The owner: ‘Mama Marina loves her little ones, she would never…’" The rest is unreadable.',
+    },
+    clipping_snack: {
+      title: 'Newspaper clipping',
+      body: 'Gulf Gazette, 15 August 1997. "NIGHT SPLASH: A CHILD DOES NOT COME BACK FROM THE POOL. At eleven he was queueing at the Snack Shack, his mother says. At half past eleven his wristband was floating in the Deep End."',
+    },
+    tickets: { title: 'Arcade tickets', body: 'A roll of arcade tickets, still joined together. There are more than a thousand: nobody wins that many by playing.' },
+    flyer: {
+      title: 'Splashland flyer',
+      body: 'Laminated. Mama Marina hugs three little fish: "Mama Marina loves her little ones! Bring yours!" Someone has drawn more little fish in pen, small, along the bottom.',
+    },
+    clipping_birthday: {
+      title: 'Newspaper clipping',
+      body: 'Gulf Gazette, 3 May 1999. "Birthday party on the beach: the boy who always blew out the candles instead of the birthday child runs into the water and does not come back. One candle is still lit on the cake."',
+    },
+    swim_cap: { title: 'Swimming cap', body: 'Rubber, with pink and white flowers, full of sand. Inside, the name has been scratched off.' },
+    clipping_lido: {
+      title: 'Newspaper clipping',
+      body: 'Gulf Gazette, 22 July 2003. "Lido Sirena: girl missing while swimming. The lifeguards: ‘She liked to pull the others under by the legs. This time someone pulled her under.’"',
+    },
+    goggles: { title: 'Swimming goggles', body: 'The lenses are painted black, from the inside. Whoever painted them didn’t want to see anything.' },
+    clipping_seventh: {
+      title: 'Newspaper clipping',
+      body: 'Gulf Gazette, 9 August 2008. "Another child missing in the bay, the seventh since 1997. The mayor: ‘No connection with Splashland.’ Since that summer, the fishermen go out at night too."',
+    },
+    clipping_storm: {
+      title: 'Newspaper clipping',
+      body: 'Gulf Gazette, 12 November 2001. "Storm surge: half of Splashland under water. The fire brigade divers refuse to go down into the Deep End."',
+    },
+    notebook: {
+      title: 'Notebook page',
+      body: 'Torn from a fisherman’s notebook. "The quota is ten. If you don’t bring it, she takes another. My father brought it, his father brought it. Tonight it’s my turn."',
     },
   },
 };
