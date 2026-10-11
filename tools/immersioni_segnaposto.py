@@ -1,17 +1,18 @@
 """
 Panorami SEGNAPOSTO delle immersioni all'alba (docs/IMMERSIONI.md, «Il motore»): servono solo a provare il motore
-finché non arrivano i render veri delle grotte e delle camerette. Brutti di proposito: roccia procedurale, buchi
-scuri per i passaggi, una stanza a scatola con un letto e qualche macchia di colore, un mostro-sagoma che dorme.
+finché non arrivano i render veri delle camerette (le grotte vere ci sono già: tools/render/grotte.py e
+sotto_barca.py). Brutti di proposito: una stanza a scatola con un letto e qualche macchia di colore, un mostro-sagoma
+che dorme.
 
-La grotta grande è un equirettangolare a sfera intera (360° × 180°); sotto la barca (BARCA) e la cameretta (CAM) sono
-pezzi di equirettangolare: inquadrature fisse che si girano di 30° per parte (deciso l'11 ottobre). I passi:
+La cameretta (CAM) è un pezzo di equirettangolare: un'inquadratura fissa che si gira di 30° per parte (deciso l'11
+ottobre). I passi:
   *_ambient.webp   la luce dell'acqua (quasi buio, un po' di chiarore dall'alto)
   *_lantern.webp   la stessa scena accesa dalla torcia del sub (il motore la mostra solo nel cono della torcia)
   *_data.webp      R = sqrt(distanza / 2500 m) (la nebbia dell'acqua torbida), G = quanto trema l'immagine
 I valori sono codificati come gli altri render (gamma 4: v = (lineare / scala)^(1/4), scala 1).
 
-Uscita: public/assets/img/immersioni/segnaposto/ (i posti e i passaggi stanno in public/assets/img/immersioni.json;
-le posizioni dei buchi qui sotto devono coincidere con quelle).
+Uscita: public/assets/img/immersioni/segnaposto/ (i posti stanno in public/assets/img/immersioni.json; il riquadro del
+mostro che dorme stampato alla fine va scritto lì).
 
 Uso: tools/.venv/bin/python tools/immersioni_segnaposto.py
 """
@@ -91,88 +92,6 @@ def write_place(name, albedo, dist, sky_light, wobble=0.12, torch=4.0, reach=3.2
     save(name + '_data', data)
 
 
-def rock(tint, rough=1.0):
-    """Roccia nera con macchie (anemoni, incrostazioni)."""
-    n1, n2, n3 = noise(1.1), noise(1.6), noise(0.7)
-    base = 0.06 + 0.05 * n1 + 0.03 * n3 * rough
-    alb = np.repeat(base[..., None], 3, axis=2) * np.array(tint)
-    # incrostazioni chiare e qualche anemone colorato
-    crust = np.clip((n2 - 0.35) * 4, 0, 1)
-    alb += crust[..., None] * np.array([0.12, 0.13, 0.10])
-    anem = np.clip((noise(0.4) - 0.72) * 9, 0, 1)
-    alb += anem[..., None] * np.array([0.35, 0.10, 0.16])
-    return np.clip(alb, 0, 1)
-
-
-def holes(alb, dist, spots):
-    """Buchi nella roccia (i passaggi): dentro è lontano (la nebbia lo riempie) e scuro; il bordo un po' più chiaro."""
-    for yaw, pitch, r, depth in spots:
-        a = ang_dist(yaw, pitch)
-        rr = np.radians(r)
-        inside = np.clip((rr - a) / (rr * 0.25), 0, 1)
-        rim = np.exp(-(((a - rr) / (rr * 0.12)) ** 2))
-        alb = alb * (1 - 0.85 * inside[..., None]) + rim[..., None] * np.array([0.05, 0.06, 0.05])
-        dist = dist * (1 - inside) + depth * inside
-    return alb, dist
-
-
-# l'inquadratura fissa di sotto la barca (deciso l'11 ottobre sera: come le camerette): 160° × 95° verso la parete
-BARCA = dict(lon0=-80, lon1=80, lat0=-45, lat1=50)
-BARCA_PX = 11
-
-
-def sotto_barca():
-    """Sotto la barca, un'inquadratura fissa (BARCA): davanti la parete di roccia con l'imboccatura della grotta (yaw 0),
-    sopra la parete l'acqua aperta che si schiarisce verso la superficie, a sinistra la cima dell'ancora che scende
-    dalla barca (yaw −28), sotto il fondo."""
-    set_grid((BARCA['lon1'] - BARCA['lon0']) * BARCA_PX, (BARCA['lat1'] - BARCA['lat0']) * BARCA_PX, **BARCA)
-    alb = rock([0.9, 1.0, 0.95])
-    # la parete davanti a 6 m (alta 4 m sopra l'occhio), il fondo sotto a 5 m; sopra la parete l'acqua aperta
-    wall_t = 6.0 / np.maximum(DY, 0.05)
-    wall = np.where((DY > 0.05) & (DZ * wall_t < 4.0 + 0.8 * noise(1.1)), wall_t, 80.0)
-    floor = np.where(DZ < -0.05, 5.0 / np.maximum(-DZ, 0.05), 80.0)
-    dist = np.minimum(np.minimum(wall, floor), 60.0) * (1 + 0.15 * noise(1.3))
-    open_water = dist > 30
-    alb[open_water] *= 0.1
-    alb, dist = holes(alb, dist, [(0, -6, 13, 45)])
-    # l'acqua aperta si schiarisce salendo verso la superficie, e tremola
-    surf = np.clip((DZ - 0.25) / 0.55, 0, 1) ** 2 * (0.6 + 0.4 * noise(0.9)) * 0.5 * open_water
-    sky = surf[..., None] * np.array([0.35, 0.75, 0.8])
-    # la cima dell'ancora: una riga chiara che scende dalla barca fino al fondo, a 2,5 m
-    rope = np.exp(-(((LON - np.radians(-28)) / 0.008) ** 2))
-    alb = alb * (1 - rope[..., None]) + rope[..., None] * np.array([0.45, 0.40, 0.30])
-    dist = np.where(rope > 0.5, 2.5, dist)
-    write_place('sotto_barca', alb, dist, sky)
-
-
-GROTTA_BUCHI = [
-    # (yaw, pitch, raggio, profondità): l'uscita verso la barca, il fondo della Madre, le sette tane
-    (180, 0, 12, 50),     # verso sotto la barca
-    (0, -4, 22, 400),     # il fondo della grotta grande (la Madre: non ci si entra)
-    (-40, -8, 8, 40),     # tana di Gulpy
-    (40, -8, 8, 40),      # Molly
-    (-80, -5, 8, 40),     # Hatch
-    (80, -5, 8, 40),      # Robin
-    (-120, -6, 8, 40),    # Archie
-    (120, -6, 8, 40),     # Lampy
-    (-152, -4, 7, 40),    # Fangy
-]
-
-
-def grotta_grande():
-    """La grotta grande: una sala chiusa con un buco per ogni tana, l'uscita alle spalle e il fondo enorme davanti."""
-    set_grid(2048, 1024)
-    alb = rock([0.85, 0.95, 1.0], rough=1.4)
-    # una sala schiacciata di circa 7 m di raggio, il soffitto più basso, la roccia irregolare
-    r = 7.0 * (1 + 0.25 * noise(1.2))
-    dist = r / np.sqrt(DX ** 2 + DY ** 2 + (DZ * 1.8) ** 2)
-    alb, dist = holes(alb, dist, GROTTA_BUCHI)
-    # una fessura nel soffitto da cui scende un po' di luce
-    crack = np.exp(-(ang_dist(30, 80) / 0.07) ** 2)
-    sky = crack[..., None] * np.array([0.25, 0.55, 0.6]) * 0.6
-    write_place('grotta_grande', alb, dist, sky)
-
-
 def cameretta():
     """Una «cameretta» qualsiasi a scatola, sommersa: carta da parati a righe sbiadite, il pavimento di melma, un letto
     davanti in basso (yaw 0), qualche giocattolo colorato. Il motore la tinge per ogni tana. È un'inquadratura fissa
@@ -247,8 +166,6 @@ def dormiente():
 
 
 if __name__ == '__main__':
-    sotto_barca()
-    grotta_grande()
     cameretta()
     dormiente()
     print('fatto:', OUT)

@@ -622,7 +622,11 @@ export class Dive {
         }
       }
     }
-    if (best !== this.hover) this.d.canvas.style.cursor = best ? 'pointer' : '';
+    if (best !== this.hover) {
+      this.d.canvas.style.cursor = best ? 'pointer' : '';
+      // il suggerimento non copre l'etichetta del passaggio: si nasconde finché il mouse ci sta sopra
+      if (this.hintTimer > 0) this.hintEl.classList.toggle('show', !best);
+    }
     this.hover = best;
     for (const s of this.spots) {
       if (!s.el) continue;
