@@ -82,23 +82,42 @@ def lashes(eye, r, n=3, length=None, side=-1.0, spread=(55, 115)):
 def madre_a():
     """'Abbraccio': la testa sale dritta accanto alla barca con la bocca spalancata sopra di te; dall'altra
     parte della barca si alza la pinna, come nell'abbraccio della statua."""
-    # mascella superiore (il rostro) quasi in verticale, un po' piegata verso la barca
-    upper = chain(arc((0, -3.2, -1.0), (0, 0.6, 19.0), 1.6, 9), [3.3, 3.2, 3.0, 2.8, 2.5, 2.1, 1.7, 1.3, 0.9])
-    # mascella inferiore aperta in fuori, la punta sopra la prua
-    lower = chain(arc((0, 0.4, -1.5), (0, 4.4, 10.5), -0.9, 7), [2.6, 2.3, 2.0, 1.7, 1.3, 1.0, 0.7])
+    # mascella superiore (il rostro) quasi in verticale, un po' piegata all'indietro
+    up_pts = arc((0, -2.6, -1.0), (0, -1.8, 20.0), 1.2, 9)
+    up_r = [3.4, 3.3, 3.1, 2.9, 2.6, 2.2, 1.8, 1.3, 0.8]
+    upper = chain(up_pts, up_r)
+    # mascella inferiore spalancata in fuori: la punta arriva sopra la barca
+    lower = chain(arc((0, 0.6, -1.2), (0, 7.2, 8.4), -0.8, 7), [2.4, 2.2, 1.9, 1.6, 1.3, 1.0, 0.7])
     # la gola a pieghe gonfia sott'acqua, poi il corpo che scende e si allontana verso il fondo
-    throat = sdf.ellipsoid((0, 0.5, -5.0), (4.0, 4.6, 5.5))
+    throat = sdf.ellipsoid((0, 0.8, -5.0), (4.0, 4.8, 5.5))
     body = chain([(0, -1.5, -4.0), (0, -6.5, -10.5), (0, -12.0, -15.5), (0, -17.0, -18.0)], [6.0, 6.2, 5.0, 3.6])
-    # i fanoni pendono dal rostro come le sbarre di un lettino
-    slats = [chain([(0, -0.9 + 0.55 * i, 4.0 + 1.7 * i), (0, -0.4 + 0.75 * i, 1.6 + 1.2 * i)], [0.14, 0.10], k=0.0)
-             for i in range(7)]
-    # il sorriso della mascotte: l'angolo della bocca che si arriccia in su, sotto l'occhio
-    smile = chain(arc((0, 0.7, 2.8), (0, -1.5, 5.4), -1.0, 6), [0.55, 0.5, 0.45, 0.4, 0.35, 0.3])
-    eye = sdf.sphere((0, -2.2, 6.6), 1.25)
-    # la pinna dall'altra parte della barca: sale dall'acqua e si piega sopra la poppa
-    fin = chain(arc((0, 12.2, -1.5), (0, 8.4, 9.0), -2.2, 8), [1.5, 1.6, 1.6, 1.5, 1.3, 1.0, 0.7, 0.35])
-    parts = [upper, lower, throat, body, smile, eye, fin, *slats, *lashes((0, -2.2, 6.6), 1.25, side=-1.0)]
-    return sdf.union(*parts, k=0.6), 'A'
+    # i fanoni: una frangia di sbarre dritte che pende dal rostro, come le sbarre di un lettino
+    slats = []
+    for k in range(13):
+        t = 0.18 + 0.62 * k / 12
+        j = t * (len(up_pts) - 1)
+        i0 = min(int(j), len(up_pts) - 2)
+        f = j - i0
+        p = np.array(up_pts[i0]) * (1 - f) + np.array(up_pts[i0 + 1]) * f
+        r = up_r[i0] * (1 - f) + up_r[i0 + 1] * f
+        top = p + np.array((0, r * 0.9, 0))
+        slats.append(chain([tuple(top), tuple(top + np.array((0, 2.4, -1.1)))], [0.13, 0.09], k=0.0))
+    # la pinna dall'altra parte della barca: sale dall'acqua e si piega sopra la poppa, col bordo a bitorzoli
+    fin_pts = arc((0, 12.4, -1.5), (0, 8.6, 10.0), -1.8, 8)
+    fin = chain(fin_pts, [1.3, 1.5, 1.5, 1.4, 1.2, 1.0, 0.7, 0.35])
+    knobs = [sdf.sphere(tuple(np.array(q) + np.array((0, 0.9, 0.3))), 0.45) for q in fin_pts[1:6]]
+    parts = [upper, lower, throat, body, fin, *knobs]
+    return sdf.union(sdf.union(*parts, k=0.6), *slats, k=0.15), 'A'
+
+
+def madre_a_dettagli():
+    """In bianco sulla sagoma: l'occhio con le ciglia e il sorriso dipinto che sale dall'angolo della bocca."""
+    eye = (-2.7, 6.2)
+    return [('ring', eye, 1.1), ('dot', (-2.45, 6.1), 0.45),
+            *[('line', [(eye[0] + 1.1 * math.cos(a), eye[1] + 1.1 * math.sin(a)),
+                        (eye[0] + 1.9 * math.cos(a) - 0.3, eye[1] + 1.9 * math.sin(a) + 0.4)], 5)
+              for a in (math.radians(100), math.radians(130), math.radians(160))],
+            ('line', [(0.3, 0.6), (-0.6, 2.4), (-2.0, 3.6), (-3.4, 3.9), (-4.2, 3.4)], 7)]
 
 
 def madre_b():
@@ -109,13 +128,17 @@ def madre_b():
     # la fronte che affiora appena, e l'occhio a pelo d'acqua: 4,4 m, quanto la barca
     brow = sdf.ellipsoid((0, -0.6, -0.2), (3.0, 3.6, 1.4))
     eye = sdf.sphere((0, 0.3, 0.6), 2.2)
-    lid = chain(arc((0, -2.0, 2.0), (0, 2.6, 1.6), 1.0, 6), [0.35, 0.45, 0.5, 0.5, 0.45, 0.35])
     # la pinna ripiegata sul ventre, come la statua coi pesciolini in grembo; dentro, rannicchiati, i piccoli
-    fin = chain(arc((0, -3.0, -8.5), (0, 3.8, -13.5), -2.2, 7), [1.2, 1.3, 1.3, 1.2, 1.0, 0.8, 0.5])
-    kids = [piccolo((0, -2.4 + 1.45 * i, -12.6 + 0.25 * (i % 2)), 1.25, lean=0.2 * (i - 1.5)) for i in range(4)]
+    fin = chain(arc((0, -5.0, -9.0), (0, 5.4, -14.5), -2.6, 8), [1.3, 1.4, 1.4, 1.3, 1.2, 1.0, 0.8, 0.5])
+    kids = [piccolo((0, -3.6 + 2.2 * i, -12.4 + 0.3 * (i % 2)), 2.0, lean=0.2 * (i - 1.5)) for i in range(4)]
     tail = chain([(0, -20.0, -10.0), (0, -24.0, -10.5)], [4.2, 2.2])
-    parts = [head, body, brow, eye, lid, fin, tail, *lashes((0, 0.3, 0.6), 2.2, length=2.6, side=-1.0, spread=(65, 125))]
+    parts = [head, body, brow, eye, fin, tail, *lashes((0, 0.3, 0.6), 2.2, length=3.4, side=-1.0, spread=(50, 115))]
     return sdf.union(sdf.union(*parts, k=0.8), *kids, k=0.15), 'B'
+
+
+def madre_b_dettagli():
+    """In bianco: l'iride e la pupilla dell'occhio grande quanto la barca, girato verso di te."""
+    return [('ring', (0.9, 0.7), 1.35), ('dot', (1.3, 0.7), 0.6), ('dot', (0.9, 1.3), 0.22)]
 
 
 def madre_c():
@@ -135,21 +158,26 @@ def madre_c():
     hands = [*fingers((0, 11.4, 0.6), (0, 0.2, -1), 2.2, r=0.15, curl=0.6),
              *fingers((0, 1.7, 0.5), (0, 0.3, -1), 2.0, r=0.15, curl=0.6)]
     # i piccoli aggrappati alla schiena, come i ragnetti sul dorso della mamma
-    kids = [piccolo((0, -9.1 + 0.25 * i, 2.0 + 3.0 * i), 1.3, lean=-1.35 + 0.15 * i) for i in range(4)]
+    kids = [piccolo((0, -9.6 + 0.3 * i, 1.0 + 3.4 * i), 2.3, lean=-1.35 + 0.12 * i) for i in range(4)]
     parts = [*legs, spine, neck, head, far, near, *spout, *hands]
     return sdf.union(sdf.union(*parts, k=0.5), *kids, k=0.12), 'C'
 
 
+def madre_c_dettagli():
+    """In bianco: il sorriso della mascotte e l'occhio, sulla testa girata in giù."""
+    return [('line', [(1.4, 14.6), (2.4, 13.4), (3.8, 13.2), (4.8, 14.0)], 6), ('ring', (3.6, 15.6), 0.6)]
+
+
 VARIANTS = [
-    ('A · «Abbraccio»', madre_a,
+    ('A · «Abbraccio»', madre_a, madre_a_dettagli,
      'La testa sale dritta accanto alla barca e la bocca si apre sopra di te; dentro, i fanoni come le sbarre '
      'di un lettino. Dall\'altra parte della barca si alza la pinna: è l\'abbraccio della statua. Dalla barca: '
      'guardi in su e vedi il sorriso dipinto, l\'occhio con le ciglia e la gola.'),
-    ('B · «Occhio»', madre_b,
+    ('B · «Occhio»', madre_b, madre_b_dettagli,
      'Quasi tutta sott\'acqua, lunga una trentina di metri: passa sotto la barca. Fuori sale solo l\'occhio, '
      'grande quanto la barca, con le ciglia da cartone animato. Dalla barca: un occhio azzurro dipinto a un '
      'metro dal bordo che ti guarda; sotto, nel buio, la pinna stringe i suoi piccoli.'),
-    ('C · «Culla»', madre_c,
+    ('C · «Culla»', madre_c, madre_c_dettagli,
      'Non è più una balena: è altissima e magra, immersa fino ai fianchi, china sulla barca come su una culla, '
      'le braccia ai due lati. Le resta la testa tonda della mascotte; i piccoli le stanno aggrappati alla '
      'schiena. Dalla barca: due braccia che salgono nel buio e, in alto, il sorriso.'),
@@ -173,10 +201,10 @@ def render():
     g.output_material(g.emission((0.0, 0.0, 0.0), 1.0))
     grey, g = material('BoatInk')
     g.output_material(g.emission((0.62, 0.62, 0.62), 1.0))
-    for i, (label, fn, _) in enumerate(VARIANTS):
+    for i, (label, fn, _, _) in enumerate(VARIANTS):
         field, _ = fn()
         y0 = (i - 1) * PANEL
-        V, F, _ = sdf.mesh(field, (-7.0, -PANEL / 2, -26.0), (7.0, PANEL / 2, 26.0), res=0.09)
+        V, F, _ = sdf.mesh(field, (-7.0, -PANEL / 2, -26.0), (7.0, PANEL / 2, 26.0), res=0.11)
         ob = mesh_from_arrays(f'Madre{i}', V + np.array((0, y0, 0), np.float32), F.tolist(), smooth=False, col='sil')
         ob.data.materials.append(ink)
         # la barca e il pescatore in piedi, davanti alla Madre (più vicini alla camera)
@@ -227,8 +255,25 @@ def annotate(src, dst):
         od.rectangle([x0 + 10, zpx(0.0), x0 + pw - 10, H], fill=(150, 185, 205, 175))
     im = Image.alpha_composite(im, ov).convert('RGB')
     d = ImageDraw.Draw(im)
-    for i, (label, _, caption) in enumerate(VARIANTS):
+    for i in range(4):
+        d.rectangle([i * pw - 12, 0, i * pw + 12, H], fill=(255, 255, 255))
+    for i, (label, _, dettagli, caption) in enumerate(VARIANTS):
         x0 = i * pw
+
+        def px(y, z, x0=x0):
+            return (x0 + (y + PANEL / 2) * ppm, zpx(z))
+        # i dettagli dipinti, in bianco sulla sagoma
+        for kind, *a in dettagli():
+            if kind == 'line':
+                d.line([px(*q) for q in a[0]], fill=(255, 255, 255), width=a[1], joint='curve')
+            else:
+                (cy, cz), r = a
+                x, y = px(cy, cz)
+                rr = r * ppm
+                if kind == 'ring':
+                    d.ellipse([x - rr, y - rr, x + rr, y + rr], outline=(255, 255, 255), width=6)
+                else:
+                    d.ellipse([x - rr, y - rr, x + rr, y + rr], fill=(255, 255, 255))
         d.text((x0 + 30, zpx(0.0) + 10), 'superficie del mare', fill=(40, 70, 90), font=small)
         d.text((x0 + int((PANEL / 2 + BOAT_Y - 2.0) * ppm), zpx(0.0) + 46), 'la barca', fill=(70, 70, 70), font=small)
         d.text((x0 + 30, 80), label, fill=(20, 20, 20), font=font)
@@ -239,7 +284,9 @@ def annotate(src, dst):
             d.text((x0 + 30, y), ln, fill=(20, 40, 55), font=note)
             y += 30
     d.text((40, 15), 'LA MADRE — notte 6, il finale: immobilità totale', fill=(10, 10, 10), font=font)
-    d.text((W - 900, 26), 'proposta da approvare · in grigio: la barca (5,6 m) e un uomo di 1,80 m', fill=(90, 90, 90), font=small)
+    d.text((W - 360, 26), 'proposta da approvare', fill=(150, 60, 40), font=small)
+    d.text((W - 640, H - 76), 'in grigio: la barca (5,6 m) e un uomo di 1,80 m', fill=(60, 60, 60), font=small)
+    d.text((W - 640, H - 42), 'in bianco: i dettagli dipinti', fill=(60, 60, 60), font=small)
     im.save(dst)
 
 
