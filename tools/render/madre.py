@@ -970,6 +970,6 @@ if __name__ == '__main__':
     elif '--testa-tavola' in sys.argv:
         tavola_testa()
     else:
-        only = _argomento('--solo')
+        only = _argomento('--solo') if '--solo' in sys.argv else None
         tavola_testa_render(only.split(',') if only else None)
         tavola_testa()

@@ -238,41 +238,47 @@ def _barca_sbalzata(su, rollio, beccheggio):
 
 def madre_attack():
     import madre as ma
-    # ti sei mosso mentre passava sotto: la Madre sale e ti prende con tutta la barca. La barca è sbalzata (sollevata e
-    # inclinata a sinistra, la prua su) e la bocca spalancata sale dal mare attorno a lei: la mascella passa sopra di
-    # te, la mandibola resta sotto lo scafo, e ai due lati della barca i fanoni pendono come le sbarre di un lettino.
-    # La camera guarda a sinistra, dove le sbarre salgono dall'acqua e si fermano a un paio di metri; sopra, il palato
+    # ti sei mosso mentre passava sotto: la Madre ti prende con tutta la barca. La barca è sbalzata (sollevata e
+    # inclinata a sinistra, la prua su) e la vista si inclina con lei; da sinistra, dal basso, sale la bocca
+    # spalancata con l'apertura verso di te: sopra il palato, sotto la lingua, in fondo la gola nera, e ai due lati i
+    # fanoni in fila come le sbarre di un lettino, col corrimano. Arriva da lontano, bassa, mezza sott'acqua, e sale
+    # mentre ti viene addosso: entri dall'apertura (venendo dritta da sotto il palato ti passerebbe davanti agli occhi)
     B = _barca_sbalzata(MADRE_JS['su'], MADRE_JS['rollio'], MADRE_JS['beccheggio'])
     occhio = B @ Vector(EYE)
-    # la Madre col muso verso prua (la sua −y verso la +y della barca), il palato sopra l'occhio
-    R = Matrix.Rotation(math.pi, 4, 'Z') @ Matrix.Rotation(math.radians(MADRE_JS['muso_su']), 4, 'X')
-    q = R @ Vector((0.0, -MADRE_JS['avanti'], ma.gape(-MADRE_JS['avanti'])))
-    target = occhio + Vector((MADRE_JS['lato'], 0.0, MADRE_JS['palato']))
-    M1 = Matrix.Translation(target - q) @ R
-    M0 = Matrix.Translation((0.0, 0.0, -MADRE_JS['giu'])) @ M1
+    yaw, pitch = math.radians(MADRE_JS['yaw']), math.radians(MADRE_JS['pitch'])
+    d = Vector((math.sin(yaw) * math.cos(pitch), math.cos(yaw) * math.cos(pitch), math.sin(pitch)))
+    C1 = occhio + d * MADRE_JS['dist']
+    # il centro della bocca (fra le mascelle) e la bisettrice dell'apertura, nel sistema della Madre
+    a = math.radians(ma.BOCCA_MAX)
+    bis = Vector((0.0, -(1.0 + math.cos(a)), -math.sin(a))).normalized()
+    c_loc = Vector(tuple(float(x) for x in ma.CERNIERA)) + bis * MADRE_JS['bocca']
+    # alzata col muso finché l'apertura guarda in orizzontale, poi girata verso di te
+    beta = math.atan2(-bis.z, -bis.y)
+    h = Vector((occhio.x - C1.x, occhio.y - C1.y, 0.0)).normalized()
+    psi = math.atan2(h.x, -h.y)
+    R = Matrix.Rotation(psi, 4, 'Z') @ Matrix.Rotation(-beta + math.radians(MADRE_JS['muso_su']), 4, 'X')
+    M1 = Matrix.Translation(C1 - R @ c_loc) @ R
+    M0 = Matrix.Translation(-h * MADRE_JS['indietro'] + Vector((0.0, 0.0, -MADRE_JS['giu']))) @ M1
     viewer = tuple(float(x) for x in (M1.inverted() @ occhio))
     obs = sc.place(ma.build(viewer=viewer, bocca=1.0, piccoli=False, spruzzo_on=False, corpo_on=False), M0)
     sc.LAST_M['madre_sale'] = M1
 
     def camera():
-        yaw, pitch = math.radians(MADRE_JS['yaw']), math.radians(MADRE_JS['pitch'])
-        d = Vector((math.sin(yaw) * math.cos(pitch), math.cos(yaw) * math.cos(pitch), math.sin(pitch)))
-        cam = perspective_camera(EYE, tuple(Vector(EYE) + d * 2.0), lens=MADRE_JS['lente'], name='JumpCam')
+        t = B.inverted() @ C1
+        cam = perspective_camera(EYE, tuple(t), lens=MADRE_JS['lente'], name='JumpCam')
         bpy.context.view_layer.update()
         cam.matrix_world = B @ cam.matrix_world
         return cam
     CAMERE['madre'] = camera
-    aim = occhio + Vector((-2.0, 0.0, 0.5))
-    return obs, M0, M1, aim
+    return obs, M0, M1, C1
 
 
 # La Madre: la barca sollevata di 'su' metri, inclinata a sinistra ('rollio', gradi) e con la prua su ('beccheggio');
-# la bocca: dove sta l'occhio sotto il palato ('avanti': metri dalla cerniera verso il muso, nel sistema della Madre;
-# 'palato': metri sopra l'occhio; 'lato': di quanto la Madre è spostata a destra, così le sbarre di sinistra stanno a
-# un paio di metri), il muso alzato di 'muso_su' gradi, e da quanto sotto parte ('giu', metri). La camera: dove guarda
-# (gradi, nel sistema della barca) e la lente
-MADRE_JS = {'su': 0.9, 'rollio': -14.0, 'beccheggio': 5.0, 'avanti': 6.5, 'palato': 2.6, 'lato': 1.6, 'muso_su': 8.0,
-            'giu': 9.0, 'yaw': -60.0, 'pitch': 10.0, 'lente': 20.0}
+# dove arriva il centro della bocca: 'dist' metri dall'occhio verso 'yaw' e 'pitch' (gradi), con la bocca a 'bocca'
+# metri dalla cerniera lungo l'apertura e il muso alzato di 'muso_su' gradi in più; da dove parte: 'indietro' metri più
+# in là e 'giu' metri più sotto. La lente della camera, che guarda il centro della bocca
+MADRE_JS = {'su': 0.9, 'rollio': -14.0, 'beccheggio': 5.0, 'yaw': -62.0, 'pitch': -6.0, 'dist': 2.0, 'bocca': 5.5,
+            'muso_su': 0.0, 'indietro': 11.0, 'giu': 3.2, 'lente': 20.0}
 
 ATTACKS = {'gulpy': gulpy_attack, 'molly': molly_attack, 'hatch': hatch_attack, 'robin': robin_attack,
            'archie': archie_attack, 'lampy': lampy_attack, 'fangy': fangy_attack, 'madre': madre_attack}
@@ -296,8 +302,8 @@ FILL = {'robin': {'energy': 3.0, 'dist': 0.35},
         # Fangy arriva da dietro a destra, con la lampara alle spalle del pescatore: la faccia la fanno questa luce e le
         # sue lucine
         'fangy': {'energy': 3.0, 'dist': 0.35},
-        # la Madre: dentro la bocca la lampara arriva da sotto, questa luce fa leggere le sbarre vicine
-        'madre': {'energy': 3.0, 'dist': 0.35}}
+        # la Madre: dentro la bocca la lampara arriva poco; questa luce, più forte perché la bocca è grande, la fa leggere
+        'madre': {'energy': 90.0, 'dist': 0.35}}
 
 
 def _fill_light(cfg):
