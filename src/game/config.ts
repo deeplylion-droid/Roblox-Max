@@ -376,6 +376,153 @@ export const NIGHTS: Record<number, NightConfig> = {
   },
 };
 
+// ───────────────────────── Notte 7: la notte extra ─────────────────────────
+// Come la «custom night» di FNAF: per ognuno dei sette mostri si sceglie un livello da 0 (non viene) a 20
+// (feroce). La config non sta in NIGHTS: si costruisce dai livelli con extraNight(). Da approvare con la notte
+// (docs/NOTTI_E_MOSTRI.md, «Notte 7 · La notte extra»).
+
+/** il numero della notte extra (la 6 è il posto della Madre) */
+export const EXTRA_NIGHT = 7;
+export const EXTRA_MAX = 20;
+
+/** i sette mostri, nell'ordine in cui arrivano nelle notti (è anche l'ordine della schermata dei livelli) */
+export const MONSTERS: MonsterId[] = ['gulpy', 'molly', 'hatch', 'robin', 'archie', 'lampy', 'fangy'];
+
+export type ExtraLevels = Record<MonsterId, number>;
+
+export function extraLevels(level: number): ExtraLevels {
+  return { gulpy: level, molly: level, hatch: level, robin: level, archie: level, lampy: level, fangy: level };
+}
+
+/** Le preimpostazioni della schermata (da approvare). */
+export const EXTRA_PRESETS: { id: string; levels: ExtraLevels }[] = [
+  { id: 'all0', levels: extraLevels(0) },
+  { id: 'all5', levels: extraLevels(5) },
+  { id: 'all10', levels: extraLevels(10) },
+  { id: 'all20', levels: extraLevels(20) },
+  // i tre della prima notte, ma feroci
+  { id: 'first3', levels: { gulpy: 15, molly: 15, hatch: 15, robin: 0, archie: 0, lampy: 0, fangy: 0 } },
+];
+
+/** un livello valido: intero da 0 a EXTRA_MAX */
+export function clampLevel(n: number): number {
+  return Math.max(0, Math.min(EXTRA_MAX, Math.round(Number.isFinite(n) ? n : 0)));
+}
+
+type Num = Record<string, number | [number, number]>;
+
+/**
+ * Ogni mostro ha tre punti di riferimento, e fra l'uno e l'altro i numeri si sfumano in linea retta:
+ * - livello 1, «calmo»: arriva tardi e torna di rado (le pause sono 1,6 volte quelle della notte in cui arriva);
+ * - livello 5, «come la sua notte»: i numeri della notte in cui arriva per la prima volta (Gulpy, Molly e Hatch
+ *   la prima, Robin la seconda, Archie la terza, Lampy la quarta, Fangy la quinta);
+ * - livello 20, «feroce»: arriva subito, torna quasi il doppio più spesso che nella sua notte e ha meno pazienza
+ *   che nella quinta.
+ * Le regole che il giocatore impara (i dieci della conta, i tre colpi di Lampy, il terzo rumore di Fangy) non cambiano
+ * mai: cambiano solo la frequenza e la pazienza.
+ */
+const EXTRA_ANCHORS: Record<MonsterId, { calm: Num; debut: Num; fierce: Num }> = {
+  gulpy: {
+    calm: { firstAt: 2.2 * H, cooldown: [131, 200], rise: 7, climb: 6, patience: 8.5, eat: 4.5 },
+    debut: { firstAt: 1 * H + 6, cooldown: [82, 125], rise: 7, climb: 6, patience: 8, eat: 4.5 },
+    fierce: { firstAt: 0.3 * H, cooldown: [68, 102], rise: 5.5, climb: 4.5, patience: 6.5, eat: 4.5 },
+  },
+  molly: {
+    calm: { firstAt: 3 * H, cooldown: [69, 112], knock: 5, attention: 4.2, neglectMax: 8.5, tantrumMax: 7 },
+    debut: { firstAt: 2 * H + 8, cooldown: [43, 70], knock: 5, attention: 4.2, neglectMax: 8, tantrumMax: 6.5 },
+    fierce: { firstAt: 0.4 * H, cooldown: [34, 54], knock: 4, attention: 4.5, neglectMax: 6.5, tantrumMax: 5.2 },
+  },
+  hatch: {
+    calm: { firstAt: 3.8 * H, cooldown: [83, 126], calls: 10, callInterval: 1.15, search: [7.5, 10] },
+    debut: { firstAt: 3 * H + 6, cooldown: [52, 79], calls: 10, callInterval: 1.1, search: [8, 10.5] },
+    fierce: { firstAt: 0.6 * H, cooldown: [35, 55], calls: 10, callInterval: 0.9, search: [9, 12] },
+  },
+  robin: {
+    calm: { firstAt: 1.8 * H, cooldown: [112, 176], climb: 4, stealEvery: 3.4, scare: 2.4 },
+    debut: { firstAt: 0.9 * H, cooldown: [70, 110], climb: 3.5, stealEvery: 3, scare: 2.5 },
+    fierce: { firstAt: 0.3 * H, cooldown: [50, 78], climb: 2.8, stealEvery: 2.4, scare: 2.8 },
+  },
+  archie: {
+    calm: { firstAt: 1.5 * H, cooldown: [96, 152], rise: 3.4, inhale: 5, relight: 2.4, dark: 6.5, dive: 2 },
+    debut: { firstAt: 0.55 * H, cooldown: [60, 95], rise: 3, inhale: 4.5, relight: 2.2, dark: 7, dive: 2 },
+    fierce: { firstAt: 0.25 * H, cooldown: [42, 68], rise: 2.5, inhale: 3.6, relight: 1.8, dark: 8.5, dive: 2 },
+  },
+  lampy: {
+    calm: { firstAt: 1.4 * H, cooldown: [67, 109], grab: [2, 5], lurkMax: 30, beat: 0.62, surface: 0.6, stay: 2.4, climb: 1.1 },
+    debut: { firstAt: 0.45 * H, cooldown: [42, 68], grab: [1.5, 4], lurkMax: 30, beat: 0.62, surface: 0.6, stay: 2.4, climb: 1.1 },
+    fierce: { firstAt: 0.2 * H, cooldown: [30, 50], grab: [1, 3], lurkMax: 40, beat: 0.62, surface: 0.6, stay: 2.4, climb: 1 },
+  },
+  fangy: {
+    calm: { firstAt: 1.5 * H, cooldown: [136, 200], approach: 5.5, rise: 1.4, listen: 6, noises: 3, deaf: 0.8, reelNoise: 1.3, leave: 2 },
+    debut: { firstAt: 0.4 * H, cooldown: [85, 125], approach: 5, rise: 1.4, listen: 7, noises: 3, deaf: 0.8, reelNoise: 1.2, leave: 2 },
+    fierce: { firstAt: 0.2 * H, cooldown: [58, 88], approach: 4, rise: 1.2, listen: 8.5, noises: 3, deaf: 0.8, reelNoise: 1.0, leave: 2 },
+  },
+};
+
+function mix(a: Num, b: Num, t: number): Num {
+  const out: Num = {};
+  const r = (x: number) => Math.round(x * 100) / 100;
+  for (const k of Object.keys(a)) {
+    const x = a[k]!;
+    const y = b[k]!;
+    out[k] = Array.isArray(x) && Array.isArray(y) ? [r(x[0] + (y[0] - x[0]) * t), r(x[1] + (y[1] - x[1]) * t)] : r((x as number) + ((y as number) - (x as number)) * t);
+  }
+  return out;
+}
+
+/** i numeri di un mostro al livello dato (da 1 a EXTRA_MAX) */
+function monsterAt(who: MonsterId, level: number): Num {
+  const a = EXTRA_ANCHORS[who];
+  // oltre il 5 la curva sale piano all'inizio e più in fretta verso il 20, se no il 10 è già quasi impossibile
+  return level <= 5 ? mix(a.calm, a.debut, (level - 1) / 4) : mix(a.debut, a.fierce, ((level - 5) / 15) ** 1.5);
+}
+
+/** Gulpy, Molly e Hatch ci sono in ogni notte (il gioco li disegna sempre): al livello 0 non arrivano mai. */
+const NEVER = Number.POSITIVE_INFINITY;
+
+/**
+ * La config della notte extra dai livelli dei sette mostri. Quota 10 (da approvare): la notte quinta ne chiede 11
+ * coi suoi tre mostri radi; qui possono venire tutti insieme. I pesci abboccano in fretta come nella quinta notte,
+ * la batteria è quella dalla notte 2 in poi, la regia tiene le esclusioni della quinta notte (chi chiede il
+ * contrario dell'altro non viene insieme a lui).
+ */
+export function extraNight(levels: ExtraLevels): NightConfig {
+  const lv = (who: MonsterId) => clampLevel(levels[who] ?? 0);
+  const on = (who: MonsterId) => lv(who) > 0;
+  const at = <T>(who: MonsterId) => monsterAt(who, lv(who)) as unknown as T;
+  const off = <T extends { firstAt: number }>(who: MonsterId): T => ({ ...(monsterAt(who, 1) as unknown as T), firstAt: NEVER });
+  return {
+    night: EXTRA_NIGHT,
+    quota: 10,
+    hourlyRamp: 0.16,
+    biteMul: 0.12,
+    guaranteedLoreAt: 3,
+    loreChance: 0.08,
+    exclusive: [
+      ['gulpy', 'hatch'],
+      ['robin', 'hatch'],
+      ['robin', 'molly'],
+      ['archie', 'robin'],
+      ['lampy', 'hatch'],
+      ['lampy', 'archie'],
+      ['fangy', 'hatch'],
+      ['fangy', 'archie'],
+      ['fangy', 'robin'],
+    ],
+    minGapBetweenStarts: 5,
+    gulpy: on('gulpy') ? at<GulpyConfig>('gulpy') : off<GulpyConfig>('gulpy'),
+    molly: on('molly') ? at<MollyConfig>('molly') : off<MollyConfig>('molly'),
+    hatch: on('hatch') ? at<HatchConfig>('hatch') : off<HatchConfig>('hatch'),
+    robin: on('robin') ? at<RobinConfig>('robin') : undefined,
+    archie: on('archie') ? at<ArchieConfig>('archie') : undefined,
+    lampy: on('lampy') ? at<LampyConfig>('lampy') : undefined,
+    fangy: on('fangy') ? at<FangyConfig>('fangy') : undefined,
+    battery: { drain: [0, 1 / 700, 1 / 320], sonar: 1 / 1100, low: 0.15, lullaby: 64 },
+    hideTime: 0.7,
+    unhideTime: 0.6,
+  };
+}
+
 export function angleDiff(a: number, b: number): number {
   let d = (a - b) % 360;
   if (d > 180) d -= 360;
