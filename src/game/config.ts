@@ -84,6 +84,9 @@ export interface LoreItem {
   night: number;
 }
 
+/** Frammenti al massimo in una notte (deciso l'11 ottobre sera, coi dieci frammenti nuovi: il bilanciamento resta quello). */
+export const LORE_PER_NIGHT = 2;
+
 export const LORE: LoreItem[] = [
   { id: 'wristband', night: 1 },
   { id: 'clipping', night: 1 },
