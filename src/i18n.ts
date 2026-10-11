@@ -29,7 +29,7 @@ const IT = {
     turn: 'S per voltarti',
     // notte 2: approvato il 10 ottobre
     robin: 'Robin: luce piena in faccia (E)',
-    // notte 3 (da approvare)
+    // notte 3 (approvati l'11 ottobre)
     archie: 'Archie prende fiato: spegni la lampara (Q)',
     archieWait: 'Resta al buio finché non va giù',
   },
@@ -40,7 +40,7 @@ const IT = {
     notFacing: 'Devi guardare da quella parte.',
     // notte 2: approvato il 10 ottobre
     dark: 'Batteria morta.',
-    // notte 3 (da approvare): il vetro della lampara è esploso
+    // notte 3 (approvato l'11 ottobre): il vetro della lampara è esploso
     broken: 'Il vetro è rotto.',
   },
   caught: 'Hai preso',
@@ -60,7 +60,7 @@ const IT = {
     hatch: '«Chi c’è c’è, chi non c’è non c’è.» Ti ha trovato.',
     // notte 2: approvati il 10 ottobre (accorciati e più criptici, come chiesto)
     robin: 'Robin ha svuotato il secchio. Poi te.',
-    // notte 3 (da approvare): da bambino spegneva le candeline degli altri alle feste
+    // notte 3 (approvata l'11 ottobre): da bambino spegneva le candeline degli altri alle feste
     archie: 'Archie ha spento la tua candelina.',
     mother: 'Alle sei il secchio non era pieno. Stanotte la Madre si prenderà un altro bambino.',
     // notte 2 (approvato il 10 ottobre): la batteria è morta e la ninna nanna è finita prima delle sei
@@ -175,7 +175,7 @@ const IT = {
     lampSick: 'la lampara sfrigola',
     lampDead: 'buio',
     lullaby: 'un carillon, dal fondo',
-    // notte 3 (da approvare)
+    // notte 3 (approvate l'11 ottobre)
     archieRise: 'qualcosa sale dall’acqua, a prua',
     archieInhale: 'un risucchio lungo',
     archieWait: 'aspetta al buio',
@@ -434,7 +434,7 @@ export const RADIO_NIGHT2: Record<Lang, RadioLine[]> = {
   ],
 };
 
-/** La chiamata della terza notte (Archie), corta e criptica come la seconda: da approvare. */
+/** La chiamata della terza notte (Archie), corta e criptica come la seconda: approvata l'11 ottobre. */
 export const RADIO_NIGHT3: Record<Lang, RadioLine[]> = {
   it: [
     { at: 0.0, text: 'Terza notte. Undici pesci.' },

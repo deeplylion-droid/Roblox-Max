@@ -1,5 +1,5 @@
 """
-FANGY — modello definitivo (sagoma B «Mastino», testa A «Sciabola»), notte 5. In bozza: da approvare.
+FANGY — modello definitivo (sagoma B «Mastino», testa A «Sciabola»), notte 5. Approvato l'11 ottobre.
 
 Curvo e basso nell'acqua come un mastino: la schiena sale dal mare fino alla gobba delle spalle, la testa sta avanti,
 all'altezza delle spalle, le braccia lunghissime scendono fino all'acqua e ci appoggiano le nocche. Viene dal pesce

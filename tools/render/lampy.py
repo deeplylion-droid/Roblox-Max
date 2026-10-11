@@ -1,5 +1,5 @@
 """
-LAMPY — modello definitivo (sagoma C «Sanguisuga», testa B «Bacio»), notte 4. In bozza: da approvare.
+LAMPY — modello definitivo (sagoma C «Sanguisuga», testa B «Bacio»), notte 4. Approvato l'11 ottobre.
 
 Un arco di carne attaccato alla lenza per i due capi, come una sanguisuga che cammina: la bocca tiene la lenza in
 alto, dalla parte della canna, la ventosa della coda la tiene più in basso, a un palmo dal pelo dell'acqua; in mezzo

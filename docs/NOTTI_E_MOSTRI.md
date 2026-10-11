@@ -77,7 +77,7 @@ La notte 2 si gioca: dal menu con **Continua** dopo aver vinto la prima, con **N
 della prima, o con `?notte=2` nell'indirizzo (prove). Robin ora si vede (strato `robin_secchio`, 10 ottobre): sale dal
 mare sul bordo, nella luce trema e si accende di rosso, scacciato scivola giù; prima si sentiva soltanto (suoni provvisori fatti con i file di scena:
 zampette, secchio che tintinna, pesce strappato, fuga in acqua) e si vede sul sonar. Il jumpscare (11 ottobre, render
-finale messo nel gioco come chiesto, «se ti convince mettilo»): a secchio vuoto molla il bordo e ti salta in faccia a
+finale messo nel gioco come chiesto, «se ti convince mettilo»; **approvato l'11 ottobre**): a secchio vuoto molla il bordo e ti salta in faccia a
 mani vuote, le arcate aggrottate, la mano lunga con le dita aperte; una luce calda dalla parte della lanterna, solo su
 di lui, gli prende la faccia mentre arriva (la lampara gli sta alle spalle). L'urlo è ancora quello sintetizzato. I testi della notte 2 (radio, le due morti, sottotitoli, suggerimento, «Batteria morta.»),
 accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`).
@@ -87,7 +87,7 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
 > **Animazioni sulla barca** (10 ottobre, decise dall'utente): come Gulpy (la mascella lenta), Molly (sbatte gli
 > occhi), Hatch (la bocca che conta) e Robin (sbatte gli occhi), **ognuno dei prossimi mostri avrà una piccola
 > animazione** quando è in scena: da progettare insieme al modello. Proposte legate a come si gioca ognuno
-> (*da approvare*): **Archie** prende fiato nella trombetta, che si srotola a metà e si riavvolge (il
+> (**approvate l'11 ottobre** con i modelli): **Archie** prende fiato nella trombetta, che si srotola a metà e si riavvolge (il
 > risucchio che si sente); **Lampy** apre e chiude piano la ventosa, con gli anelli di denti che girano;
 > **Fangy** gira la testa di scatto verso ogni rumore e le lucine del ventre si accendono in fila, come un
 > respiro (queste si fanno nel motore, senza render).
@@ -138,7 +138,7 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
   limitarsi a spegnerti la luce).
 - **Perché funziona**: è l'opposto di Robin, che con la luce scappa: la lampara diventa una scelta
   continua.
-- **Modello e posa** (*da approvare*, 10 ottobre; `tools/render/archie.py`, posa `archie_soffia` in
+- **Modello e posa** (**approvati l'11 ottobre**; `tools/render/archie.py`, posa `archie_soffia` in
   `scena_creature.py`, anteprime `docs/concept/pose_archie.jpg`, `pose_archie_vicino.jpg`, `archie_vetrina.jpg`):
   sale dal mare a destra della lampara e un po' oltre, a 12° dall'occhio, tra la lampara e la canna: lì nelle altre
   notti non c'è nessuno (Gulpy e Robin stanno a sinistra della prua, Molly sui fianchi, Hatch a poppa, la lenza va
@@ -154,22 +154,22 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
 - **Sulla barca** (l'animazione scelta: prende fiato nella trombetta, che si srotola a metà e si riavvolge): le toppe
   `archie_trombetta_mezza` e `archie_trombetta_tutta` (`pose_animate.py`; tavola
   `docs/concept/animazioni/archie_trombetta.jpg`). Tutta distesa è il soffio: la piuma arriva a una decina di
-  centimetri dal vetro. Per il risucchio una toppa in più (*da approvare*), `archie_fiato`: la gola si gonfia come un
+  centimetri dal vetro. Per il risucchio una toppa in più (approvata l'11 ottobre), `archie_fiato`: la gola si gonfia come un
   pallone mentre prende fiato (nel gioco può seguire il risucchio, da 0 a 1). Nelle toppe si vede anche il collo
   dietro la testa e il riquadro sta sulla testa: la spirale che si srotola lascia vuoto il suo posto, e il gioco
   sfuma lo strato principale dove la toppa è vuota, come per le mascelle di Gulpy e Hatch.
-- **Jumpscare** (*da approvare*; `jumpscare.py`, `ATTACKS['archie']`; anteprima
+- **Jumpscare** (**approvato l'11 ottobre** così com'è, senza la mascella che si apre; `jumpscare.py`, `ATTACKS['archie']`; anteprima
   `docs/concept/jumpscare/js_archie_fotogrammi.jpg`): il vetro è esploso e la lampara è spenta (nella scena non c'è
   più il vetro, la reticella e la lampadina di servizio non fanno luce). Nel buio si vedono solo i suoi occhi che
   brillano, come nel gioco a lampara spenta; la trombetta si è riavvolta di scatto, si stacca dalla lampara e ti
   arriva in faccia di tre quarti, il muso che ti passa accanto a sinistra con le zanne. Lo illuminano la luna alle
   spalle, la lanterna e una luce calda dalla parte della lanterna che tocca solo lui (come per Robin), così la faccia
   esce dal buio man mano che arriva.
-- **Render finali** (10 ottobre, in attesa dell'approvazione ma già usabili): `archie_soffia` con gli occhi nel
+- **Render finali** (10 ottobre, approvati l'11): `archie_soffia` con gli occhi nel
   manifest (al buio brillano come quelli degli altri), e le toppe `archie_fiato`, `archie_trombetta_mezza`,
   `archie_trombetta_tutta`, in `public/assets/img` con le chiavi che il gioco già aspetta. Il jumpscare finale è nel
   gioco (11 ottobre, 64 campioni: con la scossa e la grana del nastro non si vede la differenza).
-- **Nel gioco** (10 ottobre, notte del lavoro; tutto *da approvare*): la notte 3 si gioca (`?notte=3`, o Alt + 3 sul
+- **Nel gioco** (10 ottobre, notte del lavoro; **approvato l'11 ottobre**: tempi, regole, testi): la notte 3 si gioca (`?notte=3`, o Alt + 3 sul
   titolo nelle build di prova). Archie sale dall'acqua in 3 s (il sonar lo annuncia davanti alla prua), poi il
   risucchio dura 4,5 s: la gola si gonfia, la trombetta resta arrotolata, si sente il fiato al contrario. Se alla
   fine la lampara è accesa (anche bassa) soffia: la trombetta si distende sul vetro, il vetro esplode (la lampara
@@ -178,7 +178,8 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
   riaccendi prima riprende fiato più in fretta (2,2 s). Quando canta la Madre si rituffa anche lui. Robin e Archie
   non vengono mai insieme (vogliono il contrario dalla luce). Quota 11 pesci. Giocatori simulati
   (`npm run sim -- 3 300`): esperto 100%, medio 71%, maldestro 50% (la seconda notte 100/81/58). Suoni provvisori
-  sintetizzati (l'acqua che si apre, il risucchio, la trombetta che si sgonfia, il soffio e il vetro, il tuffo).
+  sintetizzati (l'acqua che si apre, il risucchio, la trombetta che si sgonfia, il soffio e il vetro, il tuffo):
+  la direzione è approvata (11 ottobre), si rifanno come gli altri suoni del gioco.
   La chiamata alla radio: «Terza notte. Undici pesci. / Archie viene per la lampara. / Se lo senti prendere fiato,
   spegni. / E resta al buio finché non va giù. / Buona pesca.» La frase della morte: «Archie ha spento la tua
   candelina.» (da bambino spegneva le candeline degli altri).
@@ -195,7 +196,7 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
 - **Sagoma** (scelta): C «Sanguisuga», un arco di carne attaccato alla lenza per i due capi, ma più grosso.
 - **Testa** (scelta): B «Bacio», il cranio da neonato sotto la cuffia, gli occhi tondi senza palpebre; la ventosa
   è una bocca enorme a bacio con gli anelli di denti da latte.
-- **Modello e posa** (*da approvare*, 10 ottobre; `tools/render/lampy.py`, posa `lampy_lenza` in
+- **Modello e posa** (**approvati l'11 ottobre**; `tools/render/lampy.py`, posa `lampy_lenza` in
   `scena_creature.py`, anteprime `docs/concept/pose_lampy.jpg`, `pose_lampy_vicino.jpg`, `lampy_vetrina.jpg`):
   sta sulla lenza a destra della prua, oltre la punta della canna. La bocca, dove le entra la lenza, è a 43°
   dall'occhio, a 6 m e a 1,2 m sopra l'acqua; la ventosa della coda tiene la lenza a un palmo dall'acqua, a 55°.
@@ -207,7 +208,7 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
   tavola, un poco più grosso, e tutta Lampy è più grande del modello (1,15). L'orlo della cuffia passa sopra la nuca
   e il collo esce da sotto, come da una cuffia vera; i fiori sono più fitti sulla fronte. Nel gioco sta nello spazio
   della barca: la lenza parte dalla canna.
-- **La lenza nel gioco** (*da approvare*): la disegna il motore come sempre, ma per i punti della posa: dalla punta
+- **La lenza nel gioco** (approvata l'11 ottobre con la posa): la disegna il motore come sempre, ma per i punti della posa: dalla punta
   della canna alla bocca, sotto l'arco fino alla ventosa della coda, poi giù in mare (`scena_creature.lampy_lenza_punti`;
   dall'occhio in `tools/render/cache/lampy_posa.json`). Lampy ha tirato la lenza: il galleggiante è sott'acqua.
 - **Sulla barca** (l'animazione proposta: apre e chiude piano la ventosa, con gli anelli di denti che girano): nel
@@ -233,7 +234,7 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
   andare; se arriva Gulpy, tirargli un pesce fa rumore.
 - **Testa** (scelta): A «Sciabola», il testone del pesce dente di sciabola con le zanne del pesce vipera fuori dalla
   bocca, le fossette per sentire, gli occhialini affondati nella carne.
-- **Modello e posa** (*da approvare*, 10 ottobre; `tools/render/fangy.py`, posa `fangy_ascolta` in
+- **Modello e posa** (**approvati l'11 ottobre**; `tools/render/fangy.py`, posa `fangy_ascolta` in
   `scena_creature.py`, anteprime `docs/concept/pose_fangy.jpg`, `pose_fangy_vicino.jpg`, `fangy_vetrina.jpg`):
   sta nell'acqua a destra, un po' dietro il pescatore. La testa è a 112° dall'occhio e a 2 m, all'altezza del
   capodibanda e quasi un metro fuori dalla fiancata; le nocche sono in acqua a mezzo metro dallo scafo. Dall'occhio
@@ -247,5 +248,6 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
   toppe si fanno come per Robin) e le lucine sono una per oggetto, 54 in fila: il ventre dalla gola verso l'acqua,
   poi la mandibola e le guance. Ognuna porta la sua fila e il suo centro, e la posa le elenca dall'occhio
   (`tools/render/cache/fangy_posa.json`): il motore le può accendere una dopo l'altra e farle pulsare come gli
-  occhi. Da decidere: nello strato le lucine accese, come adesso, o spente (`luci`), lasciando tutta la luce al
-  motore. La vetrina mostra la testa girata dalle due parti e le lucine spente.
+  occhi. **Deciso l'11 ottobre**: nello strato le lucine sono spente (`luci` 0) e tutta la luce la fa il motore, perché
+  si accendano in fila come nella proposta approvata; le loro posizioni vanno nel manifest con lo strato. La vetrina
+  mostra la testa girata dalle due parti e le lucine spente.

@@ -17,9 +17,9 @@ mare nasconde la parte sott'acqua.
                      con la trombetta puntata (notte 3; la trombetta arrotolata)
     archie_fiato     toppa di archie_soffia: la testa con la gola gonfia, il risucchio prima di soffiare
     lampy_lenza      Lampy aggrappata alla lenza vicino al pelo dell'acqua, ad arco, con la bocca e la ventosa della coda
-                     (notte 4; da approvare)
+                     (notte 4; approvata l'11 ottobre)
     fangy_ascolta    Fangy nell'acqua accanto alla barca, a destra dietro il pescatore: curvo, la testa spinta avanti
-                     verso il rumore, le nocche in acqua (notte 5; da approvare)
+                     verso il rumore, le nocche in acqua (notte 5; approvata l'11 ottobre)
 
 Le «toppe» sono pose uguali a quella principale con la sola parte che cambia visibile (il resto della creatura
 fa da maschera, come la barca): il gioco le dissolve sopra lo strato principale. Le opzioni (quarto elemento
@@ -163,9 +163,9 @@ POSES = {
     # notte 3: Archie accanto alla lampara; prima di soffiare prende fiato e la gola si gonfia (toppa)
     'archie_soffia': (lambda: archie_soffia(), 'boat', True),
     'archie_fiato': (lambda: archie_soffia(fiato=1.0), 'boat', True, ARCHIE_TOPPA),
-    # notte 4: Lampy sulla lenza, a destra della prua (da approvare)
+    # notte 4: Lampy sulla lenza, a destra della prua (approvata l'11 ottobre)
     'lampy_lenza': (lambda: lampy_lenza(), 'boat', True),
-    # notte 5: Fangy nell'acqua a destra, dietro il pescatore (da approvare)
+    # notte 5: Fangy nell'acqua a destra, dietro il pescatore (approvata l'11 ottobre)
     'fangy_ascolta': (lambda: fangy_ascolta(), 'world', True),
 }
 
