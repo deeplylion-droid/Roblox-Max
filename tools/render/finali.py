@@ -220,34 +220,40 @@ class Stamp:
 # le sagome delle impronte (metri, piede che va verso +y; side = −1 sinistro, +1 destro)
 
 def print_gulpy(st, f, side, rng):
-    """Palmata: tre dita lunghe a ventaglio unite dalla membrana a festoni, il tallone piccolo."""
-    tips = []
-    for k, a in enumerate((-0.42, 0.0, 0.42)):
-        a = a + side * 0.06
-        tx, ty = 0.10 * math.sin(a), 0.035 + 0.10 * math.cos(a)
-        tips.append((tx, ty))
-        st.line(f, [(0.0, 0.03), (tx, ty)], 0.013)
-        st.ellipse(f, tx, ty, 0.007, 0.010, rot=-a)
-    web = [(0.0, 0.02)]
-    for i in range(len(tips) - 1):
-        (ax, ay), (bx, by) = tips[i], tips[i + 1]
-        web += [(ax * 0.92, ay * 0.92), ((ax + bx) * 0.36, (ay + by) * 0.38 + 0.004)]
-    web += [(tips[-1][0] * 0.92, tips[-1][1] * 0.92)]
-    st.poly(f, web, v=200)
-    st.ellipse(f, 0.0, 0.0, 0.022, 0.03)
+    """Palmata, come quella di una papera o di una rana: un triangolo pieno che dal tallone tondo si allarga fino al
+    bordo davanti a festoni, con tre dita corte e larghe e le unghiette in punta."""
+    sk = side * 0.004
+    tips = [(-0.056 + sk, 0.092), (0.0 + sk, 0.108), (0.056 + sk, 0.092)]
+    # il contorno: il tallone (mezzo cerchio dietro), i fianchi che si allargano, il bordo davanti a festoni
+    pts = [(0.019 * math.cos(a), 0.019 * math.sin(a)) for a in np.linspace(0.0, -math.pi, 12)]
+    pts += [(-0.030, 0.035), tips[0], (-0.028 + sk, 0.080), tips[1], (0.028 + sk, 0.080), tips[2], (0.030, 0.035)]
+    st.poly(f, pts)
+    for tx, ty in tips:
+        st.line(f, [(0.0, 0.02), (tx * 0.9, ty * 0.95)], 0.016)
+        st.ellipse(f, tx * 1.04, ty + 0.008, 0.004, 0.006, rot=-math.atan2(tx, ty))
 
 
 def print_molly(st, f, side, rng):
-    """Piedino da bambina: tallone, pianta, l'arco sul lato esterno e cinque ditini."""
-    st.ellipse(f, 0.0, 0.0, 0.017, 0.022)
-    st.ellipse(f, -side * 0.003, 0.068, 0.024, 0.02, rot=-side * 0.2)
-    st.poly(f, [(side * 0.006, 0.005), (side * 0.017, 0.0), (side * 0.022, 0.066), (side * 0.004, 0.066)])
+    """Piedino da bambina: la pianta piena (tallone, la vita appena stretta dalla parte di dentro, la pianta larga) e i
+    cinque ditini attaccati, l'alluce dalla parte di dentro."""
+    edge_in, edge_out = [], []
+    for t in np.linspace(0.0, 1.0, 24):
+        y = -0.020 + 0.092 * t
+        w = 0.017 + 0.011 * (t * t * (3 - 2 * t))
+        pinch = 0.004 * math.exp(-((t - 0.45) / 0.16) ** 2)
+        edge_out.append((side * w, y))
+        edge_in.append((-side * (w - pinch), y))
+    heel = [(0.017 * math.cos(a), -0.020 + 0.017 * math.sin(a)) for a in np.linspace(-math.pi, 0.0, 10)]
+    if side > 0:
+        heel = heel[::-1]
+    st.poly(f, edge_in + [(0.0, 0.080)] + edge_out[::-1] + heel)
+    st.ellipse(f, -side * 0.002, 0.072, 0.028, 0.015)
     for k in range(5):
         u = k / 4.0
-        x = -side * (0.020 - 0.042 * u)
-        y = 0.104 - 0.020 * u * u
-        r = 0.0075 - 0.0033 * u
-        st.ellipse(f, x, y, r, r * 1.2)
+        x = -side * (0.024 - 0.052 * u)
+        y = 0.105 - 0.013 * u * u
+        r = 0.0062 - 0.0020 * u
+        st.ellipse(f, x, y, r, r * 1.15)
 
 
 def print_hatch(st, f, side, rng):
