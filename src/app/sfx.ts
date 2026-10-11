@@ -592,11 +592,12 @@ export class Sfx {
 
   /** L'urlo del jumpscare di ciascuna creatura (in faccia, non spazializzato); la voce serve a troncarlo
    *  quando il segnale salta. */
-  jumpscare(who: Creature | MonsterId | 'mother'): Voice | null {
+  jumpscare(who: Creature | MonsterId | 'mother' | 'quota'): Voice | null {
     this.stopLoops();
-    const v = this.audio.play(who === 'mother' ? 'js_madre' : `js_${who}`);
+    // la quota mancata è la Madre (l'occhio da sotto): il suo urlo, se non ce n'è uno suo
+    const v = this.audio.play(who === 'mother' ? 'js_madre' : who === 'quota' ? (this.audio.has('js_quota') ? 'js_quota' : 'js_madre') : `js_${who}`);
     // senza il file (i mostri nuovi, finché non hanno il loro urlo) un urlo sintetizzato al volo
-    if (!v) this.synthScream(1, who === 'molly' ? 1.35 : who === 'hatch' ? 0.85 : who === 'robin' ? 1.1 : who === 'archie' ? 0.95 : who === 'lampy' ? 1.2 : who === 'fangy' ? 0.8 : who === 'mother' ? 0.55 : 0.7);
+    if (!v) this.synthScream(1, who === 'molly' ? 1.35 : who === 'hatch' ? 0.85 : who === 'robin' ? 1.1 : who === 'archie' ? 0.95 : who === 'lampy' ? 1.2 : who === 'fangy' ? 0.8 : who === 'mother' || who === 'quota' ? 0.55 : 0.7);
     return v;
   }
 

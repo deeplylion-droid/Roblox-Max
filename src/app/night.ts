@@ -32,7 +32,7 @@ export interface NightAssets {
   /** vista da sotto il telone: passo base e passo retroilluminato (la luce del giocattolo che fruga) */
   tarp: { base: OverlayTex; glow: OverlayTex; aspect: number } | null;
   /** fotogrammi dei jumpscare renderizzati, se ci sono */
-  jumpscares: Partial<Record<MonsterId | 'mother', { frames: OverlayTex[]; fps: number; aspect: number }>>;
+  jumpscares: Partial<Record<MonsterId | 'mother' | 'quota', { frames: OverlayTex[]; fps: number; aspect: number }>>;
   /** ritratti dei pesci del Catalogo già renderizzati: id → URL dell'immagine */
   fish: Record<string, string>;
   /** i luoghi dell'orizzonte per il binocolo, e dove sta la luce rossa della videocamera */
@@ -47,7 +47,9 @@ export interface NightStats {
   time: number;
 }
 
-export type NightEnd = { kind: 'won'; stats: NightStats } | { kind: 'dead'; killer: MonsterId | 'mother'; cause?: MotherCause; stats: NightStats };
+export type NightEnd =
+  | { kind: 'won'; stats: NightStats }
+  | { kind: 'dead'; killer: MonsterId | 'mother'; cause?: MotherCause; stats: NightStats; /** c'è stato un jumpscare (anche quello della quota) */ js?: boolean };
 
 export interface NightDeps {
   stage: Stage;
@@ -296,7 +298,7 @@ export class Night {
   private gulpyDive = 0;
   /** quando è cominciata l'abboccata in corso (per il suggerimento nelle notti di Lampy) */
   private biteAt = -1;
-  private js: { killer: MonsterId | 'mother'; t: number; yaw: number; scream: Voice | null } | null = null;
+  private js: { killer: MonsterId | 'mother' | 'quota'; t: number; yaw: number; scream: Voice | null } | null = null;
   private lineSway = 0;
   /** secondi dal lancio e dal tonfo del galleggiante (−1: niente da animare) */
   private castT = -1;
@@ -1203,7 +1205,18 @@ export class Night {
           const cause = o.kind === 'dead' ? o.cause : undefined;
           this.endResult = { kind: 'dead', killer: 'mother', cause, stats: this.stats() };
           this.endTimer = 4.5;
-          if (cause === 'lullaby') {
+          const quota = this.d.assets.jumpscares.quota;
+          if (!cause && quota) {
+            // la quota mancata alle sei (deciso l'11 ottobre sera): l'occhio della Madre sale da sotto la barca e ti
+            // guarda attraverso l'acqua; la Madre intera si vede solo nella notte 6
+            this.lullabyV?.stop(0.2);
+            this.lullabyV = null;
+            this.motherSong?.stop(0.2);
+            this.motherSong = null;
+            this.startJumpscare('quota');
+            this.endResult = { kind: 'dead', killer: 'mother', stats: this.stats(), js: true };
+            this.endTimer = quota.frames.length / quota.fps;
+          } else if (cause === 'lullaby') {
             // la canzone è finita al buio: sotto la barca sale qualcosa di enorme
             this.lullabyV?.stop(0.2);
             this.lullabyV = null;
@@ -1268,13 +1281,15 @@ export class Night {
     this.loops.reel = this.loops.tension = null;
   }
 
-  private startJumpscare(killer: MonsterId | 'mother'): void {
+  private startJumpscare(killer: MonsterId | 'mother' | 'quota'): void {
     // la camera si gira dove la creatura parte (la posa di gioco da cui partono i fotogrammi); la Madre viene da sotto,
     // dove stai guardando
     const L = this.d.stage.man.layers;
     const yaw =
       killer === 'mother'
         ? this.d.stage.view.yaw
+        : killer === 'quota'
+        ? -50
         : killer === 'gulpy'
         ? (L[POSE.gulpyPretende]?.yaw ?? 0)
         : killer === 'molly'

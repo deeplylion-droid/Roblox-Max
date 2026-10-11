@@ -16,7 +16,8 @@ interface PassFile {
 
 interface OverlayManifest {
   tarp?: { base: PassFile; glow: PassFile; aspect: number };
-  jumpscares?: Partial<Record<MonsterId | 'mother', { frames: PassFile[]; fps: number; aspect: number }>>;
+  /** i jumpscare: dei mostri, della Madre (notte 6) e della quota mancata (l'occhio della Madre, notti 1-5) */
+  jumpscares?: Partial<Record<MonsterId | 'mother' | 'quota', { frames: PassFile[]; fps: number; aspect: number }>>;
   binocular?: { places: (PassFile & { key: string; yaw: number; pitch: number; hfov: number; aspect: number })[]; rec?: [number, number, number] };
 }
 
@@ -117,7 +118,8 @@ export async function loadNightAssets(gl: GL): Promise<NightAssets> {
     if (!js) continue;
     try {
       const frames = await Promise.all(js.frames.map((f) => tex(gl, f)));
-      out.jumpscares[k as MonsterId | 'mother'] = { frames, fps: js.fps, aspect: js.aspect };
+      // jumpscare.py scrive la Madre come 'madre' (il nome dei render): nel gioco è 'mother'
+      out.jumpscares[(k === 'madre' ? 'mother' : k) as MonsterId | 'mother' | 'quota'] = { frames, fps: js.fps, aspect: js.aspect };
     } catch (e) {
       console.warn(e);
     }

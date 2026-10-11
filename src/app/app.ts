@@ -263,7 +263,7 @@ export class App {
     writeSave(this.save);
     const S = this.S;
     // un jumpscare (i figli, o la Madre che ti prende da sotto perché ti sei mosso): il segnale salta
-    const jumpscare = r.kind === 'dead' && (r.killer !== 'mother' || r.cause === 'moved');
+    const jumpscare = r.kind === 'dead' && (r.js === true || r.killer !== 'mother' || r.cause === 'moved');
     const show = () => {
       this.mode = 'end';
       this.night?.destroy();
