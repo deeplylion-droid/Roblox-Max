@@ -284,9 +284,11 @@ class Campo:
     def sorriso_punti(self):
         """Il sorriso dipinto: dall'angolo della bocca sale e si arriccia fino sotto l'occhio (posato sulla pelle)."""
         out = []
-        for s in (-1, 1):
+        for (ce, a), s in zip(occhi(), (-1, 1)):
+            u, v = base_occhio(a)
+            sotto = ce + a * OCCHIO_DENTRO - v * (APERTURA + 0.6)
             want = catmull([V(s * 3.4, -11.5, -3.75), V(s * 4.3, -6.0, -3.6), V(s * 4.55, -1.4, -3.3), V(s * 4.55, -0.9, -2.4),
-                            V(s * 4.4, -1.8, -1.55), V(s * 4.1, -3.0, -1.25)], 10)
+                            V(s * 4.4, -1.8, -1.55), V(s * 4.2, -3.2, -1.35), sotto + a * 0.3], 10)
             pts, _ = TF.snap(self.f if self.bocca < 0.05 else Campo(0.0).f, want)
             out.append(pts)
         return out
@@ -455,6 +457,9 @@ def pelle_madre():
     resta = g.smoothstep(p, g.add(p, 0.004), g.add(rnd, g.mul(g.sub(fine.fac, 0.5), 0.06)))
     rnd2 = g.bw(g.voronoi(wco, scale=1.9, feature='F1', out='Color'))
     resta = g.mul(resta, g.smoothstep(0.07, 0.075, g.add(rnd2, g.mul(g.sub(fine.fac, 0.5), 0.05))))
+    # il sorriso tiene di più: perde solo qualche scaglia, così la linea dalla bocca all'occhio si legge intera
+    scaglie = g.smoothstep(0.20, 0.205, g.add(rnd2, g.mul(g.sub(fine.fac, 0.5), 0.05)))
+    resta = g.mx(resta, g.mul(g.smoothstep(0.3, 0.6, sor), scaglie))
     resta = g.mul(resta, g.sub(1.0, g.smoothstep(0.2, 0.5, mouth)))
     # l'orlo delle croste: la vernice alzata più chiara, e sulla pelle appena scoperta una riga di sporco
     vicino = g.bw(g.voronoi(g.vmath('ADD', wco, (0.06, 0.04, 0.05)), scale=0.42, feature='F1', out='Color'))
