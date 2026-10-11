@@ -73,7 +73,8 @@ sepolto nella sabbia.
 
 **Le bocche delle tane** (proposta: posizioni e oggetti). L'occhio del sub galleggia in mezzo alla sala; attorno,
 da sinistra a destra nell'ordine in cui arrivano i mostri, sette bocche di tunnel che entrano dritti nella roccia e
-poi piegano nel buio. A ognuna è appesa all'architrave la cosa del bambino, girata verso chi guarda:
+poi piegano nel buio. A ognuna è appesa all'architrave la cosa del bambino, girata verso chi guarda (le cose piccole
+sono più grandi del vero, da 1,2 a 1,7 volte, come la trombetta di Archie sul mostro, perché si leggano da lontano):
 
 | Tana | Dove (yaw dall'occhio) | La cosa appesa |
 |---|---|---|
@@ -84,7 +85,7 @@ poi piegano nel buio. A ognuna è appesa all'architrave la cosa del bambino, gir
 | Archie | +88° | la **trombetta da festa** bianca e rossa, arrotolata |
 | Lampy | +128°, alta, vicino al soffitto (dorme attaccata in alto) | la **cuffia di gomma bianca coi fiori** fucsia e rosa in rilievo |
 | Fangy | −160°, dietro, vicino al pozzo | gli **occhialini con le lenti dipinte di nero**, appesi per l'elastico |
-| **La Madre** | 0°, in fondo | nessun oggetto: un'apertura enorme (quasi 10 m) dove la sabbia scivola giù nel nero. La torcia non ci arriva. |
+| **La Madre** | 0°, in fondo | nessun oggetto: un'apertura enorme (circa 7 m) sotto la parete di fondo, dove la sabbia scivola giù nel nero. La torcia non ci arriva. |
 
 Le bocche delle tane che non ci sono ancora (i mostri che arrivano più avanti) per ora sono tutte aperte; il motore
 potrà nasconderle con una toppa di roccia, o si fa un panorama per alba (da decidere).
