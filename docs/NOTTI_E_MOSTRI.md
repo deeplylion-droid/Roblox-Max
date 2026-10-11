@@ -404,7 +404,10 @@ scala, proporzioni ed esposizione); il comando è lo stesso con `--finale`.
   assi, un po' più grandi del vero (×1,3) per leggersi da in piedi: dove è bagnato il legno è quasi nero e lucido, e
   riflette come l'acqua. Così si leggono tutte e sette, anche fuori dalla scia del sole (seconda anteprima, 11
   ottobre).
-- **«Nessuno» — l'edicola da vicino** (`docs/concept/finali_edicola_anteprima.jpg`). L'edicola votiva dello scoglio
+- **«Nessuno» — l'edicola da vicino** (`docs/concept/finali_edicola_anteprima.jpg`). **Approvata l'11 ottobre**;
+  **render finale fatto**: `public/assets/img/fin_edicola.webp` (2560×1440, 256 campioni; la foto nella Polaroid
+  rifatta a 900 px), voce `endings.edicola` in `overlays.json` (scala 0,43, esposizione 0); decodificata:
+  `docs/concept/finali_edicola_finale_decodificata.jpg`. L'edicola votiva dello scoglio
   (la stessa del binocolo: `landmarks.build_chapel` e `binocolo.lore_photos`) nella luce grigia di un mattino coperto.
   **La tua foto** (proposta): una **Polaroid nuova**, l'unica non sbiadita, appesa con una molletta di legno a uno
   spago teso fra le due pareti, sul davanti dell'edicola. L'inquadratura è stretta su di lei (un medio tele a un metro

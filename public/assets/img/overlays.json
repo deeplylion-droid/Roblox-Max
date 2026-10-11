@@ -90,6 +90,12 @@
   ]
  },
  "endings": {
+  "edicola": {
+   "aspect": 1.7778,
+   "exposure": 0.0,
+   "file": "fin_edicola.webp",
+   "scale": 0.43
+  },
   "molo": {
    "aspect": 1.7778,
    "exposure": 0.2,
