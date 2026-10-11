@@ -25,6 +25,8 @@ export class NightSim {
   hideTimer = 0;
   viewYaw = 0;
   sonarOpen = false;
+  /** il sonar è davvero aperto e consuma la batteria (il binocolo alzato no) */
+  private sonarDrain = false;
   reelHeld = false;
   outcome: Outcome = { kind: 'playing' };
   readonly fishing: Fishing;
@@ -142,10 +144,15 @@ export class NightSim {
 
   // ───────── input ─────────
 
-  setView(yaw: number, sonarOpen: boolean): void {
+  /**
+   * Dove guardi. `away`: gli occhi sono lontani dalla barca (il sonar aperto o il binocolo alzato). `sonar`: il sonar è
+   * davvero aperto e consuma la batteria (il binocolo no); assente, vale come `away`.
+   */
+  setView(yaw: number, away: boolean, sonar = away): void {
     this.viewYaw = yaw;
     // al buio anche il sonar è spento
-    this.sonarOpen = sonarOpen && !this.blackout;
+    this.sonarOpen = away && !this.blackout;
+    this.sonarDrain = sonar && !this.blackout;
   }
 
   setReelHeld(held: boolean): void {
@@ -209,6 +216,7 @@ export class NightSim {
       this.hide = 'goingIn';
       this.hideTimer = this.cfg.hideTime;
       this.sonarOpen = false;
+      this.sonarDrain = false;
       this.emit({ t: 'hideStart' });
       this.fangy?.hear(this.world);
       return true;
@@ -345,7 +353,7 @@ export class NightSim {
   }
 
   private drainBattery(dt: number, b: NonNullable<NightConfig['battery']>): void {
-    this.battery -= dt * (b.drain[this.lamp] + (this.sonarOpen ? b.sonar : 0));
+    this.battery -= dt * (b.drain[this.lamp] + (this.sonarDrain ? b.sonar : 0));
     if (!this.batteryLowSaid && this.battery < b.low) {
       this.batteryLowSaid = true;
       this.emit({ t: 'battery', e: 'low' });

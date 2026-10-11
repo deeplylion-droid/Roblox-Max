@@ -10,6 +10,33 @@
 > con la trombetta da festa, approvata), Lampy **B «Bacio»**, Fangy **A «Sciabola»**
 > (`docs/concept/*_dettagli_bozza.png`). Colori approvati.
 
+## Più paura (decisioni dell'11 ottobre sera)
+
+Dall'utente: «rispetto a FNAF il nostro gioco risulta meno pauroso e ansiogeno». Le proposte dell'utente, con le scelte
+del questionario:
+
+- **Il sonar non avvisa più dei mostri.** Lo schermo resta acceso, col fascio che gira e i pesci, ma niente ombre né bip
+  d'avviso: per sapere chi arriva ci sono solo i suoni. Servirà solo nella notte della Madre, perché suonerà per lei.
+  **Nessun ribilanciamento** (il bot non ha mai usato il sonar). *Fatto l'11 ottobre sera.*
+- **Il binocolo non consuma più la batteria.** Era un difetto: per Molly il binocolo vale come il sonar aperto (non
+  guardi la barca), e lo stesso segnale faceva anche consumare il sonar, circa il 7,5% di batteria al minuto.
+  *Corretto l'11 ottobre sera.*
+- **La luce si regola anche da sotto il telone** (Q, E e rotella). *Fatto l'11 ottobre sera.*
+- **«Lampara» diventa «luce»** in tutti i testi del gioco («light» in inglese). Nei documenti e nel codice il nome
+  resta. *Fatto l'11 ottobre sera.*
+- **Jumpscare della quota mancata**: alle sei senza la quota, la **Madre vista solo in parte** (la mano enorme che
+  afferra la barca, oppure l'occhio che sale da sotto: due anteprime da far scegliere). La Madre intera resta per la
+  notte 6. Il testo c'è già: «Alle sei il secchio non era pieno. Stanotte la Madre si prenderà un altro bambino.»
+- **Atmosfera più buia, con foschia e nebbia «ma ben fatte»**: nebbia volumetrica renderizzata in Blender e
+  illuminata dalla luce della barca (un alone attorno alla barca, oltre il buio), la scena più buia, la foschia
+  bassa sull'acqua; devono restare leggibili le facce dei mostri e i posti del binocolo. Prima le immagini di prova.
+- **Il nostro Foxy**: un mostro nuovo, **l'animatore di Splashland annegato dentro il costume marcito della
+  mascotte di Mama Marina** (dalla bocca del costume si vede la sua faccia), «molto brutto e horror». Non è uno dei
+  sette bambini. Arriva **dalla notte 2**. Sta in uno o due dei posti che si guardano col binocolo: ogni volta che
+  lo guardi il suo tempo riparte; se lo trascuri, quando alzi il binocolo il posto è vuoto, poi salta sulla barca e
+  c'è il jumpscare immediato. Il binocolo diventa uno strumento vero (finora era un easter egg). Prima la tavola
+  con le varianti, i nomi e i posti, da approvare.
+
 ## Il piano delle notti
 
 | Notte | Novità |

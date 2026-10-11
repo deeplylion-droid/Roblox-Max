@@ -352,7 +352,6 @@ export class Night {
     this.sonarEl.appendChild(close);
     d.ui.appendChild(this.sonarEl);
     this.sonar.onPing = () => d.audio.play('sonar_ping', { pos: [0.3, -1.42, -0.5], gain: 0.25 });
-    this.sonar.onWarn = () => d.sfx.sonarWarn();
     // Molly sta dove l'hanno messa i render: lo sguardo va verificato verso quelle direzioni
     const L = d.stage.man.layers;
     this.gulpyFar = dirPos(L[POSE.gulpySale]?.yaw ?? -15, 7.5, -4);
@@ -591,9 +590,9 @@ export class Night {
     this.sim.toggleHide();
   }
 
+  /** La luce si regola anche da sotto il telone (Q, E e rotella: richiesta dell'utente, 11 ottobre sera). */
   private setLamp(l: number): void {
     const lv = Math.max(0, Math.min(2, l)) as LampLevel;
-    if (this.sim.hide !== 'out') return;
     this.sim.setLamp(lv);
   }
 
@@ -708,7 +707,7 @@ export class Night {
       view.steady = 0.75 * e;
     }
     // mentre guardi nel binocolo non vedi la barca: Molly non si sente guardata
-    sim.setView(view.yaw, this.sonarOpen || this.bino > 0.5);
+    sim.setView(view.yaw, this.sonarOpen || this.bino > 0.5, this.sonarOpen);
     if (!this.finished) sim.update(dt);
     for (const e of sim.drainEvents()) this.handle(e);
 
@@ -1402,7 +1401,7 @@ export class Night {
     // poco (la batteria sotto sforzo), a batteria morta batte sul fermo
     const c = sim.battery;
     const rest = c >= b.low ? 11.2 + 3.4 * ((c - b.low) / (1 - b.low)) : 10.1 + 1.1 * (c / b.low);
-    const load = [0, 0.06, 0.2][sim.lamp]! + (sim.sonarOpen ? 0.05 : 0);
+    const load = [0, 0.06, 0.2][sim.lamp]! + (this.sonarOpen ? 0.05 : 0);
     const target = sim.blackout ? 9.5 : rest - load;
     const n = this.needle;
     n.vel += ((target - n.v) * 38 - n.vel * 8) * dt;
