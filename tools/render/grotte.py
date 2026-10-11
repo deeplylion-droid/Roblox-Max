@@ -783,7 +783,7 @@ def oggetto_robin():
         pts.append((0.06 * math.sin(t * 9) + 0.10 * t, 0.05 * math.cos(t * 7), z))
     pts += [(0.1 + 0.07 * math.cos(a), 0.05 * math.sin(a), -0.95 - 0.05 * math.sin(a * 0.5)) for a in np.linspace(0, 4.5, 20)]
     pts = np.array(pts)
-    ob = sweep('RobinBiglietti', pts, rect_profile(0.055, 0.002), col=COL, cap=False, up=(1, 0, 0))
+    ob = sweep('RobinBiglietti', pts, rect_profile(0.075, 0.002), col=COL, cap=False, up=(0, 1, 0))   # di piatto verso −Y
     # 'tick': i metri lungo la striscia, per le righe della perforazione
     seg = np.concatenate([[0], np.cumsum(np.linalg.norm(np.diff(pts, axis=0), axis=1))])
     me = ob.data
@@ -816,10 +816,10 @@ def oggetto_archie():
     pts = [(0, 0, -0.17), (0, -0.01, -0.30)]
     for a in np.linspace(0, 3.4 * math.pi, 50):
         rad = 0.10 * (1 - a / (3.8 * math.pi))
-        pts.append((0.0, -0.01 - rad * math.sin(a), -0.30 - 0.10 + rad * math.cos(a) * 1.0))
+        pts.append((rad * math.sin(a), -0.01, -0.30 - 0.10 + rad * math.cos(a)))   # il ricciolo di piatto verso −Y
     pts = catmull(pts, 2)
     prof = [(0.028 * math.cos(t), 0.012 * math.sin(t)) for t in np.linspace(0, 2 * math.pi, 14, endpoint=False)]
-    ob = sweep('ArchieTrombetta', pts, prof, col=COL, up=(1, 0, 0), scale=np.linspace(1.0, 0.7, len(pts)))
+    ob = sweep('ArchieTrombetta', pts, prof, col=COL, up=(0, 1, 0), scale=np.linspace(1.0, 0.7, len(pts)))
     ob.data.materials.append(_mat('ArchieCarta', _carta))
     obs.append(ob)
     obs.append(corda('ArchieLaccio', (0, 0, 0), (0, 0, -0.08)))
@@ -894,6 +894,9 @@ def oggetto_fangy():
     return obs
 
 
+# più grandi del vero quelli piccoli, perché si leggano da lontano (come la trombetta di Archie)
+SCALA = {'hatch': 1.7, 'fangy': 1.5, 'molly': 1.2, 'robin': 1.2}
+
 OGGETTI = {'gulpy': oggetto_gulpy, 'molly': oggetto_molly, 'hatch': oggetto_hatch, 'robin': oggetto_robin,
            'archie': oggetto_archie, 'lampy': oggetto_lampy, 'fangy': oggetto_fangy}
 
@@ -908,7 +911,7 @@ def build_tane():
         obs = OGGETTI[chi]()
         yaw = math.atan2(appoggio[0] - OCCHIO[0], appoggio[1] - OCCHIO[1])
         # un poco dentro la bocca e girato col davanti (−Y locale) verso l'occhio
-        M = Matrix.Translation(Vector(appoggio)) @ Matrix.Rotation(-yaw, 4, 'Z')
+        M = Matrix.Translation(Vector(appoggio)) @ Matrix.Rotation(-yaw, 4, 'Z') @ Matrix.Scale(SCALA.get(chi, 1.0), 4)
         for o in obs:
             o.matrix_world = M @ o.matrix_world
             set_lightgroup(o, 'ambient')
