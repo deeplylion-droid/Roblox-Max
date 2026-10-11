@@ -1151,6 +1151,9 @@ export class Night {
             cap(S.captions.motherApproach);
             break;
           case 'pass':
+            // il mouse rimasto nella fascia del bordo non gira più lo sguardo da solo (sarebbe la morte senza un gesto):
+            // gira di nuovo solo se lo muovi (revisione dell'11 ottobre)
+            this.edgeArmed = false;
             this.motherPassV?.stop(1);
             this.motherPassV = fx.motherPass(e.n ?? 1);
             cap(S.captions.motherPass);
