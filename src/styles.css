@@ -278,3 +278,6 @@ html, body {
 .dive-confirm .row { display: flex; gap: 18px; justify-content: center; }
 .dive-confirm button { background: none; border: none; color: var(--ink); font-family: 'Limelight', serif; font-size: 22px; cursor: pointer; opacity: .8; }
 .dive-confirm button:hover { color: #bfe9e2; opacity: 1; }
+.dive-buttons { position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); display: flex; gap: 14px; }
+.dive-back { pointer-events: auto; background: none; border: 1px solid rgba(160,230,220,.45); color: #bfe9e2; font: inherit; font-size: 14px; letter-spacing: .25em; text-transform: uppercase; padding: 8px 16px; cursor: pointer; }
+.dive-back:hover { border-color: #bfe9e2; color: #fff; }

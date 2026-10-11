@@ -104,7 +104,9 @@ addormentata, con una piccola animazione (il respiro, le bolle).
 - **La grotta grande**: un'apertura per ogni tana dei mostri **già arrivati** (dopo la prima notte: Gulpy, Molly,
   Hatch e Robin); le altre non si vedono ancora. Il fondo enorme davanti si guarda soltanto («Dal fondo, nel buio,
   respira qualcosa di enorme»): non ci si entra.
-- **Le tane**: il mostro dorme sul letto e respira (la toppa del respiro si dissolve sopra la posa) e fa salire le
+- **Le tane** (deciso l'11 ottobre): ogni cameretta è un'**inquadratura fissa**, come una telecamera di FNAF: lo
+  sguardo si gira di 30° a destra e a sinistra (e di pochi gradi in su e in giù) e basta; in basso c'è il tasto
+  **«Torna alla grotta»**. Solo le grotte (sotto la barca e la grotta grande) sono panorami a 360°. Il mostro dorme sul letto e respira (la toppa del respiro si dissolve sopra la posa) e fa salire le
   bolle. Cliccandolo, se hai un pesce, compare la conferma **«Lasci il pesce accanto a Gulpy?»**; sì, e quel
   mostro **la notte dopo non viene**. La tana del **mostro nuovo** della notte dopo è **vuota** («La tana è vuota.
   Chi ci dorme è già in giro.»).
@@ -158,8 +160,14 @@ Tutto sta in `public/assets/img/immersioni.json`; il codice non cambia.
    2500 m), come il passo dati del mondo, per la nebbia; G = quanto trema l'immagine, 0,1 circa). Si codificano
    come gli altri render (gamma 4, con la loro `scale`). `size` è la larghezza e l'altezza in pixel, `yaw` la
    rotazione, `look` dove guardi arrivando, `rays` quanta luce scende dall'alto.
+   **Le camerette** sono inquadrature fisse: un panorama **parziale** (`lonMin`/`lonMax` e `latMin`/`latMax`, i
+   bordi in gradi; i segnaposto sono 160° × 80°) con `frame`: `yaw` e `pitch` del centro, `yawRange` (30) e
+   `pitchRange` (4), i gradi di cui si gira. Il panorama deve coprire il campo visivo (90° in orizzontale, fino a
+   68° in verticale) più quanto si gira: almeno 150° × 76°. Lo zoom non cambia.
 2. **I passaggi** (`links`): `to` (il posto), `yaw` e `pitch` (gradi, nel panorama del posto: dove sta l'apertura),
-   `r` (il raggio cliccabile in gradi), `label` (il nome che compare: chiave di `STRINGS.dive.links`). Un passaggio
+   `r` (il raggio cliccabile in gradi), `label` (il nome che compare: chiave di `STRINGS.dive.links`). Con
+   `button: true` il passaggio è un tasto sullo schermo invece di un punto del panorama (nelle camerette, «Torna alla
+   grotta»: in un'inquadratura fissa l'uscita alle spalle non si vede). Un passaggio
    con `ascend: true` fa risalire; uno con `note` mostra una didascalia (`STRINGS.dive.notes`).
 3. **Le tane**: un posto con `den: "<mostro>"`. Il passaggio verso una tana si vede solo quando quel mostro è già
    arrivato; per il mostro nuovo della notte dopo la tana è vuota. Il mostro che dorme sta in `sleeper`: `yaw`,
@@ -180,7 +188,8 @@ Provato l'11 ottobre nel Chromium headless con `?step` (nessun errore in console
 pesci oltre la quota, «Scendi con le bombole», sotto la barca, la grotta grande, la tana di Gulpy col pesce lasciato,
 la tana vuota di Robin, la terza tana rifiutata per l'aria, l'aria che finisce e la risalita da soli, l'intro della
 seconda notte e la notte con Gulpy che dorme. Le schermate sono in `docs/concept/immersioni_prova_*.jpg` (i panorami
-sono i segnaposto).
+sono i segnaposto). Dopo la decisione delle inquadrature fisse: `immersioni_prova_11_cameretta_inquadratura.jpg`
+(la cameretta girata tutta a sinistra, al centro, tutta a destra).
 
 ### Cosa manca
 

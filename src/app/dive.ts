@@ -136,6 +136,7 @@ export class Dive {
   private capEl: HTMLDivElement;
   private hintEl: HTMLDivElement;
   private spotsEl: HTMLDivElement;
+  private buttonsEl: HTMLDivElement;
   private confirmEl: HTMLDivElement | null = null;
   private capTimer = 0;
   private hintTimer = 0;
@@ -146,6 +147,7 @@ export class Dive {
     const S = this.S;
     this.root = el('div', 'hud dive-hud');
     this.spotsEl = el('div', 'dive-spots');
+    this.buttonsEl = el('div', 'dive-buttons');
     this.gauge = el('canvas', 'dive-gauge');
     this.gauge.width = this.gauge.height = 176;
     this.capEl = el('div', 'dive-cap');
@@ -156,7 +158,7 @@ export class Dive {
       e.stopPropagation();
       this.ascend();
     });
-    this.root.append(this.spotsEl, this.gauge, this.capEl, this.hintEl, up);
+    this.root.append(this.spotsEl, this.buttonsEl, this.gauge, this.capEl, this.hintEl, up);
     d.ui.appendChild(this.root);
   }
 
@@ -194,11 +196,14 @@ export class Dive {
     // il panorama del posto ha le sue latitudini: il riquadro si esprime in pixel del panorama del mondo
     const W = man.pano.width, H = man.pano.height;
     const toWorldY = (lat: number) => ((man.pano.latMax - lat) / (man.pano.latMax - man.pano.latMin)) * H;
+    const lonMin = p.lonMin ?? -180, lonMax = p.lonMax ?? 180;
     const rectOf = (x0: number, y0: number, x1: number, y1: number): [number, number, number, number] => {
       const [pw, ph] = p.size;
       const lat = (y: number) => p.latMax - (y / ph) * (p.latMax - p.latMin);
-      return [(x0 / pw) * W, toWorldY(lat(y0)), (x1 / pw) * W, toWorldY(lat(y1))];
+      const x = (px: number) => (0.5 + (lonMin + (px / pw) * (lonMax - lonMin)) / 360) * W;
+      return [x(x0), toWorldY(lat(y0)), x(x1), toWorldY(lat(y1))];
     };
+    const fullPano = lonMax - lonMin >= 360;
     const layer = async (key: string, passes: Partial<Record<'ambient' | 'lamp' | 'lantern', PassInfo>>, data: string | undefined, rect: [number, number, number, number], full: boolean): Promise<LoadedLayer> => {
       const wrap = full ? gl.REPEAT : gl.CLAMP_TO_EDGE;
       const info: LayerInfo = { space: 'world', yaw: p.yaw ?? 0, rect, passes, ...(data ? { data } : {}) };
@@ -213,7 +218,7 @@ export class Dive {
     const loads: Promise<{ l: LoadedLayer; draw: LayerDraw }>[] = [];
     const panoKey = `dive:${id}`;
     const { data, ...passes } = pano;
-    loads.push(layer(panoKey, passes, data, rectOf(0, 0, p.size[0], p.size[1]), true).then((l) => ({ l, draw: { key: panoKey, ...(p.tint ? { tint: p.tint } : {}) } })));
+    loads.push(layer(panoKey, passes, data, rectOf(0, 0, p.size[0], p.size[1]), fullPano).then((l) => ({ l, draw: { key: panoKey, ...(p.tint ? { tint: p.tint } : {}) } })));
     if (state === 'asleep') {
       p.sleeper?.layers?.forEach((s, i) => {
         const key = `${panoKey}:${i}`;
@@ -238,14 +243,27 @@ export class Dive {
     this.keys = [];
     this.draws = [];
     this.spotsEl.replaceChildren();
+    this.buttonsEl.replaceChildren();
     this.spots = [];
     this.hover = null;
   }
 
   private buildSpots(p: DivePlace, state: ReturnType<DiveRun['denState']> | null): void {
     const yaw0 = p.yaw ?? 0;
+    this.buttonsEl.replaceChildren();
     for (const l of this.run.visibleLinks()) {
       const label = l.label ? this.S.dive.links[l.label] : undefined;
+      if (l.button) {
+        // un tasto sullo schermo (nelle inquadrature fisse, «torna alla grotta»)
+        const b = el('button', 'dive-back', label ?? '←');
+        b.type = 'button';
+        b.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (!this.confirmEl) this.follow(l);
+        });
+        this.buttonsEl.append(b);
+        continue;
+      }
       const e = el('div', 'dive-spot');
       if (label) e.append(el('span', '', label));
       this.spotsEl.append(e);
@@ -259,9 +277,10 @@ export class Dive {
     if (this.destroyed) return;
     const p = this.run.current;
     const v = this.d.stage.view;
-    if (p.look) {
-      v.yaw = v.targetYaw = p.look.yaw + (p.yaw ?? 0);
-      v.pitch = p.look.pitch;
+    const look = p.frame ?? p.look;
+    if (look) {
+      v.yaw = v.targetYaw = look.yaw + (p.yaw ?? 0);
+      v.pitch = look.pitch;
       this.torchYaw = v.yaw;
       this.torchPitch = v.pitch;
     }
@@ -358,13 +377,19 @@ export class Dive {
       const h = this.hover;
       if (!h) return;
       if (h.sleeper) this.offer();
-      else if (h.link?.ascend) this.ascend();
-      else if (h.link?.to) this.go(h.link.to);
-      else if (h.link?.note) {
-        this.caption(this.S.dive.notes[h.link.note] ?? '', 5);
-        if (h.link.note === 'mother') this.play(SND.mother, { gain: 0.9 });
-      }
+      else if (h.link) this.follow(h.link);
     });
+  }
+
+  /** Segue un passaggio (o la risalita, o una cosa da guardare). */
+  private follow(l: DiveLink): void {
+    if (this.phase !== 'look') return;
+    if (l.ascend) this.ascend();
+    else if (l.to) this.go(l.to);
+    else if (l.note) {
+      this.caption(this.S.dive.notes[l.note] ?? '', 5);
+      if (l.note === 'mother') this.play(SND.mother, { gain: 0.9 });
+    }
   }
 
   // ───────────────────────── aggiornamento ─────────────────────────
@@ -393,6 +418,15 @@ export class Dive {
       // sott'acqua ci si gira più piano che sulla barca
       v.targetYaw += spin * 110 * this.d.options.sensitivity * dt;
       v.pitch = Math.max(-60, Math.min(60, v.pitch + tilt * 60 * this.d.options.sensitivity * dt));
+    }
+    // inquadratura fissa (le camerette): lo sguardo resta nel campo, ±yawRange e ±pitchRange attorno al centro
+    const fr = this.phase === 'loading' ? undefined : this.run.current.frame;
+    if (fr) {
+      const c = fr.yaw + (this.run.current.yaw ?? 0);
+      const off = ((v.targetYaw - c + 540) % 360) - 180;
+      v.targetYaw = c + Math.max(-fr.yawRange, Math.min(fr.yawRange, off));
+      v.pitch = Math.max(fr.pitch - fr.pitchRange, Math.min(fr.pitch + fr.pitchRange, v.pitch));
+      v.hfov = 90;
     }
     // si galleggia: un ondeggiare lento
     const t = this.time;

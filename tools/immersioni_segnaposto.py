@@ -3,7 +3,8 @@ Panorami SEGNAPOSTO delle immersioni all'alba (docs/IMMERSIONI.md, «Il motore»
 finché non arrivano i render veri delle grotte e delle camerette. Brutti di proposito: roccia procedurale, buchi
 scuri per i passaggi, una stanza a scatola con un letto e qualche macchia di colore, un mostro-sagoma che dorme.
 
-Ogni panorama è equirettangolare a sfera intera (360° × 180°, latitudine da +90 a −90), come quelli veri:
+I due posti delle grotte sono equirettangolari a sfera intera (360° × 180°); la cameretta è un pezzo di
+equirettangolare (160° × 80°, CAM qui sotto): un'inquadratura fissa che si gira di 30° per parte. I passi:
   *_ambient.webp   la luce dell'acqua (quasi buio, un po' di chiarore dall'alto)
   *_lantern.webp   la stessa scena accesa dalla torcia del sub (il motore la mostra solo nel cono della torcia)
   *_data.webp      R = sqrt(distanza / 2500 m) (la nebbia dell'acqua torbida), G = quanto trema l'immagine
@@ -24,11 +25,23 @@ OUT = os.path.join(ROOT, 'public', 'assets', 'img', 'immersioni', 'segnaposto')
 W, H = 2048, 1024
 rng = np.random.default_rng(1997)
 
-# la griglia: longitudine (0 avanti, + a destra) e latitudine di ogni pixel, e la direzione (x destra, y avanti, z su)
-lon = (np.arange(W) + 0.5) / W * 2 * np.pi - np.pi
-lat = np.pi / 2 - (np.arange(H) + 0.5) / H * np.pi
-LON, LAT = np.meshgrid(lon, lat)
-DX, DY, DZ = np.cos(LAT) * np.sin(LON), np.cos(LAT) * np.cos(LON), np.sin(LAT)
+
+def set_grid(w, h, lon0=-180, lon1=180, lat0=-90, lat1=90):
+    """La griglia del panorama che si sta facendo: longitudine (0 avanti, + a destra) e latitudine di ogni pixel, e la
+    direzione (x destra, y avanti, z su). Sfera intera, o un pezzo (le inquadrature fisse delle camerette)."""
+    global W, H, LON, LAT, DX, DY, DZ
+    W, H = w, h
+    lon = np.radians(lon0 + (np.arange(W) + 0.5) / W * (lon1 - lon0))
+    lat = np.radians(lat1 - (np.arange(H) + 0.5) / H * (lat1 - lat0))
+    LON, LAT = np.meshgrid(lon, lat)
+    DX, DY, DZ = np.cos(LAT) * np.sin(LON), np.cos(LAT) * np.cos(LON), np.sin(LAT)
+
+
+set_grid(W, H)
+# l'inquadratura fissa delle camerette (deciso l'11 ottobre: come le telecamere di FNAF, si gira di 30° per parte):
+# 160° × 80° attorno al letto, a 11 pixel per grado
+CAM = dict(lon0=-80, lon1=80, lat0=-55, lat1=25)
+CAM_PX = 11
 
 
 def noise(power, seed_shift=0):
@@ -155,7 +168,9 @@ def grotta_grande():
 
 def cameretta():
     """Una «cameretta» qualsiasi a scatola, sommersa: carta da parati a righe sbiadite, il pavimento di melma, un letto
-    davanti in basso (yaw 0), qualche giocattolo colorato. Il motore la tinge per ogni tana."""
+    davanti in basso (yaw 0), qualche giocattolo colorato. Il motore la tinge per ogni tana. È un'inquadratura fissa
+    (CAM), non un panorama intero."""
+    set_grid((CAM['lon1'] - CAM['lon0']) * CAM_PX, (CAM['lat1'] - CAM['lat0']) * CAM_PX, **CAM)
     hx, hy, up, dn = 2.6, 2.6, 1.5, 1.2
     tx = hx / np.maximum(np.abs(DX), 1e-4)
     ty = hy / np.maximum(np.abs(DY), 1e-4)
@@ -197,8 +212,10 @@ def dormiente():
     """Il mostro addormentato sul letto (yaw 0, pitch circa −28): una sagoma lunga e grigia raggomitolata, con due
     occhi chiusi più chiari; e la «toppa» del respiro (la stessa sagoma un poco gonfiata) che il motore dissolve sopra.
     Ritaglio del panorama della cameretta: il riquadro va scritto in immersioni.json (rect)."""
-    x0, x1 = int(W * (0.5 - 30 / 360)), int(W * (0.5 + 30 / 360))
-    y0, y1 = int(H * (90 + 10) / 180), int(H * (90 + 45) / 180)
+    set_grid((CAM['lon1'] - CAM['lon0']) * CAM_PX, (CAM['lat1'] - CAM['lat0']) * CAM_PX, **CAM)
+    # il riquadro: da −30° a 30° di longitudine, da −10° a −45° di latitudine
+    x0, x1 = (-30 - CAM['lon0']) * CAM_PX, (30 - CAM['lon0']) * CAM_PX
+    y0, y1 = (CAM['lat1'] + 10) * CAM_PX, (CAM['lat1'] + 45) * CAM_PX
     sl = (slice(y0, y1), slice(x0, x1))
     L, A = np.degrees(LON[sl]), np.degrees(LAT[sl])
     out = {}

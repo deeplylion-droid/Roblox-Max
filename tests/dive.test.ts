@@ -80,3 +80,16 @@ describe('Immersioni: le regole', () => {
     expect(r.air).toBe(0);
   });
 });
+
+describe('Immersioni: le camerette', () => {
+  it('sono inquadrature fisse che si girano di 30° per parte, e da ognuna si torna alla grotta grande', () => {
+    for (const p of Object.values(DATA.places)) {
+      if (!p.den) continue;
+      expect(p.frame?.yawRange, p.den).toBe(30);
+      // il panorama parziale copre il campo visivo (90°) più quanto si gira
+      expect((p.lonMax ?? 180) - (p.lonMin ?? -180)).toBeGreaterThanOrEqual(90 + 2 * p.frame!.yawRange);
+      expect(p.links.some((l) => l.to === 'grotta_grande')).toBe(true);
+    }
+    expect(DATA.places.grotta_grande!.frame).toBeUndefined();
+  });
+});

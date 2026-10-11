@@ -30,6 +30,8 @@ export interface DiveLink {
   r: number;
   /** testo che compare passandoci sopra (STRINGS.dive.links); senza, niente */
   label?: string;
+  /** un tasto sullo schermo invece di un punto del panorama (nelle inquadrature fisse: «torna alla grotta») */
+  button?: boolean;
 }
 
 /** Uno strato ritagliato sopra il panorama (la posa del mostro che dorme, la toppa del respiro). */
@@ -48,6 +50,14 @@ export interface DivePlace {
   /** latitudini del bordo basso e alto del panorama (−90, 90 per la sfera intera) */
   latMin: number;
   latMax: number;
+  /** longitudini del bordo sinistro e destro (gradi; senza, −180 e 180: il panorama intero). Un'inquadratura fissa
+   *  (frame) è un panorama parziale, largo il campo visivo più quanto si gira */
+  lonMin?: number;
+  lonMax?: number;
+  /** inquadratura fissa, come una telecamera di FNAF (le camerette delle tane, deciso l'11 ottobre): lo sguardo resta
+   *  entro yawRange gradi a destra e a sinistra di yaw, e entro pitchRange in su e in giù di pitch. Senza, ci si
+   *  guarda attorno a 360° (la grotta grande) */
+  frame?: { yaw: number; pitch: number; yawRange: number; pitchRange: number };
   /** gradi di cui è ruotato il panorama */
   yaw?: number;
   /** tinta (un panorama riusato per più posti, come i segnaposto) */
