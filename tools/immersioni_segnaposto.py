@@ -62,14 +62,14 @@ def save(name, rgb, alpha=None):
     Image.fromarray(a).save(os.path.join(OUT, name + '.webp'), quality=82, method=6)
 
 
-def write_place(name, albedo, dist, sky_light, wobble=0.12):
+def write_place(name, albedo, dist, sky_light, wobble=0.12, torch=4.0, reach=3.2):
     """Scrive i tre file di un posto. albedo: colore delle superfici (lineare); dist: metri dall'occhio;
     sky_light: luce dall'alto già pronta (lineare), che si somma all'ambiente."""
     # ambiente: un chiarore verde-blu che viene dall'alto, quasi niente sui fondi
     from_above = np.clip(0.25 + 0.75 * DZ, 0, 1) ** 2
     amb = albedo * (0.010 + 0.035 * from_above)[..., None] * np.array([0.55, 0.9, 1.0]) + sky_light
     # torcia: come una lampada sull'occhio, cala col quadrato della distanza
-    lant = albedo * (1.6 / (1 + (dist / 2.2) ** 2))[..., None] * np.array([1.0, 0.96, 0.85])
+    lant = albedo * (torch / (1 + (dist / reach) ** 2))[..., None] * np.array([1.0, 0.96, 0.85])
     data = np.zeros((H, W, 3))
     data[..., 0] = np.sqrt(np.clip(dist, 0, 2500) / 2500)
     data[..., 1] = wobble
@@ -190,7 +190,7 @@ def cameretta():
     slime = np.clip((noise(0.9) - 0.2) * 2, 0, 1)
     alb = alb * (1 - 0.5 * slime[..., None]) + slime[..., None] * np.array([0.03, 0.06, 0.03])
     sky = np.zeros_like(alb)
-    write_place('cameretta', alb, dist, sky, wobble=0.1)
+    write_place('cameretta', alb, dist, sky, wobble=0.1, torch=1.6, reach=2.2)
 
 
 def dormiente():

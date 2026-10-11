@@ -138,6 +138,7 @@ export class Dive {
   private spotsEl: HTMLDivElement;
   private confirmEl: HTMLDivElement | null = null;
   private capTimer = 0;
+  private hintTimer = 0;
   private destroyed = false;
 
   constructor(private d: DiveDeps) {
@@ -409,7 +410,10 @@ export class Dive {
         this.fade = Math.min(1, this.fade + dt / 0.9);
         if (this.fade >= 1) {
           this.phase = 'look';
-          if (!this.run.dens.length && this.run.place === this.d.data.start) this.hintEl.classList.add('show');
+          if (!this.run.dens.length && this.run.place === this.d.data.start) {
+            this.hintEl.classList.add('show');
+            this.hintTimer = 8;
+          }
         }
         break;
       case 'out':
@@ -433,7 +437,8 @@ export class Dive {
         break;
     }
     const wantBurst = this.phase === 'out' || this.phase === 'ascend' || this.phase === 'loading' ? 1 : this.phase === 'in' ? 1 - this.fade : 0;
-    this.burst += (wantBurst - this.burst) * (1 - Math.exp(-dt * 4));
+    this.burst += (wantBurst - this.burst) * (1 - Math.exp(-dt * 6));
+    if (this.burst < 0.01) this.burst = 0;
 
     // l'aria
     this.run.update(dt);
@@ -456,6 +461,10 @@ export class Dive {
         const s = p.sleeper;
         this.play(sleepSounds(p.den), { gain: 0.5, lowpass: 600, ...(s ? { pos: dirPos(s.yaw + (p.yaw ?? 0), 3, s.pitch) } : {}) });
       }
+    }
+    if (this.hintTimer > 0) {
+      this.hintTimer -= dt;
+      if (this.hintTimer <= 0) this.hintEl.classList.remove('show');
     }
     if (this.capTimer > 0) {
       this.capTimer -= dt;

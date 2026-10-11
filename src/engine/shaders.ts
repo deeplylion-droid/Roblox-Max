@@ -129,9 +129,10 @@ void main() {
   if (uHas.z > 0.5) {
     float tk = 1.0;
     if (uTorch.w > 0.0) {
-      float cs = dot(d, uTorch.xyz);
-      // il bordo del cono sfuma, il centro è più forte; fuori resta un filo di luce diffusa nell'acqua
-      tk = 0.04 + smoothstep(uTorch.w, mix(uTorch.w, 1.0, 0.55), cs) * (0.75 + 0.5 * smoothstep(mix(uTorch.w, 1.0, 0.7), 1.0, cs));
+      // x = angolo dal centro del fascio diviso il mezzo angolo del cono (circa): la luce cala morbida dal centro al
+      // bordo e oltre; fuori resta un filo di luce diffusa nell'acqua
+      float x = sqrt(max(0.0, 1.0 - dot(d, uTorch.xyz)) / max(1e-4, 1.0 - uTorch.w));
+      tk = 0.03 + 1.1 * exp(-2.2 * x * x);
     }
     c += dec(texture(uLant, uv), uScale.z) * uW.z * tk;
   }
@@ -311,7 +312,8 @@ uniform float uBurst;       // 0..1: le bolle dell'erogatore davanti alla masche
 uniform float uAspect;
 
 float torchK(vec3 d) {
-  return uTorchOn * smoothstep(uTorchCos, mix(uTorchCos, 1.0, 0.6), dot(d, uTorchDir));
+  float x = sqrt(max(0.0, 1.0 - dot(d, uTorchDir)) / max(1e-4, 1.0 - uTorchCos));
+  return uTorchOn * exp(-2.2 * x * x);
 }
 
 /** Un anello di bolla (bordo chiaro, dentro quasi vuoto). */
@@ -365,7 +367,7 @@ void main() {
     }
   }
   // le bolle dell'erogatore: salgono davanti alla maschera (spazio dello schermo)
-  if (uBurst > 0.0) {
+  if (uBurst > 0.01) {
     for (int l = 0; l < 2; l++) {
       float fl = float(l);
       vec2 g = vec2(vUv.x * uAspect * (9.0 + fl * 7.0), vUv.y * (9.0 + fl * 7.0) - uTime * (2.2 + fl * 1.3));
