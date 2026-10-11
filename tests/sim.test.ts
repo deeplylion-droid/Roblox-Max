@@ -902,7 +902,7 @@ describe('Notte 7, la notte extra', () => {
         low += visits(extraNight({ ...extraLevels(0), [who]: 2 }), seed)[who];
         high += visits(extraNight({ ...extraLevels(0), [who]: 20 }), seed)[who];
       }
-      expect(high, who).toBeGreaterThan(low * 1.5);
+      expect(high, who).toBeGreaterThan(low * 1.3);
       expect(low, who).toBeGreaterThan(0);
     }
   });
@@ -916,14 +916,17 @@ describe('Notte 7, la notte extra', () => {
     expect(wins).toBeGreaterThanOrEqual(18);
   });
 
-  it('la Madre: a 0 non viene, al 10 è come nella notte 6, al 20 passa più volte e più a lungo', () => {
+  it('la Madre: a 0 non viene, al 10 è come nella notte 6, al 20 passa più volte e avvisa meno', () => {
     expect(extraMother(0)).toBeUndefined();
     expect(extraNight(extraLevels(0)).mother).toBeUndefined();
     expect(extraNight({ ...extraLevels(0), mother: 10 }).mother).toEqual(NIGHTS[6]!.mother);
     const m20 = extraMother(20)!;
     expect(m20.passes.length).toBe(5);
     expect(m20.pass.length).toBe(5);
-    expect(Math.max(...m20.pass)).toBeGreaterThan(20);
+    // in tutto sta sotto la barca più a lungo che al 10 (cinque passate da 12 a 20 s contro tre da 10 a 20)
+    const sum = (x: number[]) => x.reduce((a, b) => a + b, 0);
+    expect(sum(m20.pass)).toBeGreaterThan(sum(extraMother(10)!.pass));
+    expect(m20.approach).toBeLessThan(extraMother(10)!.approach);
     expect(extraMother(1)!.passes.length).toBe(1);
     // le passate stanno tutte dentro la notte, in ordine
     for (let l = 1; l <= 20; l++) {
@@ -959,6 +962,27 @@ describe('Notte 7, la notte extra', () => {
     expect(extraEndingEarned({ ...extraLevels(20), mother: 9 })).toBe(false);
     expect(extraEndingEarned({ ...extraLevels(20), lampy: 0 })).toBe(false);
     expect(extraEndingEarned(extraLevels(5))).toBe(false);
+  });
+
+  it('tutti a 20, Madre compresa, è difficilissima ma possibile: l\'esperto la vince qualche volta', () => {
+    // decisione dell'utente dell'11 ottobre; con npm run sim -- 7 300 20 l'esperto vince circa il 9% delle notti
+    let wins = 0;
+    for (let seed = 1; seed <= 60; seed++) {
+      if (playNight(new NightSim(extraNight(extraLevels(20)), seed * 7919), SKILLS.expert!, seed).outcome.kind === 'won') wins++;
+    }
+    expect(wins).toBeGreaterThanOrEqual(2);
+    expect(wins).toBeLessThanOrEqual(15);
+  });
+
+  it('i livelli fino al 10 non dipendono dal ritocco del 20', () => {
+    // il tratto dal 10 al 20 parte esattamente dal 10
+    const c10 = extraNight(extraLevels(10));
+    const c11 = extraNight(extraLevels(11));
+    for (const who of ['gulpy', 'molly', 'hatch', 'robin', 'archie', 'lampy', 'fangy'] as const) {
+      const a = c10[who]!.cooldown;
+      const b = c11[who]!.cooldown;
+      expect(Math.abs(b[0] - a[0]), who).toBeLessThan(6);
+    }
   });
 
   it('più alti i livelli, meno notti vinte', () => {

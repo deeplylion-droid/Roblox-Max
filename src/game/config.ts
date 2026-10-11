@@ -477,8 +477,9 @@ type Num = Record<string, number | [number, number]>;
  * - livello 1, «calmo»: arriva tardi e torna di rado (le pause sono 1,6 volte quelle della notte in cui arriva);
  * - livello 5, «come la sua notte»: i numeri della notte in cui arriva per la prima volta (Gulpy, Molly e Hatch
  *   la prima, Robin la seconda, Archie la terza, Lampy la quarta, Fangy la quinta);
- * - livello 20, «feroce»: arriva subito, torna quasi il doppio più spesso che nella sua notte e ha meno pazienza
- *   che nella quinta.
+ * - livello 20, «feroce»: arriva subito e ha meno pazienza che nella quinta notte. Le pause del punto feroce (quasi
+ *   la metà di quelle della sua notte) danno solo la pendenza fra il 5 e il 10: dal 10 al 20 le pause restano quelle
+ *   del 10 (monsterAt), se no tutti a 20 era impossibile.
  * Le regole che il giocatore impara (i dieci della conta, i tre colpi di Lampy, il terzo rumore di Fangy) non cambiano
  * mai: cambiano solo la frequenza e la pazienza.
  */
@@ -534,8 +535,16 @@ function mix(a: Num, b: Num, t: number): Num {
 /** i numeri di un mostro al livello dato (da 1 a EXTRA_MAX) */
 function monsterAt(who: MonsterId, level: number): Num {
   const a = EXTRA_ANCHORS[who];
+  if (level <= 5) return mix(a.calm, a.debut, (level - 1) / 4);
   // oltre il 5 la curva sale piano all'inizio e più in fretta verso il 20, se no il 10 è già quasi impossibile
-  return level <= 5 ? mix(a.calm, a.debut, (level - 1) / 4) : mix(a.debut, a.fierce, ((level - 5) / 15) ** 1.5);
+  const up = (l: number) => mix(a.debut, a.fierce, ((l - 5) / 15) ** 1.5);
+  if (level <= 10) return up(level);
+  // dal 10 al 20 un tratto a sé (decisione dell'utente dell'11 ottobre: tutti a 20 dev'essere difficilissima ma
+  // possibile). Le pause fra una visita e l'altra restano quelle del 10, mentre pazienza, avvisi, velocità e primo
+  // arrivo vanno fino al punto feroce: dal 10 al 20 i mostri non tornano più spesso, ma ogni visita è più cattiva.
+  // Con le pause del punto feroce anche al 20 l'esperto non vinceva quasi mai (docs/NOTTI_E_MOSTRI.md)
+  const at10 = up(10);
+  return mix(at10, { ...a.fierce, cooldown: at10.cooldown! }, (level - 10) / 10);
 }
 
 /**
@@ -545,7 +554,8 @@ function monsterAt(who: MonsterId, level: number): Num {
  * - 0: non viene;
  * - 1: una passata sola, a metà notte, di 8 s, con più avviso (12 s) e un tremito in più perdonato;
  * - 10: esattamente come nella notte 6 (tre passate, verso le 2, le 4 e le 5:30, di 10, 15 e 20 s);
- * - 20: cinque passate, da 14 a 26 s, con meno avviso (8 s) e meno tremito perdonato.
+ * - 20: cinque passate, da 12 a 20 s, con meno avviso (8 s) e meno tremito perdonato (più lunghe di così, con tutti a
+ *   20 non resta il tempo per la quota).
  * Le passate sono un numero intero (1 + livello/5, arrotondato); le durate e gli avvisi si sfumano.
  */
 const MOTHER_SLOTS: Record<number, number[]> = {
@@ -563,8 +573,8 @@ export function extraMother(level: number): MotherConfig | undefined {
   // da 1 a 10 e da 10 a 20 in linea retta
   const at = (v1: number, v10: number, v20: number) => Math.round((l <= 10 ? v1 + ((v10 - v1) * (l - 1)) / 9 : v10 + ((v20 - v10) * (l - 10)) / 10) * 10) / 10;
   const n = 1 + Math.round((l / EXTRA_MAX) * 4);
-  const first = at(8, 10, 14);
-  const last = at(8, 20, 26);
+  const first = at(8, 10, 12);
+  const last = at(8, 20, 20);
   const pass = Array.from({ length: n }, (_, i) => (n === 1 ? first : Math.round((first + ((last - first) * i) / (n - 1)) * 10) / 10));
   return {
     passes: MOTHER_SLOTS[n]!.map((h) => h * H - 10),

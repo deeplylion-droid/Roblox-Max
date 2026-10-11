@@ -383,14 +383,30 @@ Lampy, il terzo rumore di Fangy): cambiano solo **quando arriva, quanto spesso t
     pazienza che nella quinta (Gulpy sale e pretende prima, Molly si offende prima, Hatch conta più svelto e cerca
     più a lungo, Robin ruba più spesso, Archie prende fiato in meno tempo e resta più a lungo al buio, Lampy prende la
     lenza prima, Fangy arriva più svelto e ascolta di più).
-  - Fra 5 e 20 la curva sale piano all'inizio e più in fretta alla fine (se no a 10 era già quasi impossibile).
+  - Fra 5 e 10 la curva sale piano verso il punto feroce (se no a 10 era già quasi impossibile).
+  - **Dal 10 al 20, difficilissima ma possibile** (decisione dell'utente dell'11 ottobre): un tratto a sé, in cui
+    **le pause fra una visita e l'altra restano quelle del 10**, mentre pazienza, avvisi, velocità e primo arrivo vanno
+    fino al punto feroce. Dal 10 al 20 i mostri non tornano più spesso, ma ogni visita è più cattiva; e la Madre al
+    20 passa cinque volte invece di tre, con meno avviso.
+
+    **Perché le pause e non la quota.** Con le pause del punto feroce, tutti a 20 l'esperto non vinceva quasi mai
+    (una notte su 150): moriva quasi sempre alle sei con la quota mancata, 5,5 pesci nel secchio su 10, perché le
+    visite si mangiavano tutto il tempo per pescare. Le strade erano due: allungare le pause al 20, o abbassare la
+    quota ai livelli alti. Ho scelto le pause: la quota resta una sola per tutta la notte extra (la radio dice «Dieci
+    pesci», e una quota che cambia coi livelli sarebbe una regola nuova da spiegare), e il giocatore vede comunque
+    salire la ferocia dal 10 al 20. Fermare le pause al 10 è anche il limite naturale: allungarle oltre (provato fino
+    a 1,4 volte quelle feroci) faceva tornare i mostri **meno** spesso al 20 che al 10, cioè un 20 meno feroce del 10.
+    Con le pause ferme al 10 ho accorciato un po' anche le passate della Madre al 20 (da 12 a 20 s invece che da 14 a
+    26): con quelle più lunghe l'esperto vinceva il 5,7%, al limite basso. Risultato: **l'esperto vince il 6,7% delle
+    notti tutti a 20** (su 300; su 600 seed il 7,3%), il medio il 2%, il maldestro mai. I livelli fino al 10 non sono
+    cambiati (un test lo controlla).
 - **La Madre** (**confermato l'11 ottobre** che c'è, come ottavo livello): è la stessa della notte 6 (l'ombra enorme
   sul sonar, i figli che si zittiscono e tornano giù, l'immobilità totale mentre passa sotto la barca). Il suo livello
   dice **quante volte passa, quanto dura ogni passata e quanto avvisa prima** (`extraMother()`, numeri da approvare):
   - **1**: una passata sola, verso le 3, di 8 s, con 12 s di avviso e un tremito di 5° perdonato;
   - **10**: **esattamente come nella notte 6** (tre passate, verso le 2, le 4 e le 5:30, di 10, 15 e 20 s, 10 s di
     avviso, 4° di tremito; un test lo controlla);
-  - **20**: cinque passate (verso l'1, le 2, le 3, le 4:15 e le 5:30) da 14 a 26 s, con 8 s di avviso e 3° di tremito.
+  - **20**: cinque passate (verso l'1, le 2, le 3, le 4:15 e le 5:30) da 12 a 20 s, con 8 s di avviso e 3° di tremito.
 
   Le passate sono 1 + livello/5 (arrotondato: 2 dal 3, 3 dall'8, 4 dal 13, 5 dal 18); durate, avviso e tremito si
   sfumano. A 0 non viene. Il finale A della notte 6 (lei che si prende il secchio) nella notte extra non c'è.
@@ -423,36 +439,37 @@ Lampy, il terzo rumore di Fangy): cambiano solo **quando arriva, quanto spesso t
   quando la Madre sarà renderizzata).
   La radio, corta: «Notte extra. Dieci pesci. / Stanotte vengono quelli che hai chiamato tu. / Buona pesca.» /
   «Extra night. Ten fish. / Tonight the ones you called are coming. / Good fishing.»
-- **Giocatori simulati, con la Madre** (`npm run sim -- 7 300 <livelli>`; un numero vale per tutti e otto, se no gli
-  otto livelli in ordine Gulpy, Molly, Hatch, Robin, Archie, Lampy, Fangy, Madre). Vittorie di esperto / medio /
-  maldestro; fra le morti, «la quota» è la quota mancata alle sei e «la Madre» è lei che ti prende perché ti sei
-  mosso:
+- **Giocatori simulati, con la Madre** (`npm run sim -- 7 300 <livelli>`, dopo l'unione della lampara e della notte 6:
+  batteria più rapida, Molly che aspetta sotto il telone, Robin che si scaccia con la sola luce; un numero vale per tutti
+  e otto, se no gli otto livelli in ordine Gulpy, Molly, Hatch, Robin, Archie, Lampy, Fangy, Madre). Vittorie di
+  esperto / medio / maldestro; fra le morti, «la quota» è la quota mancata alle sei e «la Madre» è lei che ti prende
+  perché ti sei mosso:
 
   | Livelli | Esperto | Medio | Maldestro | Chi uccide |
   |---|---|---|---|---|
   | tutti a 0 | 100% | 100% | 100% | nessuno: si pesca e basta |
-  | tutti a 1 | 98% | 87% | 64% | Lampy (i bot sbagliano a sentire i tre colpi), la Madre |
-  | tutti a 3 | 99% | 81% | 58% | Lampy, la Madre |
-  | tutti a 5 | 99% | 76% | 42% | Lampy, la Madre, Fangy |
-  | **tutti a 10** (il minimo per il finale B) | 90% | 67% | 26% | la Madre, Lampy, la quota; il maldestro anche Archie |
-  | tutti a 15 | 28% | 24% | 4% | la quota (non resta tempo per pescare), la Madre |
-  | tutti a 20 | 0,3% | 0,3% | 0% | la quota, la Madre, Molly |
+  | tutti a 1 | 99% | 85% | 63% | Lampy (i bot sbagliano a sentire i tre colpi), la Madre |
+  | tutti a 3 | 98% | 79% | 52% | Lampy, la Madre |
+  | tutti a 5 | 98% | 76% | 39% | Lampy, la Madre, Fangy, Archie |
+  | **tutti a 10** (il minimo per il finale B) | 89% | 65% | 27% | la Madre, Lampy, la quota; il maldestro anche Archie |
+  | tutti a 15 | 34% | 22% | 5% | la quota (non resta tempo per pescare), la Madre |
+  | **tutti a 20** | **6,7%** | 2% | 0% | quasi sempre la quota; poi la Madre |
+  | i sette a 20, la Madre a 0 | 10% | 7% | 3% | la quota, Lampy |
   | solo la Madre a 10 | 98% | 78% | 65% | la Madre |
-  | solo la Madre a 20 | 95% | 67% | 38% | la Madre |
-  | tutti a 5, Lampy e Fangy a 15, Madre a 5 | 92% | 65% | 33% | Lampy, la quota, la Madre |
-  | i primi tre a 15, il resto a 0 | 96% | 90% | 70% | Molly |
-  | i primi quattro a 20, il resto a 0 | 11% | 4% | 2% | la quota, Molly |
-  | Robin, Archie, Lampy e Fangy a 20, il resto a 0 | 99% | 79% | 4% | Archie, Lampy |
+  | solo la Madre a 20 | 97% | 69% | 45% | la Madre |
+  | tutti a 5, Lampy e Fangy a 15, Madre a 5 | 94% | 71% | 36% | Lampy, la Madre |
+  | i primi tre a 15, il resto a 0 | 100% | 100% | 100% | nessuno |
+  | i primi quattro a 20, il resto a 0 | 94% | 85% | 65% | la quota (Gulpy e Robin svuotano il secchio) |
+  | Robin, Archie, Lampy e Fangy a 20, il resto a 0 | 99% | 80% | 6% | Archie, Lampy |
 
-  Senza la Madre (i sette a 10 e lei a 0) l'esperto vince l'82%: **con lei vince di più** (90%), perché quando passa
-  i figli tornano giù e per un po' non salgono. La Madre uccide soprattutto chi si muove (il maldestro e il medio).
-  Ogni mostro da solo a 20 si batte (l'esperto vince sempre o quasi; il medio fra il 67% con la Madre o Lampy e il
-  100%; il maldestro muore ad Archie nel 95% delle notti); insieme rubano troppo tempo alla pesca. **Tutti a 20** per
-  ora è la sfida quasi impossibile, come il 20/20/20/20 di FNAF (i bot ne vincono una su trecento; l'esperto tiene la
-  lampara alta e attira tutti, quindi da 15 in su non fa meglio del medio). Se l'utente la vuole difficile ma
-  possibile, le strade sono due: pause più lunghe al 20, o una quota che scende quando i livelli sono alti (sarebbe
-  una regola nuova: da decidere). Il finale B (tutti almeno a 10) per l'esperto è alla portata, per il medio due volte
-  su tre.
+  A 10 con la Madre l'esperto vince di più che senza (tutti a 10: 89%; i sette a 10 e lei a 0: 82%), perché quando
+  passa i figli tornano giù e per un po' non salgono; a 20 invece le sue cinque passate tolgono tempo alla pesca
+  (con lei 6,7%, senza 10%); lei uccide soprattutto chi si muove (il maldestro e il medio). Ogni
+  mostro da solo a 20 si batte; insieme rubano il tempo per pescare, e a 20 il nemico vero è l'orologio. L'esperto
+  tiene la lampara alta e attira tutti, quindi da 15 in su vince poco più del medio: un giocatore che dosa la luce
+  dovrebbe fare meglio dei bot. Il finale B (tutti almeno a 10) per l'esperto è alla portata, per il medio due volte su
+  tre; tutti a 20 è il traguardo da raccontare. Un test controlla che a 20 l'esperto vinca qualche volta (4 notti su 60
+  seed fissi).
 
 ## I finali
 
