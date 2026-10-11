@@ -632,6 +632,118 @@ describe('Notte 5', () => {
   });
 });
 
+const N6 = NIGHTS[6]!;
+
+/** la sesta notte con la sola Madre (i figli lontanissimi, salvo `keep`); i pesci abboccano tardissimo */
+function quiet6(keep: Partial<NightConfig> = {}): NightConfig {
+  const far = 1e9;
+  return {
+    ...N6,
+    biteMul: 50,
+    gulpy: { ...N6.gulpy, firstAt: far },
+    molly: { ...N6.molly, firstAt: far },
+    hatch: { ...N6.hatch, firstAt: far },
+    robin: { ...N6.robin!, firstAt: far },
+    archie: { ...N6.archie!, firstAt: far },
+    lampy: { ...N6.lampy!, firstAt: far },
+    fangy: { ...N6.fangy!, firstAt: far },
+    ...keep,
+  };
+}
+
+const isMother = (e: GameEvent, what: string) => e.t === 'mother' && e.e === what;
+
+/** fa avanzare fino all'inizio della prima passata sotto la barca, più `extra` secondi */
+function untilPassing(sim: NightSim, extra = 0.8): void {
+  const m = sim.cfg.mother!;
+  run(sim, m.passes[0]! + m.approach - sim.time + extra);
+  expect(sim.mother!.passing).toBe(true);
+}
+
+describe('Notte 6', () => {
+  const m = N6.mother!;
+
+  it('la Madre c’è solo nella sesta notte', () => {
+    expect(new NightSim(quiet5(), 1).mother).toBeNull();
+    expect(new NightSim(quiet6(), 1).mother).not.toBeNull();
+  });
+
+  it('arriva alle ore fisse e passa sotto la barca; se resti fermo se ne va', () => {
+    const sim = new NightSim(quiet6(), 1);
+    const ev = timed(sim, m.passes[0]! + m.approach + m.pass[0]! + m.leave + 1, (e) => isMother(e, 'gone'));
+    const mother = ev.filter((x) => x.e.t === 'mother' && (x.e as { e: string }).e !== 'call');
+    expect(mother.map((x) => (x.e as { e: string }).e)).toEqual(['approach', 'pass', 'leave', 'gone']);
+    const at = (what: string) => mother.find((x) => isMother(x.e, what))!.t;
+    expect(at('approach')).toBeCloseTo(m.passes[0]!, 0);
+    expect(at('leave') - at('pass')).toBeCloseTo(m.pass[0]!, 0);
+    expect(sim.playing).toBe(true);
+  });
+
+  it('quando arriva i figli tornano giù e non risalgono finché è vicina', () => {
+    const sim = new NightSim(quiet6({ molly: { ...N6.molly, firstAt: m.passes[0]! - 12 } }), 2);
+    run(sim, m.passes[0]! - 1);
+    expect(sim.molly.state === 'knocking' || sim.molly.present).toBe(true);
+    run(sim, 3.5);
+    expect(sim.molly.present).toBe(false);
+    run(sim, m.approach + m.pass[0]! - 3);
+    expect(sim.molly.present || sim.molly.state === 'knocking').toBe(false);
+    expect(sim.playing).toBe(true);
+  });
+
+  it('mentre passa sotto, un gesto qualunque e ti prende', () => {
+    for (const gesture of [(s: NightSim) => s.setLamp(2), (s: NightSim) => s.toggleHide(), (s: NightSim) => s.setReelHeld(true), (s: NightSim) => s.setView(s.viewYaw, true)]) {
+      const sim = new NightSim(quiet6(), 3);
+      untilPassing(sim);
+      gesture(sim);
+      run(sim, 0.2);
+      expect(sim.outcome).toEqual({ kind: 'dead', killer: 'mother', cause: 'moved' });
+    }
+  });
+
+  it('lo sguardo: un tremito si perdona, girarsi no', () => {
+    const still = new NightSim(quiet6(), 4);
+    untilPassing(still);
+    still.setView(still.viewYaw + m.still * 0.6, false);
+    run(still, 1);
+    expect(still.playing).toBe(true);
+    const turned = new NightSim(quiet6(), 4);
+    untilPassing(turned);
+    turned.setView(turned.viewYaw + 25, false);
+    run(turned, 0.2);
+    expect(turned.outcome).toEqual({ kind: 'dead', killer: 'mother', cause: 'moved' });
+  });
+
+  it('se ti eri appena girato, la vista che si ferma da sola non conta', () => {
+    const sim = new NightSim(quiet6(), 5);
+    run(sim, m.passes[0]! + m.approach - sim.time + 0.05);
+    expect(sim.mother!.passing).toBe(true);
+    sim.setView(sim.viewYaw + 6, false);
+    run(sim, 0.2);
+    sim.setView(sim.viewYaw + 3, false);
+    run(sim, 1.5);
+    expect(sim.playing).toBe(true);
+  });
+
+  it('mentre si avvicina ci si può ancora muovere', () => {
+    const sim = new NightSim(quiet6(), 6);
+    run(sim, m.passes[0]! + 2);
+    expect(sim.mother!.state).toBe('approaching');
+    sim.setLamp(2);
+    sim.setView(90, false);
+    run(sim, 1);
+    expect(sim.playing).toBe(true);
+  });
+
+  it('un bot esperto supera spesso la sesta notte', () => {
+    let wins = 0;
+    for (let seed = 1; seed <= 30; seed++) {
+      const sim = playNight(new NightSim(N6, seed), SKILLS.expert!, seed);
+      if (sim.outcome.kind === 'won') wins++;
+    }
+    expect(wins).toBeGreaterThanOrEqual(22);
+  });
+});
+
 describe('Pesca', () => {
   const fish = () => ({ species: { id: 'prova', weight: 1, strength: 1, kg: [1, 2] as [number, number] }, lore: null, kg: 1 });
   const hooked = () => {

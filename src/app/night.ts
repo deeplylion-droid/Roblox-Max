@@ -11,7 +11,7 @@ import { CHILD, RADIO_VOICE, speak, type Utterance } from '../engine/voice.ts';
 import { FISHING, HOUR_SECONDS, NIGHTS, VIEW, YAW, type LampLevel, type MonsterId } from '../game/config.ts';
 import type { GameEvent } from '../game/events.ts';
 import { LAMPY_FIRST_BEAT } from '../game/monsters.ts';
-import { NightSim } from '../game/sim.ts';
+import { NightSim, type MotherCause } from '../game/sim.ts';
 import { FISH_BY_ID } from '../game/catalog.ts';
 import { LORE_TEXT, RADIO, STRINGS, type Lang } from '../i18n.ts';
 import { Hud } from './hud.ts';
@@ -46,7 +46,7 @@ export interface NightStats {
   time: number;
 }
 
-export type NightEnd = { kind: 'won'; stats: NightStats } | { kind: 'dead'; killer: MonsterId | 'mother'; cause?: 'lullaby'; stats: NightStats };
+export type NightEnd = { kind: 'won'; stats: NightStats } | { kind: 'dead'; killer: MonsterId | 'mother'; cause?: MotherCause; stats: NightStats };
 
 export interface NightDeps {
   stage: Stage;

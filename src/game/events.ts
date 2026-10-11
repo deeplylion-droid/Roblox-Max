@@ -27,6 +27,8 @@ export type GameEvent =
   | { t: 'archie'; e: 'rise' | 'inhale' | 'relight' | 'wait' | 'blow' | 'dive' | 'gone' | 'attack' }
   | { t: 'lampy'; e: 'grab' | 'beat' | 'giggle' | 'surface' | 'let' | 'gone' | 'hooked' | 'climb' | 'attack'; n?: number }
   | { t: 'fangy'; e: 'approach' | 'rise' | 'snap' | 'leave' | 'gone' | 'attack'; n?: number }
+  /** la Madre (notte 6): il richiamo lontano, l'avvicinamento, la passata sotto la barca, l'allontanamento (n: quale passata) */
+  | { t: 'mother'; e: 'call' | 'approach' | 'pass' | 'leave' | 'gone' | 'attack'; n?: number }
   | { t: 'battery'; e: 'low' | 'dead' }
   | { t: 'lullaby'; e: 'start' | 'end' }
   | { t: 'dead'; killer: MonsterId | 'mother' }

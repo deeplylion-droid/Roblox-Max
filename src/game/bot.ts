@@ -31,12 +31,16 @@ export interface BotSkill {
   fangyGreed: number;
   /** …e quella di smettere appena lo si sente voltarsi */
   fangyStop: number;
+  /** la Madre: con un pesce in canna quando arriva, la probabilità di provare a finirlo prima che passi sotto… */
+  motherGreed: number;
+  /** …e mentre passa, quante volte al secondo scappa un movimento (lo sguardo che si sposta, un gesto) */
+  motherSlip: number;
 }
 
 export const SKILLS: Record<string, BotSkill> = {
-  expert: { name: 'expert', reaction: [0.25, 0.6], turnSpeed: 420, reelHi: 0.72, reelLo: 0.3, pullReaction: 0.12, lampPolicy: 'greedy', hideAtCount: 6, archiePatience: 1.15, lampyEar: 0.998, fangySlip: 0.004, fangyGreed: 0.03, fangyStop: 1 },
-  average: { name: 'average', reaction: [0.5, 1.2], turnSpeed: 260, reelHi: 0.68, reelLo: 0.25, pullReaction: 0.3, lampPolicy: 'steady', hideAtCount: 6, archiePatience: 1.0, lampyEar: 0.97, fangySlip: 0.03, fangyGreed: 0.15, fangyStop: 0.8 },
-  sloppy: { name: 'sloppy', reaction: [0.9, 2.2], turnSpeed: 170, reelHi: 0.8, reelLo: 0.2, pullReaction: 0.55, lampPolicy: 'steady', hideAtCount: 8, archiePatience: 0.8, lampyEar: 0.9, fangySlip: 0.07, fangyGreed: 0.3, fangyStop: 0.55 },
+  expert: { name: 'expert', reaction: [0.25, 0.6], turnSpeed: 420, reelHi: 0.72, reelLo: 0.3, pullReaction: 0.12, lampPolicy: 'greedy', hideAtCount: 6, archiePatience: 1.15, lampyEar: 0.998, fangySlip: 0.004, fangyGreed: 0.03, fangyStop: 1, motherGreed: 0.01, motherSlip: 0.0003 },
+  average: { name: 'average', reaction: [0.5, 1.2], turnSpeed: 260, reelHi: 0.68, reelLo: 0.25, pullReaction: 0.3, lampPolicy: 'steady', hideAtCount: 6, archiePatience: 1.0, lampyEar: 0.97, fangySlip: 0.03, fangyGreed: 0.15, fangyStop: 0.8, motherGreed: 0.12, motherSlip: 0.003 },
+  sloppy: { name: 'sloppy', reaction: [0.9, 2.2], turnSpeed: 170, reelHi: 0.8, reelLo: 0.2, pullReaction: 0.55, lampPolicy: 'steady', hideAtCount: 8, archiePatience: 0.8, lampyEar: 0.9, fangySlip: 0.07, fangyGreed: 0.3, fangyStop: 0.55, motherGreed: 0.3, motherSlip: 0.008 },
 };
 
 export class Bot {
@@ -85,6 +89,12 @@ export class Bot {
     const gulpyHungry = this.noticed('gulpy', gulpy.canBeFed);
     const mollyNeeds = this.noticed('molly', molly.state === 'peeking' || molly.state === 'tantrum');
     const robinThere = this.noticed('robin', !!s.robin?.present);
+
+    // la Madre arriva: ci si ferma dov'è e non ci si muove finché non se n'è andata (anche sotto il telone)
+    if (this.motherStill(dt)) {
+      this.finish(dt, false);
+      return;
+    }
 
     // Fangy ascolta (o le sue lucine stanno arrivando): niente gesti rumorosi, salvo le dimenticanze
     const quiet = this.fangyQuiet(dt);
@@ -227,6 +237,31 @@ export class Bot {
     return true;
   }
 
+  /**
+   * La Madre: mentre arriva si continua a pescare (i figli sono tutti giù), ci si ferma un attimo prima che passi sotto
+   * la barca e non ci si muove finché non si è allontanata; chi ha un pesce in canna a volte non vuole mollarlo e
+   * recupera ancora quando lei è già sotto; mentre passa, ogni tanto scappa un movimento.
+   */
+  private motherStill(dt: number): boolean {
+    const m = this.sim.mother;
+    if (!m) return false;
+    if (m.state === 'approaching' && this.motherSeen !== 'approaching') this.motherGreedy = this.rng.chance(this.skill.motherGreed);
+    this.motherSeen = m.state;
+    if (m.state === 'approaching') {
+      const left = this.sim.cfg.mother!.approach - m.stateTime;
+      const greedy = this.motherGreedy && this.sim.fishing.phase === 'reeling';
+      return left <= (greedy ? -0.4 : this.skill.reaction[1] + 0.4);
+    }
+    if (m.passing) {
+      if (this.rng.chance(this.skill.motherSlip * dt)) this.yaw = angleDiff(this.yaw + (this.rng.chance(0.5) ? 9 : -9), 0);
+      return true;
+    }
+    // se n'è andata: si riparte quando ce ne si accorge
+    return m.state === 'leaving' && !this.noticed('motherGone', true);
+  }
+
+  private motherSeen = '';
+  private motherGreedy = false;
   private slipT = 0;
   private fangySeen = '';
   private fangyGreedy = false;
