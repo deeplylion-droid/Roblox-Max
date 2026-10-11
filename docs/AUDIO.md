@@ -11,7 +11,7 @@ Rigenerazione: `tools/.venv/bin/python tools/audio/generate.py [id...] [--spectr
 - `dsp.py`: mattoni (filtri, rumori periodici, voce a formanti, riverberi, limitatore, misure).
 - `instruments.py`: modelli di medio livello (acqua: bolle, gocce, schizzi, colpi d'onda; legno; corpi bagnati; campane e lamelle; respiri, gabbiani, balene).
 - `creatures.py`: modelli dei versi (voce irregolare con jitter e shimmer variabili, diplofonia, fry, ruvidità da urlo; gola bagnata, saliva, deglutizioni; ossa, denti, masticazione; nocche, unghie, passi bagnati, gomma; compressione e saturazione per bande degli urli).
-- `sounds/`: un modulo per tema (`ambience`, `world`, `fishing`, `gulpy`, `molly`, `hatch`, `robin`, `archie`, `lampy`, `fangy`, `madre`, `music`, `ui`); ogni id si registra con `@sound(...)` o `register(...)`.
+- `sounds/`: un modulo per tema (`ambience`, `world`, `fishing`, `gulpy`, `molly`, `hatch`, `robin`, `archie`, `lampy`, `fangy`, `madre`, `finali`, `music`, `ui`); ogni id si registra con `@sound(...)` o `register(...)`.
 - `master.py`: pulizia, livello (RMS "attivo"), limitatore, codifica Vorbis e verifica sul file decodificato (lunghezza, picco, giunzione del loop).
 
 ## Regole tecniche
@@ -209,6 +209,21 @@ finisce, la ninna nanna si spegne in 4–5 s e il mare torna. Se ti muovi: `js_m
 mare), `madre_lontana.mp3` (i tre richiami lontani sul mare), `madre_ninna_nanna.mp3` (la ninna nanna da sola, un giro e
 l'inizio del successivo), `madre_jumpscare.mp3` (due secondi di passata e il jumpscare), `madre_finale_alba.mp3` (il
 finale, con l'alba del gioco che entra alla fine).
+
+### I finali della notte 6 (11 ottobre, DA APPROVARE)
+I suoni delle cinematiche dei finali (vedi «I finali» in `NOTTI_E_MOSTRI.md`): ognuno copre tutta la cinematica, da
+17 a 18 s, **stereo**, coi livelli degli altri suoni lunghi (RMS attivo ≈ −19/−20 dBFS). Nessuno parla: la Madre al
+massimo canticchia la ninna nanna senza parole. Modulo `tools/audio/sounds/finali.py` (usa la voce, l'acqua e la ninna
+nanna di `madre.py`). `madre_dawn` (24 s) resta per ora, ma per la cinematica c'è la versione corta.
+
+| id | durata | descrizione |
+|---|---|---|
+| `madre_dawn_breve` | 17 s | Il finale A «La quota», ristretto: lei sale a sinistra col mare che si gonfia e l'acqua che le scroscia di dosso (0–3 s); lo sbuffo dallo sfiatatoio con la pioggia dello spruzzo (3 s); i sette figli che affiorano attorno (4–7 s); la pinna sul capodibanda, la barca che s'inclina e geme, il secchio preso (i pesci che scivolano nella lamiera, il manico che sbatte, l'acqua che cola; 7–10 s); giù tutti, i figli e poi lei, con le bolle grosse (10–13 s); dal fondo la fine della ninna nanna che si risolve (La Si Do♯ \| La; 12–16 s); il mare calmo e il primo gabbiano (15–17 s). Il suono dell'alba (`amb_dawn`) può entrare dai 13 s. |
+| `finale_nessuno` | 18 s | Il finale «Nessuno»: lei sale accanto alla barca ma si ferma, un fiato lungo e basso (0–3 s); i figli affiorano uno alla volta attorno alla barca, sette piccoli tonfi distanziati (3–8 s), poi nessuno si muove più: solo gocce; la lampara che muore (il ronzio che cala e sfarfalla) e lo scatto del relè (8–10 s), una pressione bassa che cresce nel buio; la ninna nanna canticchiata senza parole (Mi–Do \| La–Si, lentissima), vicinissima, come dentro l'acqua (10–15 s); a 15 s **taglio netto** sull'edicola del parco: il vento, il cartello di lamiera che cigola sulla catenella, e alla fine (16,7 s) lo scatto di una Polaroid con il motorino che spinge fuori la foto. Dopo il taglio non c'è più il mare. |
+| `finale_tuoi` | 18 s | Il finale «I tuoi»: lei sale e chiama con una frase della ninna nanna, fuori dall'acqua (0–3 s); silenzio, nessuno la segue, e lei richiama più insistente (Mi–Do, Mi–Do, più forte e rotta; 4–6 s); il suo lamento che scende mentre torna giù da sola, prima nell'aria e poi sott'acqua, con le bolle (6–10 s); l'alba: i remi del gozzo che cigolano a ritmo negli scalmi, le pale che tirano l'acqua, e dietro, piccoli tonfi che seguono la barca, un gabbiano (10–14 s); il porto: un gabbiano più vicino, le cime che scricchiolano, la barca che tocca il molo (14,6 s), e i passetti bagnati e scalzi di sette bambini diversi (passo, peso e asse diversi) che scendono sul molo e si allontanano verso il paese (15–18 s). |
+
+**Ascolti di prova** (mp3 in `docs/concept/suoni/`): `finale_A_breve.mp3` (con l'alba del gioco che entra alla fine),
+`finale_nessuno.mp3`, `finale_tuoi.mp3`.
 
 ## Musica e stinger (stereo) — DA APPROVARE
 
