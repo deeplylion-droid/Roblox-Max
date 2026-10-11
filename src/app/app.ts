@@ -25,7 +25,7 @@ const NIGHT_LIMIT = Number(import.meta.env.VITE_ULTIMA_NOTTE) || Infinity;
 /** L'ultima notte giocabile (che esiste nel gioco e che questa build lascia giocare). */
 function lastNight(): number {
   let n = 1;
-  while (NIGHTS[n + 1] && n + 1 <= NIGHT_LIMIT) n++;
+  while (NIGHTS[n + 1] && !NIGHTS[n + 1]!.bozza && n + 1 <= NIGHT_LIMIT) n++;
   return n;
 }
 

@@ -25,12 +25,14 @@ export interface BotSkill {
   archiePatience: number;
   /** probabilità di riconoscere un'abboccata di Lampy dal ritmo e dalla risatina, al secondo colpo */
   lampyEar: number;
+  /** con Fangy che ascolta, quante volte al secondo ci si dimentica e si fa un gesto rumoroso */
+  fangySlip: number;
 }
 
 export const SKILLS: Record<string, BotSkill> = {
-  expert: { name: 'expert', reaction: [0.25, 0.6], turnSpeed: 420, reelHi: 0.72, reelLo: 0.3, pullReaction: 0.12, lampPolicy: 'greedy', hideAtCount: 6, archiePatience: 1.15, lampyEar: 0.998 },
-  average: { name: 'average', reaction: [0.5, 1.2], turnSpeed: 260, reelHi: 0.68, reelLo: 0.25, pullReaction: 0.3, lampPolicy: 'steady', hideAtCount: 6, archiePatience: 1.0, lampyEar: 0.97 },
-  sloppy: { name: 'sloppy', reaction: [0.9, 2.2], turnSpeed: 170, reelHi: 0.8, reelLo: 0.2, pullReaction: 0.55, lampPolicy: 'steady', hideAtCount: 8, archiePatience: 0.8, lampyEar: 0.9 },
+  expert: { name: 'expert', reaction: [0.25, 0.6], turnSpeed: 420, reelHi: 0.72, reelLo: 0.3, pullReaction: 0.12, lampPolicy: 'greedy', hideAtCount: 6, archiePatience: 1.15, lampyEar: 0.998, fangySlip: 0.004 },
+  average: { name: 'average', reaction: [0.5, 1.2], turnSpeed: 260, reelHi: 0.68, reelLo: 0.25, pullReaction: 0.3, lampPolicy: 'steady', hideAtCount: 6, archiePatience: 1.0, lampyEar: 0.97, fangySlip: 0.03 },
+  sloppy: { name: 'sloppy', reaction: [0.9, 2.2], turnSpeed: 170, reelHi: 0.8, reelLo: 0.2, pullReaction: 0.55, lampPolicy: 'steady', hideAtCount: 8, archiePatience: 0.8, lampyEar: 0.9, fangySlip: 0.07 },
 };
 
 export class Bot {
@@ -80,6 +82,9 @@ export class Bot {
     const mollyNeeds = this.noticed('molly', molly.state === 'peeking' || molly.state === 'tantrum');
     const robinThere = this.noticed('robin', !!s.robin?.present);
 
+    // Fangy ascolta (o le sue lucine stanno arrivando): niente gesti rumorosi, salvo le dimenticanze
+    const quiet = this.fangyQuiet(dt);
+
     // Archie prende fiato: si spegne la lampara qualunque cosa si stia facendo (anche sotto il telone)
     const archieDark = this.archieDark(dt);
     if (archieDark && !s.blackout && !s.lampBroken) s.setLamp(0);
@@ -113,10 +118,16 @@ export class Bot {
       // Robin nel secchio: girarsi e sparargli in faccia la lampara al massimo
       this.turnTo(YAW.robin, dt);
       scaring = true;
+    } else if (gulpyHungry && s.fish > 0 && quiet && !(gulpy.state === 'demanding' && gulpy.timer < 1.5 && (s.fangy?.heard ?? 0) < 1)) {
+      // con Fangy che ascolta Gulpy si sfama solo all'ultimo, e solo se Fangy non ha ancora sentito niente
+      this.turnTo(YAW.bow, dt);
     } else if (gulpyHungry && s.fish > 0 && fishing.phase !== 'reeling') {
       if (this.turnTo(YAW.bow, dt)) s.throwFish();
     } else if (gulpyHungry && s.fish > 0 && gulpy.state === 'demanding' && gulpy.timer < 3) {
       if (this.turnTo(YAW.bow, dt)) s.throwFish();
+    } else if (quiet) {
+      // zitti: guardare la canna senza toccarla (un pesce che abbocca si lascia andare)
+      this.turnTo(YAW.rod - 10, dt);
     } else {
       // pesca
       if (this.turnTo(YAW.rod - 10, dt)) {
@@ -134,8 +145,8 @@ export class Bot {
       }
     }
 
-    // lampara (al buio non c'è niente da fare: la batteria è morta)
-    if (!s.blackout && !s.lampBroken) {
+    // lampara (al buio non c'è niente da fare: la batteria è morta; con Fangy che ascolta non si tocca)
+    if (!s.blackout && !s.lampBroken && !quiet) {
       const anyone = gulpy.present || molly.present || hatch.present || molly.state === 'knocking';
       let lamp: LampLevel = 1;
       if (scaring) lamp = 2;
@@ -188,6 +199,21 @@ export class Bot {
     return !this.lampyKnown;
   }
 
+  /** Fangy: zitti da quando sale accanto alla barca finché non torna giù (mentre le lucine arrivano i rumori non contano:
+   *  si finisce di recuperare); ogni tanto ci si dimentica per un attimo. */
+  private fangyQuiet(dt: number): boolean {
+    const f = this.sim.fangy;
+    const near = !!f && f.listening;
+    if (!this.noticed('fangy', near)) return false;
+    if (this.slipT > 0) {
+      this.slipT -= dt;
+      return false;
+    }
+    if (this.rng.chance(this.skill.fangySlip * dt)) this.slipT = 0.6;
+    return true;
+  }
+
+  private slipT = 0;
   private biteAt = -1;
   private lampyKnown: boolean | null = null;
   private archieWait = 0;

@@ -26,6 +26,7 @@ export type GameEvent =
   | { t: 'robin'; e: 'climb' | 'reach' | 'rattle' | 'steal' | 'scared' | 'gone' | 'attack' }
   | { t: 'archie'; e: 'rise' | 'inhale' | 'relight' | 'wait' | 'blow' | 'dive' | 'gone' | 'attack' }
   | { t: 'lampy'; e: 'grab' | 'beat' | 'giggle' | 'surface' | 'let' | 'gone' | 'hooked' | 'climb' | 'attack'; n?: number }
+  | { t: 'fangy'; e: 'approach' | 'rise' | 'snap' | 'leave' | 'gone' | 'attack'; n?: number }
   | { t: 'battery'; e: 'low' | 'dead' }
   | { t: 'lullaby'; e: 'start' | 'end' }
   | { t: 'dead'; killer: MonsterId | 'mother' }

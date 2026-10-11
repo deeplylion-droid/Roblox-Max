@@ -1,4 +1,4 @@
-import { LAMP, angleDiff, VIEW, YAW, type ArchieConfig, type HatchConfig, type LampLevel, type LampyConfig, type MollyConfig, type MonsterId, type GulpyConfig, type RobinConfig, type Side } from './config.ts';
+import { LAMP, angleDiff, VIEW, YAW, type ArchieConfig, type FangyConfig, type HatchConfig, type LampLevel, type LampyConfig, type MollyConfig, type MonsterId, type GulpyConfig, type RobinConfig, type Side } from './config.ts';
 import type { GameEvent } from './events.ts';
 import type { Rng } from './rng.ts';
 
@@ -804,3 +804,146 @@ export class Lampy {
 export const LAMPY_FIRST_BEAT = 0.3;
 /** quanto ci mette ad andare giù quando molla (s) */
 export const LAMPY_LET = 0.9;
+
+// ───────────────────────── Fangy: stare zitti (notte 5) ─────────────────────────
+
+export type FangyState = 'dormant' | 'away' | 'approaching' | 'rising' | 'listening' | 'leaving' | 'attack';
+
+/**
+ * Fangy, il pesce vipera con gli occhialini dipinti di nero (docs/NOTTI_E_MOSTRI.md): da bambino giocava a Marco Polo
+ * a occhi chiusi e vinceva sempre; ora è cieco e caccia a orecchio. Lo annuncia una fila di lucine che si accende
+ * sott'acqua e si avvicina; poi sale accanto alla barca, dietro di te a destra, e ascolta. Ogni rumore (lanciare,
+ * ferrare, recuperare, cambiare la lampara, buttare un pesce, infilarsi sotto il telone) lo fa voltare di scatto e lo
+ * trattiene; al terzo ti è addosso. Se resti zitto abbastanza, se ne va.
+ */
+export class Fangy {
+  state: FangyState = 'dormant';
+  timer: number;
+  /** i rumori che ha sentito in questa visita */
+  heard = 0;
+  /** secondi passati dentro lo stato (per la grafica) */
+  stateTime = 0;
+  private deaf = 0;
+  private reelFor = 0;
+
+  constructor(private cfg: FangyConfig) {
+    this.timer = cfg.firstAt;
+  }
+
+  /** accanto alla barca (fuori dall'acqua o mentre sale e scende) */
+  get present(): boolean {
+    return this.state === 'rising' || this.state === 'listening' || this.state === 'leaving' || this.state === 'attack';
+  }
+
+  /** ascolta: adesso i rumori contano */
+  get listening(): boolean {
+    return this.state === 'rising' || this.state === 'listening';
+  }
+
+  /** 0..1: le lucine che arrivano sott'acqua (l'avviso) */
+  get approach(): number {
+    return this.state === 'approaching' ? Math.min(1, 1 - this.timer / this.cfg.approach) : this.present ? 1 : 0;
+  }
+
+  /** 0..1: quanto è salito accanto alla barca */
+  get rise(): number {
+    switch (this.state) {
+      case 'rising':
+        return Math.min(1, this.stateTime / this.cfg.rise);
+      case 'listening':
+      case 'attack':
+        return 1;
+      case 'leaving':
+        return Math.max(0, 1 - this.stateTime / this.cfg.leave);
+      default:
+        return 0;
+    }
+  }
+
+  private go(s: FangyState, t: number): void {
+    this.state = s;
+    this.timer = t;
+    this.stateTime = 0;
+  }
+
+  update(dt: number, w: WorldView): void {
+    this.timer -= dt;
+    this.stateTime += dt;
+    this.deaf = Math.max(0, this.deaf - dt);
+    switch (this.state) {
+      case 'dormant':
+      case 'away':
+        if (this.timer <= 0) {
+          if (w.mayStart('fangy')) {
+            w.started('fangy');
+            w.emit({ t: 'fangy', e: 'approach' });
+            this.heard = 0;
+            this.go('approaching', this.cfg.approach);
+          } else {
+            this.timer = w.rng.range(3, 6);
+          }
+        }
+        break;
+      case 'approaching':
+        if (this.timer <= 0) {
+          w.emit({ t: 'fangy', e: 'rise' });
+          this.go('rising', this.cfg.rise);
+        }
+        break;
+      case 'rising':
+        if (this.timer <= 0) this.go('listening', this.cfg.listen);
+        break;
+      case 'listening':
+        if (this.timer <= 0) {
+          w.emit({ t: 'fangy', e: 'leave' });
+          this.go('leaving', this.cfg.leave);
+        }
+        break;
+      case 'leaving':
+        if (this.timer <= 0) {
+          w.emit({ t: 'fangy', e: 'gone' });
+          this.go('away', cooldown(w, this.cfg.cooldown));
+        }
+        break;
+      case 'attack':
+        break;
+    }
+  }
+
+  /** Un rumore dalla barca: se ascolta lo sente (una volta per gesto), si volta di scatto e resta; al terzo è addosso. */
+  hear(w: WorldView): void {
+    if (!this.listening || this.deaf > 0) return;
+    this.deaf = this.cfg.deaf;
+    this.heard++;
+    w.emit({ t: 'fangy', e: 'snap', n: this.heard });
+    if (this.heard >= this.cfg.noises) {
+      this.state = 'attack';
+      w.emit({ t: 'fangy', e: 'attack' });
+      return;
+    }
+    // ti ha sentito: resta ad ascoltare almeno un altro po'
+    if (this.state === 'listening') this.timer = Math.max(this.timer, this.cfg.listen * 0.6);
+  }
+
+  /** Il mulinello mentre recuperi: un rumore dopo reelNoise secondi, e poi ancora ogni reelNoise. */
+  reel(dt: number, w: WorldView, held: boolean): void {
+    if (!held || !this.listening) {
+      this.reelFor = 0;
+      return;
+    }
+    this.reelFor += dt;
+    if (this.reelFor >= this.cfg.reelNoise) {
+      this.reelFor = 0;
+      this.hear(w);
+    }
+  }
+
+  /** Canta la Madre: torna giù (se non ti è già addosso). */
+  retreat(w: WorldView): void {
+    if (this.state === 'approaching') this.go('away', cooldown(w, this.cfg.cooldown));
+    else if (this.state === 'rising' || this.state === 'listening') {
+      w.emit({ t: 'fangy', e: 'leave' });
+      this.go('leaving', this.cfg.leave);
+    }
+  }
+}

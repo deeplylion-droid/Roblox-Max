@@ -34,6 +34,8 @@ const IT = {
     archieWait: 'Resta al buio finché non va giù',
     // notte 4 (da approvare)
     lampy: 'Tre colpi uguali: è Lampy, non ferrare',
+    // notte 5 (da approvare)
+    fangy: 'Fangy ascolta: niente rumori',
   },
   denied: {
     noFish: 'Il secchio è vuoto.',
@@ -66,6 +68,8 @@ const IT = {
     archie: 'Archie ha spento la tua candelina.',
     // notte 4 (da approvare): da bambina in piscina tirava giù gli altri per le gambe, per scherzo
     lampy: 'Lampy ti ha tirato giù, per scherzo.',
+    // notte 5 (da approvare): giocava a Marco Polo a occhi chiusi e vinceva sempre
+    fangy: '«Marco.» Hai risposto.',
     mother: 'Alle sei il secchio non era pieno. Stanotte la Madre si prenderà un altro bambino.',
     // notte 2 (approvato il 10 ottobre): la batteria è morta e la ninna nanna è finita prima delle sei
     lullaby: 'La canzone è finita prima dell’alba.',
@@ -191,6 +195,11 @@ const IT = {
     lampySurface: 'qualcosa affiora sulla lenza',
     lampyLet: 'molla la lenza',
     lampyClimb: 'risale la lenza',
+    // notte 5 (da approvare)
+    fangyApproach: 'lucine sott’acqua, si avvicinano',
+    fangyRise: 'qualcosa sale accanto alla barca, dietro di te',
+    fangySnap: 'si volta di scatto',
+    fangyLeave: 'torna giù',
   },
   hatchCount: ['Uno…', 'Due…', 'Tre…', 'Quattro…', 'Cinque…', 'Sei…', 'Sette…', 'Otto…', 'Nove…', 'Dieci!'],
   hatchReady: 'Chi c’è c’è, chi non c’è non c’è!',
@@ -227,6 +236,7 @@ const EN: typeof IT = {
     archie: 'Archie is drawing breath: turn off the lamp (Q)',
     archieWait: 'Stay in the dark until he goes under',
     lampy: 'Three even rings: it’s Lampy, don’t strike',
+    fangy: 'Fangy is listening: not a sound',
   },
   denied: {
     noFish: 'The bucket is empty.',
@@ -254,6 +264,7 @@ const EN: typeof IT = {
     robin: 'Robin emptied the bucket. Then you.',
     archie: 'Archie blew out your candle.',
     lampy: 'Lampy pulled you under. Just for fun.',
+    fangy: '"Marco." You answered.',
     mother: 'At six the bucket wasn’t full. Tonight the Mother will take another child.',
     lullaby: 'The song ended before dawn.',
   },
@@ -375,6 +386,10 @@ const EN: typeof IT = {
     lampySurface: 'something surfaces on the line',
     lampyLet: 'it lets go of the line',
     lampyClimb: 'it climbs up the line',
+    fangyApproach: 'lights under the water, coming closer',
+    fangySnap: 'its head snaps round',
+    fangyRise: 'something rises beside the boat, behind you',
+    fangyLeave: 'it sinks back down',
   },
   hatchCount: ['One…', 'Two…', 'Three…', 'Four…', 'Five…', 'Six…', 'Seven…', 'Eight…', 'Nine…', 'Ten!'],
   hatchReady: 'Ready or not, here I come!',
@@ -491,8 +506,28 @@ export const RADIO_NIGHT4: Record<Lang, RadioLine[]> = {
   ],
 };
 
+/** La chiamata della quinta notte (Fangy), corta come le altre: da approvare. */
+export const RADIO_NIGHT5: Record<Lang, RadioLine[]> = {
+  it: [
+    { at: 0.0, text: 'Quinta notte. Tredici pesci.' },
+    { at: 2.4, text: 'Fangy non vede. Sente.' },
+    { at: 4.6, text: 'Quando le luci salgono, zitto.' },
+    { at: 7.0, text: 'Niente mulinello, niente lampara.' },
+    { at: 9.6, text: 'Buona pesca.' },
+    { at: 11.0, text: '' },
+  ],
+  en: [
+    { at: 0.0, text: 'Fifth night. Thirteen fish.' },
+    { at: 2.4, text: 'Fangy can’t see. He hears.' },
+    { at: 4.6, text: 'When the lights come up, not a sound.' },
+    { at: 7.0, text: 'No reel, no lamp.' },
+    { at: 9.6, text: 'Good fishing.' },
+    { at: 11.0, text: '' },
+  ],
+};
+
 /** La chiamata alla radio di ogni notte. */
-export const RADIO: Record<number, Record<Lang, RadioLine[]>> = { 1: RADIO_NIGHT1, 2: RADIO_NIGHT2, 3: RADIO_NIGHT3, 4: RADIO_NIGHT4 };
+export const RADIO: Record<number, Record<Lang, RadioLine[]>> = { 1: RADIO_NIGHT1, 2: RADIO_NIGHT2, 3: RADIO_NIGHT3, 4: RADIO_NIGHT4, 5: RADIO_NIGHT5 };
 
 export const STRINGS: Record<Lang, typeof IT> = { it: IT, en: EN };
 

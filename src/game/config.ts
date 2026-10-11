@@ -4,7 +4,7 @@
  */
 
 export type LampLevel = 0 | 1 | 2;
-export type MonsterId = 'gulpy' | 'molly' | 'hatch' | 'robin' | 'archie' | 'lampy';
+export type MonsterId = 'gulpy' | 'molly' | 'hatch' | 'robin' | 'archie' | 'lampy' | 'fangy';
 export type Side = 'left' | 'right';
 
 export const HOUR_SECONDS = 75;
@@ -34,6 +34,9 @@ export const YAW = {
   /** Lampy aggrappata alla lenza, oltre la punta della canna: dove la lenza le entra in bocca (notte 4, la posa
    *  lampy_lenza di scena_creature.py) */
   lampy: 43,
+  /** Fangy nell'acqua accanto alla barca, a destra un po' dietro il pescatore: dove sta la testa (notte 5, la posa
+   *  fangy_ascolta di scena_creature.py) */
+  fangy: 112,
 };
 
 export const VIEW = {
@@ -157,6 +160,25 @@ export interface LampyConfig {
   climb: number;
 }
 
+export interface FangyConfig {
+  firstAt: number;
+  cooldown: [number, number];
+  /** l'avviso: la fila di lucine che si avvicina sott'acqua (s) */
+  approach: number;
+  /** secondi per salire accanto alla barca */
+  rise: number;
+  /** quanto resta ad ascoltare se non fai rumore (s); ogni rumore lo trattiene almeno un poco */
+  listen: number;
+  /** al rumore numero tanti ti è addosso (la regola: al terzo) */
+  noises: number;
+  /** dopo un rumore, per quanto non ne sente un altro (s): lo stesso gesto conta una volta sola */
+  deaf: number;
+  /** il mulinello: recuperare fa un rumore dopo questi secondi, e poi ancora ogni tanti */
+  reelNoise: number;
+  /** secondi per andarsene */
+  leave: number;
+}
+
 /** La batteria della lampara e del sonar (dalla notte 2). Carica da 1 a 0. */
 export interface BatteryConfig {
   /** consumo al secondo per livello della lampara (spenta, bassa, alta) */
@@ -171,6 +193,8 @@ export interface BatteryConfig {
 
 export interface NightConfig {
   night: number;
+  /** in lavorazione: esiste (test, simulazioni, ?notte=N nelle prove) ma il gioco non la propone ancora */
+  bozza?: boolean;
   quota: number;
   /** aumento dell'attività per ora di gioco (0.08 = +8%/h) */
   hourlyRamp: number;
@@ -194,6 +218,8 @@ export interface NightConfig {
   archie?: ArchieConfig;
   /** dalla notte 4 */
   lampy?: LampyConfig;
+  /** dalla notte 5 */
+  fangy?: FangyConfig;
   hideTime: number;
   unhideTime: number;
 }
@@ -307,6 +333,42 @@ export const NIGHTS: Record<number, NightConfig> = {
     robin: { firstAt: 1.9 * H, cooldown: [72, 112], climb: 3.5, stealEvery: 3, scare: 2.5 },
     archie: { firstAt: 1.2 * H, cooldown: [70, 110], rise: 3, inhale: 4.5, relight: 2.2, dark: 7, dive: 2 },
     lampy: { firstAt: 0.45 * H, cooldown: [42, 68], grab: [1.5, 4], lurkMax: 30, beat: 0.62, surface: 0.6, stay: 2.4, climb: 1.1 },
+    battery: { drain: [0, 1 / 700, 1 / 320], sonar: 1 / 1100, low: 0.15, lullaby: 64 },
+    hideTime: 0.7,
+    unhideTime: 0.6,
+  },
+  // Notte 5: arriva Fangy, che è cieco e caccia a orecchio (docs/NOTTI_E_MOSTRI.md): lo annunciano le lucine che si
+  // avvicinano sott'acqua; accanto alla barca ascolta, e ogni rumore (lanciare, ferrare, il mulinello, la lampara, un
+  // pesce a Gulpy, il telone) lo fa voltare; al terzo è addosso. Va contro tutto il resto: con lui non vengono Hatch
+  // (nascondersi fa rumore), Archie (spegnere la lampara) né Robin (accenderla al massimo); Gulpy sì (sfamarlo è un
+  // rumore). Quota 13. Da approvare con la notte
+  5: {
+    night: 5,
+    bozza: true,
+    quota: 13,
+    hourlyRamp: 0.15,
+    biteMul: 0.21,
+    guaranteedLoreAt: 3,
+    loreChance: 0.08,
+    exclusive: [
+      ['gulpy', 'hatch'],
+      ['robin', 'hatch'],
+      ['robin', 'molly'],
+      ['archie', 'robin'],
+      ['lampy', 'hatch'],
+      ['lampy', 'archie'],
+      ['fangy', 'hatch'],
+      ['fangy', 'archie'],
+      ['fangy', 'robin'],
+    ],
+    minGapBetweenStarts: 5,
+    gulpy: { firstAt: 1.0 * H, cooldown: [105, 150], rise: 6.5, climb: 5.5, patience: 7.5, eat: 4.5 },
+    molly: { firstAt: 1.6 * H, cooldown: [36, 58], knock: 4.5, attention: 4.2, neglectMax: 7.5, tantrumMax: 6 },
+    hatch: { firstAt: 2.5 * H, cooldown: [46, 72], calls: 10, callInterval: 1.05, search: [8, 10.5] },
+    robin: { firstAt: 1.9 * H, cooldown: [72, 112], climb: 3.5, stealEvery: 3, scare: 2.5 },
+    archie: { firstAt: 1.2 * H, cooldown: [70, 110], rise: 3, inhale: 4.5, relight: 2.2, dark: 7, dive: 2 },
+    lampy: { firstAt: 0.8 * H, cooldown: [55, 85], grab: [1.5, 4], lurkMax: 30, beat: 0.62, surface: 0.6, stay: 2.4, climb: 1.1 },
+    fangy: { firstAt: 0.4 * H, cooldown: [50, 80], approach: 5, rise: 1.4, listen: 9, noises: 3, deaf: 0.8, reelNoise: 1.2, leave: 2 },
     battery: { drain: [0, 1 / 700, 1 / 320], sonar: 1 / 1100, low: 0.15, lullaby: 64 },
     hideTime: 0.7,
     unhideTime: 0.6,
