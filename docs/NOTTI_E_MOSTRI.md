@@ -349,3 +349,25 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
 > come il finale A, ma prima di andarsene la Madre ti lascia sul banco una foto dell'edicola, e sei tu da bambino, a
 > Splashland nel 1997 (c'eri anche tu, e sei l'unico che è tornato a casa). Si vede **solo vincendo la notte 7 con
 > impostazioni difficili** (tutti, Madre compresa, almeno a 10); con impostazioni più facili un'alba normale.
+
+## I finali
+
+> **Approvati l'11 ottobre** (i due segreti: proposta dell'utente, storie e regole proposte e approvate).
+> **Ogni finale è una cinematica breve, 15–20 secondi, fatta nel motore del gioco** (la vista che si muove da sola, le
+> pose delle creature, la luce, i suoni e i sottotitoli; saltabile con Esc), poi i titoli di coda. Le immagini della
+> Madre arrivano quando è scelta la sua sagoma.
+
+All'alba della **sesta notte** il finale dipende dal pesce che hai lasciato ai mostri che dormono nelle tane, nelle
+immersioni all'alba (`docs/IMMERSIONI.md`; durante le notti Gulpy va sfamato per forza, quindi non conta):
+
+| Finale | Quando | La cinematica |
+|---|---|---|
+| **«I tuoi»** (segreto) | hai lasciato un pesce a qualcuno **a ogni alba**, dalla prima alla quinta | All'alba la Madre sale e canta per richiamare i figli, ma loro non la seguono: restano attorno alla tua barca. Lei torna giù da sola, col suo lamento. Sorge il sole, la barca rientra verso il porto e sul sonar, dietro di te, sette ombre la seguono. Ultima inquadratura: il molo all'alba, la barca ormeggiata, e sulle assi bagnate sette file di piccole impronte che vanno verso il paese. «Non sei tornato da solo.» |
+| **«Nessuno»** (segreto) | sei sceso nelle tane **almeno tre volte** e **non hai mai lasciato un pesce**, nemmeno quando ti avanzava | All'alba la Madre sale accanto alla barca, ma non guarda il secchio: guarda te. I figli affiorano attorno, uno dopo l'altro, e restano fermi a fissarti. La vista scende verso l'acqua, la lampara si spegne, nel buio la ninna nanna canticchiata. Ultima inquadratura: l'edicola del parco con le foto dei bambini scomparsi; fra le foto, una nuova: la tua. «Non hai mai dato niente ai suoi piccoli. Adesso sei uno di loro.» |
+| **A «La quota»** | in tutti gli altri casi: hai sfamato qualcuno una o due volte (o fino a quattro), oppure non sei mai sceso | La Madre sale accanto alla barca, attorno a lei emergono i figli, prende il secchio e torna giù con loro; sorge il sole; la radio: «Ce l'hai fatta. Per quest'anno.» |
+
+La **notte 7** ha il suo finale, **B «Il ricordo»** (con impostazioni difficili; sopra), anche lui come cinematica
+breve. **Da fare**: il «regista» delle cinematiche nel motore; i render del molo all'alba e dell'edicola da vicino con
+la tua foto; le immagini della Madre; i suoni dei due finali segreti e un taglio più corto del finale all'alba
+(`madre_dawn` oggi dura 24 s). Si fanno dopo la notte 6 e le immersioni, da cui dipendono.
+
