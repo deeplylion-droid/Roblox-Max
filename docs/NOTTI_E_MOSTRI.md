@@ -106,6 +106,10 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
   **puntargli in faccia la lampara al massimo** finché non scappa. Se non lo fai ti porta via pesci (e la
   quota si allontana); se il secchio è vuoto, prende te.
 - **Perché funziona**: con la batteria la luce costa; con Robin in giro non puoi risparmiare sempre.
+- **Dove guardare** (11 ottobre, dopo la prova dell'utente; da approvare): basta guardare **verso la prua** (W) con la
+  lampara alta. Lui sta a 38° a sinistra della prua e prima la luce contava solo entro 20° dalla sua faccia: con gli
+  scatti di W A S D nessuno ci arrivava, e con la luce alta lui rubava lo stesso. Ora conta entro 40°
+  (`VIEW.robinHalfAngle`). Giocatori simulati: esperto 100%, medio dall'81% all'88%, maldestro dal 58% al 60%.
 - **Modello e posa approvati** (10 ottobre; `tools/render/robin.py`, posa `robin_secchio` in
   `scena_creature.py`, anteprime `docs/concept/pose_robin.jpg`, `pose_robin_vicino.jpg`, `robin_vetrina.jpg`):
   steso di traverso sul capodibanda di sinistra verso prua, la faccia (a −38° dall'occhio) girata verso il

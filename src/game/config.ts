@@ -46,8 +46,10 @@ export const VIEW = {
   rodHalfAngle: 55,
   /** per lanciare un pesce a Gulpy bisogna guardare verso prua */
   bowHalfAngle: 70,
-  /** per scacciare Robin bisogna guardarlo in faccia (più stretto: la canna è vicina al secchio) */
-  robinHalfAngle: 20,
+  /** per scacciare Robin bisogna guardare verso di lui: da 20° a 40° l'11 ottobre, così basta guardare la prua (W),
+   *  dove lui sta sul bordo di sinistra a 38° (con gli scatti di W A S D nessuno puntava i 38° esatti, e la luce
+   *  alta non contava) */
+  robinHalfAngle: 40,
 };
 
 export const FISHING = {
