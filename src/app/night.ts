@@ -1499,7 +1499,7 @@ export class Night {
     const sim = this.sim;
     const l = sim.cfg.lampy;
     if (!l) return this.S.hints.hook;
-    if (sim.fishing.fake) return (sim.lampy?.beats ?? 0) >= 2 ? this.S.hints.lampy : '';
+    if (sim.fishing.fake) return sim.lampy?.holding && sim.lampy.beats >= 2 ? this.S.hints.lampy : '';
     return sim.time - this.biteAt >= LAMPY_FIRST_BEAT + l.beat ? this.S.hints.hook : '';
   }
 
