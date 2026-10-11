@@ -203,6 +203,44 @@
      "scale": 0.25
     }
    ]
+  },
+  "robin": {
+   "aspect": 1.7778,
+   "fps": 10,
+   "frames": [
+    {
+     "file": "js_robin_00.webp",
+     "scale": 6.0
+    },
+    {
+     "file": "js_robin_01.webp",
+     "scale": 6.0
+    },
+    {
+     "file": "js_robin_02.webp",
+     "scale": 6.0
+    },
+    {
+     "file": "js_robin_03.webp",
+     "scale": 6.0
+    },
+    {
+     "file": "js_robin_04.webp",
+     "scale": 6.0
+    },
+    {
+     "file": "js_robin_05.webp",
+     "scale": 5.2
+    },
+    {
+     "file": "js_robin_06.webp",
+     "scale": 6.0
+    },
+    {
+     "file": "js_robin_07.webp",
+     "scale": 6.0
+    }
+   ]
   }
  },
  "tarp": {
