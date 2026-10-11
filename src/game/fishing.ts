@@ -31,8 +31,15 @@ export class Fishing {
   /** quanto regge il filo a tensione piena (dipende dalla notte, vedi NightConfig.snapGrace) */
   snapGrace = FISHING.snapGrace;
   current: Catch | null = null;
+  /**
+   * L'abboccata è finta: la lenza l'ha presa Lampy (notte 4). La canna si piega e il galleggiante va sotto come per
+   * un pesce, ma il campanellino lo suona lei e l'abboccata dura finché la tiene; ferrare la aggancia (lo decide la
+   * simulazione, non qui). hooked: l'hai agganciata e risale la lenza (la canna si piega tutta).
+   */
+  fake: false | 'held' | 'hooked' = false;
   /** valore 0..1 per animare la canna (0 riposo, 1 abboccata, 2 recupero) */
   get bend(): number {
+    if (this.fake === 'hooked') return 2;
     if (this.phase === 'bite') return 1;
     if (this.phase === 'reeling') return 1 + Math.min(1, this.tension * 1.2);
     return 0;
@@ -70,6 +77,24 @@ export class Fishing {
     return false;
   }
 
+  /** Lampy prende la lenza che aspetta in acqua: un'abboccata finta che dura finché la tiene. */
+  fakeBite(): boolean {
+    if (this.phase !== 'waiting') return false;
+    this.phase = 'bite';
+    this.fake = 'held';
+    this.timer = 0;
+    return true;
+  }
+
+  /** Lampy molla la lenza: l'esca è ancora lì, il galleggiante torna su e si aspetta un'altra abboccata. */
+  endFake(lamp: LampLevel = 1, biteMul = 1): void {
+    if (!this.fake) return;
+    this.fake = false;
+    this.phase = 'waiting';
+    const [a, b] = FISHING.biteWait;
+    this.timer = this.rng.range(a, b) * LAMP.biteTime[lamp] * biteMul;
+  }
+
   /** Abbandona la canna (nascondersi, voltarsi): il pesce in recupero scappa. */
   abandon(): void {
     if (this.phase === 'reeling') {
@@ -82,6 +107,7 @@ export class Fishing {
   }
 
   private toRebait(): void {
+    this.fake = false;
     this.phase = 'rebait';
     this.timer = FISHING.rebaitTime;
     this.current = null;
@@ -119,6 +145,8 @@ export class Fishing {
         }
         return null;
       case 'bite':
+        // l'abboccata finta dura finché Lampy tiene la lenza
+        if (this.fake) return null;
         this.timer -= dt;
         if (this.timer <= 0) {
           this.emit({ t: 'baitStolen' });

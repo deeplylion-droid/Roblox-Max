@@ -4,7 +4,7 @@
  */
 
 export type LampLevel = 0 | 1 | 2;
-export type MonsterId = 'gulpy' | 'molly' | 'hatch' | 'robin' | 'archie';
+export type MonsterId = 'gulpy' | 'molly' | 'hatch' | 'robin' | 'archie' | 'lampy';
 export type Side = 'left' | 'right';
 
 export const HOUR_SECONDS = 75;
@@ -31,6 +31,9 @@ export const YAW = {
   /** Archie, il collo dritto fuori dall'acqua davanti alla prua, la testa piegata sulla lampara (notte 3; provvisorio
    *  finché non c'è la posa renderizzata) */
   archie: 12,
+  /** Lampy aggrappata alla lenza, oltre la punta della canna: dove la lenza le entra in bocca (notte 4, la posa
+   *  lampy_lenza di scena_creature.py) */
+  lampy: 43,
 };
 
 export const VIEW = {
@@ -137,6 +140,23 @@ export interface ArchieConfig {
   dive: number;
 }
 
+export interface LampyConfig {
+  firstAt: number;
+  cooldown: [number, number];
+  /** quando è pronta aspetta che la lenza sia in acqua, poi la prende dopo questi secondi */
+  grab: [number, number];
+  /** se la lenza non va in acqua per tanto tempo, se ne va senza farsi vedere (s) */
+  lurkMax: number;
+  /** i tre colpi del campanellino: sempre lo stesso intervallo (è il suo segnale, insieme alla risatina) */
+  beat: number;
+  /** dopo il terzo colpo affiora sulla lenza: secondi per salire */
+  surface: number;
+  /** quanto resta lì a guardarti prima di mollare la lenza */
+  stay: number;
+  /** se la ferri, secondi per risalire la lenza fino alla canna */
+  climb: number;
+}
+
 /** La batteria della lampara e del sonar (dalla notte 2). Carica da 1 a 0. */
 export interface BatteryConfig {
   /** consumo al secondo per livello della lampara (spenta, bassa, alta) */
@@ -172,6 +192,8 @@ export interface NightConfig {
   battery?: BatteryConfig;
   /** dalla notte 3 */
   archie?: ArchieConfig;
+  /** dalla notte 4 */
+  lampy?: LampyConfig;
   hideTime: number;
   unhideTime: number;
 }
@@ -254,6 +276,37 @@ export const NIGHTS: Record<number, NightConfig> = {
     hatch: { firstAt: 2.4 * H, cooldown: [50, 76], calls: 10, callInterval: 1.05, search: [8, 10.5] },
     robin: { firstAt: 1.7 * H, cooldown: [85, 130], climb: 3.5, stealEvery: 3, scare: 2.5 },
     archie: { firstAt: 0.55 * H, cooldown: [60, 95], rise: 3, inhale: 4.5, relight: 2.2, dark: 7, dive: 2 },
+    battery: { drain: [0, 1 / 700, 1 / 320], sonar: 1 / 1100, low: 0.15, lullaby: 64 },
+    hideTime: 0.7,
+    unhideTime: 0.6,
+  },
+  // Notte 4: arriva Lampy, che prende la lenza e suona il campanellino a tempo (docs/NOTTI_E_MOSTRI.md): tre colpi
+  // uguali e una risatina, poi affiora e ti guarda e molla (l'esca resta lì); ferrare è morire. È lei la protagonista:
+  // viene presto e spesso. Gulpy passa più di rado (mangiava metà della quota), gli altri un po' più spesso della terza
+  // notte e i pesci abboccano più in fretta. Lampy non viene con Hatch (ci si nasconde e la lenza resta lì) né con
+  // Archie (due cose da sentire nello stesso momento). Quota 12. Da approvare con la notte
+  4: {
+    night: 4,
+    quota: 12,
+    hourlyRamp: 0.15,
+    biteMul: 0.21,
+    guaranteedLoreAt: 3,
+    loreChance: 0.08,
+    exclusive: [
+      ['gulpy', 'hatch'],
+      ['robin', 'hatch'],
+      ['robin', 'molly'],
+      ['archie', 'robin'],
+      ['lampy', 'hatch'],
+      ['lampy', 'archie'],
+    ],
+    minGapBetweenStarts: 5,
+    gulpy: { firstAt: 1.0 * H, cooldown: [105, 150], rise: 6.5, climb: 5.5, patience: 7.5, eat: 4.5 },
+    molly: { firstAt: 1.6 * H, cooldown: [36, 58], knock: 4.5, attention: 4.2, neglectMax: 7.5, tantrumMax: 6 },
+    hatch: { firstAt: 2.5 * H, cooldown: [46, 72], calls: 10, callInterval: 1.05, search: [8, 10.5] },
+    robin: { firstAt: 1.9 * H, cooldown: [72, 112], climb: 3.5, stealEvery: 3, scare: 2.5 },
+    archie: { firstAt: 1.2 * H, cooldown: [70, 110], rise: 3, inhale: 4.5, relight: 2.2, dark: 7, dive: 2 },
+    lampy: { firstAt: 0.45 * H, cooldown: [42, 68], grab: [1.5, 4], lurkMax: 30, beat: 0.62, surface: 0.6, stay: 2.4, climb: 1.1 },
     battery: { drain: [0, 1 / 700, 1 / 320], sonar: 1 / 1100, low: 0.15, lullaby: 64 },
     hideTime: 0.7,
     unhideTime: 0.6,

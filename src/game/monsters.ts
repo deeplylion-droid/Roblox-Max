@@ -1,4 +1,4 @@
-import { LAMP, angleDiff, VIEW, YAW, type ArchieConfig, type HatchConfig, type LampLevel, type MollyConfig, type MonsterId, type GulpyConfig, type RobinConfig, type Side } from './config.ts';
+import { LAMP, angleDiff, VIEW, YAW, type ArchieConfig, type HatchConfig, type LampLevel, type LampyConfig, type MollyConfig, type MonsterId, type GulpyConfig, type RobinConfig, type Side } from './config.ts';
 import type { GameEvent } from './events.ts';
 import type { Rng } from './rng.ts';
 
@@ -627,3 +627,180 @@ export class Archie {
     this.inhaleTime = time;
   }
 }
+
+// ───────────────────────── Lampy: la lenza, non va ferrata (notte 4) ─────────────────────────
+
+export type LampyState = 'dormant' | 'away' | 'lurking' | 'ringing' | 'surfacing' | 'staring' | 'letting' | 'climbing' | 'attack';
+
+/** Quello che Lampy sa della lenza (la simulazione gliela presta). */
+export interface LampyLine {
+  /** la lenza è in acqua e aspetta un'abboccata */
+  waiting: boolean;
+  /** la lenza è ancora sua (un'abboccata finta in corso) */
+  held: boolean;
+  /** la prende: l'abboccata finta comincia */
+  grab(): boolean;
+  /** la molla: il galleggiante torna su, l'esca è ancora lì */
+  release(): void;
+}
+
+/**
+ * Lampy, la lampreda con la cuffia da piscina (docs/NOTTI_E_MOSTRI.md): da bambina in piscina tirava giù gli altri per
+ * le gambe, per scherzo; ora tira la lenza. Prende la lenza che aspetta in acqua e fa suonare il campanellino come
+ * un'abboccata, ma con un ritmo perfetto: tre colpi uguali, e dopo il secondo una risatina sott'acqua. Dopo il terzo
+ * affiora sulla lenza (scelto l'11 ottobre: «dopo i tre colpi»), ti guarda, poi molla e va giù (l'esca resta lì: chi
+ * aspetta perde solo il tempo della sua visita).
+ * Se ferri mentre ti tiene la lenza l'hai agganciata: risale la lenza fino alla canna, ed è addosso.
+ */
+export class Lampy {
+  state: LampyState = 'dormant';
+  timer: number;
+  /** colpi del campanellino suonati in questa abboccata (1..3) */
+  beats = 0;
+  /** secondi passati dentro lo stato (per la grafica) */
+  stateTime = 0;
+  private lurked = 0;
+
+  constructor(private cfg: LampyConfig) {
+    this.timer = cfg.firstAt;
+  }
+
+  /** sulla lenza, che si veda o no */
+  get present(): boolean {
+    return this.state === 'ringing' || this.state === 'surfacing' || this.state === 'staring' || this.state === 'letting' ||
+      this.state === 'climbing';
+  }
+
+  /** fuori dall'acqua, sulla lenza */
+  get visible(): boolean {
+    return this.state === 'surfacing' || this.state === 'staring' || this.state === 'letting' || this.state === 'climbing';
+  }
+
+  /** tiene la lenza: se ferri adesso l'hai agganciata */
+  get holding(): boolean {
+    return this.state === 'ringing' || this.state === 'surfacing' || this.state === 'staring';
+  }
+
+  /** 0..1: quanto è affiorata (sale dopo il terzo colpo, scende quando molla) */
+  get rise(): number {
+    switch (this.state) {
+      case 'surfacing':
+        return Math.min(1, this.stateTime / this.cfg.surface);
+      case 'staring':
+      case 'climbing':
+        return 1;
+      case 'letting':
+        return Math.max(0, 1 - this.stateTime / LAMPY_LET);
+      default:
+        return 0;
+    }
+  }
+
+  private go(s: LampyState, t: number): void {
+    this.state = s;
+    this.timer = t;
+    this.stateTime = 0;
+  }
+
+  update(dt: number, w: WorldView, line: LampyLine): void {
+    this.timer -= dt;
+    this.stateTime += dt;
+    // la lenza non è più sua (ti sei nascosto, hai lanciato un pesce a Gulpy): se ne va
+    if ((this.state === 'ringing' || this.state === 'surfacing' || this.state === 'staring') && !line.held) {
+      this.leave(w, false);
+      return;
+    }
+    switch (this.state) {
+      case 'dormant':
+      case 'away':
+        if (this.timer <= 0) {
+          if (w.mayStart('lampy')) {
+            w.started('lampy');
+            this.go('lurking', w.rng.range(this.cfg.grab[0], this.cfg.grab[1]));
+            this.lurked = 0;
+          } else {
+            this.timer = w.rng.range(3, 6);
+          }
+        }
+        break;
+      case 'lurking':
+        this.lurked += dt;
+        if (!line.waiting) {
+          // aspetta che la lenza torni in acqua (il timer riparte da quando ci torna)
+          this.timer = Math.max(this.timer, 0.6);
+          if (this.lurked > this.cfg.lurkMax) this.go('away', cooldown(w, this.cfg.cooldown));
+          break;
+        }
+        if (this.timer <= 0 && line.grab()) {
+          w.emit({ t: 'lampy', e: 'grab' });
+          this.beats = 0;
+          this.go('ringing', LAMPY_FIRST_BEAT);
+        }
+        break;
+      case 'ringing':
+        if (this.timer <= 0) {
+          this.beats++;
+          w.emit({ t: 'lampy', e: 'beat', n: this.beats });
+          if (this.beats === 2) w.emit({ t: 'lampy', e: 'giggle' });
+          if (this.beats < 3) this.timer += this.cfg.beat;
+          else {
+            w.emit({ t: 'lampy', e: 'surface' });
+            this.go('surfacing', this.cfg.surface);
+          }
+        }
+        break;
+      case 'surfacing':
+        if (this.timer <= 0) this.go('staring', this.cfg.stay);
+        break;
+      case 'staring':
+        if (this.timer <= 0) this.leave(w, true, line);
+        break;
+      case 'letting':
+        if (this.timer <= 0) {
+          w.emit({ t: 'lampy', e: 'gone' });
+          this.go('away', cooldown(w, this.cfg.cooldown));
+        }
+        break;
+      case 'climbing':
+        if (this.timer <= 0) {
+          this.state = 'attack';
+          w.emit({ t: 'lampy', e: 'attack' });
+        }
+        break;
+      case 'attack':
+        break;
+    }
+  }
+
+  /** Hai ferrato mentre ti teneva la lenza: l'hai agganciata, risale la lenza fino a te. */
+  hook(w: WorldView): boolean {
+    if (!this.holding) return false;
+    w.emit({ t: 'lampy', e: 'hooked' });
+    w.emit({ t: 'lampy', e: 'climb' });
+    this.go('climbing', this.cfg.climb);
+    return true;
+  }
+
+  /** Canta la Madre: molla la lenza e va giù (se non l'hai già agganciata). */
+  retreat(w: WorldView, line?: LampyLine): void {
+    if (this.state === 'lurking') this.go('away', cooldown(w, this.cfg.cooldown));
+    else if (this.holding) this.leave(w, true, line);
+  }
+
+  /** Molla la lenza: se si vedeva (o stava per affiorare) va giù sotto i tuoi occhi, se no sparisce e basta. */
+  private leave(w: WorldView, release: boolean, line?: LampyLine): void {
+    if (release) line?.release();
+    if (this.visible || this.state === 'staring') {
+      w.emit({ t: 'lampy', e: 'let' });
+      this.go('letting', LAMPY_LET);
+    } else {
+      w.emit({ t: 'lampy', e: 'gone' });
+      this.go('away', cooldown(w, this.cfg.cooldown));
+    }
+  }
+}
+
+/** dal momento in cui prende la lenza al primo colpo del campanellino (s) */
+export const LAMPY_FIRST_BEAT = 0.3;
+/** quanto ci mette ad andare giù quando molla (s) */
+export const LAMPY_LET = 0.9;

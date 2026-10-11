@@ -32,6 +32,8 @@ const IT = {
     // notte 3 (approvati l'11 ottobre)
     archie: 'Archie prende fiato: spegni la lampara (Q)',
     archieWait: 'Resta al buio finché non va giù',
+    // notte 4 (da approvare)
+    lampy: 'Tre colpi uguali: è Lampy, non ferrare',
   },
   denied: {
     noFish: 'Il secchio è vuoto.',
@@ -62,6 +64,8 @@ const IT = {
     robin: 'Robin ha svuotato il secchio. Poi te.',
     // notte 3 (approvata l'11 ottobre): da bambino spegneva le candeline degli altri alle feste
     archie: 'Archie ha spento la tua candelina.',
+    // notte 4 (da approvare): da bambina in piscina tirava giù gli altri per le gambe, per scherzo
+    lampy: 'Lampy ti ha tirato giù, per scherzo.',
     mother: 'Alle sei il secchio non era pieno. Stanotte la Madre si prenderà un altro bambino.',
     // notte 2 (approvato il 10 ottobre): la batteria è morta e la ninna nanna è finita prima delle sei
     lullaby: 'La canzone è finita prima dell’alba.',
@@ -181,6 +185,12 @@ const IT = {
     archieWait: 'aspetta al buio',
     archieDive: 'si rituffa',
     archieBlow: 'il vetro della lampara esplode',
+    // notte 4 (da approvare)
+    lampyBeat: 'il campanellino, a tempo',
+    lampyGiggle: 'una risatina sott’acqua',
+    lampySurface: 'qualcosa affiora sulla lenza',
+    lampyLet: 'molla la lenza',
+    lampyClimb: 'risale la lenza',
   },
   hatchCount: ['Uno…', 'Due…', 'Tre…', 'Quattro…', 'Cinque…', 'Sei…', 'Sette…', 'Otto…', 'Nove…', 'Dieci!'],
   hatchReady: 'Chi c’è c’è, chi non c’è non c’è!',
@@ -216,6 +226,7 @@ const EN: typeof IT = {
     robin: 'Robin: full light in his face (E)',
     archie: 'Archie is drawing breath: turn off the lamp (Q)',
     archieWait: 'Stay in the dark until he goes under',
+    lampy: 'Three even rings: it’s Lampy, don’t strike',
   },
   denied: {
     noFish: 'The bucket is empty.',
@@ -242,6 +253,7 @@ const EN: typeof IT = {
     hatch: '"Ready or not, here I come." He found you.',
     robin: 'Robin emptied the bucket. Then you.',
     archie: 'Archie blew out your candle.',
+    lampy: 'Lampy pulled you under. Just for fun.',
     mother: 'At six the bucket wasn’t full. Tonight the Mother will take another child.',
     lullaby: 'The song ended before dawn.',
   },
@@ -358,6 +370,11 @@ const EN: typeof IT = {
     archieWait: 'it waits in the dark',
     archieDive: 'it slips back under',
     archieBlow: 'the lamp glass shatters',
+    lampyBeat: 'the bell, in perfect time',
+    lampyGiggle: 'a giggle under the water',
+    lampySurface: 'something surfaces on the line',
+    lampyLet: 'it lets go of the line',
+    lampyClimb: 'it climbs up the line',
   },
   hatchCount: ['One…', 'Two…', 'Three…', 'Four…', 'Five…', 'Six…', 'Seven…', 'Eight…', 'Nine…', 'Ten!'],
   hatchReady: 'Ready or not, here I come!',
@@ -454,8 +471,28 @@ export const RADIO_NIGHT3: Record<Lang, RadioLine[]> = {
   ],
 };
 
+/** La chiamata della quarta notte (Lampy), corta come le altre: da approvare. */
+export const RADIO_NIGHT4: Record<Lang, RadioLine[]> = {
+  it: [
+    { at: 0.0, text: 'Quarta notte. Dodici pesci.' },
+    { at: 2.4, text: 'Lampy tira la lenza.' },
+    { at: 4.6, text: 'Tre colpi uguali e una risatina: non ferrare.' },
+    { at: 8.4, text: 'Lasciala andare.' },
+    { at: 10.4, text: 'Buona pesca.' },
+    { at: 11.8, text: '' },
+  ],
+  en: [
+    { at: 0.0, text: 'Fourth night. Twelve fish.' },
+    { at: 2.4, text: 'Lampy pulls the line.' },
+    { at: 4.6, text: 'Three even rings and a giggle: don’t strike.' },
+    { at: 8.4, text: 'Let her go.' },
+    { at: 10.4, text: 'Good fishing.' },
+    { at: 11.8, text: '' },
+  ],
+};
+
 /** La chiamata alla radio di ogni notte. */
-export const RADIO: Record<number, Record<Lang, RadioLine[]>> = { 1: RADIO_NIGHT1, 2: RADIO_NIGHT2, 3: RADIO_NIGHT3 };
+export const RADIO: Record<number, Record<Lang, RadioLine[]>> = { 1: RADIO_NIGHT1, 2: RADIO_NIGHT2, 3: RADIO_NIGHT3, 4: RADIO_NIGHT4 };
 
 export const STRINGS: Record<Lang, typeof IT> = { it: IT, en: EN };
 

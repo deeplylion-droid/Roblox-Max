@@ -1,4 +1,5 @@
 import { HOUR_SECONDS, NIGHT_HOURS, YAW, angleDiff, type LampLevel } from './config.ts';
+import { LAMPY_FIRST_BEAT } from './monsters.ts';
 import { Rng } from './rng.ts';
 import type { NightSim } from './sim.ts';
 
@@ -22,12 +23,14 @@ export interface BotSkill {
   hideAtCount: number;
   /** quanto resta al buio con Archie che aspetta, rispetto a quanto serve (sotto 1 riaccende troppo presto) */
   archiePatience: number;
+  /** probabilità di riconoscere un'abboccata di Lampy dal ritmo e dalla risatina, al secondo colpo */
+  lampyEar: number;
 }
 
 export const SKILLS: Record<string, BotSkill> = {
-  expert: { name: 'expert', reaction: [0.25, 0.6], turnSpeed: 420, reelHi: 0.72, reelLo: 0.3, pullReaction: 0.12, lampPolicy: 'greedy', hideAtCount: 6, archiePatience: 1.15 },
-  average: { name: 'average', reaction: [0.5, 1.2], turnSpeed: 260, reelHi: 0.68, reelLo: 0.25, pullReaction: 0.3, lampPolicy: 'steady', hideAtCount: 6, archiePatience: 1.0 },
-  sloppy: { name: 'sloppy', reaction: [0.9, 2.2], turnSpeed: 170, reelHi: 0.8, reelLo: 0.2, pullReaction: 0.55, lampPolicy: 'steady', hideAtCount: 8, archiePatience: 0.8 },
+  expert: { name: 'expert', reaction: [0.25, 0.6], turnSpeed: 420, reelHi: 0.72, reelLo: 0.3, pullReaction: 0.12, lampPolicy: 'greedy', hideAtCount: 6, archiePatience: 1.15, lampyEar: 0.998 },
+  average: { name: 'average', reaction: [0.5, 1.2], turnSpeed: 260, reelHi: 0.68, reelLo: 0.25, pullReaction: 0.3, lampPolicy: 'steady', hideAtCount: 6, archiePatience: 1.0, lampyEar: 0.97 },
+  sloppy: { name: 'sloppy', reaction: [0.9, 2.2], turnSpeed: 170, reelHi: 0.8, reelLo: 0.2, pullReaction: 0.55, lampPolicy: 'steady', hideAtCount: 8, archiePatience: 0.8, lampyEar: 0.9 },
 };
 
 export class Bot {
@@ -118,14 +121,17 @@ export class Bot {
       // pesca
       if (this.turnTo(YAW.rod - 10, dt)) {
         if (fishing.phase === 'idle') s.pressRod();
-        else if (fishing.phase === 'bite' && this.noticed('bite', true)) s.pressRod();
+        else if (fishing.phase === 'bite' && this.strike()) s.pressRod();
         else if (fishing.phase === 'reeling') {
           this.pullSeenFor = fishing.pulling ? this.pullSeenFor + dt : 0;
           const pullFelt = this.pullSeenFor > this.skill.pullReaction;
           wantReel = (fishing.tension < this.skill.reelLo) || (!pullFelt && fishing.tension < this.skill.reelHi);
         }
       }
-      if (fishing.phase !== 'bite') this.seen.delete('bite');
+      if (fishing.phase !== 'bite') {
+        this.seen.delete('bite');
+        this.biteAt = -1;
+      }
     }
 
     // lampara (al buio non c'è niente da fare: la batteria è morta)
@@ -160,6 +166,30 @@ export class Bot {
     return inhaling;
   }
 
+  /**
+   * Quando ferrare: dopo il tempo di reazione; nelle notti di Lampy non prima del secondo colpo del campanellino (per
+   * sentire se è a tempo), e mai se l'abboccata è sua e la si è riconosciuta (dal ritmo e dalla risatina) o la si
+   * vede già affiorata sulla lenza.
+   */
+  private strike(): boolean {
+    const s = this.sim;
+    if (this.biteAt < 0) {
+      this.biteAt = s.time;
+      this.lampyKnown = null;
+    }
+    if (!this.noticed('bite', true)) return false;
+    const l = s.cfg.lampy;
+    if (!l) return true;
+    if (s.time - this.biteAt < LAMPY_FIRST_BEAT + l.beat + 0.15) return false;
+    if (!s.fishing.fake) return true;
+    // la si vede quando è fuori almeno a metà
+    if ((s.lampy?.rise ?? 0) >= 0.5) return false;
+    if (this.lampyKnown === null) this.lampyKnown = this.rng.chance(this.skill.lampyEar);
+    return !this.lampyKnown;
+  }
+
+  private biteAt = -1;
+  private lampyKnown: boolean | null = null;
   private archieWait = 0;
   private archieSeen = '';
   private archieRelights = 0;

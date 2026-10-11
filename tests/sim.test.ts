@@ -399,6 +399,139 @@ describe('Notte 3', () => {
 });
 
 
+const N4 = NIGHTS[4]!;
+
+/** la quarta notte con la sola Lampy; i pesci veri abboccano tardissimo, così l'abboccata è sua */
+function quiet4(lampyAt = 5): NightConfig {
+  const far = 1e9;
+  return {
+    ...N4,
+    biteMul: 50,
+    gulpy: { ...N4.gulpy, firstAt: far },
+    molly: { ...N4.molly, firstAt: far },
+    hatch: { ...N4.hatch, firstAt: far },
+    robin: { ...N4.robin!, firstAt: far },
+    archie: { ...N4.archie!, firstAt: far },
+    lampy: { ...N4.lampy!, firstAt: lampyAt },
+  };
+}
+
+/** lancia e aspetta che la lenza sia in acqua */
+function castLine(sim: NightSim): void {
+  sim.setView(YAW.rod, false);
+  sim.pressRod();
+  run(sim, 1.2);
+  expect(sim.fishing.phase).toBe('waiting');
+}
+
+/** gli eventi con l'istante in cui arrivano */
+function timed(sim: NightSim, seconds: number, until?: (e: GameEvent) => boolean): { e: GameEvent; t: number }[] {
+  const out: { e: GameEvent; t: number }[] = [];
+  const dt = 1 / 60;
+  for (let t = 0; t < seconds && sim.playing; t += dt) {
+    sim.update(dt);
+    for (const e of sim.drainEvents()) {
+      out.push({ e, t: sim.time });
+      if (until?.(e)) return out;
+    }
+  }
+  return out;
+}
+
+const isLampy = (e: GameEvent, what: string) => e.t === 'lampy' && e.e === what;
+
+describe('Notte 4', () => {
+  const l = N4.lampy!;
+
+  it('le prime tre notti non hanno Lampy', () => {
+    expect(new NightSim(quiet(), 1).lampy).toBeNull();
+    expect(new NightSim(quiet3(), 1).lampy).toBeNull();
+  });
+
+  it('Lampy prende la lenza e suona tre colpi a tempo perfetto, con la risatina dopo il secondo, poi affiora', () => {
+    const sim = new NightSim(quiet4(), 1);
+    castLine(sim);
+    const ev = timed(sim, 5 + l.grab[1] + 3, (e) => isLampy(e, 'surface'));
+    const grab = ev.find((x) => isLampy(x.e, 'grab'));
+    expect(grab).toBeDefined();
+    // la canna si piega come per un pesce, ma il campanellino non è quello di un'abboccata vera
+    expect(ev.some((x) => x.e.t === 'bite')).toBe(false);
+    const beats = ev.filter((x) => isLampy(x.e, 'beat'));
+    expect(beats.map((x) => (x.e as { n?: number }).n)).toEqual([1, 2, 3]);
+    expect(beats[1]!.t - beats[0]!.t).toBeCloseTo(l.beat, 1);
+    expect(beats[2]!.t - beats[1]!.t).toBeCloseTo(l.beat, 1);
+    const giggle = ev.find((x) => isLampy(x.e, 'giggle'))!;
+    expect(giggle.t).toBeGreaterThanOrEqual(beats[1]!.t);
+    expect(giggle.t).toBeLessThan(beats[2]!.t);
+    expect(ev.at(-1)!.t).toBeGreaterThanOrEqual(beats[2]!.t);
+    expect(sim.lampy!.visible).toBe(true);
+    expect(sim.fishing.phase).toBe('bite');
+  });
+
+  it('aspettando, Lampy ti guarda e molla: l’esca resta e la lenza torna ad aspettare', () => {
+    const sim = new NightSim(quiet4(), 2);
+    castLine(sim);
+    const ev = timed(sim, 5 + l.grab[1] + 2 + l.surface + l.stay + 2, (e) => isLampy(e, 'gone'));
+    expect(ev.some((x) => isLampy(x.e, 'let'))).toBe(true);
+    expect(ev.some((x) => isLampy(x.e, 'gone'))).toBe(true);
+    expect(ev.some((x) => x.e.t === 'baitStolen')).toBe(false);
+    expect(sim.playing).toBe(true);
+    expect(sim.fishing.phase).toBe('waiting');
+    expect(sim.lampy!.present).toBe(false);
+  });
+
+  it('ferrare l’abboccata di Lampy è fatale: l’hai agganciata, risale la lenza ed è addosso', () => {
+    const sim = new NightSim(quiet4(), 3);
+    castLine(sim);
+    timed(sim, 5 + l.grab[1] + 1, (e) => isLampy(e, 'beat'));
+    expect(sim.pressRod()).toBe(true);
+    const ev = timed(sim, l.climb + 0.3);
+    expect(ev.some((x) => isLampy(x.e, 'hooked'))).toBe(true);
+    expect(sim.outcome).toEqual({ kind: 'dead', killer: 'lampy' });
+  });
+
+  it('anche quando è già affiorata, ferrare la aggancia', () => {
+    const sim = new NightSim(quiet4(), 4);
+    castLine(sim);
+    timed(sim, 5 + l.grab[1] + 3, (e) => isLampy(e, 'surface'));
+    run(sim, l.surface + 0.2);
+    expect(sim.lampy!.state).toBe('staring');
+    sim.pressRod();
+    run(sim, l.climb + 0.3);
+    expect(sim.outcome).toEqual({ kind: 'dead', killer: 'lampy' });
+  });
+
+  it('se ti nascondi sotto il telone mentre suona, Lampy molla la lenza e se ne va', () => {
+    const sim = new NightSim(quiet4(), 5);
+    castLine(sim);
+    timed(sim, 5 + l.grab[1] + 1, (e) => isLampy(e, 'beat'));
+    sim.toggleHide();
+    const ev = timed(sim, 1.5);
+    expect(ev.some((x) => isLampy(x.e, 'gone'))).toBe(true);
+    expect(sim.lampy!.present).toBe(false);
+    expect(sim.playing).toBe(true);
+  });
+
+  it('quando canta la Madre Lampy molla la lenza', () => {
+    const sim = new NightSim(quiet4(), 6);
+    castLine(sim);
+    timed(sim, 5 + l.grab[1] + 1, (e) => isLampy(e, 'beat'));
+    sim.battery = 1e-6;
+    run(sim, 1.5);
+    expect(sim.lampy!.present).toBe(false);
+    expect(sim.playing).toBe(true);
+  });
+
+  it('un bot esperto supera quasi sempre la quarta notte', () => {
+    let wins = 0;
+    for (let seed = 1; seed <= 30; seed++) {
+      const sim = playNight(new NightSim(N4, seed), SKILLS.expert!, seed);
+      if (sim.outcome.kind === 'won') wins++;
+    }
+    expect(wins).toBeGreaterThanOrEqual(26);
+  });
+});
+
 describe('Pesca', () => {
   const fish = () => ({ species: { id: 'prova', weight: 1, strength: 1, kg: [1, 2] as [number, number] }, lore: null, kg: 1 });
   const hooked = () => {

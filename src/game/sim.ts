@@ -1,7 +1,7 @@
 import { FISHING, HOUR_SECONDS, LAMP, LORE, NIGHT_HOURS, VIEW, YAW, angleDiff, type LampLevel, type MonsterId, type NightConfig } from './config.ts';
 import type { GameEvent } from './events.ts';
 import { Fishing, type Catch } from './fishing.ts';
-import { Archie, Hatch, Molly, Gulpy, Robin, SONAR_WARN, type WorldView } from './monsters.ts';
+import { Archie, Hatch, Lampy, Molly, Gulpy, Robin, SONAR_WARN, type LampyLine, type WorldView } from './monsters.ts';
 import { Rng } from './rng.ts';
 
 export type Outcome = { kind: 'playing' } | { kind: 'won' } | { kind: 'dead'; killer: MonsterId | 'mother'; cause?: 'lullaby' };
@@ -35,6 +35,10 @@ export class NightSim {
   readonly robin: Robin | null;
   /** dalla notte 3 */
   readonly archie: Archie | null;
+  /** dalla notte 4 */
+  readonly lampy: Lampy | null;
+  /** la lenza come la vede Lampy */
+  private readonly lampyLine: LampyLine;
   /** Archie ha soffiato con la lampara accesa: il vetro è esploso, non si riaccende più */
   lampBroken = false;
   /** carica della batteria, da 1 a 0 (solo se la notte ce l'ha) */
@@ -65,6 +69,18 @@ export class NightSim {
     this.hatch = new Hatch(cfg.hatch);
     this.robin = cfg.robin ? new Robin(cfg.robin) : null;
     this.archie = cfg.archie ? new Archie(cfg.archie) : null;
+    this.lampy = cfg.lampy ? new Lampy(cfg.lampy) : null;
+    const fishing = this.fishing;
+    this.lampyLine = {
+      get waiting() {
+        return fishing.phase === 'waiting';
+      },
+      get held() {
+        return fishing.fake !== false;
+      },
+      grab: () => fishing.fakeBite(),
+      release: () => fishing.endFake(this.lamp, this.cfg.biteMul),
+    };
     this.world = {
       time: 0,
       hour: 0,
@@ -143,6 +159,11 @@ export class NightSim {
     if (!this.facing(YAW.rod, VIEW.rodHalfAngle)) {
       this.emit({ t: 'denied', reason: 'notFacing' });
       return false;
+    }
+    // l'abboccata era di Lampy: l'hai agganciata, risale la lenza
+    if (this.lampy?.holding && this.fishing.fake === 'held') {
+      this.fishing.fake = 'hooked';
+      return this.lampy.hook(this.world);
     }
     return this.fishing.press(() => this.nextCatch());
   }
@@ -269,6 +290,7 @@ export class NightSim {
       },
     });
     this.archie?.update(dt, w);
+    this.lampy?.update(dt, w, this.lampyLine);
     if (this.archie?.state === 'blowing' && !this.lampBroken) {
       // il soffio di Archie: il vetro della lampara esplode, buio
       this.lampBroken = true;
@@ -289,7 +311,9 @@ export class NightSim {
               ? 'robin'
               : this.archie?.state === 'attack'
                 ? 'archie'
-                : null;
+                : this.lampy?.state === 'attack'
+                  ? 'lampy'
+                  : null;
     if (killer) {
       this.die(killer);
       return;
@@ -330,6 +354,7 @@ export class NightSim {
       this.hatch.retreat(w);
       this.robin?.retreat(w);
       this.archie?.retreat(w);
+      this.lampy?.retreat(w, this.lampyLine);
     }
   }
 
@@ -378,6 +403,7 @@ export class NightSim {
     if (waiting(this.hatch.state)) add('hatch', YAW.stern, this.hatch.timer);
     if (this.robin && waiting(this.robin.state)) add('robin', YAW.robin, this.robin.timer);
     if (this.archie && waiting(this.archie.state)) add('archie', YAW.archie, this.archie.timer);
+    if (this.lampy && waiting(this.lampy.state)) add('lampy', YAW.lampy, this.lampy.timer);
     return out;
   }
 
@@ -394,6 +420,8 @@ export class NightSim {
         return this.robin?.present ?? false;
       case 'archie':
         return (this.archie?.present ?? false) || this.archie?.state === 'diving';
+      case 'lampy':
+        return (this.lampy?.present ?? false) || this.lampy?.state === 'lurking';
     }
   }
 
