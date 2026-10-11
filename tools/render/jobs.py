@@ -130,8 +130,17 @@ def yaw_of(p):
 
 # ───────────────────────── codifica ─────────────────────────
 
-def encode_layer(key, exr, space, width, rect=None, yaw_center=0.0, with_alpha=False, data=False, extra=None, quality=90):
+def encode_layer(key, exr, space, width, rect=None, yaw_center=0.0, with_alpha=False, data=False, extra=None, quality=90,
+                 copertura=None):
+    """copertura: l'alfa vera dello strato (senza la nebbia, vedi job_boat); il colore si riscala sulla copertura,
+    così dove lo strato non copre niente non resta la nebbia."""
     p = post.read_exr(exr)
+    if copertura is not None:
+        k = np.clip(copertura / np.maximum(p['alpha'], 1e-4), 0.0, 1.0)[..., None]
+        for g in ('ambient', 'lamp', 'lantern'):
+            if g in p:
+                p[g] = p[g] * k
+        p['alpha'] = copertura
     if rect is not None:
         # Blender a volte rende una riga in più in fondo alla regione (i conti in float32 sul bordo): si taglia alle
         # misure del riquadro, se no l'immagine non combacia col rect
@@ -219,6 +228,14 @@ def write_globals(width):
 
 # ───────────────────────── job ─────────────────────────
 
+def campioni(q):
+    """I campioni del job: quelli della qualità, o CAMPIONI=n; SOGLIA=x cambia la soglia del campionamento adattivo
+    (più bassa: i pixel rumorosi, come l'acqua nella nebbia, prendono più campioni, il cielo si ferma prima)."""
+    if os.environ.get('SOGLIA'):
+        bpy.context.scene.cycles.adaptive_threshold = float(os.environ['SOGLIA'])
+    return int(os.environ.get('CAMPIONI', q.samples))
+
+
 def job_world(q):
     build_scene(fish=0, rod=False)
     for o in coll_objects('boat'):
@@ -232,7 +249,7 @@ def job_world(q):
         # con la nebbia il mist di Cycles si accumula nei volumi: le distanze vere vengono dal passo Depth
         bpy.context.scene.view_layers[0].use_pass_z = True
         passes += ('Depth',)
-    render(exr, q.samples, (W, H), data_passes=passes)
+    render(exr, campioni(q), (W, H), data_passes=passes)
     log('world render', round(time.time() - t), 's')
     encode_layer('world', exr, 'world', q.pano_width, data=True)
     write_globals(q.pano_width)
@@ -240,15 +257,37 @@ def job_world(q):
 
 def job_boat(q):
     build_scene(fish=0, rod=False)
+    atmo = bool(os.environ.get('ATMOSFERA'))
     for o in coll_objects('env'):
-        o.visible_camera = False
+        if atmo and o.name == 'Nebbia':
+            # solo la nebbia attorno alla barca: quella oltre (davanti al mare e al cielo) è già nello strato del
+            # mondo. La densità dipende dalla posizione nel mondo, quindi stringere la scatola non la cambia
+            d = o.dimensions
+            o.scale = (3.4 / d.x, 7.0 / d.y, 3.4 / d.z)
+            o.location = (0.0, 0.0, 1.2)
+            continue
+        if atmo and o.type == 'MESH':
+            # con la nebbia: il mondo fa da maschera (la nebbia fra l'occhio e la barca resta nello strato)
+            o.is_holdout = True
+        else:
+            o.visible_camera = False
     panorama_camera()
     W, H = pano_size(q.pano_width)
     exr = os.path.join(CACHE, q.name, 'boat.exr')
     t = time.time()
-    render(exr, q.samples, (W, H), transparent=True, data_passes=('Alpha',))
+    render(exr, campioni(q), (W, H), transparent=True, data_passes=('Alpha',))
     log('boat render', round(time.time() - t), 's')
-    encode_layer('boat', exr, 'boat', q.pano_width, with_alpha=True)
+    copertura = None
+    if atmo:
+        # Cycles mette la nebbia anche nell'alfa (sul mare lo strato sarebbe velato di nebbia, che il mondo ha già):
+        # l'alfa vera è la copertura della sola barca, da un render rapido senza la nebbia
+        neb = bpy.data.objects['Nebbia']
+        neb.hide_render = True
+        mask = os.path.join(CACHE, q.name, 'boat_copertura.exr')
+        render(mask, 4, (W, H), transparent=True, groups=('ambient',), data_passes=('Alpha',), denoise=False)
+        neb.hide_render = False
+        copertura = post.read_exr(mask)['alpha']
+    encode_layer('boat', exr, 'boat', q.pano_width, with_alpha=True, copertura=copertura)
     write_globals(q.pano_width)
 
 
