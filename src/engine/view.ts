@@ -71,6 +71,9 @@ export class View {
   swayPitch = 0;
   /** 0..1: quanta parte del dondolio della barca si toglie dalla vista (binocolo alzato) */
   steady = 0;
+  /** la barca sollevata da sotto (gradi di rollio e di beccheggio in più: la Madre che le passa sotto) */
+  liftRoll = 0;
+  liftPitch = 0;
   /** matrici risultanti */
   boatRot: number[] = rotZ(0);
   worldRot: number[] = rotZ(0);
@@ -95,7 +98,7 @@ export class View {
     const roll = sw * (1.1 * Math.sin(t * 0.55) + 0.45 * Math.sin(t * 1.37 + 1.2)) + rb * 7.5 * Math.sin(t * 2.1) * (0.7 + 0.3 * Math.sin(t * 0.7));
     const pitch = sw * (0.7 * Math.sin(t * 0.43 + 2.1) + 0.25 * Math.sin(t * 1.1)) + rb * 2.0 * Math.sin(t * 1.6 + 0.5);
     const heave = sw * 0.35 * Math.sin(t * 0.8 + 0.3);
-    this.roll = roll;
+    this.roll = roll + this.liftRoll;
     this.shakeSeed += dt * 60;
     const sh = this.shake;
     const shx = sh * (Math.sin(this.shakeSeed * 1.7) + Math.sin(this.shakeSeed * 2.9)) * 0.6;
@@ -106,7 +109,7 @@ export class View {
     this.boatRot = mul(rotZ(this.yaw + shx + this.swayYaw), mul(rotX(this.pitch + breath + shy + this.swayPitch), rotY(shx * 0.3)));
     // spazio mondo: la barca rolla/beccheggia rispetto all'orizzonte (col binocolo le mani ne compensano una parte)
     const loose = 1 - this.steady;
-    const boatMotion = mul(rotY(roll * loose), rotX((pitch + heave) * loose));
+    const boatMotion = mul(rotY((roll + this.liftRoll) * loose), rotX((pitch + heave + this.liftPitch) * loose));
     this.motion = boatMotion;
     this.worldRot = mul(boatMotion, this.boatRot);
     this.tanX = Math.tan((this.hfov / 2) * D2R);

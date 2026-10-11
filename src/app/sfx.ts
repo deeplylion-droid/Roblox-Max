@@ -552,15 +552,52 @@ export class Sfx {
     this.audio.play('splash_s2', { pos, gain: 0.45, rate: 0.75 });
   }
 
+  // ───────────────────────── la Madre (notte 6) ─────────────────────────
+  // I file madre_* (docs/AUDIO.md, da approvare); finché mancano, ripieghi coi file di scena.
+
+  /** Il suo richiamo lontano, dal fondo (mono: suona dove sta l'ombra sul sonar), mai lo stesso due volte di fila. */
+  motherCall(pos: Vec3): void {
+    if (this.playAny('madre_far', { pos, spread: 0.02, spreadDb: 1 })) return;
+    this.audio.play('mus_madre', { pos, gain: 0.3, lowpass: 380 });
+  }
+
+  /**
+   * Si avvicina (stereo, 12 s): i figli che si zittiscono e tornano giù, il mare che si ferma a 3,5 s, la pressione
+   * che cresce, il richiamo che arriva sotto la barca, la lampara che trema a 6 e a 9 s.
+   */
+  motherApproach(): void {
+    if (this.audio.play('madre_approach')) return;
+    this.audio.play('splash_big', { gain: 0.35, rate: 0.6, lowpass: 700 });
+  }
+
+  /** La ninna nanna canticchiata dal fondo, in loop: parte muta, la si alza con setGain. */
+  motherLullaby(): Voice | null {
+    return this.audio.play('madre_lullaby', { loop: true, gain: 0 }) ?? this.audio.play('mus_title', { loop: true, gain: 0, lowpass: 300, rate: 0.5 });
+  }
+
+  /** La passata sotto la barca (stereo; n = 1, 2, 3: sempre più lunghe, come le passate della notte). */
+  motherPass(n: number): Voice | null {
+    const v = this.audio.play(`madre_pass_${Math.max(1, Math.min(3, n))}`);
+    if (v) return v;
+    this.audio.play('creak_2', { gain: 0.5, rate: 0.5 });
+    return null;
+  }
+
+  /** Il finale A all'alba (stereo, 24 s): lei che sale accanto alla barca coi figli, il secchio, la ninna nanna che si
+   *  risolve, il mare che si calma e il primo gabbiano. */
+  motherDawn(): Voice | null {
+    return this.audio.play('madre_dawn');
+  }
+
   // ───────────────────────── jumpscare ─────────────────────────
 
   /** L'urlo del jumpscare di ciascuna creatura (in faccia, non spazializzato); la voce serve a troncarlo
    *  quando il segnale salta. */
-  jumpscare(who: Creature | MonsterId): Voice | null {
+  jumpscare(who: Creature | MonsterId | 'mother'): Voice | null {
     this.stopLoops();
-    const v = this.audio.play(`js_${who}`);
+    const v = this.audio.play(who === 'mother' ? 'js_madre' : `js_${who}`);
     // senza il file (i mostri nuovi, finché non hanno il loro urlo) un urlo sintetizzato al volo
-    if (!v) this.synthScream(1, who === 'molly' ? 1.35 : who === 'hatch' ? 0.85 : who === 'robin' ? 1.1 : who === 'archie' ? 0.95 : who === 'lampy' ? 1.2 : who === 'fangy' ? 0.8 : 0.7);
+    if (!v) this.synthScream(1, who === 'molly' ? 1.35 : who === 'hatch' ? 0.85 : who === 'robin' ? 1.1 : who === 'archie' ? 0.95 : who === 'lampy' ? 1.2 : who === 'fangy' ? 0.8 : who === 'mother' ? 0.55 : 0.7);
     return v;
   }
 

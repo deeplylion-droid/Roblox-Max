@@ -13,7 +13,7 @@ import type { GameEvent } from '../game/events.ts';
 import { LAMPY_FIRST_BEAT } from '../game/monsters.ts';
 import { NightSim, type MotherCause } from '../game/sim.ts';
 import { FISH_BY_ID } from '../game/catalog.ts';
-import { LORE_TEXT, RADIO, STRINGS, type Lang } from '../i18n.ts';
+import { LORE_TEXT, RADIO, RADIO_FINALE, STRINGS, type Lang, type RadioLine } from '../i18n.ts';
 import { Hud } from './hud.ts';
 import type { Options } from './save.ts';
 import type { Sfx } from './sfx.ts';
@@ -31,7 +31,7 @@ export interface NightAssets {
   /** vista da sotto il telone: passo base e passo retroilluminato (la luce del giocattolo che fruga) */
   tarp: { base: OverlayTex; glow: OverlayTex; aspect: number } | null;
   /** fotogrammi dei jumpscare renderizzati, se ci sono */
-  jumpscares: Partial<Record<MonsterId, { frames: OverlayTex[]; fps: number; aspect: number }>>;
+  jumpscares: Partial<Record<MonsterId | 'mother', { frames: OverlayTex[]; fps: number; aspect: number }>>;
   /** ritratti dei pesci del Catalogo già renderizzati: id → URL dell'immagine */
   fish: Record<string, string>;
   /** i luoghi dell'orizzonte per il binocolo, e dove sta la luce rossa della videocamera */
@@ -288,11 +288,11 @@ export class Night {
   // stato visivo (morbido)
   private v = { gSale: 0, gRise: 0, gPret: 0, mR: 0, mL: 0, hRise: 0, robin: 0, robinFear: 0, robinBlink: 0,
     gJaw: 0, gJawPhase: 0, gJawAmp: 0, mBlink1: 0, mBlink2: 0, hMouth: 0, hMouthT: 99, aRise: 0, aHornT: 0, aHornHalf: 0, aHornFull: 0, aFiato: 0, lRise: 0, lMouth: 0, lMouthT: 0, lClimb: 0,
-    fRise: 0, fBow: 0, fStern: 0, fHead: 0, fHeadT: 1, fFlash: 0, fBreath: 0, fApp: 0, fRow: 0, tarp: 0, toy: 0, toyX: -1, dawn: 0, rock: 0, dark: 0 };
+    fRise: 0, fBow: 0, fStern: 0, fHead: 0, fHeadT: 1, fFlash: 0, fBreath: 0, fApp: 0, fRow: 0, mCalm: 0, mLift: 0, tarp: 0, toy: 0, toyX: -1, dawn: 0, rock: 0, dark: 0 };
   private gulpyDive = 0;
   /** quando è cominciata l'abboccata in corso (per il suggerimento nelle notti di Lampy) */
   private biteAt = -1;
-  private js: { killer: MonsterId; t: number; yaw: number; scream: Voice | null } | null = null;
+  private js: { killer: MonsterId | 'mother'; t: number; yaw: number; scream: Voice | null } | null = null;
   private lineSway = 0;
   /** secondi dal lancio e dal tonfo del galleggiante (−1: niente da animare) */
   private castT = -1;
@@ -314,7 +314,7 @@ export class Night {
   private blinks: Record<string, { wait: number; t: number }> = {};
   // audio
   private loops: Record<string, Voice | null> = {};
-  private radio: { t: number; next: number; utt: Utterance | null; hiss: Voice | null } | null = null;
+  private radio: { t: number; next: number; utt: Utterance | null; hiss: Voice | null; lines?: RadioLine[] } | null = null;
   private bells: number[] = [];
   private creakTimer = 9;
   private lastHourShown = -1;
@@ -334,6 +334,13 @@ export class Night {
   private lullabyV: Voice | null = null;
   /** il risucchio di Archie in corso: si ferma quando smette di prendere fiato */
   private archieBreath: { stop(fade?: number): void } | null = null;
+  /** la Madre (notte 6): la sua ninna nanna e la passata in corso, e da quanto è cominciato lo stato di prima (per i
+   *  momenti dell'avvicinamento: il mare che si ferma, la lampara che trema, la ninna nanna) */
+  private motherSong: Voice | null = null;
+  private motherPassV: Voice | null = null;
+  private motherPrevT = 0;
+  /** il finale A all'alba della notte 6: secondi dalle sei (−1: niente finale) */
+  private finaleT = -1;
 
   constructor(private d: NightDeps) {
     this.S = STRINGS[d.lang];
@@ -350,6 +357,8 @@ export class Night {
     d.ui.appendChild(this.sonarEl);
     this.sonar.onPing = () => d.audio.play('sonar_ping', { pos: [0.3, -1.42, -0.5], gain: 0.25 });
     this.sonar.onWarn = () => d.sfx.sonarWarn();
+    // l'eco della Madre: un bip lungo e basso, più forte quando si avvicina
+    this.sonar.onMother = (near) => d.audio.play('sonar_warn', { gain: 0.35 + 0.45 * near, rate: 0.5 });
     // Molly sta dove l'hanno messa i render: lo sguardo va verificato verso quelle direzioni
     const L = d.stage.man.layers;
     this.gulpyFar = dirPos(L[POSE.gulpySale]?.yaw ?? -15, 7.5, -4);
@@ -391,6 +400,9 @@ export class Night {
     this.lullabyV = null;
     this.archieBreath?.stop(0.2);
     this.archieBreath = null;
+    this.motherSong?.stop(0.4);
+    this.motherPassV?.stop(0.4);
+    this.motherSong = this.motherPassV = null;
     this.d.stage.lampSick = 0;
     this.d.sfx.stopLoops();
     this.hud.destroy();
@@ -401,6 +413,8 @@ export class Night {
     st.view.hfov = 90;
     st.view.shake = 0;
     st.view.steady = st.view.swayYaw = st.view.swayPitch = 0;
+    st.view.liftRoll = st.view.liftPitch = 0;
+    st.view.swell = 1;
   }
 
   setPaused(p: boolean): void {
@@ -535,7 +549,8 @@ export class Night {
       const view = this.d.stage.view;
       const p = this.binoPlaceNear(view.yaw, 0, 14);
       this.binoPitch = p ? p.pitch : 2.5;
-      if (p) view.targetYaw += ((((p.yaw - view.targetYaw) % 360) + 540) % 360) - 180;
+      // (con la Madre vicina lo sguardo non si sposta da solo: mentre passa sotto la barca girarsi è la morte)
+      if (p && !this.sim.mother?.near) view.targetYaw += ((((p.yaw - view.targetYaw) % 360) + 540) % 360) - 180;
     }
     this.binoUp = up;
   }
@@ -675,7 +690,7 @@ export class Night {
         this.binoPitch = Math.max(-8, Math.min(12, this.binoPitch + tilt * 30 * zoomK * dt));
         // vicino a un luogo, quando smetti di girare lo sguardo ci scivola sopra da solo (centrarlo a mano è scomodo, e
         // fuori dal luogo si vede il panorama lontano, che da vicino è sgranato)
-        if (spin === 0 && tilt === 0) {
+        if (spin === 0 && tilt === 0 && !sim.mother?.near) {
           const p = this.binoPlaceNear(view.targetYaw, 1.1);
           if (p) {
             const k = 1 - Math.exp(-3.2 * dt);
@@ -705,6 +720,7 @@ export class Night {
     for (const e of sim.drainEvents()) this.handle(e);
 
     this.updateVisuals(dt);
+    this.updateFinale(dt);
     this.updateAudio(dt);
     this.updateRadio(dt);
     this.updateHud(dt);
@@ -1108,11 +1124,49 @@ export class Night {
             break;
         }
         break;
+      case 'mother': {
+        // la Madre (notte 6): i momenti dell'avvicinamento (il mare che si ferma, la lampara che trema, la ninna nanna)
+        // seguono il tempo dello stato in updateMother
+        const mo = this.sim.mother!;
+        switch (e.e) {
+          case 'call':
+            fx.motherCall(dirPos(mo.angle, 60, -12));
+            cap(S.captions.motherCall);
+            break;
+          case 'approach':
+            fx.motherApproach();
+            cap(S.captions.motherApproach);
+            break;
+          case 'pass':
+            this.motherPassV?.stop(1);
+            this.motherPassV = fx.motherPass(e.n ?? 1);
+            cap(S.captions.motherPass);
+            break;
+          case 'leave':
+            // la ninna nanna si spegne mentre se ne va; la passata finisce da sola
+            this.motherSong?.stop(4.5);
+            this.motherSong = null;
+            cap(S.captions.motherLeave);
+            break;
+          default:
+            break;
+        }
+        break;
+      }
       case 'dead':
         this.finished = true;
         this.sim.setReelHeld(false);
         this.stopReel();
-        if (e.killer === 'mother') {
+        if (e.killer === 'mother' && this.sim.outcome.kind === 'dead' && this.sim.outcome.cause === 'moved') {
+          // ti sei mosso mentre passava sotto la barca: ti prende dal basso
+          this.motherSong?.stop(0.05);
+          this.motherPassV?.stop(0.05);
+          this.motherSong = this.motherPassV = null;
+          this.startJumpscare('mother');
+          this.endResult = { kind: 'dead', killer: 'mother', cause: 'moved', stats: this.stats() };
+          const seq = this.d.assets.jumpscares.mother;
+          this.endTimer = seq ? seq.frames.length / seq.fps : 1.9;
+        } else if (e.killer === 'mother') {
           const o = this.sim.outcome;
           const cause = o.kind === 'dead' ? o.cause : undefined;
           this.endResult = { kind: 'dead', killer: 'mother', cause, stats: this.stats() };
@@ -1146,14 +1200,23 @@ export class Night {
         // salvo all'alba: il carillon si spegne
         this.lullabyV?.stop(3);
         this.lullabyV = null;
+        this.motherSong?.stop(3);
+        this.motherSong = null;
         this.endResult = { kind: 'won', stats: this.stats() };
         this.endTimer = 7;
         a.play('bell_dawn', { pos: dirPos(BELL_YAW, 5, 4), gain: 0.8, lowpass: 3000 });
-        setTimeout(() => a.play('mus_6am', { gain: 0.85 }), 1500);
-        this.loops.dawn = a.play('amb_dawn', { loop: true, fadeIn: 4, gain: 0.8 });
         this.loops.drone?.stop(3);
         this.loops.drone = null;
         this.hud.toast(S.sixAm, `${S.survived} · ${S.quotaMet}`, 6);
+        if (this.sim.mother) {
+          // il finale A (notte 6): la Madre sale accanto alla barca, si prende il secchio e torna giù coi figli; poi
+          // sorge il sole e la radio (updateFinale)
+          this.finaleT = 0;
+          this.endTimer = 28;
+        } else {
+          setTimeout(() => a.play('mus_6am', { gain: 0.85 }), 1500);
+          this.loops.dawn = a.play('amb_dawn', { loop: true, fadeIn: 4, gain: 0.8 });
+        }
         break;
       default:
         break;
@@ -1166,11 +1229,14 @@ export class Night {
     this.loops.reel = this.loops.tension = null;
   }
 
-  private startJumpscare(killer: MonsterId): void {
-    // la camera si gira dove la creatura parte (la posa di gioco da cui partono i fotogrammi)
+  private startJumpscare(killer: MonsterId | 'mother'): void {
+    // la camera si gira dove la creatura parte (la posa di gioco da cui partono i fotogrammi); la Madre viene da sotto,
+    // dove stai guardando
     const L = this.d.stage.man.layers;
     const yaw =
-      killer === 'gulpy'
+      killer === 'mother'
+        ? this.d.stage.view.yaw
+        : killer === 'gulpy'
         ? (L[POSE.gulpyPretende]?.yaw ?? 0)
         : killer === 'molly'
           ? this.sim.molly.yaw
@@ -1356,10 +1422,16 @@ export class Night {
     v.rock = approach(v.rock, sim.rocking * (this.d.options.reduceFlash ? 0.5 : 1), 2, dt);
     st.view.rockBoost = v.rock;
 
-    // alba alle 6: il cielo si schiarisce, il mare si calma
-    if (sim.outcome.kind === 'won') v.dawn = Math.min(1, v.dawn + dt / 5);
-    if (sim.outcome.kind === 'dead' && sim.outcome.killer === 'mother') v.dark = Math.min(1, v.dark + dt / 4);
-    st.view.swell = 1 - 0.7 * v.dawn;
+    // alba alle 6: il cielo si schiarisce, il mare si calma (nel finale della notte 6 il sole sorge dopo, quando lei se
+    // n'è andata)
+    if (sim.outcome.kind === 'won' && (this.finaleT < 0 || this.finaleT > 15)) v.dawn = Math.min(1, v.dawn + dt / (this.finaleT < 0 ? 5 : 8));
+    // la Madre ti prende (la quota mancata, la canzone finita, o ti sei mosso): il buio, più in fretta se ti ha preso da sotto
+    if (sim.outcome.kind === 'dead' && sim.outcome.killer === 'mother') {
+      const moved = sim.outcome.cause === 'moved';
+      if (!moved || (this.js?.t ?? 0) > 0.55) v.dark = Math.min(1, v.dark + dt / (moved ? 0.9 : 4));
+    }
+    this.updateMother(dt);
+    st.view.swell = (1 - 0.7 * v.dawn) * (1 - 0.92 * v.mCalm);
 
     // jumpscare
     if (this.js) {
@@ -1376,12 +1448,75 @@ export class Night {
         else if (this.js.killer === 'archie') v.aRise = 1;
         else if (this.js.killer === 'lampy') v.lRise = 1;
         else if (this.js.killer === 'fangy') v.fRise = 1;
-        else if (this.sim.molly.side === 'right') v.mR = 1;
+        else if (this.js.killer === 'mother') {
+          // (finché non c'è il suo render) la barca sbalzata in su, lo sguardo che cade verso l'acqua, poi il buio
+          view.hfov = 90;
+          view.pitch = approach(view.pitch, -55, 2.2, dt);
+          if (!this.d.options.reduceFlash) view.shake = Math.max(view.shake, 2.4 * Math.exp(-t * 1.5));
+        } else if (this.sim.molly.side === 'right') v.mR = 1;
         else v.mL = 1;
       }
       if (t < 0.12 && !this.d.options.reduceFlash) st.lampDip = 1;
     }
     st.update(dt);
+  }
+
+  /**
+   * La Madre (notte 6). Mentre si avvicina (10 s): a 3,5 s il mare si ferma (come nel suono dell'avvicinamento), a 6 e a
+   * 9 s la lampara trema, da 8 s sale la sua ninna nanna. Mentre passa sotto, la barca si solleva piano sul suo dorso e
+   * s'inclina da sinistra a destra; quando se n'è andata il mare torna. Nel finale all'alba: updateFinale.
+   */
+  private updateMother(dt: number): void {
+    const mo = this.sim.mother;
+    const v = this.v;
+    const st = this.d.stage;
+    if (!mo) return;
+    const t0 = this.motherPrevT;
+    const t = mo.stateTime;
+    this.motherPrevT = t;
+    const crossed = (x: number) => mo.state === 'approaching' && t0 < x && t >= x && t - t0 < 1;
+    if (crossed(6) || crossed(9)) st.lampDip = Math.max(st.lampDip, this.d.options.reduceFlash ? 0.4 : 0.75);
+    if (crossed(8) && !this.motherSong && !this.finished) {
+      this.motherSong = this.d.sfx.motherLullaby();
+      this.motherSong?.setGain(1, 3);
+      if (this.d.options.captions) this.hud.caption(this.S.captions.motherLullaby);
+    }
+    const calm =
+      (mo.state === 'approaching' && t >= 3.5) || mo.state === 'passing' || mo.state === 'leaving' || mo.state === 'attack';
+    v.mCalm = approach(v.mCalm, calm ? 1 : 0, calm ? 1.4 : 0.25, dt);
+    // la barca sul suo dorso: su piano mentre passa, di colpo se ti prende
+    const liftT = mo.state === 'passing' ? 1 : mo.state === 'attack' ? 3 : 0;
+    v.mLift = approach(v.mLift, liftT, mo.state === 'attack' ? 6 : liftT > 0 ? 0.35 : 0.5, dt);
+    const p = mo.state === 'passing' ? Math.min(1, t / mo.passTime) : mo.state === 'leaving' ? 1 : 0.5;
+    if (this.finaleT < 0) {
+      st.view.liftPitch = 1.6 * v.mLift;
+      st.view.liftRoll = -2.4 * v.mLift * Math.cos(Math.PI * p);
+    }
+  }
+
+  /**
+   * Il finale A all'alba della notte 6 (approvato l'11 ottobre), sui tempi del suono `madre_dawn` (24 s, da 1,5 s):
+   * lei sale accanto alla barca a sinistra e la barca dondola, i figli affiorano attorno, la sua pinna sul capodibanda
+   * inclina la barca mentre prende il secchio, tornano giù tutti; poi il sole e la radio.
+   */
+  private updateFinale(dt: number): void {
+    if (this.finaleT < 0) return;
+    const a = this.d.audio;
+    const t0 = this.finaleT;
+    const t = (this.finaleT += dt);
+    const at = (x: number) => t0 < x && t >= x;
+    if (at(1.5)) this.loops.finale = this.d.sfx.motherDawn();
+    if (at(21.5)) this.loops.dawn = a.play('amb_dawn', { loop: true, fadeIn: 5, gain: 0.8 });
+    if (at(23)) this.radio = { t: -0.8, next: 0, utt: null, hiss: null, lines: RADIO_FINALE[this.d.lang] };
+    // la barca: lei che sale a sinistra (2–6 s), la pinna sul capodibanda (12–14,5 s), poi giù tutti (14,5–18,5 s)
+    const k = (x0: number, x1: number) => smooth01(Math.max(0, Math.min(1, (t - x0) / (x1 - x0))));
+    const s = this.d.options.reduceFlash ? 0.5 : 1;
+    const rise = k(2, 6) * (1 - k(14.5, 18.5));
+    const fin = k(12, 12.8) * (1 - k(14.2, 15.5));
+    const st = this.d.stage;
+    st.view.liftRoll = s * (-1.8 * rise * (0.7 + 0.3 * Math.sin(t * 1.3)) - 4.2 * fin);
+    st.view.liftPitch = s * 0.8 * rise;
+    if (at(12)) st.view.shake = Math.max(st.view.shake, 0.5 * s);
   }
 
   /** Batteria (dalla notte 2): l'ago del voltmetro e la lampara che trema quando è quasi scarica. */
@@ -2288,6 +2423,8 @@ export class Night {
     // Fangy che respira dietro le spalle mentre ascolta
     const fg = sim.fangy;
     this.d.sfx.fangyListen(fg?.present && fg.state !== 'attack' && !this.js && !this.finished ? ease(v.fRise) : 0, FANGY_AT);
+    // il mare che si ferma quando arriva la Madre (e torna quando se ne va)
+    this.loops.sea?.setGain(0.9 * (1 - 0.85 * v.mCalm), 0.1);
     // sibilo della lampara col livello
     this.loops.lamp?.setGain([0.0, 0.45, 0.8][sim.lamp]! * (1 - 0.6 * this.d.stage.lampDip), 0.05);
     // campane delle ore
@@ -2348,7 +2485,7 @@ export class Night {
     if (!r) return;
     const prev = r.t;
     r.t += dt;
-    const lines = (RADIO[this.nightNo] ?? RADIO[1]!)[this.d.lang];
+    const lines = r.lines ?? (RADIO[this.nightNo] ?? RADIO[1]!)[this.d.lang];
     const a = this.d.audio;
     if (prev < 0 && r.t >= 0) {
       a.play('radio_on', { pos: RADIO_AT, gain: 0.8 });
@@ -2404,7 +2541,9 @@ export class Night {
     // suggerimenti della prima notte
     let hint = '';
     if (!this.finished && !this.js) {
-      if (sim.hide === 'in') hint = S.hints.unhide;
+      const mo = sim.mother;
+      if (mo && (mo.state === 'passing' || (mo.state === 'approaching' && mo.stateTime > 3.5))) hint = S.hints.mother;
+      else if (sim.hide === 'in') hint = S.hints.unhide;
       else if (sim.fangy?.listening) hint = S.hints.fangy;
       else if (sim.hatch.state === 'counting') hint = S.hints.hide;
       else if (sim.gulpy.canBeFed && sim.fish > 0) hint = sim.facing(YAW.bow, VIEW.bowHalfAngle) ? S.hints.throw : '';

@@ -9,7 +9,7 @@ interface Blip {
   a: number; // angolo (gradi, 0 = prua, + a destra)
   r: number; // 0..1 dal centro
   size: number;
-  kind: 'fish' | 'big';
+  kind: 'fish' | 'big' | 'mother';
   life: number;
 }
 
@@ -23,6 +23,10 @@ export class Sonar {
   onContact: ((big: boolean) => void) | null = null;
   /** un'ombra di avviso è passata sotto il fascio (bip diverso) */
   onWarn: (() => void) | null = null;
+  /** il fascio è passato sull'ombra della Madre (notte 6): quanto è vicina, 0..1 */
+  onMother: ((near: number) => void) | null = null;
+  /** la Madre sotto la barca: quanto è passata (0..1) e quanto si vede (0..1); null se non c'è */
+  private under: { p: number; a: number } | null = null;
 
   constructor(size = 384) {
     this.canvas = document.createElement('canvas');
@@ -84,9 +88,52 @@ export class Sonar {
         else this.onContact?.(true);
       }
     }
+    // la Madre (notte 6): l'ombra enorme che gira lontana tutta la notte, si stringe verso il centro quando si avvicina
+    // e, quando passa sotto la barca, riempie quasi tutto lo schermo
+    const mo = sim.mother;
+    if (mo && mo.state !== 'passing' && mo.state !== 'attack' && crossed(mo.angle)) {
+      this.blips.push({ a: mo.angle, r: Math.max(0.1, mo.dist), size: 18 + 38 * (1 - mo.dist), kind: 'mother', life: 1 });
+      this.onMother?.(1 - mo.dist);
+    }
+    if (mo && (mo.state === 'passing' || mo.state === 'attack')) {
+      const p = mo.state === 'passing' ? Math.min(1, mo.stateTime / mo.passTime) : (this.under?.p ?? 0.5);
+      this.under = { p, a: Math.min(1, (this.under?.a ?? 0) + dt * 1.5) };
+    } else if (this.under) {
+      this.under.a -= dt * 0.6;
+      this.under.p += dt * 0.08;
+      if (this.under.a <= 0) this.under = null;
+    }
     for (const b of this.blips) b.life -= dt / 2.8;
     this.blips = this.blips.filter((b) => b.life > 0);
     this.draw();
+  }
+
+  /** La Madre sotto la barca: un'eco enorme e granulosa che scorre da sinistra a destra mentre passa. */
+  private drawUnder(c: CanvasRenderingContext2D, cx: number, cy: number, R: number): void {
+    const u = this.under!;
+    const t = performance.now() / 1000;
+    const a = u.a * (0.8 + 0.2 * Math.sin(t * 2.1));
+    const x = cx + R * (-0.6 + 1.2 * u.p);
+    const y = cy + R * 0.06 * Math.sin(u.p * Math.PI * 2);
+    c.save();
+    c.translate(x, y);
+    c.scale(1.7, 1);
+    const g = c.createRadialGradient(0, 0, 0, 0, 0, R * 0.6);
+    g.addColorStop(0, `rgba(225, 238, 255, ${0.55 * a})`);
+    g.addColorStop(0.65, `rgba(225, 238, 255, ${0.28 * a})`);
+    g.addColorStop(1, 'rgba(225, 238, 255, 0)');
+    c.fillStyle = g;
+    c.beginPath();
+    c.arc(0, 0, R * 0.6, 0, Math.PI * 2);
+    c.fill();
+    // la grana dell'eco: tanti punti che cambiano a ogni fotogramma
+    c.fillStyle = `rgba(240, 248, 255, ${0.35 * a})`;
+    for (let i = 0; i < 90; i++) {
+      const rr = R * 0.58 * Math.sqrt(Math.random());
+      const aa = Math.random() * Math.PI * 2;
+      c.fillRect(Math.cos(aa) * rr, Math.sin(aa) * rr, 2, 2);
+    }
+    c.restore();
   }
 
   private draw(): void {
@@ -121,11 +168,12 @@ export class Sonar {
       c.lineTo(cx + Math.cos(aa) * R, cy + Math.sin(aa) * R);
       c.stroke();
     }
+    if (this.under) this.drawUnder(c, cx, cy, R);
     for (const b of this.blips) {
       const ba = ((b.a - 90) * Math.PI) / 180;
       const x = cx + Math.cos(ba) * R * b.r, y = cy + Math.sin(ba) * R * b.r;
       const g = c.createRadialGradient(x, y, 0, x, y, b.size * 2.2);
-      const col = b.kind === 'big' ? '255, 120, 90' : '90, 255, 160';
+      const col = b.kind === 'mother' ? '225, 238, 255' : b.kind === 'big' ? '255, 120, 90' : '90, 255, 160';
       g.addColorStop(0, `rgba(${col}, ${0.95 * b.life})`);
       g.addColorStop(1, `rgba(${col}, 0)`);
       c.fillStyle = g;

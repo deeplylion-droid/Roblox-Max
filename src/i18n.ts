@@ -36,6 +36,8 @@ const IT = {
     lampy: 'Tre colpi uguali: è Lampy, non ferrare',
     // notte 5 (approvato l'11 ottobre)
     fangy: 'Fangy ascolta: niente rumori',
+    // notte 6 (approvato l'11 ottobre: «immobilità totale»)
+    mother: 'Non muoverti',
   },
   denied: {
     noFish: 'Il secchio è vuoto.',
@@ -56,6 +58,8 @@ const IT = {
   sixAm: '6:00',
   survived: 'Notte superata',
   quotaMet: 'Quota raggiunta',
+  // il finale A della notte 6 (approvato l'11 ottobre): la scritta sotto i risultati
+  finaleA: 'Ce l’hai fatta. Per quest’anno.',
   quotaMissed: 'Quota mancata',
   deathTitle: 'Game over',
   deaths: {
@@ -73,6 +77,8 @@ const IT = {
     mother: 'Alle sei il secchio non era pieno. Stanotte la Madre si prenderà un altro bambino.',
     // notte 2 (approvato il 10 ottobre): la batteria è morta e la ninna nanna è finita prima delle sei
     lullaby: 'La canzone è finita prima dell’alba.',
+    // notte 6 (la frase proposta e approvata l'11 ottobre): ti sei mosso mentre la Madre passava sotto la barca
+    moved: 'Mama Marina ama i suoi piccoli. Adesso anche te.',
   },
   retry: 'Riprova',
   nextNight: 'Notte successiva',
@@ -200,6 +206,12 @@ const IT = {
     fangyRise: 'qualcosa sale accanto alla barca, dietro di te',
     fangySnap: 'si volta di scatto',
     fangyLeave: 'torna giù',
+    // notte 6 (DA APPROVARE)
+    motherCall: 'un richiamo enorme, dal fondo',
+    motherApproach: 'tornano giù tutti; il mare si ferma',
+    motherLullaby: 'una ninna nanna, sotto la barca',
+    motherPass: 'qualcosa di enorme passa sotto la barca',
+    motherLeave: 'si allontana',
   },
   hatchCount: ['Uno…', 'Due…', 'Tre…', 'Quattro…', 'Cinque…', 'Sei…', 'Sette…', 'Otto…', 'Nove…', 'Dieci!'],
   hatchReady: 'Chi c’è c’è, chi non c’è non c’è!',
@@ -237,6 +249,7 @@ const EN: typeof IT = {
     archieWait: 'Stay in the dark until he goes under',
     lampy: 'Three even rings: it’s Lampy, don’t strike',
     fangy: 'Fangy is listening: not a sound',
+    mother: 'Don’t move',
   },
   denied: {
     noFish: 'The bucket is empty.',
@@ -255,6 +268,7 @@ const EN: typeof IT = {
   sixAm: '6:00 AM',
   survived: 'Night survived',
   quotaMet: 'Quota met',
+  finaleA: 'You made it. For this year.',
   quotaMissed: 'Quota missed',
   deathTitle: 'Game over',
   deaths: {
@@ -267,6 +281,7 @@ const EN: typeof IT = {
     fangy: '"Marco." You answered.',
     mother: 'At six the bucket wasn’t full. Tonight the Mother will take another child.',
     lullaby: 'The song ended before dawn.',
+    moved: 'Mama Marina loves her little ones. Now you too.',
   },
   retry: 'Try again',
   nextNight: 'Next night',
@@ -390,6 +405,11 @@ const EN: typeof IT = {
     fangySnap: 'its head snaps round',
     fangyRise: 'something rises beside the boat, behind you',
     fangyLeave: 'it sinks back down',
+    motherCall: 'a huge call, from the deep',
+    motherApproach: 'they all go under; the sea goes still',
+    motherLullaby: 'a lullaby, under the boat',
+    motherPass: 'something huge passes under the boat',
+    motherLeave: 'it moves away',
   },
   hatchCount: ['One…', 'Two…', 'Three…', 'Four…', 'Five…', 'Six…', 'Seven…', 'Eight…', 'Nine…', 'Ten!'],
   hatchReady: 'Ready or not, here I come!',
@@ -526,8 +546,45 @@ export const RADIO_NIGHT5: Record<Lang, RadioLine[]> = {
   ],
 };
 
+/**
+ * La chiamata della sesta notte (la Madre): il testo proposto e approvato l'11 ottobre, con la quota portata a dieci
+ * pesci per il bilanciamento (DA APPROVARE: la proposta diceva dodici).
+ */
+export const RADIO_NIGHT6: Record<Lang, RadioLine[]> = {
+  it: [
+    { at: 0.0, text: 'Sesta notte. Dieci pesci.' },
+    { at: 2.4, text: 'Stanotte viene anche lei.' },
+    { at: 4.6, text: 'Quando passa sotto la barca, non muoverti.' },
+    { at: 7.4, text: 'Non toccare niente, non guardarti intorno.' },
+    { at: 10.2, text: 'Buona pesca.' },
+    { at: 11.6, text: '' },
+  ],
+  en: [
+    { at: 0.0, text: 'Sixth night. Ten fish.' },
+    { at: 2.4, text: 'Tonight she comes too.' },
+    { at: 4.6, text: 'When she passes under the boat, don’t move.' },
+    { at: 7.4, text: 'Don’t touch anything, don’t look around.' },
+    { at: 10.2, text: 'Good fishing.' },
+    { at: 11.6, text: '' },
+  ],
+};
+
+/** La radio all'alba del finale A (approvato l'11 ottobre), dopo che la Madre se n'è andata col secchio. */
+export const RADIO_FINALE: Record<Lang, RadioLine[]> = {
+  it: [
+    { at: 0.0, text: 'Ce l’hai fatta.' },
+    { at: 1.6, text: 'Per quest’anno.' },
+    { at: 3.4, text: '' },
+  ],
+  en: [
+    { at: 0.0, text: 'You made it.' },
+    { at: 1.6, text: 'For this year.' },
+    { at: 3.4, text: '' },
+  ],
+};
+
 /** La chiamata alla radio di ogni notte. */
-export const RADIO: Record<number, Record<Lang, RadioLine[]>> = { 1: RADIO_NIGHT1, 2: RADIO_NIGHT2, 3: RADIO_NIGHT3, 4: RADIO_NIGHT4, 5: RADIO_NIGHT5 };
+export const RADIO: Record<number, Record<Lang, RadioLine[]>> = { 1: RADIO_NIGHT1, 2: RADIO_NIGHT2, 3: RADIO_NIGHT3, 4: RADIO_NIGHT4, 5: RADIO_NIGHT5, 6: RADIO_NIGHT6 };
 
 export const STRINGS: Record<Lang, typeof IT> = { it: IT, en: EN };
 

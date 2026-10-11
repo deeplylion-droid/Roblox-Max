@@ -16,7 +16,7 @@ interface PassFile {
 
 interface OverlayManifest {
   tarp?: { base: PassFile; glow: PassFile; aspect: number };
-  jumpscares?: Partial<Record<MonsterId, { frames: PassFile[]; fps: number; aspect: number }>>;
+  jumpscares?: Partial<Record<MonsterId | 'mother', { frames: PassFile[]; fps: number; aspect: number }>>;
   binocular?: { places: (PassFile & { key: string; yaw: number; pitch: number; hfov: number; aspect: number })[]; rec?: [number, number, number] };
 }
 
@@ -117,7 +117,7 @@ export async function loadNightAssets(gl: GL): Promise<NightAssets> {
     if (!js) continue;
     try {
       const frames = await Promise.all(js.frames.map((f) => tex(gl, f)));
-      out.jumpscares[k as MonsterId] = { frames, fps: js.fps, aspect: js.aspect };
+      out.jumpscares[k as MonsterId | 'mother'] = { frames, fps: js.fps, aspect: js.aspect };
     } catch (e) {
       console.warn(e);
     }

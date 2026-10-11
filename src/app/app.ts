@@ -22,10 +22,13 @@ const STEAM_URL: string | null = null;
 /** Fino a che notte arriva questa build: VITE_ULTIMA_NOTTE=1 per la demo della sola prima notte. */
 const NIGHT_LIMIT = Number(import.meta.env.VITE_ULTIMA_NOTTE) || Infinity;
 
+/** ?bozze nell'indirizzo: si possono giocare anche le notti in bozza (prove; mai nelle build). */
+const DRAFTS = import.meta.env.DEV && new URLSearchParams(location.search).has('bozze');
+
 /** L'ultima notte giocabile (che esiste nel gioco e che questa build lascia giocare). */
 function lastNight(): number {
   let n = 1;
-  while (NIGHTS[n + 1] && !NIGHTS[n + 1]!.bozza && n + 1 <= NIGHT_LIMIT) n++;
+  while (NIGHTS[n + 1] && (DRAFTS || !NIGHTS[n + 1]!.bozza) && n + 1 <= NIGHT_LIMIT) n++;
   return n;
 }
 
@@ -250,14 +253,25 @@ export class App {
     if (r.kind === 'won') this.save.night = Math.max(this.save.night, this.nightNo + 1);
     writeSave(this.save);
     const S = this.S;
+    // un jumpscare (i figli, o la Madre che ti prende da sotto perché ti sei mosso): il segnale salta
+    const jumpscare = r.kind === 'dead' && (r.killer !== 'mother' || r.cause === 'moved');
     const show = () => {
       this.mode = 'end';
       this.night?.destroy();
       this.night = null;
-      if (r.kind === 'dead' && r.killer !== 'mother') this.audio.play('mus_gameover', { gain: 0.9 });
+      if (jumpscare) this.audio.play('mus_gameover', { gain: 0.9 });
       this.screens.results({
         won: r.kind === 'won',
-        text: r.kind === 'won' ? S.quotaMet : r.cause === 'lullaby' ? S.deaths.lullaby : S.deaths[r.killer as MonsterId | 'mother'],
+        text:
+          r.kind === 'won'
+            ? NIGHTS[this.nightNo]?.mother
+              ? S.finaleA
+              : S.quotaMet
+            : r.cause === 'lullaby'
+              ? S.deaths.lullaby
+              : r.cause === 'moved'
+                ? S.deaths.moved
+                : S.deaths[r.killer as MonsterId | 'mother'],
         caught: r.stats.caught,
         fed: r.stats.fed,
         lore: r.stats.lore.length,
@@ -268,7 +282,7 @@ export class App {
         onMenu: () => this.title(),
       });
     };
-    if (r.kind === 'dead' && r.killer !== 'mother') {
+    if (jumpscare) {
       // il segnale salta: la notte si spegne di colpo, resta la neve del televisore, poi i risultati
       this.mode = 'static';
       this.night?.destroy();
