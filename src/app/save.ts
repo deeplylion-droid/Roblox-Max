@@ -14,6 +14,8 @@ export interface Options {
   sensitivity: number;
   /** qualità grafica: frazione della risoluzione a cui si disegna la scena (1 alta, 0,75 media, 0,5 bassa) */
   quality: number;
+  /** dimensione dei testi dell'interfaccia: 1 normale, 1,2 grande, 1,4 molto grande (la variabile CSS --ts) */
+  textSize: number;
 }
 
 export interface CatalogEntry {
@@ -34,7 +36,7 @@ export interface SaveData {
 const KEY = 'splashland.save.v1';
 
 export function defaultOptions(): Options {
-  return { master: 0.9, music: 0.7, sfx: 0.9, brightness: 1, subtitles: true, captions: false, reduceFlash: false, sensitivity: 1, quality: 1 };
+  return { master: 0.9, music: 0.7, sfx: 0.9, brightness: 1, subtitles: true, captions: false, reduceFlash: false, sensitivity: 1, quality: 1, textSize: 1 };
 }
 
 function fresh(): SaveData {

@@ -231,6 +231,9 @@ export class Molly {
             this.state = 'leaving';
             this.timer = 2.4;
           }
+        } else if (w.hidden) {
+          // sotto il telone non ti vede: aspetta, senza offendersi (segnalato dall'utente l'11 ottobre: ti uccideva mentre
+          // ti nascondevi da Hatch); quando esci, vuole di nuovo che la guardi
         } else {
           this.neglect += dt;
           if (!this.whined && this.neglect > this.cfg.neglectMax * 0.55) {
@@ -255,7 +258,8 @@ export class Molly {
             this.whined = true;
             w.emit({ t: 'molly', e: 'calm', side: this.side });
           }
-        } else {
+        } else if (!w.hidden) {
+          // (sotto il telone il capriccio resta com'è: non ti vede)
           this.tantrum += dt;
           if (this.tantrum >= this.cfg.tantrumMax) {
             this.state = 'attack';
@@ -505,10 +509,12 @@ export class Robin {
     this.timer = 1.6;
   }
 
-  /** La lampara al massimo in faccia: se è durata abbastanza scappa (vero = è scappato). */
+  /**
+   * La lampara al massimo: se è durata abbastanza scappa (vero = è scappato). Non serve guardarlo: basta la luce alta
+   * (deciso dall'utente l'11 ottobre; prima bisognava anche guardarlo in faccia).
+   */
   private light(dt: number, w: WorldView): boolean {
-    const inFace = w.lamp === 2 && !w.hidden && !w.sonarOpen && Math.abs(angleDiff(w.viewYaw, YAW.robin)) <= VIEW.robinHalfAngle;
-    if (inFace) {
+    if (w.lamp === 2) {
       this.lit += dt;
       if (this.lit >= this.cfg.scare) {
         w.emit({ t: 'robin', e: 'scared' });

@@ -139,6 +139,13 @@ addormentata, con una piccola animazione (il respiro, le bolle).
 | **Lampy** | Una culla con la giostrina di pesciolini, una vaschetta da bagno, cuffie a fiori appese. | Attaccata con la ventosa al soffitto sopra la culla; non ha palpebre e dorme a occhi aperti. |
 | **Fangy** | Bende per gli occhi, occhialini dipinti di nero, il gioco del Marco Polo; attorno al letto conchiglie appese che tintinnano quando ti avvicini (le sente anche nel sonno, ma dorme). | Raggomitolato, gli occhialini neri, le lucine del ventre quasi spente che respirano lentissime. |
 
+## Il pesce e i finali
+
+Il pesce lasciato nelle tane decide anche **il finale della sesta notte** (approvato l'11 ottobre, vedi
+`docs/NOTTI_E_MOSTRI.md`, «I finali»): un pesce **a ogni alba** porta al finale segreto **«I tuoi»**; scendere almeno
+tre volte senza lasciarne **mai** uno porta al finale segreto **«Nessuno»**; tutto il resto al finale A. Il
+salvataggio deve quindi ricordare, alba per alba, se sei sceso e se hai lasciato il pesce.
+
 ## Cosa serve
 
 - **Motore**: la modalità immersione (panorami collegati, la torcia, l'acqua torbida con le particelle e i raggi di
