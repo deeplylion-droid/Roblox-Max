@@ -282,6 +282,15 @@ piccole (`wonNight`, `afterDive`, `skipDawn`, `newGame`, `fedFor`, `pendingDawn`
 | `public/assets/img/immersioni.json` | I posti, i passaggi, le tane, i suoni dei posti, l'aria e l'aspetto dell'acqua. |
 | `tools/immersioni_segnaposto.py` | Genera i panorami segnaposto in `public/assets/img/immersioni/segnaposto/`. |
 
+### I render veri delle grotte
+
+Dall'11 ottobre notte **sotto la barca** e la **grotta grande** sono i render finali (`tools/render/sotto_barca.py`,
+`tools/render/grotte.py`, branch `claude/immersioni-grotte`): le loro voci in `immersioni.json` vengono da
+`public/assets/img/immersioni/*_posto.json`, con le direzioni vere dei passaggi e delle tane (per esempio la tana di
+Gulpy a −128°, la cima per risalire a −6,6° / 12,2°). L'acqua torbida è già cotta nei loro passi (`acquaCotta: true`):
+lì la nebbia del motore scende a `water.fogDensityCooked` (0,012 invece di 0,09), se no si raddoppia. Le camerette e
+il mostro che dorme restano segnaposto. Schermate: `docs/concept/immersioni_prova_15…18_*.jpg`.
+
 ### Come si aggiungono i posti veri
 
 Tutto sta in `public/assets/img/immersioni.json`; il codice non cambia.

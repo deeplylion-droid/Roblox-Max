@@ -317,6 +317,7 @@ export class Dive {
     const p = this.run.current;
     this.buildSpots(p, p.den ? this.run.denState(p.den) : null);
     this.capEl.classList.remove('show');
+    this.capTimer = 0;
     const v = this.d.stage.view;
     const look = p.frame ?? p.look;
     if (look) {
@@ -651,7 +652,7 @@ export class Dive {
       exposure: st.brightness + w.exposure,
       fade: this.fade,
       glows: [],
-      fog: { color: w.fog, density: w.fogDensity },
+      fog: { color: w.fog, density: p.acquaCotta ? (w.fogDensityCooked ?? w.fogDensity * 0.15) : w.fogDensity },
       torch: { dir: tdir, cos: Math.cos(w.torchAngle * D2R) },
       water: {
         rayColor: w.rayColor,

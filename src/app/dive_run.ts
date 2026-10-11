@@ -70,6 +70,9 @@ export interface DivePlace {
   den?: MonsterId;
   /** panorama della tana vuota, se diverso (se la posa è dipinta nel panorama invece che in sleeper.layers) */
   panoEmpty?: DivePano;
+  /** l'acqua torbida è già cotta nei passi del render (le grotte vere): la nebbia del motore scende a
+   *  WaterLook.fogDensityCooked, se no si raddoppia */
+  acquaCotta?: boolean;
   /** suoni in loop del posto (la Madre che respira dal fondo della grotta grande): dove stanno, in gradi e metri */
   sounds?: { id: string; yaw: number; pitch: number; dist?: number; gain?: number }[];
   /** il mostro che dorme: dove si clicca per lasciargli il pesce, i suoi strati, da dove salgono le bolle */
@@ -89,6 +92,8 @@ export interface AirRules {
 export interface WaterLook {
   fog: Vec3;
   fogDensity: number;
+  /** la nebbia nei posti con l'acqua già cotta nel render (DivePlace.acquaCotta) */
+  fogDensityCooked?: number;
   rayColor: Vec3;
   snowColor: Vec3;
   glowColor: Vec3;

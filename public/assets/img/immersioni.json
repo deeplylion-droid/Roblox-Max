@@ -1,5 +1,5 @@
 {
- "_nota": "Le immersioni all'alba (docs/IMMERSIONI.md, «Il motore»): i posti, i passaggi fra un posto e l'altro (yaw e pitch in gradi nel panorama del posto, r = raggio cliccabile in gradi), le tane, i suoni dei posti. I panorami sono SEGNAPOSTO (tools/immersioni_segnaposto.py): quando arrivano i render veri basta cambiare i file e le posizioni qui. Solo la grotta grande è a 360°; sotto la barca e le camerette delle tane sono inquadrature fisse (frame). Aria (11 ottobre sera): due tane, la tana vuota non conta; uscendo dalla seconda si risale.",
+ "_nota": "Le immersioni all'alba (docs/IMMERSIONI.md, «Il motore»): i posti, i passaggi fra un posto e l'altro (yaw e pitch in gradi nel panorama del posto, r = raggio cliccabile in gradi), le tane, i suoni dei posti. Sotto la barca e la grotta grande sono i render finali (tools/render/sotto_barca.py, grotte.py: le voci vengono da *_posto.json); le camerette e il mostro che dorme sono ancora SEGNAPOSTO (tools/immersioni_segnaposto.py). Solo la grotta grande è a 360°; sotto la barca e le camerette delle tane sono inquadrature fisse (frame). Aria (11 ottobre sera): due tane, la tana vuota non conta; uscendo dalla seconda si risale.",
  "start": "sotto_barca",
  "air": {
   "maxDens": 2,
@@ -28,137 +28,140 @@
    0.055
   ],
   "torchAngle": 26,
-  "exposure": -0.4
+  "exposure": -0.4,
+  "fogDensityCooked": 0.012
  },
  "places": {
   "sotto_barca": {
-   "_nota": "Sotto la barca, un'inquadratura fissa (deciso l'11 ottobre sera): la parete di roccia con l'imboccatura della grotta davanti, la cima dell'ancora a sinistra. SEGNAPOSTO.",
+   "_nota": "Sotto la barca (render finale, tools/render/sotto_barca.py): inquadratura fissa, panorama parziale; l'acqua torbida è già cotta nei passi di luce.",
    "pano": {
     "ambient": {
-     "file": "immersioni/segnaposto/sotto_barca_ambient.webp",
-     "scale": 1
+     "file": "immersioni/sotto_barca_ambient.webp",
+     "scale": 0.65
     },
     "lantern": {
-     "file": "immersioni/segnaposto/sotto_barca_lantern.webp",
-     "scale": 1
+     "file": "immersioni/sotto_barca_lantern.webp",
+     "scale": 0.25
     },
-    "data": "immersioni/segnaposto/sotto_barca_data.webp"
+    "data": "immersioni/sotto_barca_data.webp"
    },
    "size": [
-    1760,
-    1045
+    3640,
+    2162
    ],
-   "latMin": -45,
-   "latMax": 50,
+   "latMin": -45.0,
+   "latMax": 50.0,
+   "lonMin": -80.0,
+   "lonMax": 80.0,
    "yaw": 0,
    "rays": 1.0,
+   "frame": {
+    "yaw": 0,
+    "pitch": 6.4,
+    "yawRange": 30,
+    "pitchRange": 6
+   },
    "links": [
     {
      "to": "grotta_grande",
-     "yaw": 0,
-     "pitch": -6,
-     "r": 12,
+     "yaw": 12.1,
+     "pitch": -14.5,
+     "r": 9.3,
      "label": "cave"
     },
     {
      "ascend": true,
-     "yaw": -28,
-     "pitch": 22,
+     "yaw": -6.6,
+     "pitch": 12.2,
      "r": 7,
      "label": "ascend"
     }
    ],
-   "lonMin": -80,
-   "lonMax": 80,
-   "frame": {
-    "yaw": 0,
-    "pitch": 5,
-    "yawRange": 30,
-    "pitchRange": 6
-   }
+   "acquaCotta": true
   },
   "grotta_grande": {
-   "_nota": "La grotta grande: un'apertura per ogni tana (si vedono solo quelle dei mostri già arrivati), l'uscita alle spalle, il fondo enorme e buio davanti (la Madre: non ci si entra).",
+   "_nota": "La grotta grande (render finale, tools/render/grotte.py): l'acqua torbida è già cotta nei passi di luce, come nelle anteprime approvate; la nebbia del motore qui va tenuta bassa.",
    "pano": {
     "ambient": {
-     "file": "immersioni/segnaposto/grotta_grande_ambient.webp",
-     "scale": 1
+     "file": "immersioni/grotta_grande_ambient.webp",
+     "scale": 0.76
     },
     "lantern": {
-     "file": "immersioni/segnaposto/grotta_grande_lantern.webp",
-     "scale": 1
+     "file": "immersioni/grotta_grande_lantern.webp",
+     "scale": 0.25
     },
-    "data": "immersioni/segnaposto/grotta_grande_data.webp"
+    "data": "immersioni/grotta_grande_data.webp"
    },
    "size": [
-    2048,
-    1024
+    8192,
+    4096
    ],
    "latMin": -90,
    "latMax": 90,
    "yaw": 0,
    "look": {
     "yaw": 0,
-    "pitch": 0
+    "pitch": -4
    },
    "rays": 0.25,
    "links": [
     {
      "to": "sotto_barca",
-     "yaw": 180,
-     "pitch": 0,
-     "r": 12,
+     "yaw": 162.0,
+     "pitch": 37.3,
+     "r": 14,
      "label": "back"
     },
     {
-     "note": "mother",
-     "yaw": 0,
-     "pitch": -4,
-     "r": 20
-    },
-    {
      "to": "tana_gulpy",
-     "yaw": -40,
-     "pitch": -8,
-     "r": 8
+     "yaw": -128.0,
+     "pitch": -5.1,
+     "r": 7.5
     },
     {
      "to": "tana_molly",
-     "yaw": 40,
-     "pitch": -8,
-     "r": 8
+     "yaw": -88.0,
+     "pitch": 2.3,
+     "r": 6.3
     },
     {
      "to": "tana_hatch",
-     "yaw": -80,
-     "pitch": -5,
-     "r": 8
+     "yaw": -48.0,
+     "pitch": -9.5,
+     "r": 4.0
     },
     {
      "to": "tana_robin",
-     "yaw": 80,
-     "pitch": -5,
-     "r": 8
+     "yaw": 46.0,
+     "pitch": -6.1,
+     "r": 5.1
     },
     {
      "to": "tana_archie",
-     "yaw": -120,
-     "pitch": -6,
-     "r": 8
+     "yaw": 88.0,
+     "pitch": 6.8,
+     "r": 8.7
     },
     {
      "to": "tana_lampy",
-     "yaw": 120,
-     "pitch": -6,
-     "r": 8
+     "yaw": 128.0,
+     "pitch": 15.5,
+     "r": 8.3
     },
     {
      "to": "tana_fangy",
-     "yaw": -152,
-     "pitch": -4,
-     "r": 8
+     "yaw": -160.0,
+     "pitch": -3.5,
+     "r": 6.4
+    },
+    {
+     "note": "mother",
+     "yaw": 0.0,
+     "pitch": -9.3,
+     "r": 15.1
     }
    ],
+   "acquaCotta": true,
    "sounds": [
     {
      "id": "madre_breath",
