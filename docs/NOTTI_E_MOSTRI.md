@@ -362,10 +362,12 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
     (`POSES`): ci va quando è approvata, coi render finali.
   - **Il jumpscare dal basso** (anteprima, otto fotogrammi a pochi campioni,
     `docs/concept/jumpscare/js_madre_fotogrammi.jpg`, **da approvare**; `jumpscare.py`, `ATTACKS['madre']`): la barca
-    è sbalzata (sollevata di 90 cm, inclinata a sinistra, la prua su) e la vista si inclina con lei; dal mare sale la
-    bocca spalancata attorno alla barca: la mascella passa sopra di te, la mandibola resta sotto lo scafo, e a sinistra
-    i fanoni salgono dall'acqua come le sbarre di un lettino e si fermano a un paio di metri, col palato sopra. Gli
-    altri jumpscare non cambiano.
+    è sbalzata (sollevata di 90 cm, inclinata a sinistra, la prua su) e la vista si inclina con lei; da sinistra,
+    bassa e mezza sott'acqua, sale la bocca spalancata con l'apertura verso di te e ti viene addosso: negli ultimi
+    fotogrammi sei dentro, col palato rosso sopra, la lingua sotto, la gola nera in fondo e ai due lati i fanoni in fila
+    come le sbarre di un lettino, col corrimano. (Venendo dritta da sotto, il palato passava davanti agli occhi: per
+    questo arriva da un lato.) Gli altri jumpscare non cambiano: in `jumpscare.py` si aggiungono solo la voce `madre` e
+    la sua camera, che si inclina con la barca.
   - **Niente render finali** finché le anteprime non sono approvate.
 - **Come si gioca**: tornano tutti e sette i mostri e la regia ne manda di più insieme (è la notte più dura). Quota 10
   (proposta 12; con 12 l'esperto simulato vinceva 5 notti su 100; **approvato 10** l'11 ottobre),

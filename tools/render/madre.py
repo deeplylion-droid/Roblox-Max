@@ -302,7 +302,7 @@ class Campo:
         out = np.zeros(len(p), F)
         for pts in self._sorr:
             n = len(pts)
-            w = np.linspace(0.20, 0.11, n)
+            w = np.linspace(0.28, 0.16, n)
             for i in range(n - 1):
                 a, b = pts[i], pts[i + 1]
                 ab = b - a
@@ -435,7 +435,7 @@ def pelle_madre():
     ven, gua, sor = g.attr('ventre'), g.attr('guancia'), g.attr('sorriso')
     mouth, gola = g.attr('mouth'), g.attr('gola')
     vern = g.mix(g.smoothstep(0.3, 0.7, ven), BLU, CREMA)
-    vern = g.mix(g.mul(gua, 0.85), vern, ROSA)
+    vern = g.mix(gua, vern, ROSA)
     vern = g.mix(sor, vern, ROSSO)
     # sbiadita a chiazze dal sole e dal sale, e screpolata (la crettatura delle vernici vecchie)
     fade = g.noise(co, scale=0.9, detail=3.0, rough=0.5)
@@ -687,12 +687,12 @@ def _shots():
     a, u, v = OCCHIO_ASSE, *base_occhio(OCCHIO_ASSE)
     e = OCCHIO
     return {
-        'insieme': (_pt(-38.0, 2.0, -9.0), _pt(0.0, 3.0, -4.0), 30, 'tutta, fuori dall\'acqua: 30 m; sotto, i piccoli', False, False),
+        'insieme': (_pt(-34.0, 6.0, -19.0), _pt(0.0, 3.0, -5.0), 30, 'tutta, fuori dall\'acqua: 30 m; sotto, i piccoli', False, False),
         'fronte': (_pt(*(e + a * 13.0 + V(0, -3.0, 0.3))), _pt(*(e + V(0.6, -1.6, -0.6))), 28, 'la fronte e l\'occhio, dalla barca', False, True),
-        'occhio': (_pt(*(e + a * 7.2 + v * 0.6 - u * 0.4)), _pt(*(e + v * 0.6)), 45, 'l\'occhio con le ciglia', False, True),
-        'sorriso': (_pt(-10.5, -4.5, -1.6), _pt(-4.2, -2.6, -2.4), 32, 'il sorriso fino sotto l\'occhio, la guancia', False, False),
+        'occhio': (_pt(*(e + a * 11.0 + v * 1.0 - u * 0.6)), _pt(*(e + v * 1.2)), 35, 'l\'occhio con le ciglia', False, True),
+        'sorriso': (_pt(-13.0, -1.0, -1.2), _pt(-4.2, -3.0, -1.6), 30, 'il sorriso fino sotto l\'occhio, la guancia', False, False),
         'croste': (_pt(-6.0, -10.0, 3.2), _pt(-2.4, -7.2, 0.9), 40, 'la fronte: le croste di vernice', False, True),
-        'bocca': (_pt(-2.5, -24.0, -10.0), _pt(0.0, -6.0, -6.0), 30, 'la bocca spalancata: i fanoni a sbarre', True, False),
+        'bocca': (_pt(-3.0, -19.5, -14.5), _pt(0.0, -5.0, -6.0), 30, 'la bocca spalancata: i fanoni a sbarre', True, False),
     }
 
 
