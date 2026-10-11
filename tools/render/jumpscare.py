@@ -221,6 +221,10 @@ def run(q, who, post_mod, overlays_path, build_scene, coll_objects, renderable):
     # la versione da approvare basta più piccola e con meno campioni (ci sono scosse e grana sopra)
     W, H = (1920, 1080) if q.name == 'final' else (960, 540) if q.name == 'preview' else (640, 360)
     samples = q.samples if q.name == 'final' else min(q.samples, 32)
+    # JS_SAMPLES: meno campioni per il finale (ogni fotogramma resta a schermo un decimo di secondo, con la scossa e
+    # la grana del nastro sopra; col denoise 64 bastano e il render dura la metà)
+    if os.environ.get('JS_SAMPLES'):
+        samples = int(os.environ['JS_SAMPLES'])
     out_dir = os.path.join(CACHE, q.name, 'jumpscare')
     os.makedirs(out_dir, exist_ok=True)
     # JS_ANTEPRIMA=1: i fotogrammi restano in cache (da approvare), senza toccare il gioco
