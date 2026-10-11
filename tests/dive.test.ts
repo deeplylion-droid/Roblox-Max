@@ -58,8 +58,12 @@ describe('Immersioni: le regole', () => {
     r.enter('grotta_grande');
     r.enter('tana_gulpy');
     expect(r.outOfAirOnLeave()).toBe(false);
+    expect(r.airRunningOut()).toBe(false);
     r.enter('grotta_grande');
+    expect(r.airRunningOut()).toBe(false);
     r.enter('tana_molly');
+    // nella seconda tana l'aria sta finendo: il respiro diventa affannoso (l'unico segnale)
+    expect(r.airRunningOut()).toBe(true);
     // dalla seconda tana non si torna nella grotta: l'aria è finita (la presentazione fa partire la risalita)
     expect(r.outOfAirOnLeave()).toBe(true);
     expect(r.dens).toEqual(['gulpy', 'molly']);
@@ -93,6 +97,7 @@ describe('Immersioni: la tana vuota e l’aria', () => {
     r.enter('grotta_grande');
     r.enter('tana_robin');
     expect(r.outOfAirOnLeave()).toBe(false);
+    expect(r.airRunningOut()).toBe(false); // la tana vuota non conta: il respiro resta calmo
     r.enter('grotta_grande');
     r.enter('tana_gulpy');
     expect(r.outOfAirOnLeave()).toBe(false);

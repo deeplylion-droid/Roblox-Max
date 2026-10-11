@@ -97,7 +97,8 @@ salvataggio deve quindi ricordare, alba per alba, se sei sceso e se hai lasciato
 >
 > **Decisioni dell'utente, 11 ottobre sera**: approvati le anteprime della grotta grande, i 26 suoni delle
 > immersioni e i testi; **niente indicatore dell'aria** (via il manometro, l'avviso e la riserva: uscendo dalla
-> seconda tana compare «Aria finita: risali.» e si risale da soli); la **tana vuota** del mostro nuovo **non costa
+> seconda tana compare «Aria finita: risali.» e si risale da soli; nella seconda tana il respiro dell'erogatore
+> diventa affannoso, approvato poco dopo); la **tana vuota** del mostro nuovo **non costa
 > aria**; **sotto la barca** è un'inquadratura fissa come le camerette. **Da rivedere nel prototipo con la tana di
 > Gulpy**: l'aspetto dell'acqua e i cerchietti cliccabili.
 
@@ -124,7 +125,9 @@ salvataggio deve quindi ricordare, alba per alba, se sei sceso e se hai lasciato
   mostro **la notte dopo non viene**. La tana del **mostro nuovo** della notte dopo è **vuota** («La tana è vuota.
   Chi ci dorme è già in giro.»).
 - **L'aria** (decisa l'11 ottobre sera; `immersioni.json` → `air`): basta per **due tane**; il tempo dentro le tane è
-  libero e nuotare non costa. **Non c'è un indicatore**: quando lasci la seconda tana («Torna alla grotta») invece di
+  libero e nuotare non costa. **Non c'è un indicatore**: l'unico segnale è il respiro nell'erogatore, che entrando
+  nella seconda tana (l'ultima che costa aria) diventa **affannoso** (`dive_breath_fast`, approvato l'11 ottobre
+  sera); quando lasci la seconda tana («Torna alla grotta») invece di
   tornare nella grotta compare **«Aria finita: risali.»**, l'erogatore smette di dare aria (`dive_air_out`) e si
   risale da soli (`dive_up`). A una terza tana quindi non si arriva mai. La **tana vuota** del mostro nuovo **non
   conta** (`emptyDenFree: true`): dopo la prima notte si può vedere la tana vuota di Robin e poi due mostri che
@@ -133,9 +136,8 @@ salvataggio deve quindi ricordare, alba per alba, se sei sceso e se hai lasciato
   tutta l'immersione, la discesa (`dive_down`), le nuotate fra un posto e l'altro (`dive_swim_1`, `_2`, alternate),
   le bolle quando un passaggio è bloccato (`dive_bubbles`), l'aria finita e la risalita, il pesce nella sabbia
   (`offer_fish`), nelle tane il respiro nel sonno in loop (`sleep_<mostro>`, dal letto) e ogni 14-28 secondi un
-  movimento (`stir_<mostro>`), dalla grotta grande il respiro della Madre. Restano fuori `dive_air_low` (l'avviso
-  del manometro, che non c'è più) e `dive_breath_fast` (il respiro affannato ad aria bassa): si potrebbe usare
-  nella seconda tana, quando l'aria sta per finire, se l'utente vuole un segnale senza indicatore.
+  movimento (`stir_<mostro>`), dalla grotta grande il respiro della Madre; nella seconda tana il respiro affannato
+  (`dive_breath_fast`). Resta fuori solo `dive_air_low` (l'avviso del manometro, che non c'è più).
 - **Risaliti**, si va all'intro della notte dopo.
 
 ### La simulazione

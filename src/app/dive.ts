@@ -26,13 +26,14 @@ export const DIVE_DATA_URL = ASSET_BASE + 'img/immersioni.json';
 
 /**
  * I suoni delle immersioni (approvati l'11 ottobre sera, docs/AUDIO.md, «Immersioni»; tools/audio/sounds/immersioni.py).
- * Sono già fatti per stare sott'acqua: niente filtri. Non si usano dive_air_low (l'avviso del manometro: il manometro
- * non c'è più) e dive_breath_fast (il respiro affannato ad aria bassa: senza indicatore non c'è un momento in cui
- * l'aria cala).
+ * Sono già fatti per stare sott'acqua: niente filtri. Non si usa dive_air_low (l'avviso del manometro: il manometro
+ * non c'è più). dive_breath_fast, il respiro affannato, parte entrando nell'ultima tana: è l'unico segnale che l'aria
+ * sta finendo (approvato l'11 ottobre sera).
  */
 const SND = {
   amb: 'amb_dive',
   breath: 'dive_breath',
+  breathFast: 'dive_breath_fast',
   down: 'dive_down',
   swim: ['dive_swim_1', 'dive_swim_2'],
   bubbles: 'dive_bubbles',
@@ -148,6 +149,8 @@ export class Dive {
   private loops: Voice[] = [];
   /** il respiro nell'erogatore (si ferma quando l'aria finisce) */
   private breathV: Voice | null = null;
+  /** il respiro è già quello affannato (l'ultima tana) */
+  private breathFast = false;
   /** i loop del posto (il respiro del mostro che dorme, la Madre dal fondo): si fermano quando te ne vai */
   private placeLoops: Voice[] = [];
   /** fra quanto il mostro che dorme si muove nel sonno */
@@ -325,6 +328,12 @@ export class Dive {
     this.phase = 'in';
     if (p.den && this.run.denState(p.den) === 'empty') this.caption(this.S.dive.emptyDen, 5);
     this.placeSounds(p);
+    // nell'ultima tana l'aria sta finendo: il respiro nell'erogatore diventa affannoso
+    if (this.run.airRunningOut() && !this.breathFast) {
+      this.breathFast = true;
+      this.breathV?.stop(1.2);
+      this.breathV = this.d.audio.play(SND.breathFast, { loop: true, fadeIn: 1.2, gain: 0.75 });
+    }
   }
 
   /** I loop del posto: il mostro che dorme respira dal letto; i suoni dei dati (la Madre dal fondo della grotta). */

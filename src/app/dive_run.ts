@@ -175,10 +175,16 @@ export class DiveRun {
     return true;
   }
 
+  /** Sei nell'ultima tana che costa aria (la seconda)? Lì l'aria sta finendo: l'erogatore dà un respiro affannoso,
+   *  l'unico segnale (niente sullo schermo; deciso l'11 ottobre sera). */
+  airRunningOut(): boolean {
+    return !!this.current.den && this.spent.length >= this.data.air.maxDens;
+  }
+
   /** Uscendo dalla tana in cui sei, l'aria finisce? Sì dall'ultima tana che costa aria (la seconda): invece di tornare
    *  nella grotta si risale. */
   outOfAirOnLeave(): boolean {
-    return !!this.current.den && this.spent.length >= this.data.air.maxDens;
+    return this.airRunningOut();
   }
 
   /** Lascia il pesce accanto al mostro della tana in cui sei. */
