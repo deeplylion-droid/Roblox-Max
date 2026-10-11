@@ -1,0 +1,47 @@
+{
+ "_nota": "Sotto la barca (render finale, tools/render/sotto_barca.py): inquadratura fissa, panorama parziale; l'acqua torbida è già cotta nei passi di luce.",
+ "pano": {
+  "ambient": {
+   "file": "immersioni/sotto_barca_ambient.webp",
+   "scale": 0.65
+  },
+  "lantern": {
+   "file": "immersioni/sotto_barca_lantern.webp",
+   "scale": 0.25
+  },
+  "data": "immersioni/sotto_barca_data.webp"
+ },
+ "size": [
+  3640,
+  2162
+ ],
+ "latMin": -45.0,
+ "latMax": 50.0,
+ "lonMin": -80.0,
+ "lonMax": 80.0,
+ "yaw": 0,
+ "rays": 1.0,
+ "frame": {
+  "yaw": 0,
+  "pitch": 6.4,
+  "yawRange": 30,
+  "pitchRange": 6
+ },
+ "links": [
+  {
+   "to": "grotta_grande",
+   "yaw": 12.1,
+   "pitch": -14.5,
+   "r": 9.3,
+   "label": "cave"
+  },
+  {
+   "ascend": true,
+   "yaw": -6.6,
+   "pitch": 12.2,
+   "r": 7,
+   "label": "ascend"
+  }
+ ],
+ "acquaCotta": true
+}

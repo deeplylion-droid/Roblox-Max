@@ -70,8 +70,9 @@ Anteprime: `docs/concept/sotto_barca_anteprima.jpg` (come la vede il gioco, 90°
 grande), centrato sulla direzione in cui guarda il sub; `frame` con `yawRange` 30 e `pitchRange` 6. Stessa codifica
 della grotta grande (acqua cotta, passo dati come il mondo, B = la superficie). File in
 `public/assets/img/immersioni/sotto_barca_*.webp` e la voce del posto in `sotto_barca_posto.json`, con le direzioni
-vere: l'imboccatura (`cave`) e la cima dell'ancora vicino alla prua (`ascend`), che nella scena sta appena a
-sinistra del centro, non a −28° come nel segnaposto. Nel finale la parete gira attorno al sub come un'insenatura,
+vere: l'imboccatura (`cave`: yaw 12,1°, pitch −14,5°, raggio 9,3°) e la cima dell'ancora vicino alla prua (`ascend`:
+yaw −6,6°, pitch 12,2°), che nella scena sta appena a sinistra del centro, non a −28° come nel segnaposto; il
+`frame` ha pitch 6,4° (lo sguardo del sub). Nel finale la parete gira attorno al sub come un'insenatura,
 così ai lati dell'inquadratura non ci sono più spigoli squadrati.
 
 ### La grotta grande (anteprime **approvate** l'11 ottobre sera; render finale del panorama)
