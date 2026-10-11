@@ -55,6 +55,12 @@ uniform float uShimmer;
 uniform float uOpacity;  // dissolvenza dello strato (le creature che compaiono e spariscono)
 uniform vec2 uShift;     // spostamento dello strato (pixel del panorama): la creatura che emerge
 uniform float uClipY;    // > 0: sotto questa riga del panorama non si disegna (il pelo dell'acqua)
+// il pelo dell'acqua colonna per colonna (una creatura che emerge): uPeloX = prima e ultima colonna, quanti campioni
+// (0: niente). Quello che lo spostamento porta sotto la linea non si disegna (se no la creatura scivolerebbe davanti
+// all'acqua più vicina); quello che nella posa stava già sotto (i cerchi sull'acqua attorno alla creatura) resta
+// finché la creatura è ferma e sparisce appena si muove
+uniform float uPelo[32];
+uniform vec3 uPeloX;
 uniform float uPart;     // creatura che sale o scende dietro il bordo: 0 tutta, 1 la parte contro mare e cielo
                          // (disegnata prima della barca, che la copre), 2 la parte davanti alla barca (le mani)
 uniform sampler2D uBoat; // la barca: il suo alfa dice dov'era coperta la creatura nella posa
@@ -77,6 +83,14 @@ void main() {
   float lat = atan(d.z, length(d.xy));
   vec2 p = vec2((0.5 + lon / (2.0 * PI)) * uPano.x, (uLat.y - lat) / (uLat.y - uLat.x) * uPano.y);
   if (uClipY > 0.0 && p.y > uClipY) discard;
+  float onWater = 1.0;
+  if (uPeloX.z > 1.5) {
+    float f = clamp((p.x - uPeloX.x) / (uPeloX.y - uPeloX.x), 0.0, 1.0) * (uPeloX.z - 1.0);
+    int i = min(int(f), int(uPeloX.z) - 2);
+    float row = mix(uPelo[i], uPelo[i + 1], f - float(i));
+    if (p.y - uShift.y > row) onWater = 1.0 - smoothstep(3.0, 24.0, abs(uShift.y));
+    else if (p.y > row) discard;
+  }
   p -= uShift;
   if (p.x < uRect.x || p.x > uRect.z || p.y < uRect.y || p.y > uRect.w) discard;
   float part = 1.0;
@@ -87,7 +101,7 @@ void main() {
     part = uPart < 1.5 ? 1.0 - b : b;
     if (part < 0.004) discard;
   }
-  part *= maskOf(uMask0, uMaskRect0, uMaskK.x, p) * maskOf(uMask1, uMaskRect1, uMaskK.y, p);
+  part *= onWater * maskOf(uMask0, uMaskRect0, uMaskK.x, p) * maskOf(uMask1, uMaskRect1, uMaskK.y, p);
   if (part < 0.004) discard;
   vec2 uv = (p - uRect.xy) / (uRect.zw - uRect.xy);
   float mist = 0.0, sky = 0.0;
@@ -325,6 +339,51 @@ void main() {
   vec3 m = mix(vec3(1.0), vec3(0.45, 0.02, 0.016), needle * uAlpha);
   m = mix(m, vec3(0.03), hub * uAlpha);
   frag = vec4(m, 1.0);
+}`;
+
+/**
+ * Bagliori piccoli e tanti (le lucine di Fangy): un quadrato attorno alla direzione di ognuno, con la stessa luce dei
+ * bagliori dell'atmosfera (il nucleo e l'alone), che sfuma prima dei bordi del quadrato. Un'istanza per bagliore.
+ */
+export const SPRITE_VS = /* glsl */ `#version 300 es
+layout(location = 0) in vec2 aCorner;   // -1..1
+layout(location = 1) in vec3 aDir;      // direzione del bagliore
+layout(location = 2) in vec4 aCol;      // rgb, raggio angolare (radianti)
+uniform mat3 uRot;
+uniform vec2 uTan;
+out vec3 vDir;
+out vec4 vCol;
+out vec2 vNdc;
+out vec2 vCorner;
+void main() {
+  vec3 c = transpose(uRot) * aDir;      // nello spazio della camera: x a destra, y avanti, z in su
+  vDir = aDir;
+  vCol = aCol;
+  vCorner = aCorner;
+  vNdc = vec2(0.0);
+  if (c.y < 0.05) { gl_Position = vec4(2.0, 2.0, 0.0, 1.0); return; }
+  float ext = aCol.a * 14.0 / (c.y * c.y);
+  vNdc = (vec2(c.x, c.z) / c.y + aCorner * ext) / uTan;
+  gl_Position = vec4(vNdc, 0.0, 1.0);
+}`;
+
+export const SPRITE_FS = /* glsl */ `#version 300 es
+precision highp float;
+in vec3 vDir;
+in vec4 vCol;
+in vec2 vNdc;
+in vec2 vCorner;
+out vec4 frag;
+uniform mat3 uRot;
+uniform vec2 uTan;
+uniform float uHalo;     // quanto alone attorno al nucleo (i bagliori dell'atmosfera: 0,25)
+void main() {
+  vec3 d = normalize(uRot * normalize(vec3(vNdc.x * uTan.x, 1.0, vNdc.y * uTan.y)));
+  float a = atan(length(cross(d, vDir)), dot(d, vDir));
+  float rad = vCol.a;
+  float k = exp(-pow(a / rad, 2.0)) + uHalo * exp(-a / (rad * 6.0));
+  k *= 1.0 - smoothstep(0.6, 1.0, length(vCorner));
+  frag = vec4(vCol.rgb * k, 0.0);
 }`;
 
 /** Lenza: striscia di triangoli già in coordinate clip. */

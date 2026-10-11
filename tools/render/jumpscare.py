@@ -7,10 +7,11 @@ scena come maschera; poi si compongono e si codificano come gli altri render (ov
 Molly si rende sul lato destro: per il sinistro il motore specchia l'immagine.
 Archie (notte 3) arriva dopo che il vetro della lampara è esploso: nella sua scena la lampara è spenta.
 Lampy (notte 4) arriva dalla lenza con la ventosa spalancata, e da un fotogramma all'altro gli anelli di denti girano.
+Fangy (notte 5) si lancia dalla fiancata con le zanne avanti e tutte le lucine accese.
 
 Uso: tools/.venv/bin/python tools/render/jobs.py jumpscare --quality preview   (JUMPSCARES=gulpy,molly,hatch,robin;
-JS_ANTEPRIMA=1 per lasciare i fotogrammi in cache senza toccare il gioco; Archie e Lampy si chiedono a parte:
-JUMPSCARES=archie, JUMPSCARES=lampy)
+JS_ANTEPRIMA=1 per lasciare i fotogrammi in cache senza toccare il gioco; Archie, Lampy e Fangy si chiedono a parte:
+JUMPSCARES=archie, JUMPSCARES=lampy, JUMPSCARES=fangy)
 """
 from __future__ import annotations
 
@@ -201,8 +202,27 @@ def lampy_attack():
 # riempie mezzo quadro), quanto si china in avanti (gradi), di quanti gradi girano gli anelli di denti a ogni fotogramma
 LAMPY_JS = {'dist': 0.62, 'pitch': 0.0, 'giro': 9.0}
 
+def fangy_attack():
+    import fangy as fa
+    # ti ha sentito tre volte: si lancia dalla fiancata con la testa avanti, le zanne puntate su di te e tutte le lucine
+    # accese (nel gioco al rumore si accendono tutte insieme). Parte dalla posa di gioco, dove la faccia cieca ti guarda
+    # già, e viene dritto sulla linea dello sguardo; il corpo e le braccia gli restano dietro, sotto il bordo
+    M0, kw = sc.fangy_posa()
+    sc.LAST_M['fangy_ascolta'] = M0
+    obs = sc.place(fa.build(**kw, testa=0.0, luci=1.0), M0)
+    testa = tuple(float(x) for x in fa.HEAD)
+    M1 = _toward_eye(M0, testa, FANGY_JS['dist'], extra_pitch=FANGY_JS['pitch'])
+    # la camera mira un po' sotto il centro della testa: alla fine nel quadro restano la bocca e le zanne
+    aim = M0 @ Vector(tuple(float(x) for x in fa.HEAD + np.array((0.0, 0.0, -0.06))))
+    return obs, M0, M1, aim
+
+
+# Fangy alla fine del jumpscare: a quanti metri dall'occhio arriva il centro della testa, e quanto si china in avanti
+# (gradi: le zanne vengono verso la camera)
+FANGY_JS = {'dist': 0.55, 'pitch': 6.0}
+
 ATTACKS = {'gulpy': gulpy_attack, 'molly': molly_attack, 'hatch': hatch_attack, 'robin': robin_attack,
-           'archie': archie_attack, 'lampy': lampy_attack}
+           'archie': archie_attack, 'lampy': lampy_attack, 'fangy': fangy_attack}
 
 # I pezzi che cambiano da un fotogramma all'altro (oltre a muoversi): funzione del numero del fotogramma, preparata
 # dall'attacco (i denti di Lampy che girano)
@@ -215,7 +235,10 @@ FILL = {'robin': {'energy': 3.0, 'dist': 0.35},
         # Archie arriva nel buio (la lampara è esplosa): lo illuminano la lanterna, la luna alle spalle e questa luce
         'archie': {'energy': 3.0, 'dist': 0.35},
         # Lampy arriva da destra della prua: la lampara le prende il fianco, questa la faccia
-        'lampy': {'energy': 3.0, 'dist': 0.35}}
+        'lampy': {'energy': 3.0, 'dist': 0.35},
+        # Fangy arriva da dietro a destra, con la lampara alle spalle del pescatore: la faccia la fanno questa luce e le
+        # sue lucine
+        'fangy': {'energy': 3.0, 'dist': 0.35}}
 
 
 def _fill_light(cfg):

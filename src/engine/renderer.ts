@@ -3,11 +3,13 @@
  * atmosfera (faro, luci), schermo del sonar, lenza, bloom e composizione finale.
  */
 import { FULLSCREEN_VS, FullscreenTri, Program, Target, createGL, hdrSupported, textureFromCanvas, type GL } from './gl.ts';
-import { ATMOS_FS, BRIGHT_FS, DOWN_FS, FINAL_FS, GAUGE_FS, LAYER_FS, LINE_FS, LINE_VS, OVERLAY_FS, PERSP_FS, SCREEN_FS, TUBE_FS, TUBE_VS, UP_FS } from './shaders.ts';
+import { ATMOS_FS, BRIGHT_FS, DOWN_FS, FINAL_FS, GAUGE_FS, LAYER_FS, LINE_FS, LINE_VS, OVERLAY_FS, PERSP_FS, SCREEN_FS, SPRITE_FS, SPRITE_VS, TUBE_FS, TUBE_VS, UP_FS } from './shaders.ts';
 import type { LoadedLayer, Manifest, Vec3 } from './assets.ts';
 import type { View } from './view.ts';
 
 const D2R = Math.PI / 180;
+/** campioni del pelo dell'acqua di uno strato (LayerDraw.pelo; nello shader, uPelo) */
+const PELO_N = 32;
 
 export interface LightGlow {
   dir: Vec3; // direzione dall'occhio (spazio mondo)
@@ -22,6 +24,9 @@ export interface LayerDraw {
   shift?: [number, number];
   /** riga del panorama sotto cui lo strato non si vede (il pelo dell'acqua mentre emerge) */
   clipY?: number;
+  /** il pelo dell'acqua colonna per colonna (LayerInfo.pelo, con le colonne estreme del riquadro su cui è misurato):
+   *  sotto questa linea lo strato non si vede */
+  pelo?: { x0: number; x1: number; rows: number[] };
   /**
    * Creatura sulla barca che sale o scende dietro il bordo: lo strato si divide secondo dove lo copriva la barca
    * nella posa. 'back' è la parte contro il mare e il cielo, da disegnare prima della barca che la copre mentre
@@ -115,6 +120,9 @@ export interface FrameParams {
   glows: LightGlow[];
   /** bagliori sulla barca (spazio barca), disegnati sopra lo scafo */
   boatGlows?: LightGlow[];
+  /** bagliori piccoli e tanti nel mondo (le lucine di Fangy), disegnati uno per uno con l'atmosfera: sopra le
+   *  creature nel mondo, coperti dalla barca */
+  glowSprites?: LightGlow[];
   /** strati da disegnare in ordine (chiavi del manifest, o con dissolvenza/spostamento) */
   layers: (string | LayerDraw)[];
   /** immagine a tutto schermo sopra la scena */
@@ -155,6 +163,10 @@ export class Renderer {
   private sonarTex: WebGLTexture | null = null;
   private lineVao: WebGLVertexArrayObject;
   private lineBuf: WebGLBuffer;
+  private peloBuf = new Float32Array(PELO_N);
+  private pSprite: Program;
+  private spriteVao: WebGLVertexArrayObject;
+  private spriteBuf: WebGLBuffer;
   readonly layers = new Map<string, LoadedLayer>();
   renderScale = 1;
 
@@ -185,6 +197,23 @@ export class Renderer {
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 12, 0);
     gl.enableVertexAttribArray(1);
     gl.vertexAttribPointer(1, 1, gl.FLOAT, false, 12, 8);
+    gl.bindVertexArray(null);
+    this.pSprite = new Program(gl, SPRITE_VS, SPRITE_FS, 'sprite');
+    this.spriteVao = gl.createVertexArray()!;
+    this.spriteBuf = gl.createBuffer()!;
+    gl.bindVertexArray(this.spriteVao);
+    const corners = gl.createBuffer()!;
+    gl.bindBuffer(gl.ARRAY_BUFFER, corners);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 8, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.spriteBuf);
+    gl.enableVertexAttribArray(1);
+    gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 28, 0);
+    gl.vertexAttribDivisor(1, 1);
+    gl.enableVertexAttribArray(2);
+    gl.vertexAttribPointer(2, 4, gl.FLOAT, false, 28, 12);
+    gl.vertexAttribDivisor(2, 1);
     gl.bindVertexArray(null);
     this.tubeVao = gl.createVertexArray()!;
     this.tubeBuf = gl.createBuffer()!;
@@ -256,6 +285,7 @@ export class Renderer {
       // l'atmosfera va disegnata dopo il mondo e prima della barca
       if (!atmosDone && l.info.space === 'boat') {
         this.drawAtmos(view, f);
+        if (f.glowSprites?.length) this.drawSprites(view, f.glowSprites, true);
         this.pLayer.use();
         atmosDone = true;
       }
@@ -271,6 +301,7 @@ export class Renderer {
         .f1('uOpacity', d.opacity ?? 1)
         .f2('uShift', d.shift?.[0] ?? 0, d.shift?.[1] ?? 0)
         .f1('uClipY', d.clipY ?? 0)
+        .f3('uPeloX', d.pelo?.x0 ?? 0, d.pelo?.x1 ?? 1, d.pelo ? Math.min(PELO_N, d.pelo.rows.length) : 0)
         .f1('uPart', d.part === 'back' ? 1 : d.part === 'front' ? 2 : 0)
         .f1('uHasData', l.data ? 1 : 0)
         .tex('uAmb', 0, l.amb)
@@ -278,6 +309,11 @@ export class Renderer {
         .tex('uLant', 2, l.lantern)
         .tex('uData', 3, l.data)
         .tex('uBoat', 4, d.part ? (this.layers.get('boat')?.amb ?? null) : null);
+      if (d.pelo) {
+        this.peloBuf.fill(0);
+        this.peloBuf.set(d.pelo.rows.slice(0, PELO_N));
+        p.fv('uPelo', this.peloBuf);
+      }
       const m0 = d.masks?.[0] ? this.layers.get(d.masks[0].key) : undefined;
       const m1 = d.masks?.[1] ? this.layers.get(d.masks[1].key) : undefined;
       p.f2('uMaskK', m0 ? d.masks![0]!.k : 0, m1 ? d.masks![1]!.k : 0)
@@ -291,7 +327,10 @@ export class Renderer {
         this.pLayer.use();
       }
     }
-    if (!atmosDone) this.drawAtmos(view, f);
+    if (!atmosDone) {
+      this.drawAtmos(view, f);
+      if (f.glowSprites?.length) this.drawSprites(view, f.glowSprites, true);
+    }
     if (f.boatGlows?.length) this.drawGlows(view, f.boatGlows);
     if (f.sonar) this.drawScreen(view, f);
     if (f.gauge) this.drawGauge(view, f.gauge);
@@ -369,6 +408,25 @@ export class Renderer {
       .v3('uLightDir', dirs)
       .v4('uLightCol', cols);
     this.tri.draw();
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+  }
+
+  /** Bagliori uno per uno (tanti e piccoli: un quadrato ciascuno, invece del giro su tutto lo schermo). */
+  private drawSprites(view: View, glows: LightGlow[], world: boolean): void {
+    const gl = this.gl;
+    const data = new Float32Array(glows.length * 7);
+    glows.forEach((g, i) => data.set([g.dir[0], g.dir[1], g.dir[2], g.color[0], g.color[1], g.color[2], g.radius], i * 7));
+    gl.blendFunc(gl.ONE, gl.ONE);
+    this.pSprite
+      .use()
+      .m3('uRot', new Float32Array(world ? view.worldRot : view.boatRot))
+      .f2('uTan', view.tanX, view.tanY)
+      .f1('uHalo', 0.1);
+    gl.bindVertexArray(this.spriteVao);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.spriteBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, data, gl.DYNAMIC_DRAW);
+    gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, glows.length);
+    gl.bindVertexArray(null);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
   }
 

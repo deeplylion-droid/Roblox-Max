@@ -47,6 +47,7 @@ export class Sfx {
   private variants = new Map<string, string[]>();
   private rockLoop: Voice | null = null;
   private toyLoop: Voice | null = null;
+  private fangyLoop: Voice | null = null;
 
   constructor(private audio: AudioEngine) {}
 
@@ -250,7 +251,8 @@ export class Sfx {
   stopLoops(): void {
     this.rockLoop?.stop(0.4);
     this.toyLoop?.stop(0.4);
-    this.rockLoop = this.toyLoop = null;
+    this.fangyLoop?.stop(0.4);
+    this.rockLoop = this.toyLoop = this.fangyLoop = null;
   }
 
   // ───────────────────────── Robin (notte 2) ─────────────────────────
@@ -507,6 +509,49 @@ export class Sfx {
     this.audio.play('splash_s1', { pos, gain: 0.4 });
   }
 
+  // ───────────────────────── Fangy (notte 5) ─────────────────────────
+  // I suoi suoni saranno i file fangy_* (docs/AUDIO.md); finché mancano, ripieghi coi file di scena.
+
+  /** Le lucine che arrivano sott'acqua dal largo: un ronzio sordo che sale, le bolle. */
+  fangyApproach(pos: Vec3): void {
+    if (this.playAny('fangy_approach', { pos, spread: 0.03 })) return;
+    this.audio.play('splash_s1', { pos, gain: 0.18, rate: 0.55, lowpass: 500 });
+  }
+
+  /** Sale accanto alla barca, dietro di te: l'acqua che si apre piano, un fiato lungo e bagnato. */
+  fangyRise(pos: Vec3): void {
+    if (this.playAny('fangy_rise', { pos, spread: 0.03 })) return;
+    this.audio.play('splash_big', { pos, gain: 0.35, rate: 0.8, lowpass: 1800 });
+  }
+
+  /** Ti ha sentito: la testa che scatta sul collo, le zanne che battono (n: quanti rumori ha sentito). */
+  fangySnap(pos: Vec3, n: number): void {
+    if (this.playAny('fangy_snap', { pos, spread: 0.02, gain: 0.85 + 0.15 * Math.min(n, 2) })) return;
+    this.audio.play('creak_2', { pos, gain: 0.6, rate: 1.5 });
+    this.audio.play('splash_s2', { pos, gain: 0.25, rate: 1.4 });
+  }
+
+  /**
+   * Il respiro di Fangy mentre ascolta accanto alla barca, dietro le spalle (in loop): da chiamare a ogni fotogramma
+   * con quanto è su (0..1).
+   */
+  fangyListen(amount: number, pos: Vec3): void {
+    const a = Math.max(0, Math.min(1, amount));
+    if (a > 0.02 && !this.fangyLoop && this.audio.has('fangy_listen')) this.fangyLoop = this.audio.play('fangy_listen', { loop: true, gain: 0, pos });
+    if (!this.fangyLoop) return;
+    this.fangyLoop.setGain(a, 0.15);
+    if (a <= 0.02) {
+      this.fangyLoop.stop(0.4);
+      this.fangyLoop = null;
+    }
+  }
+
+  /** Torna giù: scivola nell'acqua senza fretta. */
+  fangyLeave(pos: Vec3): void {
+    if (this.playAny('fangy_leave', { pos, spread: 0.03 })) return;
+    this.audio.play('splash_s2', { pos, gain: 0.45, rate: 0.75 });
+  }
+
   // ───────────────────────── jumpscare ─────────────────────────
 
   /** L'urlo del jumpscare di ciascuna creatura (in faccia, non spazializzato); la voce serve a troncarlo
@@ -515,7 +560,7 @@ export class Sfx {
     this.stopLoops();
     const v = this.audio.play(`js_${who}`);
     // senza il file (i mostri nuovi, finché non hanno il loro urlo) un urlo sintetizzato al volo
-    if (!v) this.synthScream(1, who === 'molly' ? 1.35 : who === 'hatch' ? 0.85 : who === 'robin' ? 1.1 : who === 'archie' ? 0.95 : who === 'lampy' ? 1.2 : 0.7);
+    if (!v) this.synthScream(1, who === 'molly' ? 1.35 : who === 'hatch' ? 0.85 : who === 'robin' ? 1.1 : who === 'archie' ? 0.95 : who === 'lampy' ? 1.2 : who === 'fangy' ? 0.8 : 0.7);
     return v;
   }
 

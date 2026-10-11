@@ -151,6 +151,62 @@
     "gain": 0.6,
     "category": "sfx"
   },
+  "fangy_approach": {
+    "file": "fangy_approach.ogg",
+    "duration": 3.6,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.7,
+    "category": "mon"
+  },
+  "fangy_leave": {
+    "file": "fangy_leave.ogg",
+    "duration": 2.2,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.8,
+    "category": "mon"
+  },
+  "fangy_listen": {
+    "file": "fangy_listen.ogg",
+    "duration": 9.0,
+    "loop": true,
+    "channels": 1,
+    "gain": 0.6,
+    "category": "mon"
+  },
+  "fangy_rise": {
+    "file": "fangy_rise.ogg",
+    "duration": 2.4,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.85,
+    "category": "mon"
+  },
+  "fangy_snap": {
+    "file": "fangy_snap.ogg",
+    "duration": 0.65,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.9,
+    "category": "mon"
+  },
+  "fangy_snap_2": {
+    "file": "fangy_snap_2.ogg",
+    "duration": 0.65,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.9,
+    "category": "mon"
+  },
+  "fangy_snap_3": {
+    "file": "fangy_snap_3.ogg",
+    "duration": 0.65,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.9,
+    "category": "mon"
+  },
   "fish_bucket": {
     "file": "fish_bucket.ogg",
     "duration": 0.95,
@@ -402,6 +458,14 @@
   "js_archie": {
     "file": "js_archie.ogg",
     "duration": 1.4,
+    "loop": false,
+    "channels": 2,
+    "gain": 1.0,
+    "category": "mon"
+  },
+  "js_fangy": {
+    "file": "js_fangy.ogg",
+    "duration": 1.6,
     "loop": false,
     "channels": 2,
     "gain": 1.0,

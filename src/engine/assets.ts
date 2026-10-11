@@ -22,6 +22,13 @@ export interface LayerInfo {
   gauge?: [Vec3, Vec3, Vec3];
   /** «toppa» di un'animazione (la sola testa con una variante): lo strato della posa su cui va, con lo stesso yaw */
   base?: string;
+  /** creatura nel mare: la riga del panorama (dello strato) dove il pelo dell'acqua la taglia, a colonne equidistanti
+   *  sul riquadro (la prima sul bordo sinistro, l'ultima sul destro). Quando emerge o si rituffa lo strato scende
+   *  tutto insieme e sotto questa linea non si disegna (tools/render/jobs.py, pelo_dell_acqua) */
+  pelo?: number[];
+  /** lucine della creatura (dall'occhio del pescatore), in ordine, ognuna con la sua fila (Fangy: il motore le
+   *  accende in fila, come un respiro) */
+  luci?: { p: Vec3[]; fila: string[] };
 }
 
 export interface Manifest {

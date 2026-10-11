@@ -24,7 +24,9 @@ const GAME_LAYERS = ['world', 'boat', 'rod0', 'rod1', 'rod2', 'fish2', 'fish5', 
   // notte 3: Archie e le sue toppe (la trombetta a metà e tutta, la gola gonfia)
   'archie_soffia', 'archie_trombetta_mezza', 'archie_trombetta_tutta', 'archie_fiato',
   // notte 4: Lampy sulla lenza e le toppe della ventosa (chiusa e spalancata coi denti girati)
-  'lampy_lenza', 'lampy_bocca_chiusa', 'lampy_bocca_aperta'];
+  'lampy_lenza', 'lampy_bocca_chiusa', 'lampy_bocca_aperta',
+  // notte 5: Fangy in ascolto e le toppe della testa girata verso prua e verso poppa
+  'fangy_ascolta', 'fangy_testa_prua', 'fangy_testa_poppa'];
 
 /** ?speed=N accelera il tempo di gioco (per le prove automatiche nel browser senza GPU). */
 const SPEED = Math.max(0.1, Number(new URLSearchParams(location.search).get('speed') ?? 1) || 1);

@@ -285,6 +285,74 @@ def render_sprite(q, key, objs, space='boat', margin=12, holdout_boat=True, samp
     return encode_layer(key, exr, space, q.pano_width, rect=rect, yaw_center=round(yc, 4), with_alpha=True, extra=extra)
 
 
+def pelo_dell_acqua(objs, yaw_c, rect, width, n=32):
+    """Dove il mare taglia una creatura, visto dall'occhio: per n colonne equidistanti sul riquadro dello strato (la
+    prima sul bordo sinistro, l'ultima sul destro) la riga del panorama (ruotato di yaw_c) in cui il pelo
+    dell'acqua la taglia; dove la taglia più volte, la più in basso (la parte più vicina, quella che si vede). Le
+    colonne dove non tocca l'acqua (fra le braccia, sotto la testa sporgente) si interpolano fra le vicine, oltre i
+    capi resta l'ultima. Il gioco la usa quando la creatura emerge e si rituffa: lo strato scende tutto insieme, e
+    sotto questa linea non si disegna (se no scivolerebbe davanti all'acqua più vicina). None se non tocca il mare.
+    Il mare è quello vero della scena, con le onde e la calma vicino alla barca."""
+    from mathutils.bvhtree import BVHTree
+    sea = bpy.data.objects.get('Sea')
+    if sea is None or not objs:
+        return None
+    dg = bpy.context.evaluated_depsgraph_get()
+    tree = BVHTree.FromObject(sea, dg)
+    inv = sea.matrix_world.inverted()
+    down = (inv.to_3x3() @ Vector((0.0, 0.0, -1.0))).normalized()
+
+    def water_z(x, y):
+        hit = tree.ray_cast(inv @ Vector((x, y, 50.0)), down)
+        return (sea.matrix_world @ hit[0]).z if hit[0] is not None else 0.0
+
+    W, H = pano_size(width)
+    us, vs = [], []
+    for o in objs:
+        oe = o.evaluated_get(dg)
+        me = oe.to_mesh()
+        if me is None:
+            continue
+        co = np.empty(len(me.vertices) * 3)
+        me.vertices.foreach_get('co', co)
+        ev = np.empty(len(me.edges) * 2, dtype=np.int64)
+        me.edges.foreach_get('vertices', ev)
+        M = np.array(oe.matrix_world)
+        oe.to_mesh_clear()
+        P = co.reshape(-1, 3) @ M[:3, :3].T + M[:3, 3]
+        ev = ev.reshape(-1, 2)
+        # quanto sta sopra il mare ogni vertice: lontano dall'acqua basta il segno (le onde sono di pochi centimetri)
+        f = np.where(P[:, 2] > 0, 1.0, -1.0)
+        for i in np.nonzero(np.abs(P[:, 2]) < 0.6)[0]:
+            f[i] = P[i, 2] - water_z(P[i, 0], P[i, 1])
+        a, b = f[ev[:, 0]], f[ev[:, 1]]
+        cross = a * b < 0
+        if not cross.any():
+            continue
+        t = (a[cross] / (a[cross] - b[cross]))[:, None]
+        X = P[ev[cross, 0]] + (P[ev[cross, 1]] - P[ev[cross, 0]]) * t
+        d = X - np.array(EYE)
+        lon = (np.degrees(np.arctan2(d[:, 0], d[:, 1])) - yaw_c + 180) % 360 - 180
+        lat = np.degrees(np.arctan2(d[:, 2], np.hypot(d[:, 0], d[:, 1])))
+        us.append((0.5 + lon / 360.0) * W)
+        vs.append((LAT_MAX - lat) / (LAT_MAX - LAT_MIN) * H)
+    if not us:
+        return None
+    u, v = np.concatenate(us), np.concatenate(vs)
+    x0, x1 = rect[0], rect[2]
+    xs = x0 + (x1 - x0) * np.arange(n) / (n - 1)
+    half = (x1 - x0) / (n - 1) / 2
+    rows = np.full(n, np.nan)
+    for i, x in enumerate(xs):
+        m = np.abs(u - x) <= half
+        if m.any():
+            rows[i] = v[m].max()
+    ok = ~np.isnan(rows)
+    if not ok.any():
+        return None
+    return [round(float(r), 1) for r in np.interp(xs, xs[ok], rows[ok])]
+
+
 def job_props(q):
     """Oggetti di scena come strati. Variabile d'ambiente PROPS=fish,rod,battery per renderne solo alcuni."""
     only = [k for k in os.environ.get('PROPS', '').split(',') if k]
@@ -457,10 +525,49 @@ def job_creature(q):
         entry = render_sprite(q, key, vis, space=space, sea=sea, extra=extra or None, holdout=masks, yaw=yaw,
                               rect_objs=rect_objs)
         fatti[key] = entry['yaw']
+        if not base:
+            # dove il mare la taglia (le toppe usano quella dello strato su cui vanno)
+            pelo = pelo_dell_acqua(vis, entry['yaw'], entry['rect'], q.pano_width)
+            if pelo:
+                post.update_manifest(MANIFEST, f'layers.{key}.pelo', pelo)
         for o in new:
             o.hide_render = True
         bpy.context.view_layer.update()
 
+
+
+def job_pelo(q):
+    """Solo la linea del pelo dell'acqua (pelo_dell_acqua) delle creature già rese, senza rendere niente: rifà le
+    pose di scena_creature.POSES (o quelle in POSES=...) e la scrive nelle loro voci del manifest, con lo yaw e il
+    riquadro che hanno già. Le toppe la prendono dallo strato su cui vanno."""
+    import scena_creature
+    build_scene(fish=0, rod=False)
+    only = [k for k in os.environ.get('POSES', '').split(',') if k]
+    with open(MANIFEST) as f:
+        man = json.load(f)
+    width = man['pano']['width']
+    for key, voce in scena_creature.POSES.items():
+        opts = voce[3] if len(voce) > 3 else {}
+        if (only and key not in only) or opts.get('yaw_di'):
+            continue
+        e = man['layers'].get(key)
+        if not e:
+            log(f'{key}: non è nel manifest')
+            continue
+        before = set(bpy.data.objects.keys())
+        voce[0]()
+        new = [bpy.data.objects[n] for n in set(bpy.data.objects.keys()) - before]
+        bpy.context.view_layer.update()
+        meshes = [o for o in new if o.type == 'MESH']
+        vis = scegli(meshes, opts['visibili']) if opts.get('visibili') else meshes
+        pelo = pelo_dell_acqua(vis, e['yaw'], e['rect'], width)
+        if pelo:
+            post.update_manifest(MANIFEST, f'layers.{key}.pelo', pelo)
+            log(f'{key}: pelo dell\'acqua dalla riga {min(pelo)} alla {max(pelo)} (riquadro {e["rect"]})')
+        else:
+            log(f'{key}: non tocca il mare')
+        for o in new:
+            o.hide_render = True
 
 OVERLAYS = os.path.join(OUT_IMG, 'overlays.json')
 
@@ -599,7 +706,7 @@ def job_bordo(q):
     log('bordo: %d direzioni, da %.1f° a %.1f°' % (len(out), min(out), max(out)))
 
 
-JOBS = {'world': job_world, 'boat': job_boat, 'props': job_props, 'creature': job_creature, 'reencode': job_reencode, 'tarp': job_tarp, 'jumpscare': job_jumpscare, 'binocolo': job_binocolo, 'bordo': job_bordo}
+JOBS = {'world': job_world, 'boat': job_boat, 'props': job_props, 'creature': job_creature, 'reencode': job_reencode, 'tarp': job_tarp, 'jumpscare': job_jumpscare, 'binocolo': job_binocolo, 'bordo': job_bordo, 'pelo': job_pelo}
 
 
 def main():

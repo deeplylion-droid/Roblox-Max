@@ -88,6 +88,19 @@ const LAMPY_WATER: Vec3 = [5.696, 3.926, -1.273];
 /** dove si sente Lampy: sotto di lei, dove la lenza entra in acqua */
 const LAMPY_AT: Vec3 = [4.7, 4.1, -1.15];
 const HATCH_AT: Vec3 = [0.35, -7.4, -0.6];
+/** notte 5: Fangy nell'acqua a destra, dietro il pescatore: la testa (tools/render/cache/fangy_posa.json, «testa_m»,
+ *  dall'occhio, spazio della barca) */
+const FANGY_AT: Vec3 = [1.808, -0.7305, -0.298];
+/** le lucine che lo annunciano: una fila sott'acqua che arriva dal largo girando verso di lui (quante, da quanti metri
+ *  dall'occhio, da quanti gradi più a poppa, quanto sotto il pelo dell'acqua) */
+const FANGY_ROW = 9;
+const FANGY_FAR = 13;
+const FANGY_SWING = 34;
+const FANGY_DEEP = 0.6;
+/** il respiro delle sue lucine (secondi per giro): calmo, poi più in fretta a ogni rumore che ha sentito */
+const FANGY_BREATH = [3.2, 2.1, 1.35, 0.9];
+/** il colore delle lucine (azzurre, come i pesci degli abissi) */
+const FANGY_LIGHT: Vec3 = [0.3, 0.78, 1.0];
 /** il pelo dell'acqua sotto l'occhio */
 const WATER_Z = -1.25;
 /** dove cade il galleggiante: davanti alla canna, verso il largo (radianti di yaw dall'occhio) */
@@ -147,6 +160,11 @@ const POSE = {
   lampy: 'lampy_lenza',
   lampyShut: 'lampy_bocca_chiusa',
   lampyOpen: 'lampy_bocca_aperta',
+  /** notte 5: Fangy in ascolto, e le toppe della testa girata di scatto verso prua e verso poppa (la creatura intera:
+   *  girando, la testa scopre e copre il corpo) */
+  fangy: 'fangy_ascolta',
+  fangyBow: 'fangy_testa_prua',
+  fangyStern: 'fangy_testa_poppa',
 } as const;
 
 /** le toppe degli occhi di Molly sui due lati: il primo occhio (quello che ti fissa) e il secondo */
@@ -269,7 +287,8 @@ export class Night {
   private hoverTarget: Target = null;
   // stato visivo (morbido)
   private v = { gSale: 0, gRise: 0, gPret: 0, mR: 0, mL: 0, hRise: 0, robin: 0, robinFear: 0, robinBlink: 0,
-    gJaw: 0, gJawPhase: 0, gJawAmp: 0, mBlink1: 0, mBlink2: 0, hMouth: 0, hMouthT: 99, aRise: 0, aHornT: 0, aHornHalf: 0, aHornFull: 0, aFiato: 0, lRise: 0, lMouth: 0, lMouthT: 0, lClimb: 0, tarp: 0, toy: 0, toyX: -1, dawn: 0, rock: 0, dark: 0 };
+    gJaw: 0, gJawPhase: 0, gJawAmp: 0, mBlink1: 0, mBlink2: 0, hMouth: 0, hMouthT: 99, aRise: 0, aHornT: 0, aHornHalf: 0, aHornFull: 0, aFiato: 0, lRise: 0, lMouth: 0, lMouthT: 0, lClimb: 0,
+    fRise: 0, fBow: 0, fStern: 0, fHead: 0, fHeadT: 1, fFlash: 0, fBreath: 0, tarp: 0, toy: 0, toyX: -1, dawn: 0, rock: 0, dark: 0 };
   private gulpyDive = 0;
   /** quando è cominciata l'abboccata in corso (per il suggerimento nelle notti di Lampy) */
   private biteAt = -1;
@@ -872,6 +891,32 @@ export class Night {
             break;
         }
         break;
+      case 'fangy':
+        switch (e.e) {
+          case 'approach':
+            fx.fangyApproach(dirPos(YAW.fangy, FANGY_FAR, -6));
+            cap(S.captions.fangyApproach);
+            break;
+          case 'rise':
+            fx.fangyRise(FANGY_AT);
+            cap(S.captions.fangyRise);
+            break;
+          case 'snap':
+            // ti ha sentito: la testa scatta verso prua, dove hai fatto rumore, e le lucine si accendono tutte
+            this.v.fHead = 1;
+            this.v.fHeadT = 1.8;
+            this.v.fFlash = 1;
+            fx.fangySnap(FANGY_AT, e.n ?? 1);
+            cap(S.captions.fangySnap);
+            break;
+          case 'leave':
+            fx.fangyLeave(FANGY_AT);
+            cap(S.captions.fangyLeave);
+            break;
+          default:
+            break;
+        }
+        break;
       case 'robin': {
         const bucket = this.d.stage.man.points.bucket;
         switch (e.e) {
@@ -1094,7 +1139,9 @@ export class Night {
               ? YAW.archie
               : killer === 'lampy'
                 ? YAW.lampy
-                : (L[POSE.hatchConta]?.yaw ?? 180);
+                : killer === 'fangy'
+                  ? YAW.fangy
+                  : (L[POSE.hatchConta]?.yaw ?? 180);
     this.binoUp = false;
     this.bino = 0;
     this.d.stage.view.swayYaw = this.d.stage.view.swayPitch = this.d.stage.view.steady = 0;
@@ -1187,6 +1234,33 @@ export class Night {
     v.lMouth = approach(v.lMouth, lHooked ? 1 : lp?.visible ? -Math.sin((v.lMouthT * 2 * Math.PI) / 2.6) : 0, lHooked ? 10 : 5, dt);
     v.lClimb = lp?.state === 'climbing' ? Math.min(1, lp.stateTime / (sim.cfg.lampy?.climb ?? 1)) : lp?.state === 'attack' ? 1 : 0;
 
+    // Fangy: sale dall'acqua accanto alla barca e ci torna. A ogni rumore gira la testa di scatto verso prua (dove fai
+    // rumore), la tiene lì un poco e torna a fissarti; mentre ascolta in silenzio ogni tanto la volta verso poppa,
+    // come per sentire meglio. Le lucine respirano più in fretta a ogni rumore che ha sentito, e al rumore si
+    // accendono tutte insieme
+    const fg = sim.fangy;
+    v.fRise = approach(v.fRise, fg ? (fg.state === 'attack' ? 1 : fg.rise) : 0, 14, dt);
+    if (fg && (fg.listening || fg.state === 'attack')) {
+      v.fHeadT -= dt;
+      if (v.fHeadT <= 0) {
+        if (v.fHead !== 0) {
+          v.fHead = 0;
+          v.fHeadT = 1.8 + Math.random() * 2.6;
+        } else if (fg.state === 'listening') {
+          v.fHead = -1;
+          v.fHeadT = 0.7 + Math.random() * 0.7;
+        } else v.fHeadT = 0.6;
+      }
+    } else {
+      v.fHead = 0;
+      v.fHeadT = 1.4;
+    }
+    // la testa gira di scatto (fra due immagini una dissolvenza lenta mostrerebbe due teste)
+    v.fBow = toward(v.fBow, v.fHead === 1 ? 1 : 0, 0.07, 0.1, dt);
+    v.fStern = toward(v.fStern, v.fHead === -1 ? 1 : 0, 0.07, 0.1, dt);
+    v.fFlash = Math.max(0, v.fFlash - dt / 1.1);
+    v.fBreath += dt / FANGY_BREATH[Math.min(FANGY_BREATH.length - 1, fg?.heard ?? 0)]!;
+
     // Robin: sale dal mare sul bordo mentre arriva e ruba; scacciato scivola giù in mare. La luce in faccia cresce
     // mentre lo scacci, e se ne va ancora abbagliato
     const rb = sim.robin;
@@ -1253,6 +1327,7 @@ export class Night {
         else if (this.js.killer === 'robin') v.robin = 1;
         else if (this.js.killer === 'archie') v.aRise = 1;
         else if (this.js.killer === 'lampy') v.lRise = 1;
+        else if (this.js.killer === 'fangy') v.fRise = 1;
         else if (this.sim.molly.side === 'right') v.mR = 1;
         else v.mL = 1;
       }
@@ -1315,7 +1390,8 @@ export class Night {
     const rise = (key: string, opacity: number, r: number, masks?: { key: string; k: number }[]): LayerDraw | null => {
       const info = this.baseOf(key);
       if (!info || !has(key) || opacity < 0.002) return null;
-      return { key, opacity, shift: [0, this.wavePx(key, r)], clipY: info.rect[3] - 3, masks };
+      const pelo = info.pelo ? { x0: info.rect[0], x1: info.rect[2], rows: info.pelo } : undefined;
+      return { key, opacity, shift: [0, this.wavePx(key, r)], clipY: info.rect[3] - 3, pelo, masks };
     };
     const gs = rise(POSE.gulpySale, v.gSale, v.gRise);
     if (gs) layers.push(gs);
@@ -1331,6 +1407,21 @@ export class Night {
       if (half) layers.push(half);
       const shut = rise(POSE.hatchMouthShut, kShut, hr);
       if (shut) layers.push(shut);
+    }
+    // Fangy accanto alla barca (notte 5), e le toppe della testa girata: verso prua quando ti sente, verso poppa quando
+    // ascolta
+    if (v.fRise > 0.002) {
+      const fr = ease(v.fRise);
+      const kBow = has(POSE.fangyBow) ? v.fBow : 0;
+      const kStern = has(POSE.fangyStern) ? v.fStern : 0;
+      const fb = rise(POSE.fangy, 1, fr, [{ key: POSE.fangyBow, k: kBow }, { key: POSE.fangyStern, k: kStern }]);
+      if (fb) {
+        layers.push(fb);
+        const stern = rise(POSE.fangyStern, kStern, fr, [{ key: POSE.fangyBow, k: kBow }]);
+        if (stern) layers.push(stern);
+        const bow = rise(POSE.fangyBow, kBow, fr);
+        if (bow) layers.push(bow);
+      }
     }
     // Archie davanti alla prua, e le toppe della trombetta (a metà nel respiro, tutta quando soffia)
     const arr = ease(v.aRise);
@@ -1480,7 +1571,6 @@ export class Night {
     return b.t > 0 ? Math.min(1, 1.8 * Math.sin(Math.PI * (1 - b.t / len))) : 0;
   }
 
-  /** Di quanto è sotto il pelo dell'acqua una creatura in mare (r = 1 tutta fuori): segue anche l'onda, di un soffio. */
   /** Agganciata, Lampy risale un poco la lenza verso la punta della canna: lo spostamento del suo strato (pixel). */
   private lampyClimbPx(c: number): [number, number] {
     if (c <= 0) return [0, 0];
@@ -1503,12 +1593,25 @@ export class Night {
     return sim.time - this.biteAt >= LAMPY_FIRST_BEAT + l.beat ? this.S.hints.hook : '';
   }
 
+  /** Di quanto è sotto il pelo dell'acqua una creatura in mare (r = 1 tutta fuori): a r = 0 la cima è scesa fino
+   *  al pelo dell'acqua più basso; segue anche l'onda, di un soffio. */
   private wavePx(key: string, r: number): number {
     const info = this.baseOf(key);
     if (!info) return 0;
     const t = this.d.stage.time;
     const bob = 1.6 * Math.sin(t * 0.9 + key.length) + 0.7 * Math.sin(t * 2.3);
-    return (1 - r) * (info.rect[3] - info.rect[1]) + bob;
+    const bottom = info.pelo ? Math.max(...info.pelo) : info.rect[3];
+    return (1 - r) * (bottom - info.rect[1]) + bob;
+  }
+
+  /** La riga del pelo dell'acqua di una creatura nel mare nella colonna x del panorama del suo strato (senza la
+   *  linea, il fondo del riquadro). */
+  private waterRow(info: LayerInfo, x: number): number {
+    const pelo = info.pelo;
+    if (!pelo || pelo.length < 2) return info.rect[3] - 3;
+    const f = Math.max(0, Math.min(1, (x - info.rect[0]) / (info.rect[2] - info.rect[0]))) * (pelo.length - 1);
+    const i = Math.min(Math.floor(f), pelo.length - 2);
+    return pelo[i]! + (pelo[i + 1]! - pelo[i]!) * (f - i);
   }
 
   /** Quali occhi di uno strato sono chiusi in questo momento (un battito di ciglia). */
@@ -1948,7 +2051,8 @@ export class Night {
       const info = st.man.layers[key];
       if (!info?.eyes || k < 0.05) continue;
       // nel mondo (e Lampy, che sta sulla lenza oltre la barca) gli occhi spariscono sotto il pelo dell'acqua
-      const water = info.space === 'world' || key === POSE.lampy ? pano.latMax - (info.rect[3] - 3) * degPx : null;
+      const inSea = info.space === 'world' || key === POSE.lampy;
+      const base = this.baseOf(key) ?? info;
       const pulse = 0.85 + 0.15 * Math.sin(st.time * 1.7 + key.length);
       const a = k * dark * pulse;
       // gli occhi chiusi (un battito di ciglia) non brillano: per Molly il primo occhio è il più alto dei due
@@ -1957,12 +2061,94 @@ export class Night {
         if (shut[ei]) continue;
         const yaw = Math.atan2(e[0], e[1]) + (side * 360 / pano.width) * D2R;
         const el = Math.atan2(e[2], Math.hypot(e[0], e[1])) - drop * degPx * D2R;
-        const limit = water ?? this.sheerAt(yaw / D2R);
+        const col = (0.5 + ((((yaw / D2R - base.yaw + 540) % 360) - 180) / 360)) * pano.width;
+        const limit = inSea ? pano.latMax - this.waterRow(base, col) * degPx : this.sheerAt(yaw / D2R);
         if (limit === null ? drop > 0 : el / D2R < limit + 0.3) continue;
         const c = Math.cos(el);
         const g: LightGlow = { dir: [c * Math.sin(yaw), c * Math.cos(yaw), Math.sin(el)], color: [0.55 * a, 0.7 * a, 0.62 * a], radius: 0.0022 };
         (info.space === 'world' ? out.world : out.boat).push(g);
       }
+    }
+    return out;
+  }
+
+  /**
+   * Le lucine di Fangy (spazio del mondo, disegnate una per una). Mentre arriva, una fila sott'acqua che viene dal
+   * largo sulla sua direzione; accanto alla barca, quelle del suo corpo (dal manifest, con la posa della testa) che
+   * salgono e scendono con lui. Respirano: si accendono in fila lungo ogni fila, dalla gola verso l'acqua, poi calano
+   * insieme; al rumore si accendono tutte. Sotto il pelo dell'acqua sono più fioche e più larghe, dietro il bordo
+   * della barca non si vedono.
+   */
+  private fangyLights(): LightGlow[] {
+    const fg = this.sim.fangy;
+    const out: LightGlow[] = [];
+    if (!fg || (fg.state !== 'approaching' && this.v.fRise < 0.002)) return out;
+    const v = this.v;
+    const st = this.d.stage;
+    const pano = st.man.pano;
+    const degPx = (pano.latMax - pano.latMin) / pano.height;
+    // più forti al buio, ma si vedono anche con la lampara accesa
+    const dark = Math.max(0, 1 - st.lampShown * 1.4);
+    const gain = (0.3 + 0.5 * dark) * (1 + 1.3 * v.fFlash);
+    const phase = v.fBreath % 1;
+    // il respiro: la luce arriva in fila (s = 0 la prima della fila, 1 l'ultima), resta, poi cala tutta insieme
+    const breath = (s: number) => {
+      const on = smooth01((phase - 0.55 * s) / 0.12);
+      const off = 1 - smooth01((phase - 0.72) / 0.28);
+      return 0.12 + 0.88 * Math.max(v.fFlash, on * off);
+    };
+    const glow = (p: Vec3, k: number, under: boolean, wide = 1): void => {
+      const n = norm(p);
+      const a = k * gain * (under ? 0.45 : 1);
+      out.push({ dir: n, color: [FANGY_LIGHT[0] * a, FANGY_LIGHT[1] * a, FANGY_LIGHT[2] * a], radius: (under ? 0.0034 : 0.0011) * wide });
+    };
+    if (fg.state === 'approaching') {
+      // la fila arriva dal largo girando verso la barca: la testa davanti, le altre in scia lungo la stessa strada, e
+      // si accendono una dopo l'altra mentre si avvicina
+      const k = fg.approach;
+      const near = Math.hypot(FANGY_AT[0], FANGY_AT[1]) + 1.2;
+      for (let i = 0; i < FANGY_ROW; i++) {
+        const s = i / (FANGY_ROW - 1);
+        const u = Math.max(0, k - s * 0.16);
+        const lit = smooth01((k * 1.8 - s * 0.6) / 0.3);
+        if (lit < 0.01) continue;
+        const r = FANGY_FAR + (near - FANGY_FAR) * smooth01(u);
+        const yaw = (YAW.fangy + FANGY_SWING * (1 - u) ** 1.5) * D2R;
+        glow([Math.sin(yaw) * r, Math.cos(yaw) * r, WATER_Z - FANGY_DEEP], lit * (0.5 + 0.8 * breath(s)), true, 1.6);
+      }
+      return out;
+    }
+    // accanto alla barca: le lucine del corpo, con la posa della testa che si vede di più
+    const L = st.man.layers;
+    const base = L[POSE.fangy];
+    if (!base?.luci) return out;
+    const drop = this.wavePx(POSE.fangy, ease(v.fRise));
+    const poses: [LayerInfo | undefined, number][] = [
+      [base, Math.max(0, 1 - v.fBow - v.fStern)],
+      [L[POSE.fangyBow], v.fBow],
+      [L[POSE.fangyStern], v.fStern],
+    ];
+    const rows = new Map<string, number>();
+    for (const f of base.luci.fila) rows.set(f, (rows.get(f) ?? 0) + 1);
+    for (const [info, w] of poses) {
+      if (!info?.luci || w < 0.01) continue;
+      const seen = new Map<string, number>();
+      info.luci.p.forEach((p, i) => {
+        const fila = info.luci!.fila[i] ?? '';
+        const j = seen.get(fila) ?? 0;
+        seen.set(fila, j + 1);
+        const s = j / Math.max(1, (rows.get(fila) ?? 1) - 1);
+        const yaw = Math.atan2(p[0], p[1]);
+        const el = Math.atan2(p[2], Math.hypot(p[0], p[1])) - drop * degPx * D2R;
+        const col = (0.5 + ((((yaw / D2R - base.yaw + 540) % 360) - 180) / 360)) * pano.width;
+        const water = pano.latMax - this.waterRow(base, col) * degPx;
+        const sheer = this.sheerAt(yaw / D2R);
+        if (sheer !== null && el / D2R < sheer + 0.15) return;
+        const under = el / D2R < water;
+        if (under && el / D2R < water - 6) return;
+        const c = Math.cos(el);
+        glow([c * Math.sin(yaw), c * Math.cos(yaw), Math.sin(el)], w * breath(s), under);
+      });
     }
     return out;
   }
@@ -2029,6 +2215,7 @@ export class Night {
       fade: 1 - v.dark * 0.9,
       glows,
       boatGlows: binoOn ? [] : tk ? [...eyes.boat, ...tk.glows] : eyes.boat,
+      glowSprites: this.fangyLights(),
     });
   }
 
@@ -2042,6 +2229,9 @@ export class Night {
     a.setMuffled(v.tarp * 0.8);
     this.d.sfx.rock(v.rock);
     this.d.sfx.toy(v.toy, dirPos(180 + v.toyX * 35, 1.3, -15));
+    // Fangy che respira dietro le spalle mentre ascolta
+    const fg = sim.fangy;
+    this.d.sfx.fangyListen(fg?.present && fg.state !== 'attack' && !this.js ? ease(v.fRise) : 0, FANGY_AT);
     // sibilo della lampara col livello
     this.loops.lamp?.setGain([0.0, 0.45, 0.8][sim.lamp]! * (1 - 0.6 * this.d.stage.lampDip), 0.05);
     // campane delle ore
@@ -2082,6 +2272,7 @@ export class Night {
     if (sim.hatch.state === 'searching') danger = Math.max(danger, 0.7);
     if (sim.robin?.state === 'stealing') danger = Math.max(danger, sim.fish <= 1 ? 0.8 : 0.45);
     if (sim.blackout && sim.cfg.battery) danger = Math.max(danger, 0.3 + 0.6 * (1 - sim.lullaby / sim.cfg.battery.lullaby));
+    if (sim.fangy?.listening) danger = Math.max(danger, 0.45 + 0.25 * sim.fangy.heard);
     if (this.js || this.finished) danger = 0;
     this.heart = approach(this.heart, danger, 2, dt);
     if (this.heart > 0.05 && !this.loops.heart) this.loops.heart = a.play('heartbeat', { loop: true, gain: 0 });
@@ -2158,6 +2349,7 @@ export class Night {
     let hint = '';
     if (!this.finished && !this.js) {
       if (sim.hide === 'in') hint = S.hints.unhide;
+      else if (sim.fangy?.listening) hint = S.hints.fangy;
       else if (sim.hatch.state === 'counting') hint = S.hints.hide;
       else if (sim.gulpy.canBeFed && sim.fish > 0) hint = sim.facing(YAW.bow, VIEW.bowHalfAngle) ? S.hints.throw : '';
       else if (sim.robin?.present && !sim.blackout) hint = S.hints.robin;

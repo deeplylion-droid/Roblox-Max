@@ -165,6 +165,21 @@ gioco (`sfx.lampyBell`, senza variazioni d'altezza né di volume: i tre colpi de
 | `lampy_climb` | 1,2 s | Agganciata, risale la lenza a baci risucchiati sempre più svelti, il filo e la canna che gemono, una risatina che si stringe in un gorgoglio. |
 | `js_lampy` | 1,4 s | Jumpscare (**stereo**): il risucchio enorme della ventosa che si spalanca e si attacca, gli anelli di denti che girano come una macina (un ticchettio fitto che va e viene), lo strillo di una neonata (tre voci) con sotto la stessa voce da una gola più grande. RMS ≈ −7,3 dBFS. |
 
+### Fangy — notte 5, stare zitti (11 ottobre, da approvare)
+Un mastino degli abissi, cieco, con una gola enorme (formanti a ×0,62): non parla, respira. Quasi tutto il suo suono
+è acqua e fiato, vicinissimo e dietro le spalle (sta accanto alla barca, a destra dietro il pescatore). Mentre ascolta
+il gioco tiene acceso il suo respiro in loop (`fangy_listen`, il volume segue quanto è su); a ogni rumore che sente
+suona uno dei tre scatti (`fangy_snap`, varianti `_2` e `_3`, scelte a caso).
+
+| id | durata | descrizione |
+|---|---|---|
+| `fangy_approach` | 3,6 s | Le lucine che arrivano sott'acqua dal largo: un pulsare grave e lento (il corpo grande che spinge l'acqua) che si avvicina e si fa più chiaro, il ronzio sottile e freddo delle lucine che respirano, le bolle che salgono dal fondo. Tutto ovattato. |
+| `fangy_rise` | 2,4 s | Sale accanto alla barca, dietro di te: l'acqua che si apre e gli cola di dosso a lungo, le nocche che toccano la fiancata (un colpo sordo, vicinissimo), le zanne che gocciolano, un fiato lungo dentro il muso: annusa l'aria con le fossette. |
+| `fangy_listen` | 9 s, loop | Mentre ascolta: tre respiri lenti e bagnati fra le zanne (dentro, fuori, poi una pausa trattenuta per sentire meglio), l'acqua che gli sciaborda contro il petto, le gocce che cadono dalle zanne, di rado le zanne che si toccano. Basso (RMS ≈ −27 dBFS). |
+| `fangy_snap` ×3 | 0,65 s | Ti ha sentito: la testa che scatta sul collo (lo schiocco della cartilagine, il collo che si torce nell'acqua), le zanne che sbattono, un'annusata secca e forte. |
+| `fangy_leave` | 2,2 s | Torna giù: un fiato lungo che esce gorgogliando mentre il muso va sotto, l'acqua che si richiude sopra la testa, le bolle, lo sciabordio contro la fiancata. |
+| `js_fangy` | 1,6 s | Jumpscare (**stereo**): l'acqua che esplode sulla fiancata, la mascella che schiocca e le zanne che sbattono, e il ruggito di un mastino enorme in una gola d'acqua con sopra, alta e rotta, la voce di un bambino che strilla (tre voci). RMS ≈ −7,3 dBFS. |
+
 ## Musica e stinger (stereo) — DA APPROVARE
 
 | id | durata | descrizione |
