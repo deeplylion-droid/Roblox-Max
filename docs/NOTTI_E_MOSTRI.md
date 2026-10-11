@@ -426,9 +426,8 @@ Lampy, il terzo rumore di Fangy): cambiano solo **quando arriva, quanto spesso t
     Con le pause ferme al 10 ho accorciato un po' anche le passate della Madre al 20 (da 12 a 20 s invece che da 14 a
     26): con quelle più lunghe l'esperto vinceva il 5,7%, al limite basso. Risultato: **l'esperto vince il 6,7% delle
     notti tutti a 20** (su 300; su 600 seed il 7,3%), il medio il 2%, il maldestro mai. I livelli fino al 10 non sono
-    cambiati (un test lo controlla). **Dopo l'unione delle novità dell'11 ottobre sera** (il sonar che mostra solo la
-    Madre, i dieci frammenti nuovi che si pescano al posto di un pesce) l'esperto tutti a 20 vince il **6,0%** (su 300;
-    su 600 seed il 5,2%): dentro la forchetta chiesta, ma vicino al bordo basso.
+    cambiati (un test lo controlla). Dopo le novità dell'11 ottobre sera (il sonar che mostra solo la
+    Madre, i frammenti nuovi con il tetto di due per notte) i numeri sono gli stessi: 6,7% su 300, 7,3% su 600 seed.
 - **La Madre** (**confermato l'11 ottobre** che c'è, come ottavo livello): è la stessa della notte 6 (l'ombra enorme
   sul sonar, i figli che si zittiscono e tornano giù, l'immobilità totale mentre passa sotto la barca). Il suo livello
   dice **quante volte passa, quanto dura ogni passata e quanto avvisa prima** (`extraMother()`, numeri da approvare):
