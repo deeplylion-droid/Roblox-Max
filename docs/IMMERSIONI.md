@@ -1,7 +1,9 @@
 # Le immersioni all'alba
 
-> **Proposta scritta dell'11 ottobre** (idea dell'utente; *da approvare* nei dettagli). Si fa **dopo la notte 6**:
-> prima si finiscono le sei notti.
+> **Proposta scritta dell'11 ottobre** (idea dell'utente), **approvata l'11 ottobre** con una modifica: solo la
+> grotta grande si esplora a 360°; le camerette delle tane sono **inquadrature fisse**, che si girano di 30° a destra
+> e a sinistra, come le telecamere di FNAF. Il motore e le grotte si preparano già in parallelo; le notti restano la
+> priorità (prima si finiscono le sei).
 >
 > **Già deciso dall'utente (11 ottobre)**: un pesce per notte; la tana del mostro nuovo della notte dopo è vuota
 > (è già in giro); due tane per immersione; niente pericoli, ma atmosfera inquietante; i tunnel sono **grotte
@@ -42,11 +44,12 @@ scivoli, cartelli di Splashland).
   appesa alla roccia, così le riconosci). Notte dopo notte se ne aggiungono, man mano che arrivano i mostri nuovi.
 - **Il fondo della grotta grande** (proposta): un'apertura enorme e buia da cui si sente respirare qualcosa di
   gigantesco. Non ci si entra: è la Madre, e prepara la notte 6.
-- **Come ci si muove**: come con le telecamere, ma nuotando. Ogni posto è un panorama a 360° in cui ti guardi
-  attorno con la torcia; si clicca il passaggio per andare avanti (dissolvenza con le bolle e il respiro
-  dell'erogatore).
+- **Come ci si muove** (deciso l'11 ottobre): la **grotta grande** è un panorama a 360° in cui ti guardi attorno con
+  la torcia e clicchi l'apertura della tana dove vuoi andare (dissolvenza con le bolle e il respiro
+  dell'erogatore). **Ogni cameretta è un'inquadratura fissa**, come una telecamera di FNAF: la guardi da un punto
+  solo e la puoi girare di 30° a destra e a sinistra; da lì si torna alla grotta grande.
 
-## Le tane (proposte)
+## Le tane
 
 Ogni tana è una cameretta rifatta dalla Madre con le cose del bambino, in una grotta laterale: il letto, i
 giocattoli, le cose del parco, tutto sommerso, coperto di melma e di alghe. Ogni mostro ha la sua posa
@@ -67,7 +70,8 @@ addormentata, con una piccola animazione (il respiro, le bolle).
 - **Motore**: la modalità immersione (panorami collegati, la torcia, l'acqua torbida con le particelle e i raggi di
   luce, le bolle dell'erogatore, il manometro), l'offerta del pesce (si clicca il mostro tenendo il pesce),
   la schermata dell'alba con la scelta, i salvataggi (chi hai sfamato, le tane viste).
-- **Render**: due o tre panorami delle grotte, sette camerette, sette pose addormentate con le loro toppe.
+- **Render**: il panorama a 360° della grotta grande (più la discesa sotto la barca), sette camerette come
+  inquadrature fisse larghe abbastanza da girarle di 30° per parte, sette pose addormentate con le loro toppe.
 - **Suoni**: l'ambiente sott'acqua, l'erogatore, il respiro nel sonno di ognuno, le conchiglie di Fangy.
 - **Simulazione**: il mostro sfamato non parte; il bot sfama il più pericoloso; si ribilanciano le notti.
 
