@@ -10,10 +10,10 @@ motore mostra alla fine della cinematica con un lento movimento di camera.
            distanza, come una sanguisuga che cammina), gli artigli sottili di Fangy (sulle nocche), la scia
            strisciante di Archie.
   edicola  «Nessuno»: l'edicola votiva dello scoglio da vicino, nella luce grigia del primo mattino, con le foto dei
-           bambini (binocolo.lore_photos); infilata nella cornice della foto di mezzo del 1997, una Polaroid nuova,
-           l'unica non sbiadita: la barca di notte con la lampara accesa e la sagoma del pescatore, scattata da sotto,
-           dal pelo dell'acqua, come da qualcuno che nuotava lì accanto. La Polaroid è un render vero della scena del
-           gioco (polaroid()).
+           bambini (binocolo.lore_photos), sfocate dietro; davanti, appesa con una molletta a uno spago, una Polaroid
+           nuova, l'unica non sbiadita, a fuoco: la barca di notte con la lampara accesa e la sagoma del pescatore,
+           scattata da sotto, dal pelo dell'acqua, come da qualcuno che nuotava lì accanto. La Polaroid è un render
+           vero della scena del gioco (polaroid_scene_image()); FINALI_RIUSA_FOTO=1 riusa quella già fatta.
 
 La scena del molo usa la costa, il paese e il faro di env.py, spostati e girati in modo che la barca (che sta
 nell'origine, col buco nel mare di env.build_sea) sia ormeggiata al molo, a 24° a sinistra del campanile.
@@ -94,6 +94,7 @@ DECK_Z = 1.10                          # piano delle assi sul mare
 Y_OUT, Y_LAND = -14.0, 9.0             # le due teste del molo: in fondo, verso il largo, e sulla banchina
 Y_SHORE = 12.0                         # la riva (s = 0)
 TEX_RES = 0.004                        # metri per pixel della maschera delle impronte
+PRINT_SCALE = 1.3                      # le impronte un po' più grandi del vero, per leggersi da in piedi
 SUN_DIR = Vector((-0.27, -0.95, 0.12)).normalized()    # il sole appena sorto sopra le colline del parco, davanti
 
 
@@ -185,6 +186,7 @@ class Stamp:
         c, s = math.cos(heading), math.sin(heading)
 
         def f(lx, ly):
+            lx, ly = lx * PRINT_SCALE, ly * PRINT_SCALE
             return (pos[0] + lx * c + ly * s, pos[1] - lx * s + ly * c)
         return f
 
@@ -202,7 +204,7 @@ class Stamp:
 
     def line(self, f, pts, width, v=255):
         q = [self.px(*f(x, y)) for x, y in pts]
-        w = max(1, int(round(width / TEX_RES)))
+        w = max(1, int(round(width * PRINT_SCALE / TEX_RES)))
         self.d.line(q, fill=v, width=w, joint='curve')
         r = w / 2
         for x, y in (q[0], q[-1]):
@@ -389,7 +391,7 @@ def footprints_texture():
     a = np.asarray(im).astype(np.float32) / 255.0
     n = np.random.default_rng(5).random((a.shape[0] // 24 + 2, a.shape[1] // 24 + 2))
     n = np.asarray(Image.fromarray((n * 255).astype(np.uint8)).resize((a.shape[1], a.shape[0]), Image.BILINEAR)) / 255.0
-    a = np.clip(a * (0.75 + 0.35 * n), 0, 1)
+    a = np.clip(a * (1.05 + 0.3 * n), 0, 1)
     # la riga 0 dell'immagine è in alto, la v delle texture parte dal basso: in basso c'è il fondo del molo
     Image.fromarray((np.flipud(a) * 255 + 0.5).astype(np.uint8)).save(path)
     return path
@@ -411,10 +413,11 @@ def deck_material(mask_path):
                   [(0.25, (0.20, 0.185, 0.165)), (0.55, (0.31, 0.29, 0.265)), (0.85, (0.40, 0.38, 0.35))])
     moss = g.smoothstep(0.62, 0.78, g.noise(pos, scale=1.4, detail=5.0).fac)
     base = g.mix(g.mul(moss, 0.5), base, (0.05, 0.07, 0.035))
-    col = g.mix(wet, base, g.mix(1.0, base, (0.15, 0.15, 0.17), blend='MULTIPLY'))
-    rough = g.mixf(wet, g.add(0.6, g.mul(grain, 0.2)), 0.035)
+    # bagnato fradicio: il legno diventa quasi nero e lucido, e riflette come l'acqua (meno della vernice)
+    col = g.mix(wet, base, g.mix(1.0, base, (0.07, 0.065, 0.065), blend='MULTIPLY'))
+    rough = g.mixf(wet, g.add(0.6, g.mul(grain, 0.2)), 0.05)
     nrm = g.bump(grain, strength=g.mixf(wet, 0.35, 0.08), distance=0.002)
-    g.output_material(g.principled(color=col, rough=rough, normal=nrm, spec=0.5))
+    g.output_material(g.principled(color=col, rough=rough, normal=nrm, spec=g.mixf(wet, 0.5, 0.28)))
     return m
 
 
@@ -557,7 +560,7 @@ def polaroid_scene_image(path):
     seduto in controluce. È la scena del gioco (jobs.build_scene), col pescatore reso visibile come sagoma."""
     import jobs
     jobs.build_scene(fish=3, rod=True)
-    dark = _mat('FisherDark', (0.012, 0.011, 0.010), rough=0.85)
+    dark = _mat('FisherDark', (0.005, 0.005, 0.005), rough=0.9)
     for name in ('PTorso', 'PHead', 'PThighL', 'PThighR', 'PShinL', 'PShinR', 'PArmL', 'PArmR'):
         o = bpy.data.objects.get(name)
         if o:
@@ -570,7 +573,7 @@ def polaroid_scene_image(path):
     for o in (cap, brim):
         o.data.materials.append(dark)
         set_lightgroup(o, 'ambient')
-    perspective_camera((-4.3, -2.9, 0.07), (0.0, 0.5, 1.25), lens=30.0, name='PolaroidCam', roll=math.radians(-6))
+    perspective_camera((-5.6, -3.2, 0.08), (0.0, 0.5, 1.45), lens=40.0, name='PolaroidCam', roll=math.radians(-6))
     exr = os.path.join(TEX, 'polaroid.exr')
     S = 512 if (FAST or not FINALE) else 900
     render(exr, 24 if not FINALE else 96, (S, S), data_passes=())
@@ -690,27 +693,51 @@ def scena_edicola():
     floor = rbox('ChapelFloor', (4.6, 3.6, 0.2), tuple(lp(0, -0.3, -0.1)), rot=(0, 0, rz), bevel=0.03, col=COL)
     floor.data.materials.append(painted('ChapelFloorStone', (0.32, 0.30, 0.27), rust=0.0, rough=0.85))
     set_lightgroup(floor, 'ambient')
-    # la Polaroid nuova, infilata nell'angolo in basso a destra della cornice di mezzo del 1997
+    # la Polaroid nuova, appesa con una molletta a uno spago teso fra le due pareti, davanti all'edicola: le foto
+    # vecchie restano più di un metro dietro, sfocate
     right0 = Vector((math.cos(rz), math.sin(rz), 0.0))
-    back = Vector((-math.sin(rz), math.cos(rz), 0.0))
-    lean = math.radians(12)
-    up = Vector((0, 0, 1)) * math.cos(lean) + back * math.sin(lean)
-    front = -back * math.cos(lean) + Vector((0, 0, 1)) * math.sin(lean)
-    c_mid = lp(0.0, 0.25, 1.16)
-    corner = c_mid + right0 * 0.25 - up * 0.31
-    roll = math.radians(-9)
-    r2 = right0 * math.cos(roll) + up * math.sin(roll)
-    u2 = up * math.cos(roll) - right0 * math.sin(roll)
+    front0 = Vector((math.sin(rz), -math.cos(rz), 0.0))       # verso il mare, dove sta chi guarda
+    zz = Vector((0.0, 0.0, 1.0))
+    ly_s, lz_s = -1.05, 1.58
+    pts = []
+    for t in np.linspace(0, 1, 25):
+        lx = -2.02 + 4.04 * t
+        pts.append(tuple(lp(lx, ly_s, lz_s - 0.05 * 4 * t * (1 - t))))
+    string = tube('OfferingString', pts, 0.0011, n=6, col=COL)
+    string.data.materials.append(_mat('StringMat', (0.42, 0.36, 0.28), rough=0.85))
+    lx_p = 0.22
+    sag = 0.05 * 4 * ((lx_p + 2.02) / 4.04) * (1 - (lx_p + 2.02) / 4.04)
+    hook = lp(lx_p, ly_s, lz_s - sag)
+    yaw, roll = math.radians(9), math.radians(-4)
+    r1 = right0 * math.cos(yaw) + front0 * math.sin(yaw)
+    r2 = r1 * math.cos(roll) + zz * math.sin(roll)
+    u2 = zz * math.cos(roll) - r1 * math.sin(roll)
+    n2 = r2.cross(u2)
     pw, ph = 0.088, 0.107
-    centre = corner - r2 * 0.025 + u2 * 0.035 + front * 0.05
+    centre = hook - u2 * (ph / 2 + 0.012)
     binocolo.quad('PolaroidNew', tuple(centre), tuple(r2), tuple(u2), pw, ph, polaroid_material(pol_path), segs=6)
-    # la camera: dentro l'edicola, sotto il tetto, alta come un uomo chino a guardare
-    target = centre - right0 * 0.20 + Vector((0, 0, 0.07))
-    eye = lp(0.5, -1.0, 1.06)
-    cam = perspective_camera(tuple(eye), tuple(target), lens=33.0, name='EdicolaCam')
+    # la molletta di legno che stringe il bordo alto, con la molla di ferro
+    wood = _mat('ClothespinWood', (0.55, 0.42, 0.26), rough=0.7)
+    for k, side in enumerate((-1, 1)):
+        c = hook + u2 * 0.006 + n2 * side * 0.0035
+        pin = rbox('Clothespin', (0.010, 0.0045, 0.072), tuple(c), bevel=0.0015, col=COL)
+        pin.rotation_mode = 'QUATERNION'
+        pin.rotation_quaternion = Matrix((tuple(r2), tuple(n2), tuple(u2))).transposed().to_quaternion()
+        pin.data.materials.append(wood)
+    spring = cylinder('ClothespinSpring', 0.0045, 0.012, tuple(hook + u2 * 0.012), verts=12, col=COL)
+    spring.rotation_mode = 'QUATERNION'
+    spring.rotation_quaternion = n2.to_track_quat('Z', 'Y')
+    spring.data.materials.append(_mat('SpringSteel', (0.5, 0.5, 0.52), rough=0.35, metal=1.0))
+    for o in bpy.data.objects:
+        if o.name.startswith(('OfferingString', 'Clothespin', 'PolaroidNew')):
+            set_lightgroup(o, 'ambient')
+    # la camera: un medio tele a un metro e un quarto, poca profondità di campo; la Polaroid è un quarto del quadro
+    eye = centre + front0 * 1.25 + right0 * 0.14 + zz * 0.05
+    target = centre - right0 * 0.07 + zz * 0.005
+    cam = perspective_camera(tuple(eye), tuple(target), lens=60.0, name='EdicolaCam')
     cam.data.dof.use_dof = True
     cam.data.dof.focus_distance = (centre - eye).length
-    cam.data.dof.aperture_fstop = 2.8
+    cam.data.dof.aperture_fstop = 1.4
     return {'ev': 0.0, 'haze': (0.62, 0.64, 0.68), 'haze_amt': 0.5, 'groups': ('ambient',)}
 
 

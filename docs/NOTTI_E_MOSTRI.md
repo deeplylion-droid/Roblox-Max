@@ -399,21 +399,22 @@ scala, proporzioni ed esposizione); il comando è lo stesso con `--finale`.
   - **Archie**: una scia che serpeggia, continua.
 
   Attorno a dove sono saliti, gocce. Le impronte sono una maschera dipinta (4 mm per pixel) sotto il materiale delle
-  assi: dove è bagnato il legno è scuro e lucido.
-  **Ancora da sistemare**: fuori dalla scia del sole (le file a sinistra, Lampy, Robin, Fangy e Hatch) le impronte
-  si leggono poco; prima del finale vanno rese più scure o più grandi.
+  assi, un po' più grandi del vero (×1,3) per leggersi da in piedi: dove è bagnato il legno è quasi nero e lucido, e
+  riflette come l'acqua. Così si leggono tutte e sette, anche fuori dalla scia del sole (seconda anteprima, 11
+  ottobre).
 - **«Nessuno» — l'edicola da vicino** (`docs/concept/finali_edicola_anteprima.jpg`). L'edicola votiva dello scoglio
-  (la stessa del binocolo: `landmarks.build_chapel` e `binocolo.lore_photos`) vista da dentro, sotto il tetto, nella
-  luce grigia di un mattino coperto; i lumini sono quasi consumati. Le foto dei bambini sono quelle della scena,
-  ammorbidite per il primo piano. **La tua foto** (proposta): una **Polaroid nuova**, l'unica non sbiadita, infilata
-  nell'angolo della cornice di mezzo del 1997. Dentro, la barca di notte con la lampara accesa e la sagoma del
-  pescatore col berretto, vista da sotto, dal pelo dell'acqua, a sinistra di poppa, come da qualcuno che nuotava lì
-  accanto: è un render vero della scena del gioco (il pescatore, che nel gioco proietta solo l'ombra, qui si vede in
-  controluce), passato in colori da Polaroid (neri slavati, grana, vignetta). È grande come una Polaroid vera
-  (8,8×10,7 cm); il fuoco è su di lei e il movimento di camera del motore dovrebbe avvicinarsi piano.
+  (la stessa del binocolo: `landmarks.build_chapel` e `binocolo.lore_photos`) nella luce grigia di un mattino coperto.
+  **La tua foto** (proposta): una **Polaroid nuova**, l'unica non sbiadita, appesa con una molletta di legno a uno
+  spago teso fra le due pareti, sul davanti dell'edicola. L'inquadratura è stretta su di lei (un medio tele a un metro
+  e un quarto, f/1,4): la Polaroid è a fuoco e occupa circa un quarto dell'altezza del quadro; dietro, più di un metro
+  più in là, le foto dei bambini del 1997 e i teschi sono macchie di colore sbiadito nelle cornici (le foto pensate per
+  il binocolo, da vicino, sembravano grezze; così non si rifanno). I lumini restano fuori dall'inquadratura. Dentro la
+  Polaroid, la barca di notte con la lampara accesa e la sagoma del pescatore col berretto, vista da sotto, dal pelo
+  dell'acqua, a sinistra di poppa, come da qualcuno che nuotava lì accanto: è un render vero della scena del gioco
+  (il pescatore, che nel gioco proietta solo l'ombra, qui si vede), passato in colori da Polaroid (neri slavati,
+  grana, vignetta). La Polaroid è grande come una vera (8,8×10,7 cm).
 
-**Da decidere**: le impronte una per mostro come sopra; la Polaroid (cosa c'è nella foto e dove è appesa); se la
-Polaroid va ingrandita per leggersi meglio nell'inquadratura ferma; e se per il primo piano servono foto dei bambini
-più dettagliate (oggi sono quelle pensate per il binocolo, da lontano). Nell'anteprima del molo il paese non si vede
-(è alle spalle della camera): le impronte vanno verso di lui.
+**Da decidere**: le impronte una per mostro come sopra; la Polaroid (cosa c'è nella foto, e lo spago con la molletta
+davanti all'edicola). Nell'anteprima del molo il paese non si vede (è alle spalle della camera): le impronte vanno
+verso di lui.
 
