@@ -53,7 +53,8 @@ Si pescano al posto di un pesce e finiscono nel **Diario**.
 > **Approvati l'11 ottobre sera** i dieci frammenti dalla notte 2 alla 6 (con il volantino). Prima nel gioco c'erano
 > solo i due della notte 1: trovati quelli (restano nel Diario, anche con «Nuova partita»), non si ripescava più niente.
 > Ogni notte dalla 2 garantisce un frammento alla terza cattura (il primo non ancora trovato, in quest'ordine), gli
-> altri escono a caso.
+> altri escono a caso, **al massimo due per notte**: ognuno prende il posto di un pesce, e con più di due le notti
+> diventavano più difficili di com'erano state bilanciate (il medio perdeva circa 10 punti nelle notti 2 e 3).
 
 Evento raro (Notte 1): **Sotto di te**, per un giro del sonar un'ombra grande quanto la baia passa sotto la barca (3%).
 
