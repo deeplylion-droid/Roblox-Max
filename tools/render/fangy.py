@@ -267,8 +267,8 @@ SHOTS = {
     'fuori': ((2.30, 0.55, 0.62), (0.0, 0.0, 0.55), 30),
 }
 # le varianti da vicino: (titolo, giro della testa, luci)
-VARIANTI = (('la testa girata a destra (testa −35°)', -35.0, 1.0), ('la testa girata a sinistra (testa +35°)', 35.0, 1.0),
-            ('le lucine spente (luci 0)', 0.0, 0.0))
+VARIANTI = (('la testa girata alla sua destra (testa −35°)', -35.0, 1.0),
+            ('la testa girata alla sua sinistra (testa +35°)', 35.0, 1.0), ('le lucine spente (luci 0)', 0.0, 0.0))
 SHOT_VARIANTI = ((-0.15, -1.55, 1.20), (0.0, -0.10, 0.70), 40)
 
 
