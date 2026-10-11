@@ -76,8 +76,10 @@ eccetera, un po' come gli animatronics», quindi tinte sature e iconiche, ricono
 La notte 2 si gioca: dal menu con **Continua** dopo aver vinto la prima, con **Notte successiva** alla fine
 della prima, o con `?notte=2` nell'indirizzo (prove). Robin ora si vede (strato `robin_secchio`, 10 ottobre): sale dal
 mare sul bordo, nella luce trema e si accende di rosso, scacciato scivola giù; prima si sentiva soltanto (suoni provvisori fatti con i file di scena:
-zampette, secchio che tintinna, pesce strappato, fuga in acqua) e si vede sul sonar; il jumpscare è un urlo
-sintetizzato. I testi della notte 2 (radio, le due morti, sottotitoli, suggerimento, «Batteria morta.»),
+zampette, secchio che tintinna, pesce strappato, fuga in acqua) e si vede sul sonar. Il jumpscare (11 ottobre, render
+finale messo nel gioco come chiesto, «se ti convince mettilo»): a secchio vuoto molla il bordo e ti salta in faccia a
+mani vuote, le arcate aggrottate, la mano lunga con le dita aperte; una luce calda dalla parte della lanterna, solo su
+di lui, gli prende la faccia mentre arriva (la lampara gli sta alle spalle). L'urlo è ancora quello sintetizzato. I testi della notte 2 (radio, le due morti, sottotitoli, suggerimento, «Batteria morta.»),
 accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`).
 
 ## I quattro mostri nuovi
@@ -165,8 +167,8 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
   esce dal buio man mano che arriva.
 - **Render finali** (10 ottobre, in attesa dell'approvazione ma già usabili): `archie_soffia` con gli occhi nel
   manifest (al buio brillano come quelli degli altri), e le toppe `archie_fiato`, `archie_trombetta_mezza`,
-  `archie_trombetta_tutta`, in `public/assets/img` con le chiavi che il gioco già aspetta. Il jumpscare finale si
-  rende dopo quello di Robin (`JUMPSCARES=archie jobs.py jumpscare --quality final`).
+  `archie_trombetta_tutta`, in `public/assets/img` con le chiavi che il gioco già aspetta. Il jumpscare finale è nel
+  gioco (11 ottobre, 64 campioni: con la scossa e la grana del nastro non si vede la differenza).
 - **Nel gioco** (10 ottobre, notte del lavoro; tutto *da approvare*): la notte 3 si gioca (`?notte=3`, o Alt + 3 sul
   titolo nelle build di prova). Archie sale dall'acqua in 3 s (il sonar lo annuncia davanti alla prua), poi il
   risucchio dura 4,5 s: la gola si gonfia, la trombetta resta arrotolata, si sente il fiato al contrario. Se alla
