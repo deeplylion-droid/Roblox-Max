@@ -216,6 +216,35 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
   quella della lampreda; nella posa 0,5, la bocca della tavola) e `denti_giro` (gradi: gli anelli vicini girano in
   versi opposti, come una macina). Cambia solo la testa, il corpo resta lo stesso: le toppe si fanno come per Robin.
   La vetrina mostra la ventosa chiusa, a riposo e spalancata.
+- **Quando si vede** (scelto l'11 ottobre): **dopo i tre colpi**. I colpi li senti e basta; dopo il terzo affiora sulla
+  lenza, ti guarda, poi molla e va giù. Chi aspetta la vede (la paura anche quando giochi bene), chi ferra subito se la
+  trova addosso.
+- **Render finali** (11 ottobre): la posa `lampy_lenza` e le toppe `lampy_bocca_chiusa` e `lampy_bocca_aperta` (coi denti
+  girati di 10°; `pose_animate.py`, tavola `docs/concept/animazioni/lampy_ventosa.jpg`), in `public/assets/img`.
+- **Nel gioco** (11 ottobre; *da approvare*): la notte 4 si gioca (`?notte=4`, o Alt + 4 sul titolo nelle build di
+  prova). Quando tocca a lei aspetta che la lenza sia in acqua e la prende: la canna si piega e il galleggiante va sotto
+  come per un pesce, ma il campanellino lo suona lei, **tre colpi identici a 0,62 s l'uno dall'altro** (la canna dà lo
+  stesso strattone a ogni colpo), e dopo il secondo **una risatina sott'acqua**. Dopo il terzo affiora sulla lenza
+  (tagliata al pelo dell'acqua), la lenza le entra in bocca e passa sotto l'arco fino alla ventosa della coda; ti
+  guarda per 2,4 s aprendo e chiudendo piano la ventosa (le toppe), poi molla e va giù: **l'esca resta lì** e il
+  galleggiante torna su (chi aspetta perde solo il tempo della sua visita). **Se ferri** mentre ti tiene la lenza (anche
+  quando è già affiorata) l'hai agganciata: la canna si piega tutta, lei spalanca la ventosa e risale la lenza (1,1 s),
+  poi il jumpscare. Le abboccate vere restano irregolari (gli strattoni di `rod_bell_*`). Se ti nascondi o lanci un
+  pesce a Gulpy mentre suona, la lenza non è più sua e se ne va. Quando canta la Madre molla anche lei. Il sonar la
+  mostra sotto la lenza. Non viene con Hatch né con Archie. Quota 12; Gulpy passa più di rado (prima mangiava metà
+  della quota), gli altri un po' più spesso della terza notte, e i pesci abboccano più in fretta. Giocatori simulati
+  (`npm run sim -- 4 300`): **esperto 97%, medio 74%, maldestro 51%** (la terza 100/71/50); il bot riconosce il ritmo al
+  secondo colpo (l'esperto quasi sempre, il maldestro nove volte su dieci) e non ferra mai se la vede affiorata.
+- **Testi** (*da approvare*): la radio «Quarta notte. Dodici pesci. / Lampy tira la lenza. / Tre colpi uguali e una
+  risatina: non ferrare. / Lasciala andare. / Buona pesca.»; la frase della morte «Lampy ti ha tirato giù, per
+  scherzo.» (in piscina tirava giù gli altri per le gambe); il suggerimento «Tre colpi uguali: è Lampy, non ferrare»,
+  che nella quarta notte compare solo dal secondo colpo (prima nessun suggerimento, nemmeno «Abbocca!»: direbbe di
+  ferrare anche lei); le didascalie «il campanellino, a tempo», «una risatina sott'acqua», «qualcosa affiora sulla
+  lenza», «molla la lenza», «risale la lenza». I suoni sono in `docs/AUDIO.md` (da approvare).
+- **Jumpscare** (*da approvare*, anteprima in arrivo; `jumpscare.py`, `ATTACKS['lampy']`): agganciata, ti salta in
+  faccia dalla lenza con la ventosa spalancata a disco (a 60 cm dall'occhio riempie mezzo quadro), e da un fotogramma
+  all'altro gli anelli di denti da latte girano come una macina, quelli vicini in versi opposti; una luce calda dalla
+  parte della lanterna le prende la faccia, come per Robin. Finché non c'è il render finale il gioco zooma sulla posa.
 
 ### Notte 5 · Fangy — *STARE ZITTI*
 

@@ -6,9 +6,11 @@ lo sfondo (mondo + barca) si rende una volta sola, la creatura in ogni fotogramm
 scena come maschera; poi si compongono e si codificano come gli altri render (overlays.json → jumpscares).
 Molly si rende sul lato destro: per il sinistro il motore specchia l'immagine.
 Archie (notte 3) arriva dopo che il vetro della lampara è esploso: nella sua scena la lampara è spenta.
+Lampy (notte 4) arriva dalla lenza con la ventosa spalancata, e da un fotogramma all'altro gli anelli di denti girano.
 
 Uso: tools/.venv/bin/python tools/render/jobs.py jumpscare --quality preview   (JUMPSCARES=gulpy,molly,hatch,robin;
-JS_ANTEPRIMA=1 per lasciare i fotogrammi in cache senza toccare il gioco; Archie si chiede a parte: JUMPSCARES=archie)
+JS_ANTEPRIMA=1 per lasciare i fotogrammi in cache senza toccare il gioco; Archie e Lampy si chiedono a parte:
+JUMPSCARES=archie, JUMPSCARES=lampy)
 """
 from __future__ import annotations
 
@@ -167,15 +169,53 @@ def archie_attack():
 # legge più, di profilo ti passa accanto
 ARCHIE_JS = {'dist': 0.52, 'destra': 0.05, 'lato': 28.0, 'muso': -12.0}
 
+def lampy_attack():
+    import lampy as la
+    # l'hai agganciata: è risalita per la lenza e ti salta in faccia, la ventosa spalancata a disco con gli anelli di
+    # denti da latte che girano come una macina (quelli vicini in versi opposti: da un fotogramma all'altro, SPIN), la
+    # cuffia a fiori, gli occhi tondi senza palpebre fissi su di te. Parte dalla posa sulla lenza (lì la faccia ti
+    # guarda già) e viene dritta sulla linea dello sguardo; il corpo ad arco le resta dietro
+    M0, kw = sc.lampy_posa()
+    sc.LAST_M['lampy_lenza'] = M0
+    obs = sc.place(la.build(**kw, bocca=1.0, denti_giro=0.0), M0)
+    fr = la.testa_frame(la.V(*kw['viewer']))
+    v = la.ventosa(1.0)
+    bocca = tuple(float(x) for x in fr.pt(v['c']))
+    M1 = _toward_eye(M0, bocca, LAMPY_JS['dist'], extra_pitch=LAMPY_JS['pitch'])
+    aim = M0 @ Vector(bocca)
+    teeth = next(o for o in obs if o.name.startswith('LampyTeeth'))
+
+    def spin(i):
+        if i == 0:
+            return
+        nuovo = la.denti(fr, v, LAMPY_JS['giro'] * i)
+        vecchio = teeth.data
+        teeth.data = nuovo.data
+        bpy.data.objects.remove(nuovo)
+        bpy.data.meshes.remove(vecchio)
+    SPIN['lampy'] = spin
+    return obs, M0, M1, aim
+
+
+# Lampy alla fine del jumpscare: a quanti metri dall'occhio arriva il centro della ventosa (spalancata è larga 40 cm: le
+# riempie mezzo quadro), quanto si china in avanti (gradi), di quanti gradi girano gli anelli di denti a ogni fotogramma
+LAMPY_JS = {'dist': 0.62, 'pitch': 0.0, 'giro': 9.0}
+
 ATTACKS = {'gulpy': gulpy_attack, 'molly': molly_attack, 'hatch': hatch_attack, 'robin': robin_attack,
-           'archie': archie_attack}
+           'archie': archie_attack, 'lampy': lampy_attack}
+
+# I pezzi che cambiano da un fotogramma all'altro (oltre a muoversi): funzione del numero del fotogramma, preparata
+# dall'attacco (i denti di Lampy che girano)
+SPIN = {}
 
 # Una luce calda vicino all'occhio, dalla parte della lanterna, che illumina soltanto la creatura (si accende dopo lo
 # sfondo): Robin ha la lampara alle spalle e da vicino la sua faccia sarebbe nera; così esce dal buio man mano che
 # arriva addosso. energia in watt, dist in metri dall'occhio verso la lanterna
 FILL = {'robin': {'energy': 3.0, 'dist': 0.35},
         # Archie arriva nel buio (la lampara è esplosa): lo illuminano la lanterna, la luna alle spalle e questa luce
-        'archie': {'energy': 3.0, 'dist': 0.35}}
+        'archie': {'energy': 3.0, 'dist': 0.35},
+        # Lampy arriva da destra della prua: la lampara le prende il fianco, questa la faccia
+        'lampy': {'energy': 3.0, 'dist': 0.35}}
 
 
 def _fill_light(cfg):
@@ -255,6 +295,8 @@ def run(q, who, post_mod, overlays_path, build_scene, coll_objects, renderable):
     frames = []
     for i in range(FRAMES):
         u = ease(i / (FRAMES - 1))
+        if who in SPIN:
+            SPIN[who](i)
         _set_creature(creature, base, M0inv, _lerp_matrix(M0, M1, u))
         exr = os.path.join(out_dir, f'{who}_{i:02d}.exr')
         t = time.time()

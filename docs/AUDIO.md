@@ -11,7 +11,7 @@ Rigenerazione: `tools/.venv/bin/python tools/audio/generate.py [id...] [--spectr
 - `dsp.py`: mattoni (filtri, rumori periodici, voce a formanti, riverberi, limitatore, misure).
 - `instruments.py`: modelli di medio livello (acqua: bolle, gocce, schizzi, colpi d'onda; legno; corpi bagnati; campane e lamelle; respiri, gabbiani, balene).
 - `creatures.py`: modelli dei versi (voce irregolare con jitter e shimmer variabili, diplofonia, fry, ruvidità da urlo; gola bagnata, saliva, deglutizioni; ossa, denti, masticazione; nocche, unghie, passi bagnati, gomma; compressione e saturazione per bande degli urli).
-- `sounds/`: un modulo per tema (`ambience`, `world`, `fishing`, `gulpy`, `molly`, `hatch`, `robin`, `archie`, `music`, `ui`); ogni id si registra con `@sound(...)` o `register(...)`.
+- `sounds/`: un modulo per tema (`ambience`, `world`, `fishing`, `gulpy`, `molly`, `hatch`, `robin`, `archie`, `lampy`, `music`, `ui`); ogni id si registra con `@sound(...)` o `register(...)`.
 - `master.py`: pulizia, livello (RMS "attivo"), limitatore, codifica Vorbis e verifica sul file decodificato (lunghezza, picco, giunzione del loop).
 
 ## Regole tecniche
@@ -149,6 +149,21 @@ sintetizzati al volo; le durate seguono i tempi della notte 3 (`config.ts`).
 | `glass_break` | 1,7 s | Il vetro della lampara che esplode (suona dalla lampara 0,12 s dopo il soffio): lo schianto, la lampadina che scoppia, l'arco che sfrigola mentre il reattore si spegne con un colpo sordo, la pioggia di schegge sul pagliolo e qualcuna in mare. Categoria `sfx`. |
 | `archie_dive` | 2,4 s | Si rituffa: la testa che si piega giù (la pelle che scivola, un soffio), il collo lunghissimo che rientra in mare tutto di seguito («shhhllup» lungo, l'acqua che gorgoglia), la testa che va sotto con un tonfo e le bolle che risalgono, le onde che arrivano allo scafo. |
 | `js_archie` | 1,4 s | Jumpscare (**stereo**): la trombetta che si riavvolge di scatto e frusta l'aria, e il grido dentro il bocchino: lo strillo di un bambino che passa per l'ancia e ne esce ronzante e nasale come da un kazoo enorme, il soffio del serpente fra i denti, le zanne che scattano a vuoto. RMS ≈ −7,8 dBFS. |
+
+### Lampy — notte 4, non va ferrata (11 ottobre, DA APPROVARE)
+Una neonata (formanti a ×1,55, più corte ancora di quelle di Molly) che sta sott'acqua: la sua risatina arriva ovattata e
+piena di bolle. Il suo segnale è il campanellino a tempo perfetto: `lampy_bell` è un colpo solo, e il ritmo lo fa il
+gioco (`sfx.lampyBell`, senza variazioni d'altezza né di volume: i tre colpi devono essere identici).
+
+| id | durata | descrizione |
+|---|---|---|
+| `lampy_bell` | 0,9 s | Un colpo solo dei due campanellini d'ottone in punta alla canna (gli stessi delle abboccate vere): il battaglio colpisce una volta, netto, il secondo campanellino gli risponde appena, la molletta ticchetta. Il gioco lo suona tre volte a 0,62 s. |
+| `lampy_giggle` | 1,3 s | La risatina da sotto l'acqua, dopo il secondo colpo: una neonata che ride a singhiozzi («ih-ih-ih»), ovattata, e a ogni sillaba le bolle che salgono a scoppiare in superficie. |
+| `lampy_grab` | 0,5 s | Prende la lenza: il galleggiante tirato sotto di colpo, il filo che si tende. |
+| `lampy_surface` | 1,4 s | Affiora sulla lenza: l'acqua che le scorre giù dalla cuffia e dal corpo ad arco, la ventosa che si riattacca al filo con un bacio umido, un soffio dalle due fessure del naso. |
+| `lampy_let` | 1,3 s | Molla la lenza: lo schiocco pieno della ventosa della bocca, poi quello della coda, e giù di schiena, le bolle. |
+| `lampy_climb` | 1,2 s | Agganciata, risale la lenza a baci risucchiati sempre più svelti, il filo e la canna che gemono, una risatina che si stringe in un gorgoglio. |
+| `js_lampy` | 1,4 s | Jumpscare (**stereo**): il risucchio enorme della ventosa che si spalanca e si attacca, gli anelli di denti che girano come una macina (un ticchettio fitto che va e viene), lo strillo di una neonata (tre voci) con sotto la stessa voce da una gola più grande. RMS ≈ −7,3 dBFS. |
 
 ## Musica e stinger (stereo) — DA APPROVARE
 
