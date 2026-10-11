@@ -55,7 +55,11 @@ eccetera, un po' come gli animatronics», quindi tinte sature e iconiche, ricono
   lucina ambra dietro la carta, come i cruscotti di una volta. Si legge anche a lampara spenta; quando la
   batteria è quasi scarica cala e trema insieme alla lampara; quando muore si spegne con lei.
 - La **lampara** consuma secondo il livello (spenta niente, bassa poco, alta molto); il **sonar** aperto
-  consuma un po'. La carica basta per tenere la lampara bassa tutta la notte, non alta.
+  consuma un po'. La carica basta per tenere la lampara bassa tutta la notte, non alta. **Più rapida dall'11
+  ottobre** (dopo la prova dell'utente: «si consuma troppo lentamente»): bassa tutta la notte, all'alba resta circa un
+  quinto della carica; alta dura circa metà notte (`drain: [0, 1/560, 1/240]`, sonar `1/800`); l'ago corre su gran
+  parte del quadrante prima del rosso (da 14,6 V a 11,2 V), così si vede calare. Il tasto **E** alza la lampara e dal
+  massimo la spegne (gira in tondo); **Q** la abbassa.
 - Quando l'ago scende nel rosso la lampara comincia a tremolare.
 - **Quando la batteria muore** si spengono lampara e sonar. Dal fondo, piano, sale la ninna nanna della
   Madre (quella del menu, al carillon). Se suonano le sei prima che la canzone finisca, sei salvo; se
@@ -68,7 +72,8 @@ eccetera, un po' come gli animatronics», quindi tinte sature e iconiche, ricono
 - **La scelta di ogni minuto**: la luce attira i pesci (serve per la quota) e scaccia Robin, ma costa. Al
   buio si pesca poco e le creature arrivano più vicine prima che te ne accorga.
 - **Quota 10 pesci** (prima notte 8). Gulpy, Molly e Hatch tornano più spesso; Hatch può arrivare mentre
-  c'è Molly.
+  c'è Molly. **Sotto il telone Molly non ti vede** (11 ottobre, dopo la prova dell'utente: ti uccideva mentre ti
+  nascondevi da Hatch): aspetta senza offendersi, e quando esci vuole di nuovo che la guardi.
 - La radio spiega la batteria e Robin in poche frasi; due o tre oggetti di lore nuovi da pescare.
 
 ### Stato nel gioco (10 ottobre)

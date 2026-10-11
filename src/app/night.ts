@@ -329,7 +329,7 @@ export class Night {
   /** quale notte si gioca */
   readonly nightNo: number;
   /** ago del voltmetro (volt, velocità): una molla smorzata, come un ago vero */
-  private needle = { v: 13.8, vel: 0 };
+  private needle = { v: 14.6, vel: 0 };
   private flickerTimer = 0;
   /** la lucina dietro il quadrante del voltmetro (0..1): trema con la lampara, muore con la batteria */
   private gaugeGlow = 1;
@@ -525,7 +525,8 @@ export class Night {
         this.setLamp(this.sim.lamp - 1);
         break;
       case 'e':
-        this.setLamp(this.sim.lamp + 1);
+        // alza la lampara; dal massimo la spegne (gira in tondo: spenta, bassa, alta)
+        this.setLamp(this.sim.lamp >= 2 ? 0 : this.sim.lamp + 1);
         break;
       // W A S D: voltarsi di scatto verso prua, a sinistra, verso poppa, a destra (come in FNAF); col binocolo alzato
       // A e D girano piano e W e S inclinano (vedi update)
@@ -1554,7 +1555,7 @@ export class Night {
     // l'ago: nel rosso proprio quando la carica scende sotto la soglia bassa; la lampara alta lo fa calare un
     // poco (la batteria sotto sforzo), a batteria morta batte sul fermo
     const c = sim.battery;
-    const rest = c >= b.low ? 11.6 + 2.2 * ((c - b.low) / (1 - b.low)) : 10.2 + 1.4 * (c / b.low);
+    const rest = c >= b.low ? 11.2 + 3.4 * ((c - b.low) / (1 - b.low)) : 10.1 + 1.1 * (c / b.low);
     const load = [0, 0.06, 0.2][sim.lamp]! + (sim.sonarOpen ? 0.05 : 0);
     const target = sim.blackout ? 9.5 : rest - load;
     const n = this.needle;
