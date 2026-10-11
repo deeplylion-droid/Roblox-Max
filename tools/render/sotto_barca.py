@@ -45,8 +45,10 @@ def parete(p):
     p = np.asarray(p, F)
     # la parete si incurva all'indietro ai lati (lo scoglio è un promontorio) e si allarga verso il fondo
     q = np.stack([p[:, 0] * 0.09, p[:, 2] * 0.09, np.zeros(len(p), F)], 1).astype(F)
-    y0 = (9.0 + 0.04 * (-p[:, 2]) + 0.6 * np.sin(p[:, 0] * 0.35) + 0.012 * (p[:, 0] - 2.0) ** 2
-          + 5.0 * grotte._N2(q, 1.0, 3))                               # grandi sporgenze e rientranze
+    # la parete gira attorno al sub come un'insenatura: ai lati dell'inquadratura c'è ancora roccia (sempre più
+    # lontana nell'acqua torbida), non uno spigolo
+    y0 = (9.0 + 0.04 * (-p[:, 2]) + 0.6 * np.sin(p[:, 0] * 0.35) - 0.010 * (p[:, 0] - 2.0) ** 2
+          + 3.5 * grotte._N2(q, 1.0, 3))                               # grandi sporgenze e rientranze
     d = y0 - p[:, 1]                                                    # < 0 nella roccia (oltre il piano)
     d = -d
     d = d - (0.65 * grotte._N(p, 3.0, 3) + 0.18 * grotte._N(p + 40.0, 0.9, 2)
@@ -59,7 +61,7 @@ def parete(p):
 
 
 def build_parete(res=0.10):
-    v, f, n = sdf.mesh_banded(parete, (-34.0, 4.0, -32.0), (38.0, 36.0, 3.0), res=res, coarse=4)
+    v, f, n = sdf.mesh_banded(parete, (-42.0, -16.0, -32.0), (46.0, 28.0, 3.0), res=res, coarse=4)
     ob = grotte.mesh_obj('SottoParete', v, f, {'sabbia': np.zeros(len(v), F)})
     ob.data.materials.append(grotte.rock_material())
     print('[sotto] parete: %d triangoli' % len(f), flush=True)

@@ -1055,7 +1055,7 @@ def render_con_raggi(exr, samples, size, data_passes=('Mist',), region=None):
     return p
 
 
-def torcia_panorama(energy=260.0):
+def torcia_panorama(energy=260.0, occhio=OCCHIO):
     """La torcia nel panorama: una luce puntiforme sull'occhio (light group 'lantern'); il motore la ritaglia col
     cono attorno allo sguardo."""
     d = bpy.data.lights.new('Torcia', 'POINT')
@@ -1064,7 +1064,7 @@ def torcia_panorama(energy=260.0):
     d.shadow_soft_size = 0.03
     o = bpy.data.objects.new('Torcia', d)
     collection(COL).objects.link(o)
-    o.location = (OCCHIO[0] + 0.15, OCCHIO[1], OCCHIO[2] - 0.12)
+    o.location = (occhio[0] + 0.15, occhio[1], occhio[2] - 0.12)
     set_lightgroup(o, 'lantern')
     return o
 
