@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { HOUR_SECONDS, NIGHTS, YAW, type NightConfig } from '../src/game/config.ts';
+import { EXTRA_NIGHT, HOUR_SECONDS, MONSTERS, NIGHTS, YAW, extraLevels, extraNight, type MonsterId, type NightConfig } from '../src/game/config.ts';
 import type { GameEvent } from '../src/game/events.ts';
 import { NightSim } from '../src/game/sim.ts';
-import { SKILLS, playNight } from '../src/game/bot.ts';
+import { Bot, SKILLS, playNight } from '../src/game/bot.ts';
 import { Fishing } from '../src/game/fishing.ts';
 import { Rng } from '../src/game/rng.ts';
 
@@ -675,5 +675,94 @@ describe('Pesca', () => {
     expect(grace[1]).toBeLessThan(grace[0]!);
     expect(new NightSim({ ...NIGHTS[2]!, snapGrace: undefined }, 1).fishing.snapGrace).toBeLessThan(grace[1]!);
     expect(new NightSim({ ...NIGHTS[2]!, snapGrace: undefined }, 1).fishing.snapGrace).toBeGreaterThan(0);
+  });
+});
+
+// ───────────────────────── notte 7: la notte extra coi livelli ─────────────────────────
+
+/** quante volte ogni mostro entra in scena in una notte giocata dal bot */
+function visits(cfg: NightConfig, seed: number): Record<MonsterId, number> & { won: boolean } {
+  const sim = new NightSim(cfg, seed);
+  const bot = new Bot(sim, SKILLS.expert!, seed);
+  const n = Object.fromEntries(MONSTERS.map((m) => [m, 0])) as Record<MonsterId, number>;
+  const was = new Set<MonsterId>();
+  const dt = 1 / 30;
+  while (sim.playing) {
+    bot.step(dt);
+    sim.update(dt);
+    sim.drainEvents();
+    for (const m of MONSTERS) {
+      const on = sim.active(m);
+      if (on && !was.has(m)) n[m]++;
+      if (on) was.add(m);
+      else was.delete(m);
+    }
+  }
+  return { ...n, won: sim.outcome.kind === 'won' };
+}
+
+describe('Notte 7, la notte extra', () => {
+  it('è la notte 7, con la batteria, e i livelli fuori scala si riportano fra 0 e 20', () => {
+    const cfg = extraNight(extraLevels(5));
+    expect(cfg.night).toBe(EXTRA_NIGHT);
+    expect(cfg.battery).toBeDefined();
+    expect(extraNight({ ...extraLevels(0), lampy: 99 }).lampy).toEqual(extraNight({ ...extraLevels(0), lampy: 20 }).lampy);
+    expect(extraNight({ ...extraLevels(0), lampy: -3 }).lampy).toBeUndefined();
+  });
+
+  it('al livello 5 ogni mostro è come nella notte in cui arriva', () => {
+    const cfg = extraNight(extraLevels(5));
+    expect(cfg.gulpy).toEqual(NIGHTS[1]!.gulpy);
+    expect(cfg.molly).toEqual(NIGHTS[1]!.molly);
+    expect(cfg.hatch).toEqual(NIGHTS[1]!.hatch);
+    expect(cfg.robin).toEqual(NIGHTS[2]!.robin);
+    expect(cfg.archie).toEqual(NIGHTS[3]!.archie);
+    expect(cfg.lampy).toEqual(NIGHTS[4]!.lampy);
+    expect(cfg.fangy).toEqual(NIGHTS[5]!.fangy);
+  });
+
+  it('al livello 0 il mostro non viene', () => {
+    for (const who of MONSTERS) {
+      // tutti a 10 tranne lui
+      const v = visits(extraNight({ ...extraLevels(10), [who]: 0 }), 3);
+      expect(v[who], who).toBe(0);
+    }
+    // tutti a 0: la notte è solo pesca
+    const v = visits(extraNight(extraLevels(0)), 4);
+    for (const who of MONSTERS) expect(v[who], who).toBe(0);
+    expect(v.won).toBe(true);
+  });
+
+  it('a livello alto il mostro viene più spesso', () => {
+    for (const who of MONSTERS) {
+      let low = 0;
+      let high = 0;
+      for (let seed = 1; seed <= 4; seed++) {
+        low += visits(extraNight({ ...extraLevels(0), [who]: 2 }), seed)[who];
+        high += visits(extraNight({ ...extraLevels(0), [who]: 20 }), seed)[who];
+      }
+      expect(high, who).toBeGreaterThan(low * 1.5);
+      expect(low, who).toBeGreaterThan(0);
+    }
+  });
+
+  it('il bot esperto vince quasi sempre a livelli bassi', () => {
+    let wins = 0;
+    for (let seed = 1; seed <= 20; seed++) {
+      const sim = playNight(new NightSim(extraNight(extraLevels(3)), seed * 7919), SKILLS.expert!, seed);
+      if (sim.outcome.kind === 'won') wins++;
+    }
+    expect(wins).toBeGreaterThanOrEqual(18);
+  });
+
+  it('più alti i livelli, meno notti vinte', () => {
+    const rate = (lv: number) => {
+      let wins = 0;
+      for (let seed = 1; seed <= 16; seed++) {
+        if (playNight(new NightSim(extraNight(extraLevels(lv)), seed * 7919), SKILLS.average!, seed).outcome.kind === 'won') wins++;
+      }
+      return wins;
+    };
+    expect(rate(3)).toBeGreaterThan(rate(15));
   });
 });

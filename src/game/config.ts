@@ -477,8 +477,9 @@ function monsterAt(who: MonsterId, level: number): Num {
   return level <= 5 ? mix(a.calm, a.debut, (level - 1) / 4) : mix(a.debut, a.fierce, ((level - 5) / 15) ** 1.5);
 }
 
-/** Gulpy, Molly e Hatch ci sono in ogni notte (il gioco li disegna sempre): al livello 0 non arrivano mai. */
-const NEVER = Number.POSITIVE_INFINITY;
+/** Gulpy, Molly e Hatch ci sono in ogni notte (il gioco li disegna sempre): al livello 0 il
+ *  primo arrivo è ben oltre le sei, cioè non arrivano mai (come nei test, quiet()). */
+const NEVER = 1e9;
 
 /**
  * La config della notte extra dai livelli dei sette mostri. Quota 10 (da approvare): la notte quinta ne chiede 11
