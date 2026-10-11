@@ -88,7 +88,7 @@ export class Screens {
     if (o.canContinue) menu.append(button(S.continue, o.onContinue));
     menu.append(button(S.extras, o.onJournal), button(S.options, o.onOptions));
     if (o.onQuit) menu.append(button(S.quit, o.onQuit));
-    this.show(h('div', { class: 'screen title fade-in' }, h('h1', {}, S.title), menu));
+    this.show(h('div', { class: 'screen title fade-in' }, h('h1', {}, S.title), menu, h('div', { class: 'build' }, __BUILD__)));
   }
 
   intro(night: number, quota: number): void {

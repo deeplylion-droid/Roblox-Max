@@ -128,6 +128,44 @@
     }
    ]
   },
+  "fangy": {
+   "aspect": 1.7778,
+   "fps": 10,
+   "frames": [
+    {
+     "file": "js_fangy_00.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_fangy_01.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_fangy_02.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_fangy_03.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_fangy_04.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_fangy_05.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_fangy_06.webp",
+     "scale": 0.35000000000000003
+    },
+    {
+     "file": "js_fangy_07.webp",
+     "scale": 0.41000000000000003
+    }
+   ]
+  },
   "gulpy": {
    "aspect": 1.7778,
    "fps": 10,
@@ -201,6 +239,44 @@
     {
      "file": "js_hatch_07.webp",
      "scale": 0.71
+    }
+   ]
+  },
+  "lampy": {
+   "aspect": 1.7778,
+   "fps": 10,
+   "frames": [
+    {
+     "file": "js_lampy_00.webp",
+     "scale": 2.2
+    },
+    {
+     "file": "js_lampy_01.webp",
+     "scale": 2.2
+    },
+    {
+     "file": "js_lampy_02.webp",
+     "scale": 2.2
+    },
+    {
+     "file": "js_lampy_03.webp",
+     "scale": 2.2
+    },
+    {
+     "file": "js_lampy_04.webp",
+     "scale": 2.2
+    },
+    {
+     "file": "js_lampy_05.webp",
+     "scale": 2.2
+    },
+    {
+     "file": "js_lampy_06.webp",
+     "scale": 1.3
+    },
+    {
+     "file": "js_lampy_07.webp",
+     "scale": 0.87
     }
    ]
   },

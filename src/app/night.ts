@@ -280,6 +280,9 @@ export class Night {
   // input
   private held = new Set<string>();
   private mouse = { x: 0.5, y: 0.5, inside: false, down: false };
+  /** i bordi dello schermo girano lo sguardo; dopo uno scatto da tastiera (W A S D) non più, finché il mouse non si
+   *  muove: se era rimasto fermo nella fascia del bordo, dopo lo scatto la vista continuava a girare da sola */
+  private edgeArmed = true;
   private sonarOpen = false;
   /** binocolo: alzato (desiderato), quanto è alzato (0..1), campo dello zoom, inclinazione dello sguardo */
   private binoUp = false;
@@ -292,7 +295,7 @@ export class Night {
   // stato visivo (morbido)
   private v = { gSale: 0, gRise: 0, gPret: 0, mR: 0, mL: 0, hRise: 0, robin: 0, robinFear: 0, robinBlink: 0,
     gJaw: 0, gJawPhase: 0, gJawAmp: 0, mBlink1: 0, mBlink2: 0, hMouth: 0, hMouthT: 99, aRise: 0, aHornT: 0, aHornHalf: 0, aHornFull: 0, aFiato: 0, lRise: 0, lMouth: 0, lMouthT: 0, lClimb: 0,
-    fRise: 0, fBow: 0, fStern: 0, fHead: 0, fHeadT: 1, fFlash: 0, fBreath: 0, tarp: 0, toy: 0, toyX: -1, dawn: 0, rock: 0, dark: 0 };
+    fRise: 0, fBow: 0, fStern: 0, fHead: 0, fHeadT: 1, fFlash: 0, fBreath: 0, fApp: 0, fRow: 0, tarp: 0, toy: 0, toyX: -1, dawn: 0, rock: 0, dark: 0 };
   private gulpyDive = 0;
   /** quando è cominciata l'abboccata in corso (per il suggerimento nelle notti di Lampy) */
   private biteAt = -1;
@@ -436,8 +439,10 @@ export class Night {
     });
     this.on(c, 'mousemove', (e) => {
       const m = e as MouseEvent;
-      this.mouse.x = m.clientX / innerWidth;
-      this.mouse.y = m.clientY / innerHeight;
+      const x = m.clientX / innerWidth, y = m.clientY / innerHeight;
+      if (Math.hypot((x - this.mouse.x) * innerWidth, (y - this.mouse.y) * innerHeight) > 6) this.edgeArmed = true;
+      this.mouse.x = x;
+      this.mouse.y = y;
       this.mouse.inside = true;
     });
     this.on(c, 'mouseleave', () => {
@@ -506,7 +511,20 @@ export class Night {
       case 'e':
         this.setLamp(this.sim.lamp + 1);
         break;
+      // W A S D: voltarsi di scatto verso prua, a sinistra, verso poppa, a destra (come in FNAF); col binocolo alzato
+      // A e D girano piano e W e S inclinano (vedi update)
+      case 'w':
+        if (this.bino <= 0.5) this.face(YAW.bow);
+        break;
+      case 'a':
+        if (this.bino <= 0.5) this.face(-90);
+        break;
       case 's':
+        if (this.bino <= 0.5) this.face(YAW.stern);
+        break;
+      case 'd':
+        if (this.bino <= 0.5) this.face(90);
+        break;
       case 'arrowdown':
         this.turn();
         break;
@@ -519,19 +537,26 @@ export class Night {
     }
   }
 
-  /** Alza o abbassa il binocolo; alzandolo lo sguardo va all'altezza del luogo più vicino. */
+  /** Alza o abbassa il binocolo; alzandolo vicino a un luogo lo sguardo si centra su di lui. */
   private raiseBino(up: boolean): void {
     if (up && !this.canBino()) return;
     if (up && !this.binoUp) {
-      const yaw = this.d.stage.view.yaw;
-      let best: { d: number; pitch: number } | null = null;
-      for (const p of this.d.assets.binocular.places) {
-        const d = Math.abs(((p.yaw - yaw + 540) % 360) - 180);
-        if (d < 14 && (!best || d < best.d)) best = { d, pitch: p.pitch };
-      }
-      this.binoPitch = best ? best.pitch : 2.5;
+      const view = this.d.stage.view;
+      const p = this.binoPlaceNear(view.yaw, 0, 14);
+      this.binoPitch = p ? p.pitch : 2.5;
+      if (p) view.targetYaw += ((((p.yaw - view.targetYaw) % 360) + 540) % 360) - 180;
     }
     this.binoUp = up;
+  }
+
+  /** Il luogo del binocolo più vicino allo sguardo, se è entro `k` volte la sua larghezza (o entro `deg` gradi). */
+  private binoPlaceNear(yaw: number, k: number, deg = 0): { yaw: number; pitch: number } | null {
+    let best: { d: number; yaw: number; pitch: number } | null = null;
+    for (const p of this.d.assets.binocular.places) {
+      const d = Math.abs(((p.yaw - yaw + 540) % 360) - 180);
+      if (d < Math.max(deg, (p.hfov / 2) * k) && (!best || d < best.d)) best = { d, yaw: p.yaw, pitch: p.pitch };
+    }
+    return best;
   }
 
   /** Il binocolo si alza solo fuori dal telone, col sonar chiuso e senza un pesce in canna. */
@@ -579,6 +604,15 @@ export class Night {
     if (this.paused || this.finished || this.js || this.sim.hide !== 'out') return;
     const v = this.d.stage.view;
     v.targetYaw = v.targetYaw + 180;
+    this.edgeArmed = false;
+  }
+
+  /** Voltarsi di scatto verso una direzione (gradi, spazio della barca), per la via più corta. */
+  private face(yaw: number): void {
+    if (this.paused || this.finished || this.js || this.sim.hide !== 'out' || this.sonarOpen) return;
+    const v = this.d.stage.view;
+    v.targetYaw += ((((yaw - v.targetYaw) % 360) + 540) % 360) - 180;
+    this.edgeArmed = false;
   }
 
   private toggleSonar(open = !this.sonarOpen): void {
@@ -630,22 +664,36 @@ export class Night {
       let spin = 0;
       const edge = 0.2;
       const mx = this.mouse.x;
-      if (this.mouse.inside && !reeling) {
+      if (this.mouse.inside && !reeling && this.edgeArmed) {
         if (mx < edge) spin = -(((edge - mx) / edge) ** 1.5);
         else if (mx > 1 - edge) spin = ((mx - (1 - edge)) / edge) ** 1.5;
       }
-      if (this.held.has('a') || this.held.has('arrowleft')) spin = -1;
-      if (this.held.has('d') || this.held.has('arrowright')) spin = 1;
+      // le frecce girano piano; A e D solo col binocolo (senza, voltano di scatto: keyDown)
+      if ((this.bino > 0.5 && this.held.has('a')) || this.held.has('arrowleft')) spin = -1;
+      if ((this.bino > 0.5 && this.held.has('d')) || this.held.has('arrowright')) spin = 1;
       // col binocolo si gira piano, in proporzione allo zoom; su e giù coi bordi alto e basso
       const zoomK = this.bino > 0 ? view.hfov / 90 : 1;
       view.targetYaw += spin * 150 * this.d.options.sensitivity * dt * zoomK;
-      if (this.bino > 0.5 && this.mouse.inside) {
-        const my = this.mouse.y;
+      if (this.bino > 0.5) {
         let tilt = 0;
-        if (my < edge) tilt = ((edge - my) / edge) ** 1.5;
-        else if (my > 1 - edge) tilt = -(((my - (1 - edge)) / edge) ** 1.5);
+        if (this.mouse.inside) {
+          const my = this.mouse.y;
+          if (my < edge) tilt = ((edge - my) / edge) ** 1.5;
+          else if (my > 1 - edge) tilt = -(((my - (1 - edge)) / edge) ** 1.5);
+        }
         if (this.held.has('w') || this.held.has('arrowup')) tilt = 1;
+        if (this.held.has('s')) tilt = -1;
         this.binoPitch = Math.max(-8, Math.min(12, this.binoPitch + tilt * 30 * zoomK * dt));
+        // vicino a un luogo, quando smetti di girare lo sguardo ci scivola sopra da solo (centrarlo a mano è scomodo, e
+        // fuori dal luogo si vede il panorama lontano, che da vicino è sgranato)
+        if (spin === 0 && tilt === 0) {
+          const p = this.binoPlaceNear(view.targetYaw, 1.1);
+          if (p) {
+            const k = 1 - Math.exp(-3.2 * dt);
+            view.targetYaw += (((((p.yaw - view.targetYaw) % 360) + 540) % 360) - 180) * k;
+            this.binoPitch += (p.pitch - this.binoPitch) * k;
+          }
+        }
       }
     }
     if (!this.canBino()) this.binoUp = false;
@@ -898,7 +946,7 @@ export class Night {
       case 'fangy':
         switch (e.e) {
           case 'approach':
-            fx.fangyApproach(dirPos(YAW.fangy, FANGY_FAR, -6));
+            fx.fangyApproach(dirPos(YAW.fangy + FANGY_SWING, FANGY_FAR, -6));
             cap(S.captions.fangyApproach);
             break;
           case 'rise':
@@ -1244,7 +1292,14 @@ export class Night {
     // accendono tutte insieme
     const fg = sim.fangy;
     v.fRise = approach(v.fRise, fg ? (fg.state === 'attack' ? 1 : fg.rise) : 0, 14, dt);
-    if (fg && (fg.listening || fg.state === 'attack')) {
+    // la fila di lucine sott'acqua: segue l'arrivo e, se lui torna indietro (canta la Madre), sfuma invece di sparire
+    if (fg?.state === 'approaching') v.fApp = fg.approach;
+    v.fRow = approach(v.fRow, fg?.state === 'approaching' ? 1 : 0, 3, dt);
+    if (fg?.state === 'attack') {
+      // ti è addosso: la testa ti guarda (come nel jumpscare)
+      v.fHead = 0;
+      v.fHeadT = 99;
+    } else if (fg && fg.listening) {
       v.fHeadT -= dt;
       if (v.fHeadT <= 0) {
         if (v.fHead !== 0) {
@@ -1603,7 +1658,9 @@ export class Night {
     const info = this.baseOf(key);
     if (!info) return 0;
     const t = this.d.stage.time;
-    const bob = 1.6 * Math.sin(t * 0.9 + key.length) + 0.7 * Math.sin(t * 2.3);
+    // la fase viene dallo strato della posa: le toppe ondeggiano insieme a lei (se no si staccano di qualche pixel)
+    const phase = (this.d.stage.man.layers[key]?.base ?? key).length;
+    const bob = 1.6 * Math.sin(t * 0.9 + phase) + 0.7 * Math.sin(t * 2.3);
     const bottom = info.pelo ? Math.max(...info.pelo) : info.rect[3];
     return (1 - r) * (bottom - info.rect[1]) + bob;
   }
@@ -2086,7 +2143,7 @@ export class Night {
   private fangyLights(): LightGlow[] {
     const fg = this.sim.fangy;
     const out: LightGlow[] = [];
-    if (!fg || (fg.state !== 'approaching' && this.v.fRise < 0.002)) return out;
+    if (!fg || (this.v.fRow < 0.01 && this.v.fRise < 0.002)) return out;
     const v = this.v;
     const st = this.d.stage;
     const pano = st.man.pano;
@@ -2106,10 +2163,10 @@ export class Night {
       const a = k * gain * (under ? 0.45 : 1);
       out.push({ dir: n, color: [FANGY_LIGHT[0] * a, FANGY_LIGHT[1] * a, FANGY_LIGHT[2] * a], radius: (under ? 0.0034 : 0.0011) * wide });
     };
-    if (fg.state === 'approaching') {
+    if (v.fRise < 0.002) {
       // la fila arriva dal largo girando verso la barca: la testa davanti, le altre in scia lungo la stessa strada, e
-      // si accendono una dopo l'altra mentre si avvicina
-      const k = fg.approach;
+      // si accendono una dopo l'altra mentre si avvicina (se torna indietro, sfuma)
+      const k = v.fApp;
       const near = Math.hypot(FANGY_AT[0], FANGY_AT[1]) + 1.2;
       for (let i = 0; i < FANGY_ROW; i++) {
         const s = i / (FANGY_ROW - 1);
@@ -2118,7 +2175,7 @@ export class Night {
         if (lit < 0.01) continue;
         const r = FANGY_FAR + (near - FANGY_FAR) * smooth01(u);
         const yaw = (YAW.fangy + FANGY_SWING * (1 - u) ** 1.5) * D2R;
-        glow([Math.sin(yaw) * r, Math.cos(yaw) * r, WATER_Z - FANGY_DEEP], lit * (0.5 + 0.8 * breath(s)), true, 1.6);
+        glow([Math.sin(yaw) * r, Math.cos(yaw) * r, WATER_Z - FANGY_DEEP], lit * v.fRow * (0.5 + 0.8 * breath(s)), true, 1.6);
       }
       return out;
     }
@@ -2219,7 +2276,13 @@ export class Night {
       fade: 1 - v.dark * 0.9,
       glows,
       boatGlows: binoOn ? [] : tk ? [...eyes.boat, ...tk.glows] : eyes.boat,
-      glowSprites: this.fangyLights(),
+      glowSprites: be > 0
+        ? this.fangyLights().map((g) => {
+          const k = 1 - be * (1 - Math.min(1, (st.view.hfov / 90) * 1.6));
+          const a = 1 - 0.35 * be;
+          return { ...g, radius: g.radius * k, color: [g.color[0] * a, g.color[1] * a, g.color[2] * a] as Vec3 };
+        })
+        : this.fangyLights(),
     });
   }
 
@@ -2231,11 +2294,11 @@ export class Night {
     const v = this.v;
     a.setListenerYaw(this.d.stage.view.yaw);
     a.setMuffled(v.tarp * 0.8);
-    this.d.sfx.rock(v.rock);
-    this.d.sfx.toy(v.toy, dirPos(180 + v.toyX * 35, 1.3, -15));
+    this.d.sfx.rock(this.js ? 0 : v.rock);
+    this.d.sfx.toy(this.js ? 0 : v.toy, dirPos(180 + v.toyX * 35, 1.3, -15));
     // Fangy che respira dietro le spalle mentre ascolta
     const fg = sim.fangy;
-    this.d.sfx.fangyListen(fg?.present && fg.state !== 'attack' && !this.js ? ease(v.fRise) : 0, FANGY_AT);
+    this.d.sfx.fangyListen(fg?.present && fg.state !== 'attack' && !this.js && !this.finished ? ease(v.fRise) : 0, FANGY_AT);
     // sibilo della lampara col livello
     this.loops.lamp?.setGain([0.0, 0.45, 0.8][sim.lamp]! * (1 - 0.6 * this.d.stage.lampDip), 0.05);
     // campane delle ore
