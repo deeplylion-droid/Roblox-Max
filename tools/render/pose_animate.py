@@ -23,6 +23,17 @@ dissolto sopra lo strato principale (vedi jobs.job_creature: le opzioni 'visibil
     archie_trombetta_tutta   … e tutta, distesa sulla lampara con la piuma in punta (srotolata=1): sulla barca il gioco
                              la srotola a metà e la riavvolge (la posa, archie_soffia, la tiene arrotolata); quella tutta
                              distesa è il soffio
+    lampy_bocca_chiusa       Lampy (notte 4) con la ventosa chiusa a bacio stretto sulla lenza (lampy.build(bocca=0)) …
+    lampy_bocca_aperta       … e spalancata a disco, con gli anelli di denti girati di 10° (bocca=1, denti_giro=10): il
+                             gioco la apre e la chiude piano, alternandole alla posa (lampy_lenza, bocca 0,5); le tre
+                             aperture sono quelle della vetrina approvata l'11 ottobre
+    fangy_testa_prua         Fangy (notte 5) con la testa girata di scatto verso prua (fangy.build(testa=−35): la sua
+                             destra) …
+    fangy_testa_poppa        … e verso poppa (testa=+35, la sua sinistra): il gioco la fa scattare verso ogni rumore.
+                             Le toppe di Fangy sono la creatura intera, non la sola testa: girandosi la testa scopre il
+                             collo e la gobba da una parte e li copre dall'altra, e il riquadro deve tenere dentro sia la
+                             testa girata sia quella diritta dello strato principale. Le lucine sono spente (luci=0) come
+                             nello strato principale: le accende il motore, e il manifest ne porta le posizioni ('luci')
 
 Ogni funzione costruisce la creatura nella STESSA posizione della posa di gioco e restituisce (tutti gli oggetti
 della creatura, gli oggetti della testa da tenere visibili). La sistemazione è copiata da scena_creature
@@ -47,8 +58,10 @@ e nel gioco far sfumare lo strato principale dentro il riquadro mentre entra la 
 posto della spirale, quindi nelle sue toppe si vede anche il collo (ARCHIE_CORPO) col riquadro sulla testa.
 
 Anteprime, dall'occhio del pescatore e strette sulla testa, la posa di base accanto alle varianti:
-    nice -n 10 tools/.venv/bin/python tools/render/pose_animate.py [gulpy] [molly] [hatch] [archie] [--fast] [--tavole]
-    → docs/concept/animazioni/gulpy_mascella.jpg, molly_occhi.jpg (i due lati), hatch_bocca.jpg, archie_trombetta.jpg
+    nice -n 10 tools/.venv/bin/python tools/render/pose_animate.py [gulpy] [molly] [hatch] [archie] [lampy] [fangy]
+                                                                   [--fast] [--tavole]
+    → docs/concept/animazioni/gulpy_mascella.jpg, molly_occhi.jpg (i due lati), hatch_bocca.jpg, archie_trombetta.jpg,
+      lampy_ventosa.jpg, fangy_testa.jpg
 """
 from __future__ import annotations
 
@@ -73,6 +86,8 @@ GULPY_MASCELLA = {'chiusa': -10.0, 'aperta': 10.0}   # gradi attorno alla cernie
 MOLLY_PRIMO = 0                                      # l'occhio che si chiude per primo (molly.EYES): quello che ti fissa
 HATCH_BOCCA = {'mezza': 0.5, 'chiusa': 0.0}          # apertura (1 com'è)
 ARCHIE_TROMBETTA = {'mezza': 0.5, 'tutta': 1.0}      # quanto è srotolata la trombetta (0 com'è, arrotolata)
+LAMPY_BOCCA = {'chiusa': (0.0, 0.0), 'aperta': (1.0, 10.0)}   # (apertura della ventosa, giro dei denti in gradi)
+FANGY_TESTA = {'prua': -35.0, 'poppa': 35.0}         # gradi del giro della testa (+ verso la sinistra di Fangy)
 
 # gli oggetti della testa: quello che cambia e quello che sta dentro la faccia (così la toppa non ha buchi);
 # il resto della creatura fa da maschera
@@ -88,6 +103,12 @@ HATCH_ESCA = ('HatchStalk', 'Toy*')
 # Archie: la testa con la trombetta, e il collo dietro (scena_creature.ARCHIE_TESTA e ARCHIE_CORPO)
 ARCHIE_TESTA = SC.ARCHIE_TESTA
 ARCHIE_CORPO = SC.ARCHIE_CORPO
+# Lampy: la testa con la ventosa, i denti, la gola, la cuffia e gli occhi; dietro, il corpo ad arco (la ventosa che si
+# chiude scopre un po' di quello che stava dietro le labbra, come le mascelle)
+LAMPY_TESTA = ('LampyHead', 'LampyEye*', 'LampyTeeth', 'LampyThroat', 'LampySlimeMouth', 'LampyCap*')
+LAMPY_CORPO = ('LampySkin', 'LampySlime')
+# Fangy: i pezzi della testa (servono solo a inquadrare le anteprime: le sue toppe sono la creatura intera)
+FANGY_TESTA_PEZZI = ('FangyHead', 'FangyGoggle*', 'FangyFangs', 'FangyThroat', 'FangyDrool', 'FangySlime')
 
 
 def _base(name):
@@ -215,6 +236,35 @@ def archie_trombetta_tutta():
     return archie_soffia(srotolata=ARCHIE_TROMBETTA['tutta'])
 
 
+def lampy_lenza(bocca=None, denti_giro=0.0):
+    """Come scena_creature.lampy_lenza (sulla lenza a destra della prua), con la ventosa aperta per 'bocca' e gli
+    anelli di denti girati di 'denti_giro' gradi: la posa accetta già i parametri."""
+    obs = SC.lampy_lenza(bocca=bocca, denti_giro=denti_giro)
+    return obs, _testa(obs, LAMPY_TESTA)
+
+
+def lampy_bocca_chiusa():
+    return lampy_lenza(*LAMPY_BOCCA['chiusa'])
+
+
+def lampy_bocca_aperta():
+    return lampy_lenza(*LAMPY_BOCCA['aperta'])
+
+
+def fangy_ascolta(testa=0.0):
+    """Come lo strato fangy_ascolta del gioco (scena_creature.POSES: le lucine spente), con la testa girata."""
+    obs = SC.fangy_ascolta(testa=testa, luci=0.0)
+    return obs, _testa(obs, FANGY_TESTA_PEZZI)
+
+
+def fangy_testa_prua():
+    return fangy_ascolta(FANGY_TESTA['prua'])
+
+
+def fangy_testa_poppa():
+    return fangy_ascolta(FANGY_TESTA['poppa'])
+
+
 def _toppa(fn, base, testa, corpo=()):
     """La voce di una toppa. Con corpo (le mascelle): nella toppa si vede anche il corpo dietro la testa, perché la
     mascella che si sposta scopre una striscia che nello strato principale era mascella; il riquadro resta sulla
@@ -238,6 +288,11 @@ TOPPE = {
     'hatch_bocca_chiusa': _toppa(hatch_bocca_chiusa, 'hatch_conta', HATCH_TESTA, HATCH_CORPO + HATCH_ESCA),
     'archie_trombetta_mezza': _toppa(archie_trombetta_mezza, 'archie_soffia', ARCHIE_TESTA, ARCHIE_CORPO),
     'archie_trombetta_tutta': _toppa(archie_trombetta_tutta, 'archie_soffia', ARCHIE_TESTA, ARCHIE_CORPO),
+    'lampy_bocca_chiusa': _toppa(lampy_bocca_chiusa, 'lampy_lenza', LAMPY_TESTA, LAMPY_CORPO),
+    'lampy_bocca_aperta': _toppa(lampy_bocca_aperta, 'lampy_lenza', LAMPY_TESTA, LAMPY_CORPO),
+    # Fangy: la creatura intera (vedi sopra), sullo stesso centro dello strato principale, con le posizioni delle lucine
+    'fangy_testa_prua': (fangy_testa_prua, 'world', True, {'occhi': False, 'yaw_di': 'fangy_ascolta', 'luci': SC.FANGY_LUCI}),
+    'fangy_testa_poppa': (fangy_testa_poppa, 'world', True, {'occhi': False, 'yaw_di': 'fangy_ascolta', 'luci': SC.FANGY_LUCI}),
 }
 
 
@@ -259,7 +314,11 @@ def _posa_di_gioco(fn, testa):
 # su che cosa si stringe la camera, se non su tutta la testa (la pelle della testa di Gulpy arriva fino al salvagente)
 INQUADRA = {'gulpy': ('GulpyEye*', 'GulpyTeeth', 'GulpyThroat', 'GulpySlimeMouth'),
             # Archie: la testa e la trombetta, che nella prima variante costruita (tutta distesa) arriva alla lampara
-            'archie': ('ArchieHead', 'ArchieMouthpiece', 'ArchieBlower', 'ArchieFeather')}
+            'archie': ('ArchieHead', 'ArchieMouthpiece', 'ArchieBlower', 'ArchieFeather'),
+            # Lampy: la faccia con la ventosa e la cuffia (la testa senza il corpo)
+            'lampy': ('LampyHead', 'LampyCap*', 'LampyTeeth'),
+            # Fangy: la testa e la gobba, larghe abbastanza per le due teste girate
+            'fangy': ('FangyHead', 'FangyGoggle*', 'FangyFangs')}
 
 # per ogni anteprima: (nome del file, righe, nota); ogni riga è (titolo della riga, [(titolo, funzione che costruisce
 # la posa, colonna)]); la base si costruisce per prima (la camera si punta su di lei)
@@ -291,6 +350,20 @@ ANTEPRIME = {
               ('prende fiato, la gola gonfia · archie_fiato', _posa_di_gioco(lambda: SC.archie_soffia(fiato=1.0), ARCHIE_TESTA), 3)]),
     ], 'Sulla barca prende fiato nella trombetta: la carta si srotola a metà e si riavvolge, piano. Tutta distesa sulla '
        'lampara è il soffio; la gola gonfia (archie_fiato, in scena_creature) è il risucchio lungo prima di soffiare.'),
+    'lampy': ('lampy_ventosa', [
+        ('', [('posa di base, ventosa a riposo (0,5) · lampy_lenza', _posa_di_gioco(SC.lampy_lenza, LAMPY_TESTA), 1),
+              (f'ventosa chiusa ({_num(LAMPY_BOCCA["chiusa"][0])}) · lampy_bocca_chiusa', lampy_bocca_chiusa, 0),
+              (f'spalancata ({_num(LAMPY_BOCCA["aperta"][0])}), denti girati di {_num(LAMPY_BOCCA["aperta"][1])}° · '
+               'lampy_bocca_aperta', lampy_bocca_aperta, 2)]),
+    ], 'Sulla lenza apre e chiude piano la ventosa: chiusa a bacio stretto sul filo, a riposo, spalancata a disco con gli '
+       'anelli di denti che girano (quelli vicini in versi opposti, come una macina).'),
+    # la testa girata verso prua si costruisce per prima: la camera deve tenere dentro le due teste girate
+    'fangy': ('fangy_testa', [
+        ('', [(f'testa verso prua ({_num(FANGY_TESTA["prua"])}°) · fangy_testa_prua', fangy_testa_prua, 0),
+              ('posa di base · fangy_ascolta', _posa_di_gioco(lambda: SC.fangy_ascolta(luci=0.0), FANGY_TESTA_PEZZI), 1),
+              (f'testa verso poppa (+{_num(FANGY_TESTA["poppa"])}°) · fangy_testa_poppa', fangy_testa_poppa, 2)]),
+    ], 'Gira la testa di scatto verso ogni rumore: verso prua (la canna, la lampara, il secchio) o verso poppa. Le lucine '
+       'sono spente come negli strati del gioco: le accende il motore, in fila, come un respiro.'),
 }
 
 

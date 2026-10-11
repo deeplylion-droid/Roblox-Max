@@ -147,6 +147,8 @@ ROBIN_TOPPA = {'visibili': ROBIN_TESTA, 'occhi': False, 'yaw_di': 'robin_secchio
 ARCHIE_TESTA = ('ArchieHead', 'ArchieEye*', 'ArchieTeeth', 'ArchieSlime', 'ArchieMouthpiece', 'ArchieBlower', 'ArchieFeather')
 ARCHIE_CORPO = ('ArchieSkin',)
 ARCHIE_TOPPA = {'visibili': ARCHIE_TESTA + ARCHIE_CORPO, 'riquadro': ARCHIE_TESTA, 'occhi': False, 'yaw_di': 'archie_soffia'}
+# le lucine di Fangy, una per oggetto (con le proprietà 'fila' e 'centro'): le loro posizioni vanno nel manifest
+FANGY_LUCI = 'FangyLight*'
 
 # chiave → (funzione, spazio, mare[, opzioni]): vedi jobs.job_creature
 POSES = {
@@ -165,8 +167,9 @@ POSES = {
     'archie_fiato': (lambda: archie_soffia(fiato=1.0), 'boat', True, ARCHIE_TOPPA),
     # notte 4: Lampy sulla lenza, a destra della prua (approvata l'11 ottobre)
     'lampy_lenza': (lambda: lampy_lenza(), 'boat', True),
-    # notte 5: Fangy nell'acqua a destra, dietro il pescatore (approvata l'11 ottobre)
-    'fangy_ascolta': (lambda: fangy_ascolta(), 'world', True),
+    # notte 5: Fangy nell'acqua a destra, dietro il pescatore (approvata l'11 ottobre); le lucine spente, le accende il
+    # motore (deciso l'11 ottobre), che ne trova le posizioni nel manifest
+    'fangy_ascolta': (lambda: fangy_ascolta(luci=0.0), 'world', True, {'luci': FANGY_LUCI}),
 }
 
 

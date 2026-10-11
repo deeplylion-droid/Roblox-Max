@@ -387,6 +387,10 @@ def job_creature(q):
         'riquadro'  (facoltativo, con 'visibili') i nomi degli oggetti su cui si calcola il riquadro dello strato,
                     se deve essere più stretto dei visibili: una mascella che si sposta scopre il corpo dietro la
                     testa, che nella toppa va visibile ma non deve allargarla (vedi pose_animate.py).
+        'luci'      (facoltativo) un modello fnmatch degli oggetti «lucina» della creatura (le lucine di Fangy,
+                    'FangyLight*'): nel manifest vanno le loro posizioni dall'occhio, in 'luci': {'p': [[x, y, z]…],
+                    'fila': […]} (il centro di ogni lucina, dalla sua proprietà 'centro' se c'è, e la sua 'fila'), così il
+                    motore le accende e le fa pulsare da solo, come gli occhi.
         'yaw_di'    la chiave dello strato principale, su cui va la toppa. La toppa usa il suo stesso centro
                     (yaw), così i pixel dei due strati coincidono uno a uno: lo yaw si prende dallo strato reso
                     prima nello stesso giro o, se no, dal manifest (che deve venire dallo stesso render: la stessa
@@ -433,6 +437,14 @@ def job_creature(q):
             eyes = [[round(float(o.matrix_world.translation[i] - EYE[i]), 4) for i in range(3)]
                     for o in vis if 'Eye' in o.name and not o.name.startswith(('Toy', 'Duck'))]
             extra['eyes'] = eyes
+        if opts.get('luci'):
+            from mathutils import Vector
+            luci = sorted(scegli(vis, (opts['luci'],)), key=lambda o: o.name)
+            pos = [o.matrix_world @ (Vector(tuple(o['centro'])) if 'centro' in o.keys() else Vector((0, 0, 0)))
+                   for o in luci]
+            extra['luci'] = {'p': [[round(float(c[i] - EYE[i]), 4) for i in range(3)] for c in pos],
+                             'fila': [str(o.get('fila', '')) for o in luci]}
+            log(f'{key}: {len(luci)} lucine nel manifest')
         yaw = None
         base = opts.get('yaw_di')
         if base:
