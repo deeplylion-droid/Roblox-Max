@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { HOUR_SECONDS, LORE, NIGHTS, YAW, type NightConfig } from '../src/game/config.ts';
+import { FOXY_PLACES, HOUR_SECONDS, LORE, NIGHTS, YAW, type NightConfig } from '../src/game/config.ts';
+import { FOXY_FIRST_GRACE } from '../src/game/monsters.ts';
 import { LORE_TEXT } from '../src/i18n.ts';
 import type { GameEvent } from '../src/game/events.ts';
 import { NightSim } from '../src/game/sim.ts';
@@ -228,12 +229,83 @@ function quiet2(robinAt = 1e9): NightConfig {
   const far = 1e9;
   return {
     ...N2,
+    foxy: undefined,
     gulpy: { ...N2.gulpy, firstAt: far },
     molly: { ...N2.molly, firstAt: far },
     hatch: { ...N2.hatch, firstAt: far },
     robin: { ...N2.robin!, firstAt: robinAt },
   };
 }
+
+describe('Il Foxy (dalla notte 2, col binocolo)', () => {
+  /** La notte 2 con il solo Foxy (gli altri a casa), che compare subito. */
+  function soloFoxy(over: Partial<NonNullable<NightConfig['foxy']>> = {}): NightConfig {
+    const far = 1e9;
+    return {
+      ...N2,
+      gulpy: { ...N2.gulpy, firstAt: far },
+      molly: { ...N2.molly, firstAt: far },
+      hatch: { ...N2.hatch, firstAt: far },
+      robin: { ...N2.robin!, firstAt: far },
+      foxy: { ...N2.foxy!, firstAt: 1, swap: 0, ...over },
+    };
+  }
+  const guarda = (s: NightSim, i: number) => s.setBino({ yaw: FOXY_PLACES[i]!.yaw, pitch: FOXY_PLACES[i]!.pitch, fov: 9 });
+
+  it('guardato col binocolo il suo tempo riparte; trascurato si sporge, lascia il posto e salta sulla barca', () => {
+    const sim = new NightSim(soloFoxy(), 3);
+    run(sim, 2);
+    const f = sim.foxy!;
+    expect(f.state).toBe('watching');
+    // trovato una volta (finisce l'attesa più lunga della prima volta), poi lo si guarda ogni 20 s: non si muove mai
+    for (let k = 0; k < 10; k++) {
+      run(sim, 0.5, (s) => guarda(s, f.place));
+      sim.setBino(null);
+      run(sim, 20);
+      expect(f.state).toBe('watching');
+    }
+    // trascurato: prima si sporge, poi il posto è vuoto, poi il salto
+    const cfg = N2.foxy!;
+    const ev = run(sim, cfg.leave + cfg.run + 1);
+    expect(ev.some((e) => e.t === 'foxy' && e.e === 'lean')).toBe(true);
+    expect(ev.some((e) => e.t === 'foxy' && e.e === 'leave')).toBe(true);
+    expect(sim.outcome).toEqual({ kind: 'dead', killer: 'foxy' });
+  });
+
+  it('la prima volta, finché non lo trovi, aspetta di più', () => {
+    const sim = new NightSim(soloFoxy(), 3);
+    run(sim, 1 + N2.foxy!.leave + 0.5);
+    expect(sim.foxy!.state).not.toBe('gone');
+    run(sim, N2.foxy!.leave * (FOXY_FIRST_GRACE - 1) + 1);
+    expect(['gone', 'attack']).toContain(sim.foxy!.state);
+  });
+
+  it('si muove solo quando non lo guardi: sporto resta sporto finché lo guardi, poi torna al posto (o cambia posto)', () => {
+    const sim = new NightSim(soloFoxy({ swap: 1 }), 3);
+    run(sim, 2);
+    const f = sim.foxy!;
+    const prima = f.place;
+    run(sim, 0.5, (s) => guarda(s, prima));
+    sim.setBino(null);
+    run(sim, N2.foxy!.lean + 1);
+    expect(f.state).toBe('leaning');
+    // cambiato posto quando hai abbassato il binocolo la prima volta
+    expect(f.place).not.toBe(prima);
+    run(sim, 3, (s) => guarda(s, f.place));
+    expect(f.state).toBe('leaning');
+    sim.setBino(null);
+    run(sim, 0.2);
+    expect(f.state).toBe('watching');
+  });
+
+  it('il giocatore esperto lo tiene d\'occhio e arriva alle sei', () => {
+    for (const seed of [1, 2, 3]) {
+      const sim = new NightSim(soloFoxy({ firstAt: N2.foxy!.firstAt, swap: N2.foxy!.swap }), seed);
+      playNight(sim, SKILLS.expert!, seed);
+      expect(sim.outcome.kind === 'dead' && sim.outcome.killer === 'foxy').toBe(false);
+    }
+  });
+});
 
 describe('Frammenti da ripescare', () => {
   it('ogni frammento ha titolo e testo in italiano e in inglese', () => {
@@ -373,6 +445,7 @@ function quiet3(archieAt = 10): NightConfig {
   const far = 1e9;
   return {
     ...N3,
+    foxy: undefined,
     gulpy: { ...N3.gulpy, firstAt: far },
     molly: { ...N3.molly, firstAt: far },
     hatch: { ...N3.hatch, firstAt: far },
@@ -460,6 +533,7 @@ function quiet4(lampyAt = 5): NightConfig {
   const far = 1e9;
   return {
     ...N4,
+    foxy: undefined,
     biteMul: 50,
     gulpy: { ...N4.gulpy, firstAt: far },
     molly: { ...N4.molly, firstAt: far },
@@ -593,6 +667,7 @@ function quiet5(fangyAt = 3): NightConfig {
   const far = 1e9;
   return {
     ...N5,
+    foxy: undefined,
     biteMul: 50,
     gulpy: { ...N5.gulpy, firstAt: far },
     molly: { ...N5.molly, firstAt: far },

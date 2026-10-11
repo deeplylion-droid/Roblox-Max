@@ -37,6 +37,49 @@ del questionario:
   c'è il jumpscare immediato. Il binocolo diventa uno strumento vero (finora era un easter egg). Prima la tavola
   con le varianti, i nomi e i posti, da approvare.
 
+### Il Foxy nel gioco (logica, notte fra l'11 e il 12 ottobre; branch `claude/foxy-gioco`)
+
+> **Provvisorio finché non arrivano i render** (la tavola con le tre varianti, il modello, le viste del binocolo, il
+> jumpscare) e il nome: per ora nel binocolo si vedono **due occhi rossi** nel suo posto, il jumpscare è un buio con la
+> scossa, il suono del posto vuoto è un tonfo lontano. **Da approvare**: i testi (sotto) e i numeri.
+
+- **Dove sta**: in uno di due posti del binocolo, la **torre degli scivoli** (−167°) e l'**albergo Miramare**
+  (125°), tutti e due alle spalle della barca, uno per parte (provvisori: li sceglie la tavola).
+- **Come si muove**: ogni volta che lo guardi col binocolo il suo tempo riparte da zero. Trascurato, dopo `lean`
+  secondi **si sporge** verso di te; dopo `leave` secondi **lascia il posto** (il posto è vuoto: sta arrivando) e dopo
+  `run` secondi **salta sulla barca**: jumpscare immediato. Si muove solo quando non lo guardi: guardato mentre è
+  sporto resta sporto, e torna fermo al suo posto appena abbassi il binocolo; a volte (`swap`) torna **nell'altro
+  posto**, e allora va cercato. **La prima volta**, finché non lo trovi, aspetta 1,6 volte di più (si impara dov'è).
+- **Numeri** (secondi; una notte dura 450 s):
+
+  | Notte | compare | si sporge | lascia il posto | salta | cambia posto |
+  |---|---|---|---|---|---|
+  | 2 | 01:00 circa | 46 | 85 | 3,5 | 15% |
+  | 3 | 00:40 circa | 44 | 82 | 3,2 | 20% |
+  | 4 | 00:35 circa | 40 | 72 | 3 | 30% |
+  | 5 | 00:30 circa | 36 | 66 | 3 | 35% |
+
+- **Il bot** lo controlla quando tocca e non c'è niente di più urgente (non mentre recupera un pesce o ferra): si volta
+  di scatto, alza il binocolo sul posto dove l'ha visto l'ultima volta, e se lì non c'è guarda nell'altro. Ogni quanto
+  dipende dall'abilità, in frazioni di `leave` (esperto 0,45-0,6; medio 0,5-0,75; maldestro 0,55-0,9); visto sporto,
+  il controllo dopo arriva prima. Ogni controllo costa tempo di pesca: per questo cresce anche la quota mancata.
+- **Simulazioni** (200 partite; prima → con il Foxy, esperto / medio / maldestro):
+
+  | Notte | prima | con il Foxy |
+  |---|---|---|
+  | 2 | 100 / 91 / 64,5% | 99 / 78,5 / 45% |
+  | 3 | 100 / 76 / 46,5% | 99,5 / 69,5 / 31% |
+  | 4 | 96,5 / 74 / 51% | 94 / 63,5 / 31% |
+  | 5 | 95 / 76,5 / 53% | 93 / 73 / 38% |
+
+  Le notti diventano più difficili, soprattutto per chi si distrae: è una minaccia in più, come chiesto («più
+  pauroso e ansiogeno»). Se servono più facili, si allungano `leave` e `lean`.
+- **Testi** (da approvare): suggerimento «Col binocolo (B): non perderlo di vista» finché non lo trovi la prima volta,
+  «Il posto è vuoto» se lo guardi quando se n'è andato; didascalie «laggiù, qualcosa si sporge», «qualcosa corre
+  sull'acqua»; game over **«Lo spettacolo finiva sempre con un abbraccio.»** (faceva lo spettacolo di Mama Marina).
+- **Il binocolo** smette di essere un easter egg: dalla notte 2 serve per sopravvivere (non si alza sotto il telone,
+  col sonar aperto o con un pesce in canna; mentre lo guardi non vedi la barca, e Molly non si sente guardata).
+
 ## Il piano delle notti
 
 | Notte | Novità |

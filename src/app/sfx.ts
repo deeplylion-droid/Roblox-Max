@@ -560,7 +560,7 @@ export class Sfx {
     this.stopLoops();
     const v = this.audio.play(`js_${who}`);
     // senza il file (i mostri nuovi, finché non hanno il loro urlo) un urlo sintetizzato al volo
-    if (!v) this.synthScream(1, who === 'molly' ? 1.35 : who === 'hatch' ? 0.85 : who === 'robin' ? 1.1 : who === 'archie' ? 0.95 : who === 'lampy' ? 1.2 : who === 'fangy' ? 0.8 : 0.7);
+    if (!v) this.synthScream(1, who === 'molly' ? 1.35 : who === 'hatch' ? 0.85 : who === 'robin' ? 1.1 : who === 'archie' ? 0.95 : who === 'lampy' ? 1.2 : who === 'fangy' ? 0.8 : who === 'foxy' ? 0.75 : 0.7);
     return v;
   }
 

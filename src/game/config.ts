@@ -4,7 +4,7 @@
  */
 
 export type LampLevel = 0 | 1 | 2;
-export type MonsterId = 'gulpy' | 'molly' | 'hatch' | 'robin' | 'archie' | 'lampy' | 'fangy';
+export type MonsterId = 'gulpy' | 'molly' | 'hatch' | 'robin' | 'archie' | 'lampy' | 'fangy' | 'foxy';
 export type Side = 'left' | 'right';
 
 export const HOUR_SECONDS = 75;
@@ -38,6 +38,16 @@ export const YAW = {
    *  fangy_ascolta di scena_creature.py) */
   fangy: 112,
 };
+
+/**
+ * I posti dove sta il Foxy, quelli che si guardano col binocolo (direzione dall'occhio, gradi; le viste in
+ * overlays.json → binocular). Provvisori: li sceglie la tavola del Foxy (11 ottobre sera); per ora la torre degli
+ * scivoli e l'albergo Miramare, tutti e due alle spalle della barca, uno per parte.
+ */
+export const FOXY_PLACES: { id: string; yaw: number; pitch: number }[] = [
+  { id: 'scivoli', yaw: -167, pitch: 1.8 },
+  { id: 'albergo', yaw: 124.7, pitch: 3.0 },
+];
 
 export const VIEW = {
   /** semiangolo entro cui un oggetto si considera "guardato" */
@@ -172,6 +182,20 @@ export interface LampyConfig {
   climb: number;
 }
 
+/** Il Foxy (dalla notte 2, deciso l'11 ottobre sera): va tenuto d'occhio col binocolo. */
+export interface FoxyConfig {
+  /** secondi dall'inizio della notte prima che compaia nel suo posto */
+  firstAt: number;
+  /** secondi senza guardarlo prima che si sporga verso di te */
+  lean: number;
+  /** secondi senza guardarlo prima che lasci il posto: il posto è vuoto, sta arrivando */
+  leave: number;
+  /** secondi dal posto vuoto al salto sulla barca */
+  run: number;
+  /** probabilità che cambi posto quando smetti di guardarlo (se i posti sono due) */
+  swap: number;
+}
+
 export interface FangyConfig {
   firstAt: number;
   cooldown: [number, number];
@@ -232,6 +256,8 @@ export interface NightConfig {
   lampy?: LampyConfig;
   /** dalla notte 5 */
   fangy?: FangyConfig;
+  /** dalla notte 2: il Foxy, da tenere d'occhio col binocolo */
+  foxy?: FoxyConfig;
   hideTime: number;
   unhideTime: number;
 }
@@ -285,6 +311,7 @@ export const NIGHTS: Record<number, NightConfig> = {
     molly: { firstAt: 1.3 * H, cooldown: [40, 64], knock: 4.5, attention: 4.2, neglectMax: 7.5, tantrumMax: 6 },
     hatch: { firstAt: 2.3 * H, cooldown: [48, 74], calls: 10, callInterval: 1.05, search: [8, 10.5] },
     robin: { firstAt: 0.9 * H, cooldown: [70, 110], climb: 3.5, stealEvery: 3, scare: 2.5 },
+    foxy: { firstAt: 0.9 * H, lean: 46, leave: 85, run: 3.5, swap: 0.15 },
     battery: { drain: [0, 1 / 560, 1 / 240], sonar: 1 / 800, low: 0.15, lullaby: 64 },
     hideTime: 0.7,
     unhideTime: 0.6,
@@ -313,6 +340,7 @@ export const NIGHTS: Record<number, NightConfig> = {
     molly: { firstAt: 1.5 * H, cooldown: [42, 66], knock: 4.5, attention: 4.2, neglectMax: 7.5, tantrumMax: 6 },
     hatch: { firstAt: 2.4 * H, cooldown: [50, 76], calls: 10, callInterval: 1.05, search: [8, 10.5] },
     robin: { firstAt: 1.7 * H, cooldown: [85, 130], climb: 3.5, stealEvery: 3, scare: 2.5 },
+    foxy: { firstAt: 0.7 * H, lean: 44, leave: 82, run: 3.2, swap: 0.2 },
     archie: { firstAt: 0.55 * H, cooldown: [60, 95], rise: 3, inhale: 4.5, relight: 2.2, dark: 7, dive: 2 },
     battery: { drain: [0, 1 / 560, 1 / 240], sonar: 1 / 800, low: 0.15, lullaby: 64 },
     hideTime: 0.7,
@@ -343,6 +371,7 @@ export const NIGHTS: Record<number, NightConfig> = {
     molly: { firstAt: 1.6 * H, cooldown: [36, 58], knock: 4.5, attention: 4.2, neglectMax: 7.5, tantrumMax: 6 },
     hatch: { firstAt: 2.5 * H, cooldown: [46, 72], calls: 10, callInterval: 1.05, search: [8, 10.5] },
     robin: { firstAt: 1.9 * H, cooldown: [72, 112], climb: 3.5, stealEvery: 3, scare: 2.5 },
+    foxy: { firstAt: 0.6 * H, lean: 40, leave: 72, run: 3, swap: 0.3 },
     archie: { firstAt: 1.2 * H, cooldown: [70, 110], rise: 3, inhale: 4.5, relight: 2.2, dark: 7, dive: 2 },
     lampy: { firstAt: 0.45 * H, cooldown: [42, 68], grab: [1.5, 4], lurkMax: 30, beat: 0.62, surface: 0.6, stay: 2.4, climb: 1.1 },
     battery: { drain: [0, 1 / 560, 1 / 240], sonar: 1 / 800, low: 0.15, lullaby: 64 },
@@ -379,6 +408,7 @@ export const NIGHTS: Record<number, NightConfig> = {
     molly: { firstAt: 1.6 * H, cooldown: [36, 58], knock: 4.5, attention: 4.2, neglectMax: 7.5, tantrumMax: 6 },
     hatch: { firstAt: 2.5 * H, cooldown: [46, 72], calls: 10, callInterval: 1.05, search: [8, 10.5] },
     robin: { firstAt: 1.9 * H, cooldown: [100, 150], climb: 3.5, stealEvery: 3, scare: 2.5 },
+    foxy: { firstAt: 0.5 * H, lean: 36, leave: 66, run: 3, swap: 0.35 },
     archie: { firstAt: 1.2 * H, cooldown: [95, 145], rise: 3, inhale: 4.5, relight: 2.2, dark: 7, dive: 2 },
     lampy: { firstAt: 0.8 * H, cooldown: [75, 110], grab: [1.5, 4], lurkMax: 30, beat: 0.62, surface: 0.6, stay: 2.4, climb: 1.1 },
     fangy: { firstAt: 0.4 * H, cooldown: [85, 125], approach: 5, rise: 1.4, listen: 7, noises: 3, deaf: 0.8, reelNoise: 1.2, leave: 2 },

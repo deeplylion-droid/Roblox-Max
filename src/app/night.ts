@@ -708,6 +708,8 @@ export class Night {
     }
     // mentre guardi nel binocolo non vedi la barca: Molly non si sente guardata
     sim.setView(view.yaw, this.sonarOpen || this.bino > 0.5, this.sonarOpen);
+    // dove guarda il binocolo (il Foxy si controlla così)
+    sim.setBino(this.bino > 0.5 && !this.js ? { yaw: view.yaw, pitch: view.pitch, fov: view.hfov } : null);
     if (!this.finished) sim.update(dt);
     for (const e of sim.drainEvents()) this.handle(e);
 
@@ -965,6 +967,23 @@ export class Night {
             break;
         }
         break;
+      case 'foxy': {
+        // il Foxy (grafica e suoni provvisori finché non arrivano i render e i suoni veri)
+        const at = this.sim.foxy?.places[e.place ?? 0];
+        switch (e.e) {
+          case 'lean':
+            cap(S.captions.foxyLean);
+            break;
+          case 'leave':
+            // il posto è vuoto: un tonfo lontano, poi qualcosa che corre sull'acqua verso la barca
+            if (at) a.play('splash_big', { pos: dirPos(at.yaw, 40, 0), gain: 0.45, rate: 1.25, lowpass: 1400 });
+            cap(S.captions.foxyLeave);
+            break;
+          default:
+            break;
+        }
+        break;
+      }
       case 'robin': {
         const bucket = this.d.stage.man.points.bucket;
         switch (e.e) {
@@ -1189,7 +1208,9 @@ export class Night {
                 ? YAW.lampy
                 : killer === 'fangy'
                   ? YAW.fangy
-                  : (L[POSE.hatchConta]?.yaw ?? 180);
+                  : killer === 'foxy'
+                    ? (this.sim.foxy?.places[this.sim.foxy.place]?.yaw ?? 180)
+                    : (L[POSE.hatchConta]?.yaw ?? 180);
     this.binoUp = false;
     this.bino = 0;
     this.d.stage.view.swayYaw = this.d.stage.view.swayPitch = this.d.stage.view.steady = 0;
@@ -1383,6 +1404,8 @@ export class Night {
         else if (this.js.killer === 'archie') v.aRise = 1;
         else if (this.js.killer === 'lampy') v.lRise = 1;
         else if (this.js.killer === 'fangy') v.fRise = 1;
+        // il Foxy non ha ancora una posa: buio e scossa (provvisorio)
+        else if (this.js.killer === 'foxy') v.dark = Math.min(1, t * 4);
         else if (this.sim.molly.side === 'right') v.mR = 1;
         else v.mL = 1;
       }
@@ -2248,6 +2271,19 @@ export class Night {
       const k = 1 - be * (1 - Math.min(1, (st.view.hfov / 90) * 1.6));
       glows = glows.map((g) => ({ ...g, radius: g.radius * k, color: [g.color[0] * (1 - 0.35 * be), g.color[1] * (1 - 0.35 * be), g.color[2] * (1 - 0.35 * be)] }));
     }
+    // il Foxy nel suo posto (provvisorio, finché non c'è il render): due occhi rossi che ti guardano; sporto, più grandi
+    // e più bassi; col posto vuoto niente
+    const fx = this.sim.foxy;
+    if (this.bino > 0 && fx && fx.stage !== null) {
+      const p = fx.places[fx.place]!;
+      const lean = fx.stage === 1;
+      for (const s of [-1, 1]) {
+        const yaw = ((p.yaw + s * (lean ? 0.09 : 0.06)) * Math.PI) / 180;
+        const pit = ((p.pitch - (lean ? 0.35 : 0)) * Math.PI) / 180;
+        const k = lean ? 1.6 : 1;
+        glows.push({ dir: [Math.sin(yaw) * Math.cos(pit), Math.cos(yaw) * Math.cos(pit), Math.sin(pit)], color: [1.6 * k * be, 0.08 * be, 0.05 * be], radius: 0.0007 * k });
+      }
+    }
     if (this.bino > 0 && B.rec && Math.floor(st.time / 0.6) % 2 === 0) {
       glows.push({ dir: norm(B.rec), color: [2.4 * be, 0.05 * be, 0.04 * be], radius: 0.0011 });
     }
@@ -2418,6 +2454,8 @@ export class Night {
       else if (sim.robin?.present && !sim.blackout) hint = S.hints.robin;
       else if (sim.archie?.state === 'inhaling' && sim.lamp > 0) hint = S.hints.archie;
       else if (sim.archie?.state === 'waiting') hint = S.hints.archieWait;
+      else if (sim.foxy?.state === 'gone' && this.bino > 0.5) hint = S.hints.foxyGone;
+      else if (sim.foxy && sim.foxy.stage !== null && !sim.foxy.everSeen) hint = S.hints.foxy;
       else if (f.phase === 'bite') hint = this.biteHint();
       else if (f.phase === 'reeling') hint = S.hints.reel;
       else if (sim.molly.present || sim.gulpy.present) hint = '';
