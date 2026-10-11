@@ -241,7 +241,8 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
   che nella quarta notte compare solo dal secondo colpo (prima nessun suggerimento, nemmeno «Abbocca!»: direbbe di
   ferrare anche lei); le didascalie «il campanellino, a tempo», «una risatina sott'acqua», «qualcosa affiora sulla
   lenza», «molla la lenza», «risale la lenza». I suoni sono in `docs/AUDIO.md` (approvati l'11 ottobre).
-- **Jumpscare** (*da approvare*, anteprima in arrivo; `jumpscare.py`, `ATTACKS['lampy']`): agganciata, ti salta in
+- **Jumpscare** (*da approvare*: anteprima mandata in chat l'11 ottobre, `docs/concept/jumpscare/js_lampy_fotogrammi.jpg`
+  e `js_lampy.gif`; `jumpscare.py`, `ATTACKS['lampy']`): agganciata, ti salta in
   faccia dalla lenza con la ventosa spalancata a disco (a 60 cm dall'occhio riempie mezzo quadro), e da un fotogramma
   all'altro gli anelli di denti da latte girano come una macina, quelli vicini in versi opposti; una luce calda dalla
   parte della lanterna le prende la faccia, come per Robin. Finché non c'è il render finale il gioco zooma sulla posa.
@@ -280,3 +281,27 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
   occhi. **Deciso l'11 ottobre**: nello strato le lucine sono spente (`luci` 0) e tutta la luce la fa il motore, perché
   si accendano in fila come nella proposta approvata; le loro posizioni vanno nel manifest con lo strato. La vetrina
   mostra la testa girata dalle due parti e le lucine spente.
+- **Render finali** (11 ottobre): la posa `fangy_ascolta` e le toppe `fangy_testa_prua` e `fangy_testa_poppa` (la testa
+  girata di 35° dalle due parti; sono la creatura intera, perché girando la testa scopre e copre il corpo), con le 54
+  lucine nel manifest. Tavola `docs/concept/animazioni/fangy_testa.jpg` (*da approvare*, mandata in chat l'11 ottobre).
+- **Nel gioco** (*bozza da approvare*; la notte 5 il gioco non la propone ancora, si prova con `?notte=5`): lo annuncia
+  una **fila di nove lucine azzurre sott'acqua** che arriva dal largo girando verso la barca, a destra dietro di te (5 s,
+  con un suono sordo che pulsa); le lucine spariscono sotto la fiancata e lui **sale dall'acqua** accanto alla barca
+  (1,4 s). Poi **ascolta** (5,5 s): ogni rumore che fai (lanciare o ferrare, il mulinello tenuto per più di 1,2 s,
+  buttare un pesce, coprirti col telone, cambiare la lampara) lo fa **voltare di scatto verso prua**, dove hai fatto
+  rumore, e accende tutte le sue lucine insieme; resta ad ascoltare almeno un altro po'. Al terzo rumore è addosso.
+  Mentre ascolta in silenzio, ogni tanto volta la testa verso poppa come per sentire meglio (è cieco: non conta dove
+  guarda). Le lucine del ventre e della testa **respirano**: si accendono in fila dalla gola verso l'acqua e calano
+  insieme, sempre più in fretta a ogni rumore che ha sentito (al buio si vedono solo loro). Se resti zitto torna giù
+  (2 s). Il suo respiro bagnato si sente dietro le spalle finché è su, e il cuore batte più forte a ogni rumore. Il
+  suggerimento dice «Fangy ascolta: niente rumori»; il sonar lo mostra mentre arriva e accanto alla fiancata. Quando
+  canta la Madre torna giù anche lui. Non viene con Hatch, Archie né Robin. Quota 12. Giocatori simulati (primo
+  bilanciamento, da rifinire): esperto 89%, medio 82%, maldestro 60%.
+- **Testi** (*da approvare*): la radio «Quinta notte. Dodici pesci. / Fangy non vede. Sente. / Quando le luci salgono,
+  zitto. / Niente mulinello, niente lampara. / Buona pesca.»; la frase della morte «"Marco." Hai risposto.» (giocava a
+  Marco Polo a occhi chiusi: chi sente la voce trova chi risponde); il suggerimento «Fangy ascolta: niente rumori»; le
+  didascalie «lucine sott'acqua, si avvicinano», «qualcosa sale accanto alla barca, dietro di te», «si volta di scatto»,
+  «torna giù». I suoni sono in `docs/AUDIO.md` (*da approvare*).
+- **Jumpscare** (*da approvare*, anteprima in arrivo; `jumpscare.py`, `ATTACKS['fangy']`): si lancia dalla fiancata con la
+  testa avanti e le zanne puntate su di te, tutte le lucine accese; arriva a 55 cm dall'occhio chinandosi un poco, con
+  una luce calda dalla parte della lanterna sulla faccia. Finché non c'è il render finale il gioco zooma sulla posa.
