@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { HOUR_SECONDS, NIGHTS, YAW, type NightConfig } from '../src/game/config.ts';
+import { HOUR_SECONDS, NIGHTS, YAW, canFeed, monstersOfNight, type NightConfig } from '../src/game/config.ts';
 import type { GameEvent } from '../src/game/events.ts';
 import { NightSim } from '../src/game/sim.ts';
 import { SKILLS, playNight } from '../src/game/bot.ts';
@@ -675,5 +675,68 @@ describe('Pesca', () => {
     expect(grace[1]).toBeLessThan(grace[0]!);
     expect(new NightSim({ ...NIGHTS[2]!, snapGrace: undefined }, 1).fishing.snapGrace).toBeLessThan(grace[1]!);
     expect(new NightSim({ ...NIGHTS[2]!, snapGrace: undefined }, 1).fishing.snapGrace).toBeGreaterThan(0);
+  });
+});
+
+describe('Immersioni all’alba: il mostro sfamato', () => {
+  /** gli eventi «parte» di ogni mostro (il primo che emette quando arriva) */
+  const START: Record<string, string> = { gulpy: 'rise', molly: 'knock', hatch: 'count', robin: 'climb', archie: 'rise', lampy: 'grab', fangy: 'approach' };
+  const started = (ev: GameEvent[], who: string) => ev.some((e) => e.t === who && (e as { e?: string }).e === START[who]);
+
+  it('si sfama chi gira nella notte, tranne il mostro nuovo (la sua tana è vuota); la prima notte niente', () => {
+    expect(canFeed(1, 'gulpy')).toBe(false);
+    expect(canFeed(2, 'gulpy')).toBe(true);
+    expect(canFeed(2, 'robin')).toBe(false);
+    expect(canFeed(3, 'robin')).toBe(true);
+    expect(canFeed(3, 'archie')).toBe(false);
+    expect(canFeed(4, 'fangy')).toBe(false);
+    expect(canFeed(6, 'fangy')).toBe(true);
+    expect(monstersOfNight(3)).toEqual(['gulpy', 'molly', 'hatch', 'robin', 'archie']);
+  });
+
+  it('il mostro sfamato dorme tutta la notte: non parte mai e il sonar non lo annuncia', () => {
+    for (const who of ['gulpy', 'molly', 'hatch', 'robin'] as const) {
+      const sim = new NightSim(NIGHTS[3]!, 11, [], { fed: who });
+      expect(sim.asleep).toBe(who);
+      let warned = false;
+      const ev = run(sim, HOUR_SECONDS * 6 + 1, (s) => {
+        s.fish = 99; // niente morti per Gulpy o Robin a secchio vuoto: si guarda solo chi arriva
+        if (s.incoming().some((i) => i.who === who)) warned = true;
+      });
+      expect(started(ev, who)).toBe(false);
+      expect(warned).toBe(false);
+    }
+  });
+
+  it('gli altri mostri vengono lo stesso', () => {
+    const sim = new NightSim(NIGHTS[2]!, 5, [], { fed: 'gulpy' });
+    const ev = run(sim, HOUR_SECONDS * 3, (s) => {
+      s.fish = 99;
+      if (s.hatch.state === 'counting' && s.hide === 'out') s.toggleHide();
+      if (s.hatch.state === 'away' && s.hide === 'in') s.toggleHide();
+    });
+    expect(started(ev, 'gulpy')).toBe(false);
+    expect(started(ev, 'molly') || started(ev, 'robin')).toBe(true);
+  });
+
+  it('il mostro nuovo della notte non si può sfamare: l’opzione non conta', () => {
+    const sim = new NightSim(NIGHTS[2]!, 3, [], { fed: 'robin' });
+    expect(sim.asleep).toBeNull();
+    const ev = run(sim, HOUR_SECONDS * 2, (s) => {
+      s.fish = 99;
+    });
+    expect(started(ev, 'robin')).toBe(true);
+  });
+
+  it('resta deterministica anche col mostro sfamato', () => {
+    const a = playNight(new NightSim(NIGHTS[2]!, 42, [], { fed: 'molly' }), SKILLS.average!, 7);
+    const b = playNight(new NightSim(NIGHTS[2]!, 42, [], { fed: 'molly' }), SKILLS.average!, 7);
+    expect(a.outcome).toEqual(b.outcome);
+    expect(a.fish).toBe(b.fish);
+  });
+
+  it('sfamare Gulpy lascia nel secchio i pesci che si sarebbe mangiato', () => {
+    const a = playNight(new NightSim(NIGHTS[2]!, 9, [], { fed: 'gulpy' }), SKILLS.expert!, 9);
+    expect(a.fed).toBe(0);
   });
 });

@@ -1,4 +1,4 @@
-import { FISHING, HOUR_SECONDS, LAMP, LORE, NIGHT_HOURS, VIEW, YAW, angleDiff, type LampLevel, type MonsterId, type NightConfig } from './config.ts';
+import { FISHING, HOUR_SECONDS, LAMP, LORE, NIGHT_HOURS, VIEW, YAW, angleDiff, canFeed, type LampLevel, type MonsterId, type NightConfig } from './config.ts';
 import type { GameEvent } from './events.ts';
 import { Fishing, type Catch } from './fishing.ts';
 import { Archie, Fangy, Hatch, Lampy, Molly, Gulpy, Robin, SONAR_WARN, type LampyLine, type WorldView } from './monsters.ts';
@@ -6,6 +6,13 @@ import { Rng } from './rng.ts';
 
 export type Outcome = { kind: 'playing' } | { kind: 'won' } | { kind: 'dead'; killer: MonsterId | 'mother'; cause?: 'lullaby' };
 export type HideState = 'out' | 'goingIn' | 'in' | 'goingOut';
+
+/** Opzioni della notte che vengono da fuori (dall'alba prima). */
+export interface NightOptions {
+  /** il mostro sfamato all'alba (immersione): ha mangiato e dorme tutta la notte, non parte mai. Il mostro nuovo
+   *  della notte non si può sfamare (canFeed): in quel caso l'opzione non conta */
+  fed?: MonsterId | null;
+}
 
 /**
  * Una notte di SPLASHLAND IS CLOSED!, senza grafica né audio: deterministica a parità di seed e input.
@@ -55,13 +62,17 @@ export class NightSim {
   private events: GameEvent[] = [];
   private lastStart = -1e9;
   private world: WorldView;
+  /** il mostro sfamato all'alba, che stanotte dorme (NightOptions.fed) */
+  readonly asleep: MonsterId | null;
 
   constructor(
     readonly cfg: NightConfig,
     seed: number,
     foundLore: Iterable<string> = [],
+    opts: NightOptions = {},
   ) {
     this.rng = new Rng(seed);
+    this.asleep = opts.fed && canFeed(cfg.night, opts.fed) ? opts.fed : null;
     this.foundLore = new Set(foundLore);
     const emit = (e: GameEvent) => this.events.push(e);
     this.fishing = new Fishing(this.rng, emit);
@@ -445,6 +456,8 @@ export class NightSim {
   }
 
   private mayStart(who: MonsterId, ignoreGap = false): boolean {
+    // sfamato all'alba: dorme nella sua tana tutta la notte
+    if (who === this.asleep) return false;
     if (!ignoreGap && this.time - this.lastStart < this.cfg.minGapBetweenStarts) return false;
     for (const [a, b] of this.cfg.exclusive) {
       if (who === a && this.active(b)) return false;
