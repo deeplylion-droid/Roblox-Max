@@ -357,8 +357,11 @@ export class Night {
     d.ui.appendChild(this.sonarEl);
     this.sonar.onPing = () => d.audio.play('sonar_ping', { pos: [0.3, -1.42, -0.5], gain: 0.25 });
     this.sonar.onWarn = () => d.sfx.sonarWarn();
-    // l'eco della Madre: un bip lungo e basso, più forte quando si avvicina
-    this.sonar.onMother = (near) => d.audio.play('sonar_warn', { gain: 0.35 + 0.45 * near, rate: 0.5 });
+    // l'eco della Madre: un bip lungo e basso, più forte quando si avvicina (solo a sonar aperto o quando arriva: tutta
+    // la notte, ogni giro del fascio, sarebbe troppo)
+    this.sonar.onMother = (near) => {
+      if (this.sonarOpen || this.sim.mother?.near) d.audio.play('sonar_warn', { gain: 0.35 + 0.45 * near, rate: 0.5 });
+    };
     // Molly sta dove l'hanno messa i render: lo sguardo va verificato verso quelle direzioni
     const L = d.stage.man.layers;
     this.gulpyFar = dirPos(L[POSE.gulpySale]?.yaw ?? -15, 7.5, -4);
@@ -1208,7 +1211,7 @@ export class Night {
         this.loops.drone?.stop(3);
         this.loops.drone = null;
         this.hud.toast(S.sixAm, `${S.survived} · ${S.quotaMet}`, 6);
-        if (this.sim.mother) {
+        if (this.nightNo === 6) {
           // il finale A (notte 6): la Madre sale accanto alla barca, si prende il secchio e torna giù coi figli; poi
           // sorge il sole e la radio (updateFinale)
           this.finaleT = 0;

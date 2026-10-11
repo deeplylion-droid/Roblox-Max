@@ -264,7 +264,7 @@ export class App {
         won: r.kind === 'won',
         text:
           r.kind === 'won'
-            ? NIGHTS[this.nightNo]?.mother
+            ? this.nightNo === 6
               ? S.finaleA
               : S.quotaMet
             : r.cause === 'lullaby'
