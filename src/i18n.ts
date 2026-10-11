@@ -34,7 +34,7 @@ const IT = {
     archieWait: 'Resta al buio finché non va giù',
     // notte 4 (approvato l'11 ottobre)
     lampy: 'Tre colpi uguali: è Lampy, non ferrare',
-    // notte 5 (da approvare)
+    // notte 5 (approvato l'11 ottobre)
     fangy: 'Fangy ascolta: niente rumori',
   },
   denied: {
@@ -68,7 +68,7 @@ const IT = {
     archie: 'Archie ha spento la tua candelina.',
     // notte 4 (approvata l'11 ottobre): da bambina in piscina tirava giù gli altri per le gambe, per scherzo
     lampy: 'Lampy ti ha tirato giù, per scherzo.',
-    // notte 5 (da approvare): giocava a Marco Polo a occhi chiusi e vinceva sempre
+    // notte 5 (approvata l'11 ottobre): giocava a Marco Polo a occhi chiusi e vinceva sempre
     fangy: '«Marco.» Hai risposto.',
     mother: 'Alle sei il secchio non era pieno. Stanotte la Madre si prenderà un altro bambino.',
     // notte 2 (approvato il 10 ottobre): la batteria è morta e la ninna nanna è finita prima delle sei
@@ -195,7 +195,7 @@ const IT = {
     lampySurface: 'qualcosa affiora sulla lenza',
     lampyLet: 'molla la lenza',
     lampyClimb: 'risale la lenza',
-    // notte 5 (da approvare)
+    // notte 5 (approvate l'11 ottobre)
     fangyApproach: 'lucine sott’acqua, si avvicinano',
     fangyRise: 'qualcosa sale accanto alla barca, dietro di te',
     fangySnap: 'si volta di scatto',
@@ -506,7 +506,7 @@ export const RADIO_NIGHT4: Record<Lang, RadioLine[]> = {
   ],
 };
 
-/** La chiamata della quinta notte (Fangy), corta come le altre: da approvare. */
+/** La chiamata della quinta notte (Fangy), corta come le altre (approvata l'11 ottobre). */
 export const RADIO_NIGHT5: Record<Lang, RadioLine[]> = {
   it: [
     { at: 0.0, text: 'Quinta notte. Undici pesci.' },

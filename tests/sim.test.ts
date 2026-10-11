@@ -532,6 +532,106 @@ describe('Notte 4', () => {
   });
 });
 
+const N5 = NIGHTS[5]!;
+
+/** la quinta notte col solo Fangy; i pesci abboccano tardissimo */
+function quiet5(fangyAt = 3): NightConfig {
+  const far = 1e9;
+  return {
+    ...N5,
+    biteMul: 50,
+    gulpy: { ...N5.gulpy, firstAt: far },
+    molly: { ...N5.molly, firstAt: far },
+    hatch: { ...N5.hatch, firstAt: far },
+    robin: { ...N5.robin!, firstAt: far },
+    archie: { ...N5.archie!, firstAt: far },
+    lampy: { ...N5.lampy!, firstAt: far },
+    fangy: { ...N5.fangy!, firstAt: fangyAt },
+  };
+}
+
+const isFangy = (e: GameEvent, what: string) => e.t === 'fangy' && e.e === what;
+
+/** aspetta che Fangy sia salito accanto alla barca e ascolti */
+function untilListening(sim: NightSim): void {
+  const f = sim.cfg.fangy!;
+  timed(sim, 3 + f.approach + 1, (e) => isFangy(e, 'rise'));
+  run(sim, f.rise + 0.1);
+  expect(sim.fangy!.state).toBe('listening');
+}
+
+describe('Notte 5', () => {
+  const f = N5.fangy!;
+
+  it('la quinta notte si gioca, e le prime quattro non hanno Fangy', () => {
+    expect(N5.bozza).toBeFalsy();
+    expect(new NightSim(quiet4(), 1).fangy).toBeNull();
+    expect(new NightSim(quiet5(), 1).fangy).not.toBeNull();
+  });
+
+  it('lo annunciano le lucine, sale accanto alla barca e ascolta; se resti zitto torna giù', () => {
+    const sim = new NightSim(quiet5(), 1);
+    const ev = timed(sim, 3 + f.approach + f.rise + f.listen + f.leave + 2, (e) => isFangy(e, 'gone'));
+    const fangy = ev.filter((x) => x.e.t === 'fangy');
+    expect(fangy.map((x) => (x.e as { e: string }).e)).toEqual(['approach', 'rise', 'leave', 'gone']);
+    const at = (what: string) => fangy.find((x) => isFangy(x.e, what))!.t;
+    expect(at('rise') - at('approach')).toBeCloseTo(f.approach, 1);
+    expect(at('leave') - at('rise')).toBeCloseTo(f.rise + f.listen, 1);
+    expect(sim.playing).toBe(true);
+    expect(sim.fangy!.present).toBe(false);
+  });
+
+  it('ogni rumore lo fa voltare; al terzo è addosso', () => {
+    const sim = new NightSim(quiet5(), 2);
+    untilListening(sim);
+    const snaps: number[] = [];
+    for (const lamp of [2, 1, 2] as const) {
+      sim.setLamp(lamp);
+      for (const e of run(sim, f.deaf + 0.1)) if (e.t === 'fangy' && e.e === 'snap') snaps.push(e.n!);
+    }
+    expect(snaps).toEqual([1, 2, 3]);
+    expect(sim.outcome).toEqual({ kind: 'dead', killer: 'fangy' });
+  });
+
+  it('un gesto solo conta un rumore solo (due scatti del commutatore di fila)', () => {
+    const sim = new NightSim(quiet5(), 3);
+    untilListening(sim);
+    sim.setLamp(2);
+    sim.setLamp(1);
+    const ev = run(sim, 0.3);
+    expect(ev.filter((e) => e.t === 'fangy' && e.e === 'snap')).toHaveLength(1);
+    expect(sim.fangy!.heard).toBe(1);
+  });
+
+  it('dopo un rumore resta ad ascoltare almeno un altro po', () => {
+    const sim = new NightSim(quiet5(), 4);
+    untilListening(sim);
+    run(sim, f.listen - 0.5);
+    sim.setLamp(2);
+    run(sim, 1);
+    expect(sim.fangy!.state).toBe('listening');
+    expect(sim.playing).toBe(true);
+  });
+
+  it('quando canta la Madre torna giù', () => {
+    const sim = new NightSim(quiet5(), 5);
+    untilListening(sim);
+    sim.battery = 1e-6;
+    run(sim, 1.5);
+    expect(sim.fangy!.listening).toBe(false);
+    expect(sim.playing).toBe(true);
+  });
+
+  it('un bot esperto supera quasi sempre la quinta notte', () => {
+    let wins = 0;
+    for (let seed = 1; seed <= 30; seed++) {
+      const sim = playNight(new NightSim(N5, seed), SKILLS.expert!, seed);
+      if (sim.outcome.kind === 'won') wins++;
+    }
+    expect(wins).toBeGreaterThanOrEqual(26);
+  });
+});
+
 describe('Pesca', () => {
   const fish = () => ({ species: { id: 'prova', weight: 1, strength: 1, kg: [1, 2] as [number, number] }, lore: null, kg: 1 });
   const hooked = () => {

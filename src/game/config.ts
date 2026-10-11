@@ -342,11 +342,10 @@ export const NIGHTS: Record<number, NightConfig> = {
   // pesce a Gulpy, il telone) lo fa voltare; al terzo è addosso. Va contro tutto il resto: con lui non vengono Hatch
   // (nascondersi fa rumore), Archie (spegnere la lampara) né Robin (accenderla al massimo); Gulpy sì (sfamarlo è un
   // rumore). Fangy viene meno spesso degli altri protagonisti, ma ogni visita ferma la pesca (gli altri sono più radi
-  // e i pesci abboccano più in fretta). Quota 11: ogni visita ferma la pesca per una decina di secondi. Da approvare con
-  // la notte (giocatori simulati: esperto 96%, medio 81%, maldestro 53%)
+  // e i pesci abboccano più in fretta). Quota 11: ogni visita ferma la pesca per una decina di secondi. Approvata l'11
+  // ottobre (giocatori simulati: esperto 96%, medio 81%, maldestro 53%)
   5: {
     night: 5,
-    bozza: true,
     quota: 11,
     hourlyRamp: 0.16,
     biteMul: 0.12,
