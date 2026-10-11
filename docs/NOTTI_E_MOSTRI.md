@@ -304,6 +304,7 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
   Marco Polo a occhi chiusi: chi sente la voce trova chi risponde); il suggerimento «Fangy ascolta: niente rumori»; le
   didascalie «lucine sott'acqua, si avvicinano», «qualcosa sale accanto alla barca, dietro di te», «si volta di scatto»,
   «torna giù». I suoni sono in `docs/AUDIO.md` (*da approvare*).
-- **Jumpscare** (*da approvare*, anteprima in arrivo; `jumpscare.py`, `ATTACKS['fangy']`): si lancia dalla fiancata con la
+- **Jumpscare** (*da approvare*: anteprima mandata in chat l'11 ottobre, `docs/concept/jumpscare/js_fangy_fotogrammi.jpg` e
+  `js_fangy.gif`; `jumpscare.py`, `ATTACKS['fangy']`): si lancia dalla fiancata con la
   testa avanti e le zanne puntate su di te, tutte le lucine accese; arriva a 55 cm dall'occhio chinandosi un poco, con
   una luce calda dalla parte della lanterna sulla faccia. Finché non c'è il render finale il gioco zooma sulla posa.
