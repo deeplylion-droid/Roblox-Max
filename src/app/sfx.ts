@@ -450,6 +450,63 @@ export class Sfx {
     this.audio.play('splash_big', { pos, gain: 0.45, rate: 0.85 });
   }
 
+  // ───────────────────────── Lampy (notte 4) ─────────────────────────
+  // I suoi suoni sono i file lampy_* (docs/AUDIO.md); se mancano, ripieghi coi file di scena e un campanellino sintetizzato.
+
+  /** Prende la lenza: il galleggiante tirato sotto, un risucchio d'acqua. */
+  lampyGrab(pos: Vec3): void {
+    if (this.playAny('lampy_grab', { pos, spread: 0.03 })) return;
+    this.audio.play('splash_s1', { pos, gain: 0.3, rate: 1.25 });
+  }
+
+  /**
+   * Un colpo del campanellino in punta alla canna. Il segnale di Lampy è il ritmo perfetto: tre colpi identici, quindi
+   * niente variazioni d'altezza né di volume (le abboccate vere suonano rod_bell_*, irregolari).
+   */
+  lampyBell(pos: Vec3): void {
+    if (this.playAny('lampy_bell', { pos, spread: 0, spreadDb: 0 })) return;
+    const c = this.chain(pos, 0.9, 1.2);
+    if (!c) return;
+    const { ctx, input, t } = c;
+    for (const [f, a, d] of [[2380, 0.22, 0.7], [5650, 0.12, 0.35], [7420, 0.07, 0.25], [3110, 0.06, 0.5]] as const) {
+      const o = ctx.createOscillator();
+      o.type = 'sine';
+      o.frequency.value = f;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(a, t + 0.002);
+      g.gain.exponentialRampToValueAtTime(0.0005, t + d);
+      o.connect(g).connect(input);
+      o.start(t);
+      o.stop(t + d + 0.05);
+    }
+  }
+
+  /** La risatina sott'acqua, dopo il secondo colpo. */
+  lampyGiggle(pos: Vec3): void {
+    if (this.playAny('lampy_giggle', { pos, spread: 0.03 })) return;
+    this.audio.play('molly_giggle_1', { pos, gain: 0.45, rate: 0.82, lowpass: 900 });
+  }
+
+  /** Affiora sulla lenza: l'acqua che si apre, la ventosa che schiocca bagnata. */
+  lampySurface(pos: Vec3): void {
+    if (this.playAny('lampy_surface', { pos, spread: 0.03 })) return;
+    this.audio.play('splash_s3', { pos, gain: 0.5, rate: 0.9 });
+  }
+
+  /** Molla la lenza e va giù: la ventosa che si stacca con uno schiocco, il tonfo. */
+  lampyLet(pos: Vec3): void {
+    if (this.playAny('lampy_let', { pos, spread: 0.03 })) return;
+    this.audio.play('splash_s2', { pos, gain: 0.55, rate: 0.85 });
+  }
+
+  /** Agganciata, risale la lenza verso la canna: la ventosa che bacia il filo a strappi, la canna che geme. */
+  lampyClimb(pos: Vec3): void {
+    if (this.playAny('lampy_climb', { pos, spread: 0.02 })) return;
+    this.audio.play('creak_3', { pos: [1.6, 2.6, 0.1], gain: 0.8 });
+    this.audio.play('splash_s1', { pos, gain: 0.4 });
+  }
+
   // ───────────────────────── jumpscare ─────────────────────────
 
   /** L'urlo del jumpscare di ciascuna creatura (in faccia, non spazializzato); la voce serve a troncarlo
@@ -458,7 +515,7 @@ export class Sfx {
     this.stopLoops();
     const v = this.audio.play(`js_${who}`);
     // senza il file (i mostri nuovi, finché non hanno il loro urlo) un urlo sintetizzato al volo
-    if (!v) this.synthScream(1, who === 'molly' ? 1.35 : who === 'hatch' ? 0.85 : who === 'robin' ? 1.1 : who === 'archie' ? 0.95 : 0.7);
+    if (!v) this.synthScream(1, who === 'molly' ? 1.35 : who === 'hatch' ? 0.85 : who === 'robin' ? 1.1 : who === 'archie' ? 0.95 : who === 'lampy' ? 1.2 : 0.7);
     return v;
   }
 

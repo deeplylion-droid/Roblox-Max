@@ -423,6 +423,14 @@
     "gain": 1.0,
     "category": "mon"
   },
+  "js_lampy": {
+    "file": "js_lampy.ogg",
+    "duration": 1.4,
+    "loop": false,
+    "channels": 2,
+    "gain": 1.0,
+    "category": "mon"
+  },
   "js_molly": {
     "file": "js_molly.ogg",
     "duration": 1.35,
@@ -454,6 +462,54 @@
     "channels": 1,
     "gain": 0.6,
     "category": "sfx"
+  },
+  "lampy_bell": {
+    "file": "lampy_bell.ogg",
+    "duration": 0.9,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.8,
+    "category": "sfx"
+  },
+  "lampy_climb": {
+    "file": "lampy_climb.ogg",
+    "duration": 1.2,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.9,
+    "category": "mon"
+  },
+  "lampy_giggle": {
+    "file": "lampy_giggle.ogg",
+    "duration": 1.3,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.85,
+    "category": "mon"
+  },
+  "lampy_grab": {
+    "file": "lampy_grab.ogg",
+    "duration": 0.5,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.6,
+    "category": "mon"
+  },
+  "lampy_let": {
+    "file": "lampy_let.ogg",
+    "duration": 1.3,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.85,
+    "category": "mon"
+  },
+  "lampy_surface": {
+    "file": "lampy_surface.ogg",
+    "duration": 1.4,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.85,
+    "category": "mon"
   },
   "line_snap": {
     "file": "line_snap.ogg",

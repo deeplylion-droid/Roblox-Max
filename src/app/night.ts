@@ -10,6 +10,7 @@ import type { BinoPlace, LayerDraw, LightGlow, Overlay, Stroke, TubeDraw } from 
 import { CHILD, RADIO_VOICE, speak, type Utterance } from '../engine/voice.ts';
 import { FISHING, HOUR_SECONDS, NIGHTS, VIEW, YAW, type LampLevel, type MonsterId } from '../game/config.ts';
 import type { GameEvent } from '../game/events.ts';
+import { LAMPY_FIRST_BEAT } from '../game/monsters.ts';
 import { NightSim } from '../game/sim.ts';
 import { FISH_BY_ID } from '../game/catalog.ts';
 import { LORE_TEXT, RADIO, STRINGS, type Lang } from '../i18n.ts';
@@ -79,6 +80,13 @@ const GAUGE_LIGHT = 0.6;
 const ROBIN_AT: Vec3 = dirPos(YAW.robin, 1.3, -22);
 /** Archie: la testa in cima al collo, davanti alla prua, piegata sulla lampara (notte 3) */
 const ARCHIE_AT: Vec3 = dirPos(YAW.archie, 5, 13);
+/** notte 4: Lampy sulla lenza (la posa lampy_lenza; tools/render/cache/lampy_posa.json, «lenza_m», dall'occhio, spazio
+ *  della barca): la bocca dove le entra la lenza, la ventosa della coda che la tiene, dove il filo entra in mare */
+const LAMPY_MOUTH: Vec3 = [4.092, 4.388, -0.077];
+const LAMPY_TAIL: Vec3 = [5.29, 3.751, -1.02];
+const LAMPY_WATER: Vec3 = [5.696, 3.926, -1.273];
+/** dove si sente Lampy: sotto di lei, dove la lenza entra in acqua */
+const LAMPY_AT: Vec3 = [4.7, 4.1, -1.15];
 const HATCH_AT: Vec3 = [0.35, -7.4, -0.6];
 /** il pelo dell'acqua sotto l'occhio */
 const WATER_Z = -1.25;
@@ -135,6 +143,10 @@ const POSE = {
   archieHornFull: 'archie_trombetta_tutta',
   /** la testa con la gola gonfia: il risucchio prima di soffiare */
   archieBreath: 'archie_fiato',
+  /** notte 4: Lampy aggrappata alla lenza, e le toppe della ventosa chiusa e spalancata (coi denti girati) */
+  lampy: 'lampy_lenza',
+  lampyShut: 'lampy_bocca_chiusa',
+  lampyOpen: 'lampy_bocca_aperta',
 } as const;
 
 /** le toppe degli occhi di Molly sui due lati: il primo occhio (quello che ti fissa) e il secondo */
@@ -257,8 +269,10 @@ export class Night {
   private hoverTarget: Target = null;
   // stato visivo (morbido)
   private v = { gSale: 0, gRise: 0, gPret: 0, mR: 0, mL: 0, hRise: 0, robin: 0, robinFear: 0, robinBlink: 0,
-    gJaw: 0, gJawPhase: 0, gJawAmp: 0, mBlink1: 0, mBlink2: 0, hMouth: 0, hMouthT: 99, aRise: 0, aHornT: 0, aHornHalf: 0, aHornFull: 0, aFiato: 0, tarp: 0, toy: 0, toyX: -1, dawn: 0, rock: 0, dark: 0 };
+    gJaw: 0, gJawPhase: 0, gJawAmp: 0, mBlink1: 0, mBlink2: 0, hMouth: 0, hMouthT: 99, aRise: 0, aHornT: 0, aHornHalf: 0, aHornFull: 0, aFiato: 0, lRise: 0, lMouth: 0, lMouthT: 0, lClimb: 0, tarp: 0, toy: 0, toyX: -1, dawn: 0, rock: 0, dark: 0 };
   private gulpyDive = 0;
+  /** quando è cominciata l'abboccata in corso (per il suggerimento nelle notti di Lampy) */
+  private biteAt = -1;
   private js: { killer: MonsterId; t: number; yaw: number; scream: Voice | null } | null = null;
   private lineSway = 0;
   /** secondi dal lancio e dal tonfo del galleggiante (−1: niente da animare) */
@@ -682,6 +696,7 @@ export class Night {
         this.ripple(0.45, -0.45);
         break;
       case 'bite':
+        this.biteAt = this.sim.time;
         a.play(Math.random() < 0.5 ? 'rod_bell_1' : 'rod_bell_2', { pos: this.d.stage.man.points.rodTip });
         this.ripple(0.6, 0);
         this.rod.kick(4);
@@ -814,6 +829,44 @@ export class Night {
             this.archieBreath = null;
             fx.archieDive(ARCHIE_AT);
             cap(S.captions.archieDive);
+            break;
+          default:
+            break;
+        }
+        break;
+      case 'lampy':
+        switch (e.e) {
+          case 'grab':
+            // prende la lenza: il galleggiante va sotto come per un pesce, ma non suona niente
+            this.biteAt = this.sim.time;
+            this.ripple(0.5, 0);
+            fx.lampyGrab(this.floatPos());
+            break;
+          case 'beat':
+            // un colpo del campanellino, sempre uguale e sempre a tempo: la canna dà lo stesso strattone
+            fx.lampyBell(this.d.stage.man.points.rodTip);
+            this.rod.kick(3.2);
+            if (e.n === 1) cap(S.captions.lampyBeat);
+            break;
+          case 'giggle':
+            fx.lampyGiggle(LAMPY_AT);
+            cap(S.captions.lampyGiggle);
+            break;
+          case 'surface':
+            fx.lampySurface(LAMPY_AT);
+            cap(S.captions.lampySurface);
+            break;
+          case 'let':
+            fx.lampyLet(LAMPY_AT);
+            cap(S.captions.lampyLet);
+            break;
+          case 'hooked':
+            // l'hai agganciata: la canna si piega tutta
+            this.rod.kick(8, -3);
+            break;
+          case 'climb':
+            fx.lampyClimb(LAMPY_AT);
+            cap(S.captions.lampyClimb);
             break;
           default:
             break;
@@ -1039,7 +1092,9 @@ export class Night {
             ? (L[POSE.robin]?.yaw ?? YAW.robin)
             : killer === 'archie'
               ? YAW.archie
-              : (L[POSE.hatchConta]?.yaw ?? 180);
+              : killer === 'lampy'
+                ? YAW.lampy
+                : (L[POSE.hatchConta]?.yaw ?? 180);
     this.binoUp = false;
     this.bino = 0;
     this.d.stage.view.swayYaw = this.d.stage.view.swayPitch = this.d.stage.view.steady = 0;
@@ -1123,6 +1178,15 @@ export class Night {
     if (ar?.state === 'inhaling') v.aFiato = Math.max(v.aFiato, ar.breath);
     else v.aFiato = Math.max(0, v.aFiato - dt / (ar?.state === 'blowing' || ar?.state === 'attack' ? 0.3 : 1.5));
 
+    // Lampy: affiora sulla lenza dopo il terzo colpo e torna giù quando molla; mentre ti guarda apre e chiude piano la
+    // ventosa (un giro ogni 2,6 s); se l'hai agganciata la spalanca e risale un poco la lenza verso la canna
+    const lp = sim.lampy;
+    v.lRise = approach(v.lRise, lp ? (lp.state === 'attack' ? 1 : lp.rise) : 0, 14, dt);
+    v.lMouthT = lp?.visible ? v.lMouthT + dt : 0;
+    const lHooked = lp?.state === 'climbing' || lp?.state === 'attack';
+    v.lMouth = approach(v.lMouth, lHooked ? 1 : lp?.visible ? -Math.sin((v.lMouthT * 2 * Math.PI) / 2.6) : 0, lHooked ? 10 : 5, dt);
+    v.lClimb = lp?.state === 'climbing' ? Math.min(1, lp.stateTime / (sim.cfg.lampy?.climb ?? 1)) : lp?.state === 'attack' ? 1 : 0;
+
     // Robin: sale dal mare sul bordo mentre arriva e ruba; scacciato scivola giù in mare. La luce in faccia cresce
     // mentre lo scacci, e se ne va ancora abbagliato
     const rb = sim.robin;
@@ -1188,6 +1252,7 @@ export class Night {
         else if (this.js.killer === 'hatch') v.hRise = 1;
         else if (this.js.killer === 'robin') v.robin = 1;
         else if (this.js.killer === 'archie') v.aRise = 1;
+        else if (this.js.killer === 'lampy') v.lRise = 1;
         else if (this.sim.molly.side === 'right') v.mR = 1;
         else v.mL = 1;
       }
@@ -1280,6 +1345,28 @@ export class Night {
       if (full) layers.push(full);
       const fiato = has(POSE.archieBreath) ? rise(POSE.archieBreath, smooth01(v.aFiato) * (1 - kFull), arr) : null;
       if (fiato) layers.push(fiato);
+    }
+    // Lampy sulla lenza (notte 4): affiora tagliata al pelo dell'acqua; le toppe della ventosa, chiusa e spalancata,
+    // sopra la posa (che la tiene a riposo); agganciata, risale un poco la lenza verso la canna
+    const lr = ease(v.lRise);
+    if (v.lRise > 0.002) {
+      const kOpen = has(POSE.lampyOpen) ? Math.max(0, v.lMouth) : 0;
+      const kShut = has(POSE.lampyShut) ? Math.max(0, -v.lMouth) : 0;
+      const climb = this.lampyClimbPx(v.lClimb);
+      const lay = (key: string, op: number, masks?: { key: string; k: number }[]): LayerDraw | null => {
+        const d = rise(key, op, lr, masks);
+        if (!d) return null;
+        d.shift = [d.shift![0] + climb[0], d.shift![1] + climb[1]];
+        return d;
+      };
+      const base = lay(POSE.lampy, 1, [{ key: POSE.lampyShut, k: kShut }, { key: POSE.lampyOpen, k: kOpen }]);
+      if (base) {
+        layers.push(base);
+        const shut = lay(POSE.lampyShut, kShut);
+        if (shut) layers.push(shut);
+        const open = lay(POSE.lampyOpen, kOpen);
+        if (open) layers.push(open);
+      }
     }
     // creature sulla barca: salgono e scendono dietro il bordo. Mentre si muovono, la parte che nella posa si
     // vedeva contro il mare passa sotto la barca, che la copre; le mani sul bordo restano sopra e mollano la
@@ -1394,6 +1481,28 @@ export class Night {
   }
 
   /** Di quanto è sotto il pelo dell'acqua una creatura in mare (r = 1 tutta fuori): segue anche l'onda, di un soffio. */
+  /** Agganciata, Lampy risale un poco la lenza verso la punta della canna: lo spostamento del suo strato (pixel). */
+  private lampyClimbPx(c: number): [number, number] {
+    if (c <= 0) return [0, 0];
+    const pano = this.d.stage.man.pano;
+    const px = pano.height / (pano.latMax - pano.latMin);
+    const tip = this.d.stage.man.points.rodTip;
+    const yaw = (p: Vec3) => Math.atan2(p[0], p[1]) / D2R;
+    const el = (p: Vec3) => Math.atan2(p[2], Math.hypot(p[0], p[1])) / D2R;
+    const k = 0.35 * smooth01(c);
+    return [(yaw(tip) - yaw(LAMPY_MOUTH)) * px * k, -(el(tip) - el(LAMPY_MOUTH)) * px * k];
+  }
+
+  /** Il suggerimento durante un'abboccata: nelle notti di Lampy si aspetta il secondo colpo del campanellino, poi si
+   *  dice di ferrare se è un pesce e di non ferrare se è lei (quello che sente chi ascolta il ritmo). */
+  private biteHint(): string {
+    const sim = this.sim;
+    const l = sim.cfg.lampy;
+    if (!l) return this.S.hints.hook;
+    if (sim.fishing.fake) return (sim.lampy?.beats ?? 0) >= 2 ? this.S.hints.lampy : '';
+    return sim.time - this.biteAt >= LAMPY_FIRST_BEAT + l.beat ? this.S.hints.hook : '';
+  }
+
   private wavePx(key: string, r: number): number {
     const info = this.baseOf(key);
     if (!info) return 0;
@@ -1628,6 +1737,43 @@ export class Night {
         const c = FLOAT_LIGHT;
         out.strokes.push({ points: trail.reverse(), alpha: 0.5 * (1 - u * 0.6), color: [c[0] * 0.5, c[1] * 0.5, c[2] * 0.5], width: 1.6 });
       }
+    } else if (f.lineOut && f.fake && this.sim.lampy) {
+      // la lenza la tiene Lampy (notte 4): mentre suona tira sott'acqua il galleggiante verso di sé; affiorata, la lenza
+      // le entra in bocca, passa sotto l'arco fino alla ventosa della coda e scende in mare. I punti della posa
+      // scendono con lo strato quando affiora e quando va giù, e salgono con lei se l'hai agganciata
+      const lp = this.sim.lampy;
+      const r = ease(this.v.lRise);
+      if (r < 0.003) {
+        const ring = lp.state === 'ringing' ? smooth01(lp.stateTime / (LAMPY_FIRST_BEAT + 2 * (this.sim.cfg.lampy?.beat ?? 0.6))) : 1;
+        const fp = this.floatPos();
+        end = [fp[0] + (LAMPY_WATER[0] - fp[0]) * ring, fp[1] + (LAMPY_WATER[1] - fp[1]) * ring, WATER_Z - 0.04];
+        sag = 0.1;
+        light = 0;
+      } else {
+        const pano = this.d.stage.man.pano;
+        const degPx = (pano.latMax - pano.latMin) / pano.height;
+        const drop = this.wavePx(POSE.lampy, r);
+        const [cx, cy] = this.lampyClimbPx(this.v.lClimb);
+        const move = (p: Vec3): Vec3 => {
+          const hd = Math.hypot(p[0], p[1]);
+          const yaw = Math.atan2(p[0], p[1]) + cx * degPx * D2R;
+          const el = Math.atan2(p[2], hd) - (drop + cy) * degPx * D2R;
+          return [hd * Math.sin(yaw), hd * Math.cos(yaw), Math.max(WATER_Z, hd * Math.tan(el))];
+        };
+        const mouth = move(LAMPY_MOUTH);
+        const tail = move(LAMPY_TAIL);
+        const pts: Vec3[] = [];
+        const seg = (a: Vec3, b: Vec3, n: number, s0: number) => {
+          for (let i = pts.length ? 1 : 0; i <= n; i++) {
+            const s = i / n;
+            pts.push([a[0] + (b[0] - a[0]) * s, a[1] + (b[1] - a[1]) * s, a[2] + (b[2] - a[2]) * s - s0 * 4 * s * (1 - s)]);
+          }
+        };
+        seg(tip, mouth, 14, 0.1);
+        seg(mouth, tail, 6, 0.02);
+        seg(tail, LAMPY_WATER, 3, 0);
+        out.line = { points: pts, alpha: 0.85 };
+      }
     } else if (f.lineOut) {
       end = this.floatPos();
       const reeling = f.phase === 'reeling';
@@ -1792,6 +1938,7 @@ export class Night {
       [POSE.gulpySale, v.gSale, this.wavePx(POSE.gulpySale, v.gRise), 0],
       [POSE.hatchConta, v.hRise > 0.002 ? 1 : 0, this.wavePx(POSE.hatchConta, ease(v.hRise)), 0],
       [POSE.archie, v.aRise > 0.002 ? 1 : 0, this.wavePx(POSE.archie, ease(v.aRise)), 0],
+      [POSE.lampy, v.lRise > 0.002 ? 1 : 0, this.wavePx(POSE.lampy, ease(v.lRise)) + this.lampyClimbPx(v.lClimb)[1], this.lampyClimbPx(v.lClimb)[0]],
       ...this.aboard().map((a): [string, number, number, number] => {
         const d = this.sinkPx(a.key, a.p);
         return [a.key, a.p > 0.002 ? a.opacity ?? 1 : 0, d, a.out * d];
@@ -1800,7 +1947,8 @@ export class Night {
     for (const [key, k, drop, side] of shown) {
       const info = st.man.layers[key];
       if (!info?.eyes || k < 0.05) continue;
-      const water = info.space === 'world' ? pano.latMax - (info.rect[3] - 3) * degPx : null;
+      // nel mondo (e Lampy, che sta sulla lenza oltre la barca) gli occhi spariscono sotto il pelo dell'acqua
+      const water = info.space === 'world' || key === POSE.lampy ? pano.latMax - (info.rect[3] - 3) * degPx : null;
       const pulse = 0.85 + 0.15 * Math.sin(st.time * 1.7 + key.length);
       const a = k * dark * pulse;
       // gli occhi chiusi (un battito di ciglia) non brillano: per Molly il primo occhio è il più alto dei due
@@ -2015,7 +2163,7 @@ export class Night {
       else if (sim.robin?.present && !sim.blackout) hint = S.hints.robin;
       else if (sim.archie?.state === 'inhaling' && sim.lamp > 0) hint = S.hints.archie;
       else if (sim.archie?.state === 'waiting') hint = S.hints.archieWait;
-      else if (f.phase === 'bite') hint = S.hints.hook;
+      else if (f.phase === 'bite') hint = this.biteHint();
       else if (f.phase === 'reeling') hint = S.hints.reel;
       else if (sim.molly.present || sim.gulpy.present) hint = '';
       else if (f.phase === 'idle' && sim.facing(YAW.rod, VIEW.rodHalfAngle) && sim.landedCount < 2) hint = S.hints.cast;

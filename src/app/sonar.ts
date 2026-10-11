@@ -46,6 +46,9 @@ export class Sonar {
     // Archie: il collo dritto nell'acqua davanti alla prua (non sale a bordo)
     const ar = sim.archie;
     if (ar?.present) out.push({ a: YAW.archie, r: ar.state === 'rising' ? 0.5 : 0.4 });
+    // Lampy: sotto la lenza, al largo davanti alla canna
+    const lp = sim.lampy;
+    if (lp && (lp.present || lp.state === 'lurking')) out.push({ a: YAW.lampy, r: lp.visible ? 0.45 : 0.55 });
     const h = sim.hatch;
     if (h.state === 'counting') out.push({ a: 180, r: 0.85 - 0.6 * h.countProgress });
     else if (h.state === 'boarding' || h.state === 'searching') out.push({ a: 180 + (h.lureX ?? 0) * 25, r: 0.12 });
