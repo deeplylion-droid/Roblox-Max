@@ -18,7 +18,7 @@ const IT = {
   fish: 'pesci',
   am: '',
   lampNames: ['spenta', 'bassa', 'alta'],
-  lamp: 'Lampara',
+  lamp: 'Luce',
   hints: {
     cast: 'Clic sulla canna o Spazio per lanciare',
     hook: 'Ha abboccato! Clic o Spazio',
@@ -28,9 +28,9 @@ const IT = {
     unhide: 'C per uscire dal telone',
     turn: 'S per voltarti',
     // notte 2: approvato il 10 ottobre
-    robin: 'Robin: lampara al massimo (E)',
+    robin: 'Robin: luce al massimo (E)',
     // notte 3 (approvati l'11 ottobre)
-    archie: 'Archie prende fiato: spegni la lampara (Q)',
+    archie: 'Archie prende fiato: spegni la luce (Q)',
     archieWait: 'Resta al buio finché non va giù',
     // notte 4 (approvato l'11 ottobre)
     lampy: 'Tre colpi uguali: è Lampy, non ferrare',
@@ -46,7 +46,7 @@ const IT = {
     notFacing: 'Devi guardare da quella parte.',
     // notte 2: approvato il 10 ottobre
     dark: 'Batteria morta.',
-    // notte 3 (approvato l'11 ottobre): il vetro della lampara è esploso
+    // notte 3 (approvato l'11 ottobre): il vetro della luce è esploso
     broken: 'Il vetro è rotto.',
   },
   caught: 'Hai preso',
@@ -117,10 +117,10 @@ const IT = {
   resume: 'Riprendi',
   restartNight: 'Ricomincia la notte',
   radioName: 'Radio · canale 16',
-  labels: { rod: 'Canna', bucket: 'Secchio', tarp: 'Telone', lamp: 'Lampara', sonar: 'Sonar' },
+  labels: { rod: 'Canna', bucket: 'Secchio', tarp: 'Telone', lamp: 'Luce', sonar: 'Sonar' },
   look: 'Bordi dello schermo per guardarti intorno, W A S D per voltarti di scatto',
   sonarHint: 'Tab: sonar',
-  lampHint: 'Q/E o rotella: lampara',
+  lampHint: 'Q/E o rotella: luce',
   turnBar: 'VOLTATI',
   intro: { quota: 'Quota', fishUnit: 'pesci', time: '00:00' },
   results: { caught: 'Pesci pescati', fed: 'Dati a Gulpy', lore: 'Oggetti ripescati', time: 'Ora' },
@@ -152,8 +152,8 @@ const IT = {
   when: {
     always: 'sempre',
     night: 'dalla notte {n}',
-    dark: 'a lampara spenta',
-    bright: 'a lampara al massimo',
+    dark: 'a luce spenta',
+    bright: 'a luce al massimo',
     from: 'dalle {h}',
     near: 'con {who} nei paraggi',
     nearAny: 'con una creatura nei paraggi',
@@ -202,7 +202,7 @@ const IT = {
     robinRattle: 'il secchio tintinna',
     robinSteal: 'un pesce in meno',
     robinScared: 'fuga in acqua',
-    lampSick: 'la lampara sfrigola',
+    lampSick: 'la luce sfrigola',
     lampDead: 'buio',
     lullaby: 'un carillon, dal fondo',
     // notte 3 (approvate l'11 ottobre)
@@ -210,7 +210,7 @@ const IT = {
     archieInhale: 'un risucchio lungo',
     archieWait: 'aspetta al buio',
     archieDive: 'si rituffa',
-    archieBlow: 'il vetro della lampara esplode',
+    archieBlow: 'la luce esplode',
     // notte 4 (approvate l'11 ottobre)
     lampyBeat: 'il campanellino, a tempo',
     lampyGiggle: 'una risatina sott’acqua',
@@ -251,7 +251,7 @@ const EN: typeof IT = {
   fish: 'fish',
   am: 'AM',
   lampNames: ['off', 'low', 'high'],
-  lamp: 'Lampara',
+  lamp: 'Light',
   hints: {
     cast: 'Click the rod or press Space to cast',
     hook: 'Bite! Click or Space',
@@ -260,8 +260,8 @@ const EN: typeof IT = {
     hide: 'C or click the tarp: hide',
     unhide: 'C to come out from under the tarp',
     turn: 'S to turn around',
-    robin: 'Robin: lamp on full (E)',
-    archie: 'Archie is drawing breath: turn off the lamp (Q)',
+    robin: 'Robin: light on full (E)',
+    archie: 'Archie is drawing breath: turn off the light (Q)',
     archieWait: 'Stay in the dark until he goes under',
     lampy: 'Three even rings: it’s Lampy, don’t strike',
     fangy: 'Fangy is listening: not a sound',
@@ -305,7 +305,7 @@ const EN: typeof IT = {
   extraStart: 'Cast off',
   extraLocked: 'Finish every night to unlock it.',
   extraPresets: { all0: 'All at 0', all5: 'All at 5', all10: 'All at 10', all20: 'All at 20', first3: 'The first three' },
-  extraRules: { gulpy: 'feed him', molly: 'watch her', hatch: 'hide', robin: 'light in his face', archie: 'lamp off', lampy: "don't strike", fangy: 'stay quiet', mother: "don't move" },
+  extraRules: { gulpy: 'feed him', molly: 'watch her', hatch: 'hide', robin: 'light in his face', archie: 'light off', lampy: "don't strike", fangy: 'stay quiet', mother: "don't move" },
   extraMother: 'The Mother',
   extraEndingTitle: 'The end of the extra night',
   extraEndingText: '(Placeholder: the special ending goes here; you only see it by winning with everyone at 10 or more.)',
@@ -334,10 +334,10 @@ const EN: typeof IT = {
   resume: 'Resume',
   restartNight: 'Restart night',
   radioName: 'Radio · channel 16',
-  labels: { rod: 'Rod', bucket: 'Bucket', tarp: 'Tarp', lamp: 'Lampara', sonar: 'Sonar' },
+  labels: { rod: 'Rod', bucket: 'Bucket', tarp: 'Tarp', lamp: 'Light', sonar: 'Sonar' },
   look: 'Screen edges to look around, W A S D to snap around',
   sonarHint: 'Tab: sonar',
-  lampHint: 'Q/E or mouse wheel: lampara',
+  lampHint: 'Q/E or mouse wheel: light',
   turnBar: 'TURN AROUND',
   intro: { quota: 'Quota', fishUnit: 'fish', time: '12:00 AM' },
   results: { caught: 'Fish caught', fed: 'Fed to Gulpy', lore: 'Things fished up', time: 'Time' },
@@ -369,8 +369,8 @@ const EN: typeof IT = {
   when: {
     always: 'any time',
     night: 'from night {n}',
-    dark: 'with the lamp off',
-    bright: 'with the lamp at full',
+    dark: 'with the light off',
+    bright: 'with the light at full',
     from: 'from {h}',
     near: 'with {who} nearby',
     nearAny: 'with a creature nearby',
@@ -418,14 +418,14 @@ const EN: typeof IT = {
     robinRattle: 'the bucket rattles',
     robinSteal: 'one fish fewer',
     robinScared: 'a scurry into the water',
-    lampSick: 'the lamp sputters',
+    lampSick: 'the light sputters',
     lampDead: 'dark',
     lullaby: 'a music box, from the deep',
     archieRise: 'something rises from the water, at the bow',
     archieInhale: 'a long sucking breath',
     archieWait: 'it waits in the dark',
     archieDive: 'it slips back under',
-    archieBlow: 'the lamp glass shatters',
+    archieBlow: 'the light shatters',
     lampyBeat: 'the bell, in perfect time',
     lampyGiggle: 'a giggle under the water',
     lampySurface: 'something surfaces on the line',
@@ -455,12 +455,75 @@ export const LORE_TEXT: Record<Lang, Record<string, { title: string; body: strin
       title: 'Ritaglio di giornale',
       body: 'Gazzetta del Golfo, 17 agosto 1997. «SPLASHLAND, SPARITO UN TERZO BAMBINO. Il parco chiude a tempo indeterminato. Le ricerche dei sommozzatori nella piscina "Deep End" non hanno dato esito. Il proprietario: "Mama Marina ama i suoi piccoli, non…"» Il resto è illeggibile.',
     },
+    // approvati l'11 ottobre sera
+    clipping_snack: {
+      title: 'Ritaglio di giornale',
+      body: 'Gazzetta del Golfo, 15 agosto 1997. «NIGHT SPLASH, UN BAMBINO NON TORNA DALLA PISCINA. Alle undici era in fila allo Snack Shack, dice la madre. Alle undici e mezza il suo braccialetto galleggiava nella Deep End.»',
+    },
+    tickets: { title: 'Biglietti della sala giochi', body: 'Un rotolo di biglietti della sala giochi, ancora attaccati. Sono più di mille: nessuno vince così tanto giocando.' },
+    flyer: {
+      title: 'Volantino di Splashland',
+      body: 'Plastificato. Mama Marina abbraccia tre pesciolini: «Mama Marina loves her little ones! Bring yours!» Qualcuno ha disegnato a penna altri pesciolini, piccoli, sul fondo.',
+    },
+    clipping_birthday: {
+      title: 'Ritaglio di giornale',
+      body: 'Gazzetta del Golfo, 3 maggio 1999. «Festa di compleanno sulla spiaggia: il bambino che spegneva le candeline al posto del festeggiato corre in acqua e non torna. Sulla torta resta una candelina accesa.»',
+    },
+    swim_cap: { title: 'Cuffia da piscina', body: 'Di gomma, a fiori rosa e bianchi, piena di sabbia. Dentro, il nome è stato grattato via.' },
+    clipping_lido: {
+      title: 'Ritaglio di giornale',
+      body: 'Gazzetta del Golfo, 22 luglio 2003. «Lido Sirena: bambina scomparsa durante il bagno. I bagnini: "Giocava a tirare giù gli altri per le gambe. Stavolta qualcuno ha tirato giù lei."»',
+    },
+    goggles: { title: 'Occhialini da nuoto', body: 'Le lenti sono dipinte di nero, dall’interno. Chi li ha dipinti non voleva vedere niente.' },
+    clipping_seventh: {
+      title: 'Ritaglio di giornale',
+      body: 'Gazzetta del Golfo, 9 agosto 2008. «Ancora un bambino scomparso nella baia, il settimo dal 1997. Il sindaco: "Nessun legame con Splashland." Da quell’estate i pescatori escono anche di notte.»',
+    },
+    clipping_storm: {
+      title: 'Ritaglio di giornale',
+      body: 'Gazzetta del Golfo, 12 novembre 2001. «Mareggiata: metà di Splashland sott’acqua. I sommozzatori dei vigili del fuoco si rifiutano di scendere nella Deep End.»',
+    },
+    notebook: {
+      title: 'Pagina di un quaderno',
+      body: 'Strappata dal quaderno di un pescatore. «La quota è dieci. Se non la porti, se ne prende un altro. Mio padre la portava, suo padre la portava. Stanotte tocca a me.»',
+    },
   },
   en: {
     wristband: { title: 'Entry wristband', body: 'Faded fuchsia plastic: "MAMA MARINA’S SPLASHLAND · NIGHT SPLASH · 14·08·1997 · CHILD".' },
     clipping: {
       title: 'Newspaper clipping',
       body: 'Gulf Gazette, 17 August 1997. "SPLASHLAND: A THIRD CHILD MISSING. The park closes indefinitely. Divers searching the ‘Deep End’ pool found nothing. The owner: ‘Mama Marina loves her little ones, she would never…’" The rest is unreadable.',
+    },
+    clipping_snack: {
+      title: 'Newspaper clipping',
+      body: 'Gulf Gazette, 15 August 1997. "NIGHT SPLASH: A CHILD DOES NOT COME BACK FROM THE POOL. At eleven he was queueing at the Snack Shack, his mother says. At half past eleven his wristband was floating in the Deep End."',
+    },
+    tickets: { title: 'Arcade tickets', body: 'A roll of arcade tickets, still joined together. There are more than a thousand: nobody wins that many by playing.' },
+    flyer: {
+      title: 'Splashland flyer',
+      body: 'Laminated. Mama Marina hugs three little fish: "Mama Marina loves her little ones! Bring yours!" Someone has drawn more little fish in pen, small, along the bottom.',
+    },
+    clipping_birthday: {
+      title: 'Newspaper clipping',
+      body: 'Gulf Gazette, 3 May 1999. "Birthday party on the beach: the boy who always blew out the candles instead of the birthday child runs into the water and does not come back. One candle is still lit on the cake."',
+    },
+    swim_cap: { title: 'Swimming cap', body: 'Rubber, with pink and white flowers, full of sand. Inside, the name has been scratched off.' },
+    clipping_lido: {
+      title: 'Newspaper clipping',
+      body: 'Gulf Gazette, 22 July 2003. "Lido Sirena: girl missing while swimming. The lifeguards: ‘She liked to pull the others under by the legs. This time someone pulled her under.’"',
+    },
+    goggles: { title: 'Swimming goggles', body: 'The lenses are painted black, from the inside. Whoever painted them didn’t want to see anything.' },
+    clipping_seventh: {
+      title: 'Newspaper clipping',
+      body: 'Gulf Gazette, 9 August 2008. "Another child missing in the bay, the seventh since 1997. The mayor: ‘No connection with Splashland.’ Since that summer, the fishermen go out at night too."',
+    },
+    clipping_storm: {
+      title: 'Newspaper clipping',
+      body: 'Gulf Gazette, 12 November 2001. "Storm surge: half of Splashland under water. The fire brigade divers refuse to go down into the Deep End."',
+    },
+    notebook: {
+      title: 'Notebook page',
+      body: 'Torn from a fisherman’s notebook. "The quota is ten. If you don’t bring it, she takes another. My father brought it, his father brought it. Tonight it’s my turn."',
     },
   },
 };
@@ -498,18 +561,18 @@ export const RADIO_NIGHT1: Record<Lang, RadioLine[]> = {
 export const RADIO_NIGHT2: Record<Lang, RadioLine[]> = {
   it: [
     { at: 0.0, text: 'Seconda notte. Dieci pesci.' },
-    { at: 2.4, text: 'La lampara va a batteria. Guarda l’ago.' },
+    { at: 2.4, text: 'La luce va a batteria. Guarda l’ago.' },
     { at: 5.4, text: 'A zero, buio. Al buio, lei canta.' },
-    { at: 8.4, text: 'Robin ruba dal secchio. Lampara al massimo.' },
+    { at: 8.4, text: 'Robin ruba dal secchio. Luce al massimo.' },
     { at: 11.8, text: 'La luce piena costa.' },
     { at: 13.6, text: 'Buona pesca.' },
     { at: 15.0, text: '' },
   ],
   en: [
     { at: 0.0, text: 'Second night. Ten fish.' },
-    { at: 2.4, text: 'The lamp runs on a battery. Watch the needle.' },
+    { at: 2.4, text: 'The light runs on a battery. Watch the needle.' },
     { at: 5.4, text: 'At zero, dark. In the dark, she sings.' },
-    { at: 8.4, text: 'Robin steals from the bucket. Lamp on full.' },
+    { at: 8.4, text: 'Robin steals from the bucket. Light on full.' },
     { at: 11.8, text: 'Full light costs.' },
     { at: 13.6, text: 'Good fishing.' },
     { at: 15.0, text: '' },
@@ -520,7 +583,7 @@ export const RADIO_NIGHT2: Record<Lang, RadioLine[]> = {
 export const RADIO_NIGHT3: Record<Lang, RadioLine[]> = {
   it: [
     { at: 0.0, text: 'Terza notte. Undici pesci.' },
-    { at: 2.4, text: 'Archie viene per la lampara.' },
+    { at: 2.4, text: 'Archie viene per la luce.' },
     { at: 5.0, text: 'Se lo senti prendere fiato, spegni.' },
     { at: 8.0, text: 'E resta al buio finché non va giù.' },
     { at: 11.2, text: 'Buona pesca.' },
@@ -528,7 +591,7 @@ export const RADIO_NIGHT3: Record<Lang, RadioLine[]> = {
   ],
   en: [
     { at: 0.0, text: 'Third night. Eleven fish.' },
-    { at: 2.4, text: 'Archie comes for the lamp.' },
+    { at: 2.4, text: 'Archie comes for the light.' },
     { at: 5.0, text: 'If you hear him draw breath, turn it off.' },
     { at: 8.0, text: 'And stay in the dark until he goes under.' },
     { at: 11.2, text: 'Good fishing.' },
@@ -562,7 +625,7 @@ export const RADIO_NIGHT5: Record<Lang, RadioLine[]> = {
     { at: 0.0, text: 'Quinta notte. Undici pesci.' },
     { at: 2.4, text: 'Fangy non vede. Sente.' },
     { at: 4.6, text: 'Quando le luci salgono, zitto.' },
-    { at: 7.0, text: 'Niente mulinello, niente lampara.' },
+    { at: 7.0, text: 'Niente mulinello, niente luce.' },
     { at: 9.6, text: 'Buona pesca.' },
     { at: 11.0, text: '' },
   ],
@@ -570,7 +633,7 @@ export const RADIO_NIGHT5: Record<Lang, RadioLine[]> = {
     { at: 0.0, text: 'Fifth night. Eleven fish.' },
     { at: 2.4, text: 'Fangy can’t see. He hears.' },
     { at: 4.6, text: 'When the lights come up, not a sound.' },
-    { at: 7.0, text: 'No reel, no lamp.' },
+    { at: 7.0, text: 'No reel, no light.' },
     { at: 9.6, text: 'Good fishing.' },
     { at: 11.0, text: '' },
   ],

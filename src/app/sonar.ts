@@ -1,8 +1,9 @@
 /**
- * Sonar della console: cerchio con la barca al centro, fascio che gira, pesci e ombre delle creature.
+ * Sonar della console: cerchio con la barca al centro, fascio che gira, i pesci. Dall'11 ottobre sera non mostra più
+ * i mostri e non avvisa del loro arrivo (decisione dell'utente): resta acceso, ma per i mostri ci sono solo i suoni.
+ * Suona soltanto per la Madre, nella notte 6: la sua ombra enorme e il suo passaggio sotto la barca.
  * Disegnato su un canvas che il renderer mappa sullo schermo tondo (e a tutto schermo con Tab).
  */
-import { YAW } from '../game/config.ts';
 import type { NightSim } from '../game/sim.ts';
 
 interface Blip {
@@ -20,9 +21,6 @@ export class Sonar {
   private blips: Blip[] = [];
   private fish: { a: number; r: number; v: number }[] = [];
   onPing: (() => void) | null = null;
-  onContact: ((big: boolean) => void) | null = null;
-  /** un'ombra di avviso è passata sotto il fascio (bip diverso) */
-  onWarn: (() => void) | null = null;
   /** il fascio è passato sull'ombra della Madre (notte 6): quanto è vicina, 0..1 */
   onMother: ((near: number) => void) | null = null;
   /** la Madre sotto la barca: quanto è passata (0..1) e quanto si vede (0..1); null se non c'è */
@@ -33,35 +31,6 @@ export class Sonar {
     this.canvas.width = this.canvas.height = size;
     this.ctx = this.canvas.getContext('2d')!;
     for (let i = 0; i < 14; i++) this.fish.push({ a: Math.random() * 360, r: 0.25 + Math.random() * 0.7, v: (Math.random() - 0.5) * 8 });
-  }
-
-  /** contatti attuali delle creature: angolo e distanza (0 = sotto la barca, 1 = bordo) */
-  private contacts(sim: NightSim): { a: number; r: number; warn?: boolean }[] {
-    const out: { a: number; r: number; warn?: boolean }[] = [];
-    // avviso: l'ombra grande di chi sta per arrivare, dal suo lato, che si avvicina
-    for (const c of sim.incoming()) out.push({ a: c.yaw, r: 0.55 + 0.4 * Math.min(1, c.eta / 5), warn: true });
-    const g = sim.gulpy;
-    if (g.state === 'rising') out.push({ a: -12, r: 0.75 - 0.5 * g.phase });
-    else if (g.state === 'climbing' || g.state === 'demanding' || g.state === 'eating') out.push({ a: 0, r: 0.18 });
-    const m = sim.molly;
-    if (m.state === 'knocking' || m.present) out.push({ a: m.side === 'left' ? -75 : 75, r: m.state === 'knocking' ? 0.3 : 0.16 });
-    const rb = sim.robin;
-    if (rb?.present) out.push({ a: YAW.robin, r: rb.state === 'climbing' ? 0.3 : 0.15 });
-    // Archie: il collo dritto nell'acqua davanti alla prua (non sale a bordo)
-    const ar = sim.archie;
-    if (ar?.present) out.push({ a: YAW.archie, r: ar.state === 'rising' ? 0.5 : 0.4 });
-    // Lampy: sotto la lenza, al largo davanti alla canna
-    const lp = sim.lampy;
-    if (lp && (lp.present || lp.state === 'lurking')) out.push({ a: YAW.lampy, r: lp.visible ? 0.45 : 0.55 });
-    // Fangy: arriva dal largo a destra, dietro di te, e resta attaccato alla fiancata
-    const fg = sim.fangy;
-    // (la fila gira verso la barca da 34° più a poppa, come le lucine in night.ts)
-    if (fg?.state === 'approaching') out.push({ a: YAW.fangy + 34 * (1 - fg.approach) ** 1.5, r: 0.9 - 0.65 * fg.approach });
-    else if (fg?.present) out.push({ a: YAW.fangy, r: 0.22 });
-    const h = sim.hatch;
-    if (h.state === 'counting') out.push({ a: 180, r: 0.85 - 0.6 * h.countProgress });
-    else if (h.state === 'boarding' || h.state === 'searching') out.push({ a: 180 + (h.lureX ?? 0) * 25, r: 0.12 });
-    return out;
   }
 
   update(dt: number, sim: NightSim): void {
@@ -80,13 +49,6 @@ export class Sonar {
     };
     for (const f of this.fish) {
       if (crossed(f.a) && Math.random() < 0.55 * lampBoost) this.blips.push({ a: f.a, r: f.r, size: 2.5, kind: 'fish', life: 1 });
-    }
-    for (const c of this.contacts(sim)) {
-      if (crossed(c.a)) {
-        this.blips.push({ a: c.a, r: c.r, size: c.warn ? 16 : 9, kind: 'big', life: 1 });
-        if (c.warn) this.onWarn?.();
-        else this.onContact?.(true);
-      }
     }
     // la Madre (notte 6): l'ombra enorme che gira lontana tutta la notte, si stringe verso il centro quando si avvicina
     // e, quando passa sotto la barca, riempie quasi tutto lo schermo

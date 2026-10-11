@@ -110,7 +110,7 @@ Ispirato alla rana pescatrice e all'*hatchetfish*. Sagoma C: un bipede altissimo
 
 ## 8. Sonar
 
-Un piccolo ecoscandaglio portatile appoggiato sul ponte di poppa. È soprattutto **scenografico**: lo schermo verde col fascio che gira e i puntini dei pesci. Ha un solo compito di gioco: **avvisare quando sta per arrivare una creatura**, così non ti coglie di sorpresa mentre stai pescando. Qualche secondo prima dell'arrivo, sullo schermo compare un'ombra grande dal lato da cui arriva, con un bip diverso dal solito.
+Un piccolo ecoscandaglio portatile appoggiato sul ponte di poppa: lo schermo verde col fascio che gira e i puntini dei pesci. **Dall'11 ottobre sera non avvisa più dei mostri** (decisione dell'utente, per avere più paura): niente ombre né bip d'avviso, chi arriva si sente soltanto. Servirà solo nella notte della Madre, perché suonerà per lei. Aperto (Tab) consuma la batteria; il binocolo no.
 
 ## 9. Morte e sconfitta
 

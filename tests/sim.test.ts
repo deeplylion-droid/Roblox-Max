@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { EXTRA_NIGHT, HOUR_SECONDS, MONSTERS, NIGHTS, YAW, extraEndingEarned, extraLevels, extraMother, extraNight, type MonsterId, type NightConfig } from '../src/game/config.ts';
+import { EXTRA_NIGHT, HOUR_SECONDS, LORE, MONSTERS, NIGHTS, YAW, extraEndingEarned, extraLevels, extraMother, extraNight, type MonsterId, type NightConfig } from '../src/game/config.ts';
+import { LORE_TEXT } from '../src/i18n.ts';
 import type { GameEvent } from '../src/game/events.ts';
 import { NightSim } from '../src/game/sim.ts';
 import { Bot, SKILLS, playNight } from '../src/game/bot.ts';
@@ -234,6 +235,21 @@ function quiet2(robinAt = 1e9): NightConfig {
   };
 }
 
+describe('Frammenti da ripescare', () => {
+  it('ogni frammento ha titolo e testo in italiano e in inglese', () => {
+    for (const l of LORE) for (const lang of ['it', 'en'] as const) expect(LORE_TEXT[lang][l.id]?.body, `${l.id} ${lang}`).toBeTruthy();
+  });
+
+  it('dalla notte 2 se ne ripescano di nuovi anche con quelli della prima già nel Diario', () => {
+    for (const n of [2, 3, 4, 5]) {
+      const giaTrovati = LORE.filter((l) => l.night < n).map((l) => l.id);
+      const sim = new NightSim(NIGHTS[n]!, 11, giaTrovati);
+      playNight(sim, SKILLS.expert!, 11);
+      expect(sim.loreThisNight.some((id) => LORE.find((l) => l.id === id)!.night === n), `notte ${n}`).toBe(true);
+    }
+  });
+});
+
 describe('Notte 2', () => {
   it('la prima notte non ha né Robin né batteria', () => {
     const sim = new NightSim(quiet(), 1);
@@ -242,6 +258,18 @@ describe('Notte 2', () => {
     expect(sim.robin).toBeNull();
     expect(sim.battery).toBe(1);
     expect(sim.blackout).toBe(false);
+  });
+
+  it('il binocolo alzato tiene gli occhi lontani dalla barca ma non consuma la batteria; il sonar aperto sì', () => {
+    const conBinocolo = new NightSim(quiet2(), 2);
+    conBinocolo.setLamp(0);
+    run(conBinocolo, 60, (s) => s.setView(0, true, false));
+    expect(conBinocolo.sonarOpen).toBe(true);
+    expect(conBinocolo.battery).toBe(1);
+    const colSonar = new NightSim(quiet2(), 2);
+    colSonar.setLamp(0);
+    run(colSonar, 60, (s) => s.setView(0, true));
+    expect(colSonar.battery).toBeCloseTo(1 - 60 * N2.battery!.sonar, 2);
   });
 
   it('la lampara consuma la batteria; al buio sale la ninna nanna e, se finisce prima delle sei, la Madre', () => {

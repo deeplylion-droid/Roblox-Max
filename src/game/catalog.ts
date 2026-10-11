@@ -153,7 +153,7 @@ export const FISH: FishSpecies[] = [
   f('rombo_sepolto', 'Rombo Sepolto', 'Tomb Turbot', ['Rombo chiodato', 'Turbot', 'Scophthalmus maximus'], 'zombie', 'rare', [2, 12], 'bottom', 0.75,
     'Si seppellisce nella sabbia per aspettare le prede. Questo si è seppellito tanto tempo fa, e non è più riuscito a uscire.', { night: 2 }),
   f('chimera_bianca', 'Chimera Bianca', 'Pale Ghost Shark', ['Chimera', 'Rabbit fish (ghost shark)', 'Chimaera monstrosa'], 'zombie', 'rare', [0.5, 2.5], 'dead', 0.5,
-    'Vive così in fondo che la luce non sa cosa sia. La lampara le fa male: chiude gli occhi enormi e piange una cosa grigia.', { night: 3, lamp: 'dark' }),
+    'Vive così in fondo che la luce non sa cosa sia. La tua le fa male: chiude gli occhi enormi e piange una cosa grigia.', { night: 3, lamp: 'dark' }),
   f('squalo_capomorto', 'Squalo Capomorto', 'Sickgill Shark', ['Squalo capopiatto', 'Bluntnose sixgill shark', 'Hexanchus griseus'], 'zombie', 'legendary', [50, 300], 'bottom', 1.0,
     'Sale dagli abissi una volta all\'anno, come chi va a trovare i morti. Ha sei branchie, e respira con tutte e sei, piano, anche fuori dall\'acqua.', { night: 5, from: 4 }),
 
@@ -231,7 +231,7 @@ export const FISH: FishSpecies[] = [
   f('specchio_nero', 'Specchio Nero', 'Grimehead', ['Pesce specchio', 'Mediterranean slimehead', 'Hoplostethus mediterraneus'], 'corrupt', 'rare', [0.2, 0.6], 'heavy', 0.5,
     'Sul fianco ha una macchia nera lucida come uno specchio. Dentro lo specchio c\'è la barca, e sulla barca c\'è qualcuno in più.', { night: 3, from: 3 }),
   f('sciabola_di_carbone', 'Sciabola di Carbone', 'Coalscabbard', ['Pesce sciabola nero', 'Black scabbardfish', 'Aphanopus carbo'], 'corrupt', 'rare', [1, 3], 'heavy', 0.6,
-    'Viene da mille metri sotto, dove non arriva niente. Ha gli occhi grandi come monete, e dentro, a guardarli bene, una lampara accesa.', { night: 3, from: 4 }),
+    'Viene da mille metri sotto, dove non arriva niente. Ha gli occhi grandi come monete, e dentro, a guardarli bene, una luce accesa.', { night: 3, from: 4 }),
   f('granatiere_nero', 'Granatiere Nero', 'Grimadier', ['Granatiere', 'Hollowsnout grenadier', 'Coelorinchus caelorhincus'], 'corrupt', 'rare', [0.1, 0.5], 'heavy', 0.4,
     'Ha la coda lunga e sottile come quella di un topo, e come i topi non arriva mai da solo. Uno nel secchio, cento sotto la barca.', { night: 3 }),
   f('vipera_degli_abissi', 'Vipera degli Abissi', 'Vipermaw', ['Pesce vipera', 'Sloane\'s viperfish', 'Chauliodus sloani'], 'corrupt', 'rare', [0.02, 0.05], 'heavy', 0.3,

@@ -10,6 +10,33 @@
 > con la trombetta da festa, approvata), Lampy **B «Bacio»**, Fangy **A «Sciabola»**
 > (`docs/concept/*_dettagli_bozza.png`). Colori approvati.
 
+## Più paura (decisioni dell'11 ottobre sera)
+
+Dall'utente: «rispetto a FNAF il nostro gioco risulta meno pauroso e ansiogeno». Le proposte dell'utente, con le scelte
+del questionario:
+
+- **Il sonar non avvisa più dei mostri.** Lo schermo resta acceso, col fascio che gira e i pesci, ma niente ombre né bip
+  d'avviso: per sapere chi arriva ci sono solo i suoni. Servirà solo nella notte della Madre, perché suonerà per lei.
+  **Nessun ribilanciamento** (il bot non ha mai usato il sonar). *Fatto l'11 ottobre sera.*
+- **Il binocolo non consuma più la batteria.** Era un difetto: per Molly il binocolo vale come il sonar aperto (non
+  guardi la barca), e lo stesso segnale faceva anche consumare il sonar, circa il 7,5% di batteria al minuto.
+  *Corretto l'11 ottobre sera.*
+- **La luce si regola anche da sotto il telone** (Q, E e rotella). *Fatto l'11 ottobre sera.*
+- **«Lampara» diventa «luce»** in tutti i testi del gioco («light» in inglese). Nei documenti e nel codice il nome
+  resta. *Fatto l'11 ottobre sera.*
+- **Jumpscare della quota mancata**: alle sei senza la quota, la **Madre vista solo in parte** (la mano enorme che
+  afferra la barca, oppure l'occhio che sale da sotto: due anteprime da far scegliere). La Madre intera resta per la
+  notte 6. Il testo c'è già: «Alle sei il secchio non era pieno. Stanotte la Madre si prenderà un altro bambino.»
+- **Atmosfera più buia, con foschia e nebbia «ma ben fatte»**: nebbia volumetrica renderizzata in Blender e
+  illuminata dalla luce della barca (un alone attorno alla barca, oltre il buio), la scena più buia, la foschia
+  bassa sull'acqua; devono restare leggibili le facce dei mostri e i posti del binocolo. Prima le immagini di prova.
+- **Il nostro Foxy**: un mostro nuovo, **l'animatore di Splashland annegato dentro il costume marcito della
+  mascotte di Mama Marina** (dalla bocca del costume si vede la sua faccia), «molto brutto e horror». Non è uno dei
+  sette bambini. Arriva **dalla notte 2**. Sta in uno o due dei posti che si guardano col binocolo: ogni volta che
+  lo guardi il suo tempo riparte; se lo trascuri, quando alzi il binocolo il posto è vuoto, poi salta sulla barca e
+  c'è il jumpscare immediato. Il binocolo diventa uno strumento vero (finora era un easter egg). Prima la tavola
+  con le varianti, i nomi e i posti, da approvare.
+
 ## Il piano delle notti
 
 | Notte | Novità |
@@ -399,7 +426,9 @@ Lampy, il terzo rumore di Fangy): cambiano solo **quando arriva, quanto spesso t
     Con le pause ferme al 10 ho accorciato un po' anche le passate della Madre al 20 (da 12 a 20 s invece che da 14 a
     26): con quelle più lunghe l'esperto vinceva il 5,7%, al limite basso. Risultato: **l'esperto vince il 6,7% delle
     notti tutti a 20** (su 300; su 600 seed il 7,3%), il medio il 2%, il maldestro mai. I livelli fino al 10 non sono
-    cambiati (un test lo controlla).
+    cambiati (un test lo controlla). **Dopo l'unione delle novità dell'11 ottobre sera** (il sonar che mostra solo la
+    Madre, i dieci frammenti nuovi che si pescano al posto di un pesce) l'esperto tutti a 20 vince il **6,0%** (su 300;
+    su 600 seed il 5,2%): dentro la forchetta chiesta, ma vicino al bordo basso.
 - **La Madre** (**confermato l'11 ottobre** che c'è, come ottavo livello): è la stessa della notte 6 (l'ombra enorme
   sul sonar, i figli che si zittiscono e tornano giù, l'immobilità totale mentre passa sotto la barca). Il suo livello
   dice **quante volte passa, quanto dura ogni passata e quanto avvisa prima** (`extraMother()`, numeri da approvare):
@@ -433,13 +462,13 @@ Lampy, il terzo rumore di Fangy): cambiano solo **quando arriva, quanto spesso t
 - **Testi** (italiano e inglese, in `src/i18n.ts`, segnati da approvare): il pulsante «Notte extra» / «Extra night»;
   «Scegli chi viene stanotte. 0: non viene. 20: feroce.» / «Choose who comes tonight. 0: stays away. 20: ferocious.»;
   le regole sotto i nomi «sfamalo, guardala, nasconditi, luce in faccia, spegni la luce, non ferrare, stai zitto» /
-  «feed him, watch her, hide, light in his face, lamp off, don't strike, stay quiet»; per la Madre «La Madre, non
+  «feed him, watch her, hide, light in his face, light off, don't strike, stay quiet»; per la Madre «La Madre, non
   muoverti» / «The Mother, don't move»; «Salpa» / «Cast off». Il finale segnaposto: «Il finale
   della notte extra» / «The end of the extra night» (con una riga che dice che è un segnaposto; il finale B vero si fa
   quando la Madre sarà renderizzata).
   La radio, corta: «Notte extra. Dieci pesci. / Stanotte vengono quelli che hai chiamato tu. / Buona pesca.» /
   «Extra night. Ten fish. / Tonight the ones you called are coming. / Good fishing.»
-- **Giocatori simulati, con la Madre** (`npm run sim -- 7 300 <livelli>`, dopo l'unione della lampara e della notte 6:
+- **Giocatori simulati, con la Madre** (`npm run sim -- 7 300 <livelli>`, dopo l'unione dei rami claude/lampara e claude/notte6:
   batteria più rapida, Molly che aspetta sotto il telone, Robin che si scaccia con la sola luce; un numero vale per tutti
   e otto, se no gli otto livelli in ordine Gulpy, Molly, Hatch, Robin, Archie, Lampy, Fangy, Madre). Vittorie di
   esperto / medio / maldestro; fra le morti, «la quota» è la quota mancata alle sei e «la Madre» è lei che ti prende
@@ -466,7 +495,7 @@ Lampy, il terzo rumore di Fangy): cambiano solo **quando arriva, quanto spesso t
   passa i figli tornano giù e per un po' non salgono; a 20 invece le sue cinque passate tolgono tempo alla pesca
   (con lei 6,7%, senza 10%); lei uccide soprattutto chi si muove (il maldestro e il medio). Ogni
   mostro da solo a 20 si batte; insieme rubano il tempo per pescare, e a 20 il nemico vero è l'orologio. L'esperto
-  tiene la lampara alta e attira tutti, quindi da 15 in su vince poco più del medio: un giocatore che dosa la luce
+  tiene la luce alta e attira tutti, quindi da 15 in su vince poco più del medio: un giocatore che dosa la luce
   dovrebbe fare meglio dei bot. Il finale B (tutti almeno a 10) per l'esperto è alla portata, per il medio due volte su
   tre; tutti a 20 è il traguardo da raccontare. Un test controlla che a 20 l'esperto vinca qualche volta (4 notti su 60
   seed fissi).
