@@ -7,12 +7,17 @@ Revisione del branch `claude/notte6` (bozza: `NIGHTS[6].bozza`), 11 ottobre. Le 
 
 - `npm ci`, `npx tsc --noEmit` (pulito), `npx vitest run` (54 test verdi prima, 56 dopo le correzioni).
 - Nel browser headless (Chromium con swiftshader, `?step&bozze`, il bot esperto che gioca da solo):
-  - **a.** (prova in corso: la prima passata superata, lo sguardo fermo a 21° per tutta la passata)
+  - **a.** Una notte 6 intera giocata dal bot esperto: tre passate (alle 140, 290 e 402,5 s di notte; sotto la barca
+    per 10, 15 e 20 s) superate con lo sguardo fermo a 21° dal primo all'ultimo fotogramma, i suoni nell'ordine giusto
+    (`madre_far_*` lontani, `madre_approach`, `madre_lullaby` a 8 s, `madre_pass_1`/`_2`/`_3` a 10 s), dodici pesci su
+    dieci, l'alba. Nessun errore né avviso in console.
   - **b.** Una passata in cui giro lo sguardo di 20°: muoio dopo un fotogramma (`moved`), il jumpscare da sotto (la
     barca sbalzata, lo sguardo che cade verso l'acqua, il buio), `js_madre`, poi la neve, poi i risultati con «Mama
     Marina ama i suoi piccoli. Adesso anche te.» (in inglese nel browser di prova: «Mama Marina loves her little
     ones. Now you too.»). Nessun errore in console.
-  - **c.** (prova in corso)
+  - **c.** Il finale A: `bell_dawn` alle sei, `madre_dawn` a 1,5 s, la barca che dondola e s'inclina, `amb_dawn` a
+    21,5 s, il sole dopo i 15 s, la radio a 23,8 s («Ce l'hai fatta.» / «Per quest'anno.», poi `radio_off` a 27,2 s) e i
+    risultati a 28 s con «Ce l'hai fatta. Per quest'anno.».
   - **d.** Col binocolo alzato su un luogo (2° di lato dall'albergo, dove di solito lo sguardo ci scivola sopra da
     solo) per tutta la passata: lo sguardo resta fermo a 126,75° dal primo all'ultimo fotogramma e lei se ne va.
     Pausa con Esc durante la passata: lei si ferma con la notte (stateTime fermo a 3,05 s per 3 s di pausa), alla ripresa riparte da lì e non ti prende.
@@ -62,7 +67,14 @@ Revisione del branch `claude/notte6` (bozza: `NIGHTS[6].bozza`), 11 ottobre. Le 
 4. **Il jumpscare della Madre non ha ancora i fotogrammi** (`jumpscares.mother` vuoto): c'è il ripiego (la barca
    sbalzata, lo sguardo che cade verso l'acqua, il buio in 0,9 s) con l'urlo `js_madre`. Va bene per la bozza; quando
    arriva il render, `endTimer` prende la durata dai fotogrammi.
-5. **Nota sulle prove nel browser.** I suoni si decodificano tutti dopo il primo tasto; nel browser di prova (CPU
+5. **Dopo il finale A c'è «Fine della demo».** `src/app/app.ts:278`: la notte 6 è l'ultima giocabile (la 7 non c'è),
+   quindi i risultati del finale dicono «Fine della demo. Altre notti in arrivo.» al posto dei titoli di coda (le regole:
+   «I titoli di coda, e si sblocca la notte 7»). Va bene finché la notte 7 e i titoli non ci sono; da ricordare quando
+   arrivano. Riprodurre: vincere la notte 6 con `?bozze`.
+6. **Durante il finale resta il suggerimento della canna.** Nel finale (28 s, i comandi fermi) sotto resta scritto
+   «Tieni premuto per recuperare…» se all'alba avevi un pesce in canna (`updateHud`, il suggerimento non guarda
+   `finished`). Piccolo; si vede nella schermata della radio dell'alba.
+7. **Nota sulle prove nel browser.** I suoni si decodificano tutti dopo il primo tasto; nel browser di prova (CPU
    lenta, quattro pagine insieme) i `madre_*` non erano ancora pronti nelle prime prove saltate avanti nel tempo, e
    sono partiti i ripieghi (`splash_big`, `mus_title`, `creak_2`). Su una macchina vera non dovrebbe succedere; se si
    vuole stare tranquilli, l'intro della notte 6 può aspettare `audio.start()`.
