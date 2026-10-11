@@ -984,7 +984,7 @@ def build_alba(energy=26000.0, diffusa=3200.0):
     return o
 
 
-def build_raggi(n=6, seed=2):
+def build_raggi(n=6, seed=2, top=None, spread=0.75, lunghezza=(8.5, 11.5), raggio=(0.35, 0.75), forza=0.045):
     """I raggi di luce nell'acqua torbida: coni emissivi e trasparenti, visibili solo alla camera, più tenui ai
     bordi (Layer Weight) e verso il fondo."""
     rr = np.random.default_rng(seed)
@@ -993,15 +993,15 @@ def build_raggi(n=6, seed=2):
     face = g.layer_weight(0.35, 'Facing')
     edge = g.pow(g.sub(1.0, face), 3.5)
     fade = g.mul(g.smoothstep(0.0, 0.12, z), g.smoothstep(1.0, 0.35, z))
-    st = g.mul(g.mul(edge, fade), 0.045)
+    st = g.mul(g.mul(edge, fade), forza)
     g.output_material(g.add_shader(g.transparent(), g.emission((0.55, 0.85, 0.80), st)))
     obs = []
-    top_c = POZZO_BASSO + np.array((0.0, 0.0, 2.2))
+    top_c = POZZO_BASSO + np.array((0.0, 0.0, 2.2)) if top is None else np.asarray(top, float)
     for k in range(n):
-        off = rr.normal(0, 0.75, 2)
+        off = rr.normal(0, spread, 2)
         p0 = top_c + np.array((off[0], off[1], 0.0))
-        L = rr.uniform(8.5, 11.5)
-        r0 = rr.uniform(0.35, 0.75)
+        L = rr.uniform(*lunghezza)
+        r0 = rr.uniform(*raggio)
         dirv = SOLE + rr.normal(0, 0.03, 3)
         dirv /= np.linalg.norm(dirv)
         pts = [p0 + dirv * L * t for t in np.linspace(0, 1, 10)]
@@ -1021,7 +1021,7 @@ def raggi():
     return [o for o in bpy.data.objects if o.name.startswith('Raggio')]
 
 
-def render_con_raggi(exr, samples, size, data_passes=('Mist',)):
+def render_con_raggi(exr, samples, size, data_passes=('Mist',), region=None):
     """Due render: la scena senza i raggi (i coni trasparenti rovinerebbero il passo mist: Cycles scrive i passi
     dati solo al primo incontro) e i soli raggi, con tutto il resto come maschera (holdout), senza rimbalzi e con
     pochi campioni (sono solo emissione). Restituisce i passi della scena con 'raggi' a parte."""
@@ -1031,7 +1031,7 @@ def render_con_raggi(exr, samples, size, data_passes=('Mist',)):
     rg = raggi()
     for o in rg:
         o.visible_camera = False
-    render(exr, samples, size, data_passes=data_passes)
+    render(exr, samples, size, region=region, data_passes=data_passes)
     p = post.read_exr(exr)
     if not rg:
         return p
@@ -1044,7 +1044,7 @@ def render_con_raggi(exr, samples, size, data_passes=('Mist',)):
     bounces = sc.cycles.max_bounces
     sc.cycles.max_bounces = 0
     exr_r = exr.replace('.exr', '_raggi.exr')
-    render(exr_r, 8, size, groups=('ambient',), transparent=True, data_passes=(), denoise=False)
+    render(exr_r, 8, size, region=region, groups=('ambient',), transparent=True, data_passes=(), denoise=False)
     sc.cycles.max_bounces = bounces
     for o in bpy.data.objects:
         if o.name in salva:
@@ -1111,13 +1111,15 @@ DIFFUSA = 0.55                               # quanto l'acqua rimanda della luce
 TORCIA_SCIA = np.array((0.010, 0.016, 0.016), F)   # la luce della torcia diffusa dall'acqua davanti al sub
 
 
-def acqua(passes, blur_px, cone_mask=None):
+def acqua(passes, blur_px, cone_mask=None, sigma=None, diffusa=None):
     """Cuoce l'acqua torbida nei passi di luce (lineari): ambient = ambient·T + (1−T)·sfocata(ambient)·DIFFUSA,
     lantern = lantern·T² (andata e ritorno) + (1−T)·scia della torcia. T = exp(−σ·distanza) dal passo mist.
     cone_mask: per le anteprime prospettiche, la scia della torcia solo nel suo cono."""
     from scipy.ndimage import gaussian_filter
+    sigma = SIGMA if sigma is None else np.asarray(sigma, F)
+    diffusa = DIFFUSA if diffusa is None else diffusa
     d = np.clip(passes['mist'], 0, 1)[..., None] * MIST_DEPTH
-    T = np.exp(-SIGMA * d)
+    T = np.exp(-sigma * d)
     out = {}
     if 'ambient' in passes:
         a = passes['ambient'][..., :3]
@@ -1127,7 +1129,7 @@ def acqua(passes, blur_px, cone_mask=None):
         bl = np.stack([gaussian_filter(small[..., c], blur_px / s, mode='nearest') for c in range(3)], -1)
         bl = np.repeat(np.repeat(bl, s, 0), s, 1)[:a.shape[0], :a.shape[1]]
         tint = np.array((0.55, 1.0, 0.95), F)
-        out['ambient'] = a * T + (1 - T) * bl * tint * DIFFUSA
+        out['ambient'] = a * T + (1 - T) * bl * tint * diffusa
         if 'raggi' in passes:
             # i raggi stanno nell'acqua fra la camera e la roccia: si attenuano poco
             out['ambient'] = out['ambient'] + passes['raggi'][..., :3] * np.sqrt(T)

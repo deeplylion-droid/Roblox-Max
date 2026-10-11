@@ -49,7 +49,24 @@ scivoli, cartelli di Splashland).
   dell'erogatore). **Ogni cameretta è un'inquadratura fissa**, come una telecamera di FNAF: la guardi da un punto
   solo e la puoi girare di 30° a destra e a sinistra; da lì si torna alla grotta grande.
 
-### La grotta grande: prima anteprima (look-dev dell'11 ottobre, **tutto da approvare**)
+### Sotto la barca (inquadratura fissa, anteprima **da approvare**)
+
+Deciso l'11 ottobre sera: non è più a 360°, è un'inquadratura fissa come le camerette (si gira di 30° a destra e a
+sinistra e di pochi gradi in su e in giù). Scena in `tools/render/sotto_barca.py`, la stessa roccia, luce e acqua
+della grotta. Il sub galleggia 3,4 m sotto la superficie, 8 m dietro la poppa, e guarda avanti un po' in su:
+
+- in alto, la **chiglia della nostra barca** (quella vera di `boat.py`, con l'opera viva scura e la lampara spenta)
+  contro la superficie chiara e mossa dell'alba, con i raggi che scendono;
+- dalla prua, la **cima dell'ancora** che scende obliqua davanti al sub, con qualche filo d'alga impigliato, e si
+  perde nel buio in basso;
+- davanti, la **parete sommersa dello scoglio** con l'**imboccatura della grotta**, un buco nero di 6 m (si clicca
+  per andare alla grotta grande).
+
+Anteprime: `docs/concept/sotto_barca_anteprima.jpg` (come la vede il gioco, 90° in orizzontale) e
+`sotto_barca_anteprima_larga.jpg` (124°: tutto il campo in cui si gira). Se si approva, il render finale sarà un
+panorama parziale (circa 160° × 90°) con `frame`, come le camerette.
+
+### La grotta grande (anteprime **approvate** l'11 ottobre sera; render finale del panorama)
 
 Scena in `tools/render/grotte.py`, job in `tools/render/jobs.py`:
 
@@ -57,7 +74,8 @@ Scena in `tools/render/grotte.py`, job in `tools/render/jobs.py`:
 |---|---|
 | `grotte_anteprime` | tre viste prospettiche: `docs/concept/grotte_anteprima_insieme.jpg` (la sala da sotto il pozzo, verso la Madre), `grotte_anteprima_madre.jpg` (la tana della Madre dall'occhio, con la torcia), `grotte_anteprima_torcia.jpg` (la torcia sulla bocca di Gulpy) |
 | `grotte_tane` | la tavola delle sette bocche da vicino, con la torcia: `docs/concept/grotte_anteprima_tane.jpg` |
-| `grotte` | il panorama a 360° della sala → strato `grotta` a panorama intero (come `world`); fatto in qualità preview (4096 × 1410, un'ora di render): `public/assets/img/grotta_*.webp`, anteprima ridotta in `docs/concept/grotte_panorama.jpg` |
+| `grotte` | il panorama a 360° della sala nel formato del motore delle immersioni (sfera intera): `public/assets/img/immersioni/grotta_grande_{ambient,lantern,data}.webp` e la voce del posto `grotta_grande_posto.json` (da copiare in `immersioni.json`). Il primo giro, in qualità preview e nel formato del mio strato, è quello di `docs/concept/grotte_panorama.jpg` |
+| `sotto_anteprima` | l'anteprima veloce di «sotto la barca» (vedi sotto) |
 | `grotte_ricomponi` | rifà le anteprime dagli EXR in cache senza rendere (per provare l'acqua o l'esposizione) |
 
 **Com'è fatta.** Una sala naturale di circa 14 × 20 m e 9 m d'altezza, scavata dal mare: un'unica roccia scolpita
@@ -106,12 +124,15 @@ al pozzo l'acqua brilla, in fondo alla tana della Madre resta nero). La torcia f
 scia chiara davanti al sub. I raggi sono coni emissivi trasparenti resi in un secondo passaggio leggero (se no
 rovinerebbero il passo della distanza) e sommati dopo.
 
-**Lo strato `grotta` per il motore** (voce `layers.grotta` del manifest): `space: 'grotta'`, panorama intero
-equirettangolare ma con la sua latitudine (`latMin` −62°, `latMax` +62°: si guarda più in alto e più in basso che
-dalla barca); passi `ambient` e `lantern` (metà risoluzione) **con l'acqua già cotta** (`acquaCotta: true`: il
-motore non deve aggiungere altra nebbia, solo le particelle e la torcia); `grotta_data.webp` con R = distanza
-(× `mistDepth` = metri) e B = la superficie vista dal pozzo; `tane`: per ogni bocca (e la Madre) yaw e pitch del
-centro, il raggio angolare (per il clic) e la direzione dell'oggetto appeso.
+**Il panorama finale per il motore** (il formato di «Come si aggiungono i posti veri», sul branch del motore):
+equirettangolare a sfera intera (`latMin` −90, `latMax` 90), 8192 × 4096; passi `ambient` e `lantern` (la torcia
+sull'occhio, a metà risoluzione) codificati come gli altri render (gamma 4 con la loro `scale`); il passo dati come
+quello del mondo: R = √(distanza / 2500 m), G = 0,1 (quanto trema), B = la superficie vista dal pozzo. **L'acqua
+torbida approvata è già cotta nei passi** (`acquaCotta: true` nella voce del posto): perché resti com'è nelle
+anteprime, la nebbia del motore in questo posto va tenuta bassa (con `GROTTE_ACQUA=0` il job dà i passi crudi, se
+si preferisce farla fare tutta al motore). I passaggi (`links`) della voce del posto hanno le direzioni vere: le
+sette bocche, la tana della Madre (`note: mother`) e il ritorno a «sotto la barca» dal pozzo, in alto dietro.
+Si rende a strisce che restano in cache, così un riavvio del container non fa perdere il lavoro.
 
 **Problemi aperti**: gli occhialini di Fangy sono ancora piccoli rispetto al loro elastico; la luce della torcia
 nelle anteprime si nota poco (l'acqua chiara del pozzo la copre); l'arco della Madre potrebbe essere più nero (la

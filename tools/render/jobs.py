@@ -716,7 +716,8 @@ def job_bordo(q):
 CONCEPT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'docs', 'concept')
 
 
-def grotte_vista(q, nome, pos, target, lens, size, torcia=False, pesi=None, esposizione=0.0, samples=None, cono=42.0):
+def grotte_vista(q, nome, pos, target, lens, size, torcia=False, pesi=None, esposizione=0.0, samples=None, cono=42.0,
+                 acqua=None):
     """Un'anteprima prospettica della grotta (la scena deve essere già costruita): render, acqua cotta, tone mapping
     del gioco → docs/concept/<nome>.jpg."""
     import grotte
@@ -729,7 +730,8 @@ def grotte_vista(q, nome, pos, target, lens, size, torcia=False, pesi=None, espo
     p = grotte.render_con_raggi(exr, samples or q.samples, size)
     log(nome, 'render', round(time.time() - t), 's')
     # i parametri della composizione accanto all'EXR: si può ricomporre senza rendere (job grotte_ricomponi)
-    par = dict(nome=nome, lens=lens, size=list(size), torcia=torcia, pesi=pesi, esposizione=esposizione, cono=cono)
+    par = dict(nome=nome, lens=lens, size=list(size), torcia=torcia, pesi=pesi, esposizione=esposizione, cono=cono,
+               acqua=acqua or {})
     with open(exr.replace('.exr', '.json'), 'w') as f:
         json.dump(par, f)
     out = grotte_componi(exr, par, p)
@@ -757,7 +759,7 @@ def grotte_componi(exr, par, p=None):
     X, Y = np.meshgrid(xs * tx, ys * tx)
     ang = np.degrees(np.arctan(np.hypot(X, Y)))
     cone = np.clip((cono / 2 - ang) / (cono * 0.25), 0, 1).astype(np.float32)
-    baked = grotte.acqua(p, blur_px=W / 10, cone_mask=cone)
+    baked = grotte.acqua(p, blur_px=W / 10, cone_mask=cone, **par.get('acqua', {}))
     pesi = par.get('pesi') or {'ambient': 1.0, 'lantern': 1.0 if par['torcia'] else 0.0}
     lin = post.compose(baked, pesi)
     img = post.tonemap(lin, par['esposizione'] + GROTTE_ESPOSIZIONE)
@@ -845,51 +847,111 @@ def tavola_tane(tiles, size):
     log('tavola', out)
 
 
+def job_sotto_anteprima(q):
+    """«Sotto la barca», inquadratura fissa: l'anteprima veloce da approvare (docs/concept/sotto_barca_anteprima.jpg)
+    come la vede il gioco (90° in orizzontale) e una più larga con tutto il campo in cui si gira (150°)."""
+    import sotto_barca as sb
+    reset_scene()
+    sb.build_sotto_barca(neve=True)
+    s = q.persp_scale
+    size = (round(1600 * s), round(900 * s))
+    grotte_vista(q, 'sotto_barca_anteprima', sb.OCCHIO_SB, sb.GUARDA_SB, 18.0, size, esposizione=0.3, acqua=sb.ACQUA)
+    grotte_vista(q, 'sotto_barca_anteprima_larga', sb.OCCHIO_SB, sb.GUARDA_SB, 9.6, size, esposizione=0.3, acqua=sb.ACQUA)
+
+
 def job_grotte(q):
-    """Il panorama a 360° della grotta grande → strato 'grotta' a panorama intero (come 'world'), con l'acqua
-    torbida già cotta nei passi di luce e il passo dati (R = distanza/mist, B = superficie vista dal pozzo).
-    La latitudine del panorama della grotta è diversa da quella della barca: è nella voce del manifest."""
+    """Il panorama a 360° della grotta grande per il motore delle immersioni (docs/IMMERSIONI.md, «Come si aggiungono i
+    posti veri»): sfera intera (latitudine da −90° a 90°, larghezza = quella della qualità, altezza la metà), passi
+    ambient e lantern (la torcia sull'occhio, a metà risoluzione) codificati come gli altri render (gamma 4 con la loro
+    scale), e il passo dati come quello del mondo: R = sqrt(distanza / 2500 m), G = quanto trema l'immagine (0,1),
+    B = la superficie vista dal pozzo. L'acqua torbida approvata nelle anteprime è già cotta nei passi (GROTTE_ACQUA=0
+    per averli crudi). Si rende a strisce che restano in cache: se il container si riavvia, si riparte dalla striscia
+    che mancava. File in public/assets/img/immersioni/grotta_grande_*.webp e la voce del posto in
+    grotta_grande_posto.json (da copiare in immersioni.json)."""
     import grotte
     tane = _grotte_scena(neve=False)
     cam = panorama_camera(location=grotte.OCCHIO, name='GrottaCam')
-    cam.data.latitude_min = math.radians(grotte.LAT_MIN_G)
-    cam.data.latitude_max = math.radians(grotte.LAT_MAX_G)
+    cam.data.latitude_min = math.radians(-90.0)
+    cam.data.latitude_max = math.radians(90.0)
     grotte.torcia_panorama()
     W = q.pano_width
-    H = round(W * (grotte.LAT_MAX_G - grotte.LAT_MIN_G) / 360.0)
-    H -= H % 2
-    exr = os.path.join(CACHE, q.name, 'grotta.exr')
+    H = W // 2
+    samples = int(os.environ.get('GROTTE_CAMPIONI', min(q.samples, 64)))
+    strisce, sov = 8, 24                      # strisce orizzontali, righe di sovrapposizione (il denoise ai bordi)
+    S = H // strisce
+    parti = []
     t = time.time()
-    p = grotte.render_con_raggi(exr, q.samples, (W, H), data_passes=('Mist', 'Object Index'))
-    log('grotta render', round(time.time() - t), 's')
-    baked = grotte.acqua(p, blur_px=W / 24)
-    passes = dict(p)
-    passes.pop('raggi', None)
-    passes.pop('lamp', None)          # in grotta non c'è la lampara (resterebbe solo il rumore del denoise)
-    passes.update(baked)
+    for k in range(strisce):
+        y0, y1 = k * S, (H if k == strisce - 1 else (k + 1) * S)
+        r0, r1 = max(0, y0 - sov), min(H, y1 + sov)
+        exr = os.path.join(CACHE, q.name, f'grotta_{W}_s{k}.exr')
+        fatto = exr.replace('.exr', '.ok')
+        if not os.path.exists(fatto):
+            grotte.render_con_raggi(exr, samples, (W, H), data_passes=('Mist', 'Object Index'), region=(0, r0, W, r1))
+            with open(fatto, 'w') as f:
+                f.write('ok')
+            log(f'grotta striscia {k + 1}/{strisce}', round(time.time() - t), 's')
+        p = post.read_exr(exr)
+        p['raggi'] = post.read_exr(exr.replace('.exr', '_raggi.exr'))['ambient']
+        parti.append({c: v[y0 - r0: y1 - r0, :W] for c, v in p.items()})
+    p = {c: np.concatenate([pp[c] for pp in parti], 0) for c in parti[0]}
+    log('grotta render', round(time.time() - t), 's', p['ambient'].shape)
+    if os.environ.get('GROTTE_ACQUA', '1') != '0':
+        passes = grotte.acqua(p, blur_px=W / 24)
+    else:
+        passes = {'ambient': p['ambient'][..., :3] + p['raggi'][..., :3], 'lantern': p['lantern'][..., :3]}
+    cartella = os.path.join(OUT_IMG, 'immersioni')
+    os.makedirs(cartella, exist_ok=True)
+    pano = {}
+    for g in ('ambient', 'lantern'):
+        lin = passes[g][..., :3]
+        if g == 'lantern':
+            lin = lin.reshape(lin.shape[0] // 2, 2, lin.shape[1] // 2, 2, 3).mean(axis=(1, 3))
+        scale = post.pick_scale(lin)
+        fn = f'grotta_grande_{g}.webp'
+        post.save_webp(post.encode_light_pass(lin, scale), os.path.join(cartella, fn))
+        pano[g] = {'file': 'immersioni/' + fn, 'scale': scale}
+    mist = np.clip(p['mist'], 0, 1)
+    sky = ((p['index'] < 0.5) & (mist > 0.999)).astype(np.float32)
+    dist = np.where(mist > 0.999, 2500.0, mist * grotte.MIST_DEPTH)
+    from PIL import Image
+    data = np.dstack([np.sqrt(np.clip(dist / 2500.0, 0, 1)), np.full_like(mist, 0.1), sky])
+    post.save_webp(Image.fromarray((data * 255 + 0.5).astype(np.uint8), 'RGB'),
+                   os.path.join(cartella, 'grotta_grande_data.webp'), lossless=True)
+    pano['data'] = 'immersioni/grotta_grande_data.webp'
 
     def dirz(v):
         d = np.array(v) - np.array(grotte.OCCHIO)
-        return {'yaw': round(math.degrees(math.atan2(d[0], d[1])), 2),
-                'pitch': round(math.degrees(math.atan2(d[2], math.hypot(d[0], d[1]))), 2)}
-    hot = {}
+        return round(math.degrees(math.atan2(d[0], d[1])), 1), round(math.degrees(math.atan2(d[2], math.hypot(d[0], d[1]))), 1)
+    links = []
+    pz_yaw, pz_pitch = dirz(grotte.POZZO_BASSO)
+    links.append({'to': 'sotto_barca', 'yaw': pz_yaw, 'pitch': pz_pitch, 'r': 14, 'label': 'back'})
     for chi, t_ in tane.items():
-        dist = float(np.linalg.norm(t_['bocca'] - np.array(grotte.OCCHIO)))
-        hot[chi] = dict(dirz(t_['bocca']), raggio=round(math.degrees(math.atan2(t_['raggio'], dist)), 2),
-                        oggetto=dirz(t_['appoggio'] + np.array((0, 0, -0.4))))
-    extra = {'rect': [0, 0, W, H], 'latMin': grotte.LAT_MIN_G, 'latMax': grotte.LAT_MAX_G, 'mistDepth': grotte.MIST_DEPTH,
-             'acquaCotta': True, 'tane': hot}
-    encode_layer('grotta', exr, 'grotta', W, data=True, extra=extra, passes=passes)
-    # un'anteprima del panorama (con e senza torcia) per controllarlo
-    lin = post.compose(baked, {'ambient': 1.0})
-    post.save_png(post.tonemap(lin, 0.6), os.path.join(CACHE, q.name, 'grotta_pano.png'))
-    for nome, yaw in (('avanti', 0.0), ('gulpy', hot['gulpy']['yaw'])):
-        v = post.pano_to_view(post.tonemap(post.compose(baked, {'ambient': 1.0, 'lantern': 1.0}), 0.6), yaw, -8.0, 90,
-                              (960, 540), grotte.LAT_MIN_G, grotte.LAT_MAX_G)
+        yaw, pitch = dirz(t_['bocca'])
+        dist_ = float(np.linalg.norm(t_['bocca'] - np.array(grotte.OCCHIO)))
+        r = round(math.degrees(math.atan2(t_['raggio'], dist_)), 1)
+        if chi == 'madre':
+            links.append({'note': 'mother', 'yaw': yaw, 'pitch': pitch, 'r': r})
+        else:
+            links.append({'to': f'tana_{chi}', 'yaw': yaw, 'pitch': pitch, 'r': r})
+    posto = {'_nota': "La grotta grande (render finale, tools/render/grotte.py): l'acqua torbida è già cotta nei passi "
+                      "di luce, come nelle anteprime approvate; la nebbia del motore qui va tenuta bassa.",
+             'pano': pano, 'size': [W, H], 'latMin': -90, 'latMax': 90, 'yaw': 0,
+             'look': {'yaw': 0, 'pitch': -4}, 'rays': 0.25, 'links': links,
+             'acquaCotta': os.environ.get('GROTTE_ACQUA', '1') != '0'}
+    with open(os.path.join(cartella, 'grotta_grande_posto.json'), 'w') as f:
+        json.dump(posto, f, indent=1, ensure_ascii=False)
+    log('grotta grande: posto scritto', json.dumps(links))
+    # anteprime di controllo: il panorama ridotto e due viste come nel gioco
+    pv = post.tonemap(post.compose(passes, {'ambient': 1.0}), 0.6)
+    post.save_png(np.asarray(Image.fromarray((pv * 255).astype(np.uint8)).resize((2048, 1024))) / 255.0,
+                  os.path.join(CACHE, q.name, 'grotta_pano.png'))
+    for nome, (yaw, pitch) in (('avanti', (0.0, -4.0)), ('pozzo', (pz_yaw, pz_pitch))):
+        v = post.pano_to_view(pv, yaw, pitch, 90, (960, 540), -90.0, 90.0)
         post.save_png(v, os.path.join(CACHE, q.name, f'grotta_vista_{nome}.png'))
 
 
-JOBS = {'grotte': job_grotte, 'grotte_ricomponi': job_grotte_ricomponi, 'grotte_anteprime': job_grotte_anteprime, 'grotte_tane': job_grotte_tane,
+JOBS = {'grotte': job_grotte, 'sotto_anteprima': job_sotto_anteprima, 'grotte_ricomponi': job_grotte_ricomponi, 'grotte_anteprime': job_grotte_anteprime, 'grotte_tane': job_grotte_tane,
         'world': job_world, 'boat': job_boat, 'props': job_props, 'creature': job_creature, 'reencode': job_reencode, 'tarp': job_tarp, 'jumpscare': job_jumpscare, 'binocolo': job_binocolo, 'bordo': job_bordo, 'pelo': job_pelo}
 
 
