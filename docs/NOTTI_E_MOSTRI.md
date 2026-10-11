@@ -309,7 +309,8 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
 - **Jumpscare** (**approvato l'11 ottobre** sull'anteprima, `docs/concept/jumpscare/js_fangy_fotogrammi.jpg` e
   `js_fangy.gif`; `jumpscare.py`, `ATTACKS['fangy']`): si lancia dalla fiancata con la
   testa avanti e le zanne puntate su di te, tutte le lucine accese; arriva a 55 cm dall'occhio chinandosi un poco, con
-  una luce calda dalla parte della lanterna sulla faccia. Finché non c'è il render finale il gioco zooma sulla posa.
+  una luce calda dalla parte della lanterna sulla faccia. Il **render finale** (64 campioni, otto fotogrammi
+  `public/assets/img/js_fangy_00…07.webp`, 11 ottobre) è nel gioco.
 
 ### Notte 6 · La Madre — *IL FINALE*
 
