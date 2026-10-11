@@ -338,6 +338,8 @@ export class Night {
    *  momenti dell'avvicinamento: il mare che si ferma, la lampara che trema, la ninna nanna) */
   private motherSong: Voice | null = null;
   private motherPassV: Voice | null = null;
+  /** il suono dell'avvicinamento (12 s): si tronca se muori prima che finisca */
+  private motherApproachV: Voice | null = null;
   private motherPrevT = 0;
   /** il finale A all'alba della notte 6: secondi dalle sei (−1: niente finale) */
   private finaleT = -1;
@@ -405,7 +407,8 @@ export class Night {
     this.archieBreath = null;
     this.motherSong?.stop(0.4);
     this.motherPassV?.stop(0.4);
-    this.motherSong = this.motherPassV = null;
+    this.motherApproachV?.stop(0.4);
+    this.motherSong = this.motherPassV = this.motherApproachV = null;
     this.d.stage.lampSick = 0;
     this.d.sfx.stopLoops();
     this.hud.destroy();
@@ -1137,7 +1140,7 @@ export class Night {
             cap(S.captions.motherCall);
             break;
           case 'approach':
-            fx.motherApproach();
+            this.motherApproachV = fx.motherApproach();
             cap(S.captions.motherApproach);
             break;
           case 'pass':
@@ -1160,6 +1163,9 @@ export class Night {
         this.finished = true;
         this.sim.setReelHeld(false);
         this.stopReel();
+        // l'avvicinamento della Madre non continua sopra il jumpscare o il buio
+        this.motherApproachV?.stop(0.2);
+        this.motherApproachV = null;
         if (e.killer === 'mother' && this.sim.outcome.kind === 'dead' && this.sim.outcome.cause === 'moved') {
           // ti sei mosso mentre passava sotto la barca: ti prende dal basso
           this.motherSong?.stop(0.05);
@@ -1178,6 +1184,8 @@ export class Night {
             // la canzone è finita al buio: sotto la barca sale qualcosa di enorme
             this.lullabyV?.stop(0.2);
             this.lullabyV = null;
+            this.motherSong?.stop(0.2);
+            this.motherSong = null;
             a.play('splash_big', { pos: [0, 1.2, -2.2], gain: 1, rate: 0.7 });
             a.play('mus_madre', { gain: 1 });
             this.d.stage.view.shake = this.d.options.reduceFlash ? 0.4 : 1.6;
@@ -1185,11 +1193,16 @@ export class Night {
             // le campane della festa, ovattate, e sotto la Madre che si sveglia (se cantava, la canzone sfuma)
             this.lullabyV?.stop(2);
             this.lullabyV = null;
+            this.motherSong?.stop(2);
+            this.motherSong = null;
             a.play('bell_dawn', { pos: dirPos(BELL_YAW, 5, 4), gain: 0.35, lowpass: 900 });
             a.play('mus_madre', { gain: 0.9 });
             this.hud.toast(S.sixAm, S.quotaMissed, 4);
           }
         } else {
+          // (se stava arrivando la Madre, la sua ninna nanna si tronca col segnale)
+          this.motherSong?.stop(0.2);
+          this.motherSong = null;
           this.startJumpscare(e.killer);
           this.endResult = { kind: 'dead', killer: e.killer, stats: this.stats() };
           // il segnale salta appena finisce l'assalto, prima che l'immagine resti ferma

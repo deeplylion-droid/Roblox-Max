@@ -724,6 +724,29 @@ describe('Notte 6', () => {
     expect(sim.playing).toBe(true);
   });
 
+  it('il sonar (o il binocolo) già aperto prima che passi non conta, nemmeno se la batteria muore', () => {
+    for (const dies of ['prima', 'durante']) {
+      const sim = new NightSim(quiet6(), 7);
+      run(sim, sim.cfg.mother!.passes[0]! + 2, (s) => s.setView(s.viewYaw, true));
+      if (dies === 'prima') sim.battery = 1e-6;
+      untilPassing(sim);
+      if (dies === 'durante') sim.battery = 1e-6;
+      run(sim, 1, (s) => s.setView(s.viewYaw, true));
+      expect(sim.blackout).toBe(true);
+      expect(sim.playing).toBe(true);
+    }
+  });
+
+  it('il telone tirato appena prima che passi finisce di muoversi senza colpa', () => {
+    const sim = new NightSim(quiet6(), 8);
+    run(sim, m.passes[0]! + m.approach - sim.time - 0.3);
+    expect(sim.mother!.state).toBe('approaching');
+    sim.toggleHide();
+    run(sim, 1.5);
+    expect(sim.hide).toBe('in');
+    expect(sim.playing).toBe(true);
+  });
+
   it('mentre si avvicina ci si può ancora muovere', () => {
     const sim = new NightSim(quiet6(), 6);
     run(sim, m.passes[0]! + 2);

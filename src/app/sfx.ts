@@ -565,9 +565,8 @@ export class Sfx {
    * Si avvicina (stereo, 12 s): i figli che si zittiscono e tornano giù, il mare che si ferma a 3,5 s, la pressione
    * che cresce, il richiamo che arriva sotto la barca, la lampara che trema a 6 e a 9 s.
    */
-  motherApproach(): void {
-    if (this.audio.play('madre_approach')) return;
-    this.audio.play('splash_big', { gain: 0.35, rate: 0.6, lowpass: 700 });
+  motherApproach(): Voice | null {
+    return this.audio.play('madre_approach') ?? this.audio.play('splash_big', { gain: 0.35, rate: 0.6, lowpass: 700 });
   }
 
   /** La ninna nanna canticchiata dal fondo, in loop: parte muta, la si alza con setGain. */
