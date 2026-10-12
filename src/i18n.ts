@@ -533,7 +533,7 @@ const EN: typeof IT = {
       unhide: '{A} to leave the tarp',
       robin: 'Robin: light on full ({RB})',
       archie: 'Archie is drawing breath: light off ({LB})',
-      foxy: 'With the binoculars ({LT}): don’t lose sight of it',
+      foxy: 'With the binoculars ({LT}): don’t lose sight of him',
     },
     look: 'Right stick to look around, D-pad to snap around',
     sonarClose: '{Y} or {B} to close',
