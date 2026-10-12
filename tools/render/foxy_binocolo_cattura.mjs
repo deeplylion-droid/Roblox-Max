@@ -15,7 +15,10 @@ const MIRE = JSON.parse(fs.readFileSync(path.join(DIR, 'mire.json'), 'utf8'));
 // (vuoto), _foxy0 (lontano), _foxy1 (vicino), con la loro scala in bino_foxy_entries.json
 const DEF = process.env.FOXY_DEF;
 const DEF_FILE = { lontano: '_foxy0', vicino: '_foxy1', vuoto: '' };
-const DEF_SCALE = DEF ? Object.fromEntries(JSON.parse(fs.readFileSync(path.join(DEF, 'bino_foxy_entries.json'), 'utf8')).map((e) => [e.key, e.scale])) : {};
+// (se le immagini sono già quelle del gioco, in public/, la scala è già nel manifesto)
+const DEF_ENTRIES = DEF && path.join(DEF, 'bino_foxy_entries.json');
+const DEF_SCALE = DEF_ENTRIES && fs.existsSync(DEF_ENTRIES)
+  ? Object.fromEntries(JSON.parse(fs.readFileSync(DEF_ENTRIES, 'utf8')).map((e) => [e.key, e.scale])) : {};
 
 const browser = await chromium.launch({
   executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
@@ -32,7 +35,7 @@ for (const luogo of luoghi.split(',')) {
     const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
     page.on('pageerror', (e) => console.log('[pageerror]', e.message));
     await page.route(`**/bino_${luogo}.webp*`, (r) => r.fulfill({ path: file, contentType: 'image/webp' }));
-    if (DEF) {
+    if (Object.keys(DEF_SCALE).length) {
       await page.route('**/overlays.json*', async (r) => {
         const res = await r.fetch();
         const j = await res.json();

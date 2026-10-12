@@ -167,6 +167,10 @@ def main():
 IDX_FOXY = 7
 STADI_DEF = (('foxy0', 'lontano'), ('foxy1', 'vicino'))
 RIM = {'foxy0': 260.0, 'foxy1': 650.0}     # il filo di luce da dietro (watt): più vicino all'acqua c'è più foschia
+# la luce di luna morbida da davanti e dall'alto, solo su di lui (watt, per luogo e stadio): la sagoma, il blu del costume
+# e la pancia chiara devono leggersi nella nebbia; da lontano sotto il tetto basta il filo di luce
+KEY = {('scivoli', 'foxy0'): 0.0, ('scivoli', 'foxy1'): 900.0, ('relitto', 'foxy0'): 500.0, ('relitto', 'foxy1'): 500.0}
+RIM_LUOGO = {'scivoli': 1.0, 'relitto': 2.0}
 
 
 def light_only(name, objs, loc, target, energy, color, size):
@@ -296,7 +300,11 @@ def definitivo():
             to_eye.normalize()
             side = Vector((-to_eye.y, to_eye.x, 0))
             rim = light_only(f'FoxyRim_{luogo}_{tag}', fig, pos - to_eye * 3.0 + side * 1.6 + Vector((0, 0, 3.4)), pos + Vector((0, 0, 1.2)),
-                             RIM[tag] * float(os.environ.get('FOXY_RIM', '1')), (0.70, 0.80, 1.0), 1.2)
+                             RIM[tag] * RIM_LUOGO[luogo] * float(os.environ.get('FOXY_RIM', '1')), (0.70, 0.80, 1.0), 1.2)
+            key = None
+            if KEY[(luogo, tag)] > 0:
+                key = light_only(f'FoxyKey_{luogo}_{tag}', fig, pos + to_eye * 4.0 - side * 1.5 + Vector((0, 0, 3.5)), pos + Vector((0, 0, 1.1)),
+                                 KEY[(luogo, tag)], (0.72, 0.80, 1.0), 2.5)
             x0, y0, x1, y1 = screen_rect(cam, fig, W, H)
             exr = os.path.join(out_dir, f'{luogo}_{tag}.exr')
             t = time.time()
@@ -314,6 +322,8 @@ def definitivo():
             mi[y0:y1, x0:x1] = mi[y0:y1, x0:x1] * (1 - m) + mist_r * m
             outs['_' + tag] = (lin, mi)
             rim.hide_render = True
+            if key:
+                key.hide_render = True
             print('ok', luogo, tag, round(time.time() - t), 's', (x0, y0, x1, y1), flush=True)
         for suf, (lin, mi) in outs.items():
             rgb8 = np.asarray(post.encode_light_pass(lin, scale))
