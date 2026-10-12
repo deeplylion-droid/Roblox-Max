@@ -65,5 +65,56 @@ def main():
     print(OUT)
 
 
+def tavola_webp(src, serie='', out=None, scale=None):
+    """Tavola di prova direttamente dalle immagini (senza il gioco): per luogo il vuoto, fermo e più vicino, decodificati
+    con la scala e tonemappati come il motore, con un riquadro ingrandito attorno all'animatore."""
+    import json
+    import numpy as np
+    import post
+    entries = {e['key']: e for e in json.load(open(os.path.join(src, f'bino_foxy_entries{serie}.json')))}
+    font = '/usr/share/fonts/truetype/dejavu/DejaVuSans{}.ttf'
+    tf = ImageFont.truetype(font.format('-Bold'), 28)
+    lf = ImageFont.truetype(font.format('-Bold'), 18)
+    W, H = 720, 405
+    gap, head = 14, 64
+    rows = [k for k in ('scivoli', 'relitto') if k in entries]
+    sheet = Image.new('RGB', (W * 3 + gap * 4, head + len(rows) * (H + 40)), (12, 14, 19))
+    d = ImageDraw.Draw(sheet)
+    d.text((gap, 16), "L'ANIMATORE nel binocolo, ingrandito — prova" + (' (senza nebbia)' if serie else ' (con la nebbia)'),
+           fill=(235, 228, 210), font=tf)
+    y = head
+    for key in rows:
+        sc = entries[key]['scale']
+        ims = []
+        for st in ('', '_foxy0', '_foxy1'):
+            lin, _ = post.decode_light_pass(os.path.join(src, f'bino_{key}{st}{serie}.webp'), sc)
+            ims.append(lin)
+        diff = np.abs(ims[1] - ims[0]).sum(-1) + np.abs(ims[2] - ims[0]).sum(-1)
+        for i, (lin, lab) in enumerate(zip(ims, ('vuoto', 'fermo', 'più vicino'))):
+            im = Image.fromarray((np.clip(post.tonemap(lin, 1.0), 0, 1) * 255 + 0.5).astype(np.uint8))
+            x = gap + i * (W + gap)
+            sheet.paste(im.resize((W, H), Image.LANCZOS), (x, y))
+            # riquadro ingrandito attorno a lui (dove l'immagine cambia)
+            # (la compressione con perdita cambia un poco tutta l'immagine: conta solo dove cambia davvero)
+            dd = np.abs(ims[i] - ims[0]).sum(-1) if i else diff
+            m = dd > max(0.05, float(np.percentile(dd, 99.7)))
+            ys, xs = np.nonzero(m)
+            if len(xs):
+                cx, cy = int(xs.mean()), int(ys.mean())
+                r = 90
+                crop = im.crop((cx - r, cy - r, cx + r, cy + r)).resize((200, 200), Image.LANCZOS)
+                sheet.paste(crop, (x + W - 206, y + 6))
+                d.rectangle((x + W - 207, y + 5, x + W - 5, y + 207), outline=(255, 179, 92))
+            d.text((x + 4, y + H + 8), f'{key}: {lab}', fill=(235, 228, 210), font=lf)
+        y += H + 40
+    out = out or os.path.join(ROOT, 'docs', 'concept', f'animatore_binocolo_grande{serie}.jpg')
+    sheet.save(out, quality=90)
+    print(out)
+
+
 if __name__ == '__main__':
+    if '--webp' in sys.argv:
+        a = sys.argv[sys.argv.index('--webp') + 1]
+        tavola_webp(a, '_senza' if '--senza' in sys.argv else '')
+        sys.exit(0)
     main()

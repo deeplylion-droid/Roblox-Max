@@ -62,6 +62,17 @@ def spots():
     to_eye = Vector((EYE[0] - tx, EYE[1] - ty, 0)).normalized()
     side = Vector((-to_eye.y, to_eye.x, 0))
     top = Vector((tx, ty, tz + 21.8)) + to_eye * 2.4 + side * 0.6
+    if os.environ.get('FOXY_GRANDE', '1') == '1':
+        # ingrandito sotto il tetto non ci sta: in piedi sull'imbocco di uno scivolo, in alto fuori dalla gabbia (gli
+        # scivoli partono a 7 m dal centro, 1,5 m sotto il tetto; landmarks.py), quello più dalla parte della barca ma non
+        # davanti alla torre, così si staglia contro il cielo
+        cands = []
+        for k in range(4):
+            a0 = k * math.pi / 2
+            c = Vector((tx + 7.0 * math.cos(a0), ty + 7.0 * math.sin(a0), tz + 24.0 - 1.5 + 0.85))
+            dirc = Vector((math.cos(a0), math.sin(a0), 0))
+            cands.append((dirc.dot(to_eye), c))
+        top = max(cands, key=lambda t: t[0])[1]
     # ai piedi della torre, davanti agli scivoli: sulla battigia la foschia bassa sull'acqua lo nascondeva
     shore = Vector(env.surface_at(192.4, 28.0))
     wt = wreck_house_top()
@@ -166,10 +177,13 @@ def main():
 
 IDX_FOXY = 7
 STADI_DEF = (('foxy0', 'lontano'), ('foxy1', 'vicino'))
-RIM = {'foxy0': 260.0, 'foxy1': 650.0}     # il filo di luce da dietro (watt): più vicino all'acqua c'è più foschia
+RIM = {'foxy0': 450.0, 'foxy1': 650.0}     # il filo di luce da dietro (watt): più vicino all'acqua c'è più foschia
 # la luce di luna morbida da davanti e dall'alto, solo su di lui (watt, per luogo e stadio): la sagoma, il blu del costume
 # e la pancia chiara devono leggersi nella nebbia; da lontano sotto il tetto basta il filo di luce
-KEY = {('scivoli', 'foxy0'): 0.0, ('scivoli', 'foxy1'): 900.0, ('relitto', 'foxy0'): 500.0, ('relitto', 'foxy1'): 500.0}
+KEY = {('scivoli', 'foxy0'): 700.0, ('scivoli', 'foxy1'): 900.0, ('relitto', 'foxy0'): 500.0, ('relitto', 'foxy1'): 500.0}
+# l'animatore ingrandito (12 ottobre, l'utente: «più grande ed evidente, a discapito del realismo della distanza»);
+# luci e posizioni delle luci crescono con lui
+SCALA = {('scivoli', 'foxy0'): 1.8, ('scivoli', 'foxy1'): 2.6, ('relitto', 'foxy0'): 1.5, ('relitto', 'foxy1'): 1.9}
 RIM_LUOGO = {'scivoli': 1.0, 'relitto': 2.0}
 
 
@@ -225,7 +239,10 @@ def definitivo():
     from scipy.ndimage import binary_dilation, gaussian_filter
     import animatore
     from common import OUT_IMG, set_lightgroup
-    assert os.environ.get('ATMOSFERA'), 'le viste definitive vanno rese con ATMOSFERA=1'
+    # due serie: con la nebbia (ATMOSFERA=1, i nomi di sempre) e senza (nomi con _senza): nel gioco la nebbia si toglie
+    # dal menu. In tutte e due il vuoto e gli stadi combaciano fuori dalla sagoma
+    atmo = bool(os.environ.get('ATMOSFERA'))
+    serie = '' if atmo else '_senza'
     luoghi = ['scivoli', 'relitto']
     if '--luoghi' in sys.argv:
         luoghi = sys.argv[sys.argv.index('--luoghi') + 1].split(',')
@@ -277,7 +294,7 @@ def definitivo():
         # il vuoto, intero
         for o in fig:
             o.hide_render = True
-        exr = os.path.join(out_dir, f'{luogo}_vuoto.exr')
+        exr = os.path.join(out_dir, f'{luogo}_vuoto{serie}.exr')
         t = time.time()
         # FOXY_RIUSA=1: il vuoto già reso si riusa (per ritoccare solo l'animatore)
         if not (os.environ.get('FOXY_RIUSA') and os.path.exists(exr)):
@@ -293,20 +310,21 @@ def definitivo():
             for o in fig:
                 o.matrix_world = rest[o.name]
                 o.hide_render = False
-            transform(fig, tuple(pos), yaw_deg=facing(tuple(pos)) + dyaw)
+            k = SCALA[(luogo, tag)]
+            transform(fig, tuple(pos), yaw_deg=facing(tuple(pos)) + dyaw, scale=k)
             # un filo di luce fredda da dietro e dall'alto, solo su di lui: la sagoma si stacca dal fondo
             to_eye = (Vector(EYE) - pos)
             to_eye.z = 0
             to_eye.normalize()
             side = Vector((-to_eye.y, to_eye.x, 0))
-            rim = light_only(f'FoxyRim_{luogo}_{tag}', fig, pos - to_eye * 3.0 + side * 1.6 + Vector((0, 0, 3.4)), pos + Vector((0, 0, 1.2)),
-                             RIM[tag] * RIM_LUOGO[luogo] * float(os.environ.get('FOXY_RIM', '1')), (0.70, 0.80, 1.0), 1.2)
+            rim = light_only(f'FoxyRim_{luogo}_{tag}', fig, pos + (-to_eye * 3.0 + side * 1.6 + Vector((0, 0, 3.4))) * k, pos + Vector((0, 0, 1.2 * k)),
+                             RIM[tag] * RIM_LUOGO[luogo] * k * k * float(os.environ.get('FOXY_RIM', '1')), (0.70, 0.80, 1.0), 1.2 * k)
             key = None
             if KEY[(luogo, tag)] > 0:
-                key = light_only(f'FoxyKey_{luogo}_{tag}', fig, pos + to_eye * 4.0 - side * 1.5 + Vector((0, 0, 3.5)), pos + Vector((0, 0, 1.1)),
-                                 KEY[(luogo, tag)], (0.72, 0.80, 1.0), 2.5)
+                key = light_only(f'FoxyKey_{luogo}_{tag}', fig, pos + (to_eye * 4.0 - side * 1.5 + Vector((0, 0, 3.5))) * k, pos + Vector((0, 0, 1.1 * k)),
+                                 KEY[(luogo, tag)] * k * k, (0.72, 0.80, 1.0), 2.5 * k)
             x0, y0, x1, y1 = screen_rect(cam, fig, W, H)
-            exr = os.path.join(out_dir, f'{luogo}_{tag}.exr')
+            exr = os.path.join(out_dir, f'{luogo}_{tag}{serie}.exr')
             t = time.time()
             render(exr, samples * 2, (W, H), region=(x0, y0, x1, y1), data_passes=('Depth', 'Object Index'))
             q = post.read_exr(exr)
@@ -325,23 +343,27 @@ def definitivo():
             if key:
                 key.hide_render = True
             print('ok', luogo, tag, round(time.time() - t), 's', (x0, y0, x1, y1), flush=True)
-        for suf, (lin, mi) in outs.items():
+        for suf0, (lin, mi) in outs.items():
+            suf = suf0 + serie
             rgb8 = np.asarray(post.encode_light_pass(lin, scale))
             a8 = np.clip(mi * 255 + 0.5, 0, 255).astype(np.uint8)
             # con perdita (qualità 90): lo scambio fra gli stadi avviene solo col binocolo abbassato o puntato altrove,
             # quindi le minime differenze della compressione fuori dalla sagoma non si vedono (12 ottobre)
             post.save_webp(Image.fromarray(np.dstack([rgb8, a8]), 'RGBA'), os.path.join(OUT_IMG, f'bino_{luogo}{suf}.webp'), quality=90)
         d = Vector(target) - Vector(EYE)
-        entries.append({'key': luogo, 'file': f'bino_{luogo}.webp', 'scale': scale,
+        entries.append({'key': luogo, 'file': f'bino_{luogo}{serie}.webp', 'scale': scale,
                         'yaw': round(math.degrees(math.atan2(d.x, d.y)), 3),
                         'pitch': round(math.degrees(math.atan2(d.z, math.hypot(d.x, d.y))), 3),
                         'hfov': hfov, 'aspect': round(W / H, 4),
                         # gli stadi dell'animatore (0 fermo, 1 si sporge): stessa inquadratura e stessa scala del vuoto
-                        'foxy': [f'bino_{luogo}_foxy0.webp', f'bino_{luogo}_foxy1.webp']})
+                        'foxy': [f'bino_{luogo}_foxy0{serie}.webp', f'bino_{luogo}_foxy1{serie}.webp']})
+    # le voci (con la scala) si scrivono accanto alle immagini; il manifesto si aggiorna solo per la serie con la nebbia
+    # nel gioco (la serie senza la scrive il motore: binocular.places[].senza), e mai nelle prove
+    json.dump(entries, open(os.path.join(out_dir, f'bino_foxy_entries{serie}.json'), 'w'), indent=1)
     if os.environ.get('RENDER_OUT'):
-        # prove fuori dal gioco: il manifesto non si tocca
-        json.dump(entries, open(os.path.join(OUT_IMG, 'bino_foxy_entries.json'), 'w'), indent=1)
-        print('fatto (prova)', round(time.time() - t0), 's', flush=True)
+        json.dump(entries, open(os.path.join(OUT_IMG, f'bino_foxy_entries{serie}.json'), 'w'), indent=1)
+    if os.environ.get('RENDER_OUT') or not atmo:
+        print('fatto', serie, round(time.time() - t0), 's', [(e['key'], e['scale']) for e in entries], flush=True)
         return
     old = json.load(open(OVERLAYS)).get('binocular', {})
     keep = [e for e in old.get('places', []) if e['key'] not in {x['key'] for x in entries}]
