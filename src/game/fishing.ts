@@ -30,6 +30,8 @@ export class Fishing {
   overload = 0;
   /** quanto regge il filo a tensione piena (dipende dalla notte, vedi NightConfig.snapGrace) */
   snapGrace = FISHING.snapGrace;
+  /** quanto è più veloce il recupero (dipende dalla notte, vedi NightConfig.reelMul) */
+  reelMul = 1;
   current: Catch | null = null;
   /**
    * L'abboccata è finta: la lenza l'ha presa Lampy (notte 4). La canna si piega e il galleggiante va sotto come per
@@ -189,7 +191,7 @@ export class Fishing {
     }
     const holding = o.reelHeld && o.facingRod && !o.busy;
     if (holding) {
-      this.progress += FISHING.reelSpeed * dt * (this.pulling ? 0.35 : 1.0);
+      this.progress += FISHING.reelSpeed * this.reelMul * dt * (this.pulling ? 0.35 : 1.0);
       this.tension += (this.pulling ? FISHING.tensionPullHold * (0.7 + strength * 0.6) : FISHING.tensionHold) * dt;
     } else {
       this.tension += (this.pulling ? FISHING.tensionPullFree : -FISHING.tensionRelax) * dt;

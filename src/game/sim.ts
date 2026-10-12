@@ -1,7 +1,7 @@
-import { FISHING, HOUR_SECONDS, LAMP, LORE, LORE_PER_NIGHT, NIGHT_HOURS, VIEW, YAW, angleDiff, type LampLevel, type MonsterId, type NightConfig } from './config.ts';
+import { FISHING, FOXY_PLACES, HOUR_SECONDS, LAMP, LORE, LORE_PER_NIGHT, NIGHT_HOURS, VIEW, YAW, angleDiff, type LampLevel, type MonsterId, type NightConfig } from './config.ts';
 import type { GameEvent } from './events.ts';
 import { Fishing, type Catch } from './fishing.ts';
-import { Archie, Fangy, Hatch, Lampy, Molly, Gulpy, Mother, Robin, SONAR_WARN, type LampyLine, type WorldView } from './monsters.ts';
+import { Archie, Fangy, Foxy, Hatch, Lampy, Molly, Gulpy, Mother, Robin, SONAR_WARN, type LampyLine, type WorldView } from './monsters.ts';
 import { Rng } from './rng.ts';
 
 /** come si muore con la Madre: la ninna nanna finita al buio, o ti sei mosso mentre passava sotto la barca (notte 6);
@@ -48,6 +48,10 @@ export class NightSim {
   readonly fangy: Fangy | null;
   /** la notte 6: la Madre */
   readonly mother: Mother | null;
+  /** dalla notte 2: il Foxy, da tenere d'occhio col binocolo */
+  readonly foxy: Foxy | null;
+  /** il binocolo alzato: dove guarda e quanto è largo il campo (null: abbassato) */
+  private binoView: { yaw: number; pitch: number; fov: number } | null = null;
   /** la lenza come la vede Lampy */
   private readonly lampyLine: LampyLine;
   /** Archie ha soffiato con la lampara accesa: il vetro è esploso, non si riaccende più */
@@ -75,6 +79,7 @@ export class NightSim {
     const emit = (e: GameEvent) => this.events.push(e);
     this.fishing = new Fishing(this.rng, emit);
     this.fishing.snapGrace = cfg.snapGrace ?? FISHING.snapGrace;
+    this.fishing.reelMul = cfg.reelMul ?? 1;
     this.gulpy = new Gulpy(cfg.gulpy);
     this.molly = new Molly(cfg.molly);
     this.hatch = new Hatch(cfg.hatch);
@@ -83,6 +88,7 @@ export class NightSim {
     this.lampy = cfg.lampy ? new Lampy(cfg.lampy) : null;
     this.fangy = cfg.fangy ? new Fangy(cfg.fangy) : null;
     this.mother = cfg.mother ? new Mother(cfg.mother) : null;
+    this.foxy = cfg.foxy ? new Foxy(cfg.foxy, FOXY_PLACES) : null;
     const fishing = this.fishing;
     this.lampyLine = {
       get waiting() {
@@ -101,6 +107,7 @@ export class NightSim {
       viewYaw: 0,
       sonarOpen: false,
       hidden: false,
+      bino: null,
       activity: 1,
       rng: this.rng,
       emit,
@@ -165,6 +172,11 @@ export class NightSim {
     // al buio anche il sonar è spento
     this.sonarOpen = away && !this.blackout;
     this.sonarDrain = sonar && !this.blackout;
+  }
+
+  /** Il binocolo: dove guarda (gradi) e quanto è largo il campo, o null se è abbassato. */
+  setBino(v: { yaw: number; pitch: number; fov: number } | null): void {
+    this.binoView = v;
   }
 
   setReelHeld(held: boolean): void {
@@ -317,6 +329,7 @@ export class NightSim {
     w.viewYaw = this.viewYaw;
     w.sonarOpen = this.sonarOpen;
     w.hidden = this.hidden;
+    w.bino = this.hide === 'out' ? this.binoView : null;
     w.activity = this.activity;
 
     this.gulpy.update(dt, w);
@@ -332,6 +345,7 @@ export class NightSim {
     this.lampy?.update(dt, w, this.lampyLine);
     this.fangy?.update(dt, w);
     if (this.mother) this.updateMother(dt, w);
+    this.foxy?.update(dt, w);
     // il mulinello mentre recuperi (Fangy)
     this.fangy?.reel(dt, w, this.reelHeld && this.fishing.phase === 'reeling' && this.hide === 'out' && !this.sonarOpen);
     if (this.archie?.state === 'blowing' && !this.lampBroken) {
@@ -358,7 +372,9 @@ export class NightSim {
                   ? 'lampy'
                   : this.fangy?.state === 'attack'
                     ? 'fangy'
-                    : null;
+                    : this.foxy?.state === 'attack'
+                      ? 'foxy'
+                      : null;
     if (killer) {
       this.die(killer);
       return;
@@ -495,6 +511,9 @@ export class NightSim {
         return (this.lampy?.present ?? false) || this.lampy?.state === 'lurking';
       case 'fangy':
         return (this.fangy?.present ?? false) || this.fangy?.state === 'approaching';
+      case 'foxy':
+        // sta nel suo posto per tutta la notte: non ferma gli altri
+        return false;
     }
   }
 

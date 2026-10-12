@@ -38,6 +38,9 @@ const IT = {
     fangy: 'Fangy ascolta: niente rumori',
     // notte 6 (approvato l'11 ottobre: «immobilità totale»)
     mother: 'Non muoverti',
+    // il Foxy (11 ottobre sera, DA APPROVARE)
+    foxy: 'Col binocolo (B): non perderlo di vista',
+    foxyGone: 'Il posto è vuoto',
   },
   denied: {
     noFish: 'Il secchio è vuoto.',
@@ -74,6 +77,8 @@ const IT = {
     lampy: 'Lampy ti ha tirato giù, per scherzo.',
     // notte 5 (approvata l'11 ottobre): giocava a Marco Polo a occhi chiusi e vinceva sempre
     fangy: '«Marco.» Hai risposto.',
+    // il Foxy (11 ottobre sera, DA APPROVARE): faceva lo spettacolo di Mama Marina, che finiva con un abbraccio
+    foxy: 'Lo spettacolo finiva sempre con un abbraccio.',
     mother: 'Alle sei il secchio non era pieno. Stanotte la Madre si prenderà un altro bambino.',
     // notte 2 (approvato il 10 ottobre): la batteria è morta e la ninna nanna è finita prima delle sei
     lullaby: 'La canzone è finita prima dell’alba.',
@@ -228,6 +233,9 @@ const IT = {
     motherLullaby: 'una ninna nanna, sotto la barca',
     motherPass: 'qualcosa di enorme passa sotto la barca',
     motherLeave: 'si allontana',
+    // il Foxy (11 ottobre sera, DA APPROVARE)
+    foxyLean: 'laggiù, qualcosa si sporge',
+    foxyLeave: 'qualcosa corre sull’acqua',
   },
   hatchCount: ['Uno…', 'Due…', 'Tre…', 'Quattro…', 'Cinque…', 'Sei…', 'Sette…', 'Otto…', 'Nove…', 'Dieci!'],
   hatchReady: 'Chi c’è c’è, chi non c’è non c’è!',
@@ -266,6 +274,8 @@ const EN: typeof IT = {
     lampy: 'Three even rings: it’s Lampy, don’t strike',
     fangy: 'Fangy is listening: not a sound',
     mother: 'Don’t move',
+    foxy: 'With the binoculars (B): don’t lose sight of him',
+    foxyGone: 'The place is empty',
   },
   denied: {
     noFish: 'The bucket is empty.',
@@ -295,6 +305,7 @@ const EN: typeof IT = {
     archie: 'Archie blew out your candle.',
     lampy: 'Lampy pulled you under. Just for fun.',
     fangy: '"Marco." You answered.',
+    foxy: 'The show always ended with a hug.',
     mother: 'At six the bucket wasn’t full. Tonight the Mother will take another child.',
     lullaby: 'The song ended before dawn.',
     moved: 'Mama Marina loves her little ones. Now you too.',
@@ -440,6 +451,8 @@ const EN: typeof IT = {
     motherLullaby: 'a lullaby, under the boat',
     motherPass: 'something huge passes under the boat',
     motherLeave: 'it moves away',
+    foxyLean: 'over there, something leans out',
+    foxyLeave: 'something is running across the water',
   },
   hatchCount: ['One…', 'Two…', 'Three…', 'Four…', 'Five…', 'Six…', 'Seven…', 'Eight…', 'Nine…', 'Ten!'],
   hatchReady: 'Ready or not, here I come!',

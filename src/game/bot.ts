@@ -35,12 +35,15 @@ export interface BotSkill {
   motherGreed: number;
   /** …e mentre passa, quante volte al secondo scappa un movimento (lo sguardo che si sposta, un gesto) */
   motherSlip: number;
+  /** ogni quanto si alza il binocolo per controllare il Foxy, in frazioni del tempo che lui aspetta prima di lasciare il
+   *  posto (un giocatore impara il ritmo della notte): fra un minimo e un massimo */
+  foxyEvery: [number, number];
 }
 
 export const SKILLS: Record<string, BotSkill> = {
-  expert: { name: 'expert', reaction: [0.25, 0.6], turnSpeed: 420, reelHi: 0.72, reelLo: 0.3, pullReaction: 0.12, lampPolicy: 'greedy', hideAtCount: 6, archiePatience: 1.15, lampyEar: 0.998, fangySlip: 0.004, fangyGreed: 0.03, fangyStop: 1, motherGreed: 0.01, motherSlip: 0.0003 },
-  average: { name: 'average', reaction: [0.5, 1.2], turnSpeed: 260, reelHi: 0.68, reelLo: 0.25, pullReaction: 0.3, lampPolicy: 'steady', hideAtCount: 6, archiePatience: 1.0, lampyEar: 0.97, fangySlip: 0.03, fangyGreed: 0.15, fangyStop: 0.8, motherGreed: 0.12, motherSlip: 0.003 },
-  sloppy: { name: 'sloppy', reaction: [0.9, 2.2], turnSpeed: 170, reelHi: 0.8, reelLo: 0.2, pullReaction: 0.55, lampPolicy: 'steady', hideAtCount: 8, archiePatience: 0.8, lampyEar: 0.9, fangySlip: 0.07, fangyGreed: 0.3, fangyStop: 0.55, motherGreed: 0.3, motherSlip: 0.008 },
+  expert: { name: 'expert', reaction: [0.25, 0.6], turnSpeed: 420, reelHi: 0.72, reelLo: 0.3, pullReaction: 0.12, lampPolicy: 'greedy', hideAtCount: 6, archiePatience: 1.15, lampyEar: 0.998, fangySlip: 0.004, fangyGreed: 0.03, fangyStop: 1, motherGreed: 0.01, motherSlip: 0.0003, foxyEvery: [0.45, 0.6] },
+  average: { name: 'average', reaction: [0.5, 1.2], turnSpeed: 260, reelHi: 0.68, reelLo: 0.25, pullReaction: 0.3, lampPolicy: 'steady', hideAtCount: 6, archiePatience: 1.0, lampyEar: 0.97, fangySlip: 0.03, fangyGreed: 0.15, fangyStop: 0.8, motherGreed: 0.12, motherSlip: 0.003, foxyEvery: [0.5, 0.75] },
+  sloppy: { name: 'sloppy', reaction: [0.9, 2.2], turnSpeed: 170, reelHi: 0.8, reelLo: 0.2, pullReaction: 0.55, lampPolicy: 'steady', hideAtCount: 8, archiePatience: 0.8, lampyEar: 0.9, fangySlip: 0.07, fangyGreed: 0.3, fangyStop: 0.55, motherGreed: 0.3, motherSlip: 0.008, foxyEvery: [0.55, 0.9] },
 };
 
 export class Bot {
@@ -83,6 +86,11 @@ export class Bot {
     if (!s.playing) return;
     const { gulpy, molly, hatch, fishing } = s;
     let wantReel = false;
+    // sotto il telone il binocolo non si alza
+    if (s.hide !== 'out') {
+      this.bino = null;
+      this.foxyLook = -1;
+    }
 
     const hatchThreat = this.noticed('hatch', hatch.state === 'counting' && hatch.count >= this.skill.hideAtCount) || hatch.state === 'boarding';
     const hatchNear = hatch.state === 'counting' || hatch.state === 'boarding' || hatch.state === 'searching';
@@ -110,6 +118,14 @@ export class Bot {
       return;
     }
     if (s.hide !== 'out') {
+      this.finish(dt, false);
+      return;
+    }
+
+    // il Foxy: quando tocca, e se non c'è niente di più urgente, si alza il binocolo e lo si cerca nel suo posto (se
+    // arriva qualcosa di urgente mentre lo si cerca, si abbassa il binocolo)
+    const threat = hatchThreat || (hatchNear && hatch.state !== 'counting') || mollyNeeds || robinThere || (gulpyHungry && s.fish > 0);
+    if (this.foxyCheck(dt, !threat && fishing.phase !== 'reeling' && fishing.phase !== 'bite', threat)) {
       this.finish(dt, false);
       return;
     }
@@ -262,6 +278,84 @@ export class Bot {
 
   private motherSeen = '';
   private motherGreedy = false;
+
+  /**
+   * Il Foxy col binocolo: quando tocca (e si è liberi) ci si gira verso il posto dove lo si è visto l'ultima volta e lo
+   * si guarda per un tempo di reazione; se lì non c'è si guarda nell'altro posto. Visto sporto, il controllo dopo arriva
+   * prima. Vero finché il binocolo è alzato.
+   */
+  private foxyCheck(dt: number, free: boolean, threat: boolean): boolean {
+    const s = this.sim;
+    const f = s.foxy;
+    if (!f || f.state === 'dormant' || f.state === 'attack' || s.hide !== 'out' || (threat && this.foxyLook >= 0)) {
+      this.foxyLook = -1;
+      this.bino = null;
+      return false;
+    }
+    const every = () => s.cfg.foxy!.leave * this.rng.range(this.skill.foxyEvery[0], this.skill.foxyEvery[1]);
+    if (this.foxyNext < 0) this.foxyNext = s.time + every();
+    if (this.foxyLook < 0) {
+      if (s.time < this.foxyNext || !free) return false;
+      this.foxyLook = this.foxyBelief;
+      this.foxyTried = 0;
+      this.foxyHold = -1;
+      this.foxyTurn = this.snapTo(f.places[this.foxyLook]!.yaw);
+    }
+    const p = f.places[this.foxyLook]!;
+    if (this.foxyTurn > 0) {
+      this.foxyTurn -= dt;
+      this.bino = null;
+      if (this.foxyTurn > 0) return true;
+      this.yaw = p.yaw;
+    }
+    this.turnTo(p.yaw, dt);
+    if (Math.abs(angleDiff(this.yaw, p.yaw)) > 1) {
+      this.bino = null;
+      return true;
+    }
+    // alzato il binocolo sul posto: un attimo per alzarlo e per capire cosa si vede
+    this.bino = { yaw: this.yaw, pitch: p.pitch, fov: 9 };
+    if (this.foxyHold < 0) this.foxyHold = 0.4 + this.rng.range(this.skill.reaction[0], this.skill.reaction[1]);
+    this.foxyHold -= dt;
+    if (this.foxyHold > 0) return true;
+    const there = f.place === this.foxyLook && f.stage !== null;
+    if (there) {
+      this.foxyBelief = this.foxyLook;
+      const k = f.stage === 1 ? 0.6 : 1;
+      this.foxyNext = s.time + k * every();
+      this.foxyLook = -1;
+      this.bino = null;
+      // e di scatto si torna verso la canna (W)
+      this.yaw = YAW.rod - 10;
+      return false;
+    }
+    if (this.foxyTried + 1 < f.places.length) {
+      // non c'è: si prova nell'altro posto
+      this.foxyTried++;
+      this.foxyLook = (this.foxyLook + 1) % f.places.length;
+      this.foxyHold = -1;
+      this.foxyTurn = this.snapTo(f.places[this.foxyLook]!.yaw);
+      return true;
+    }
+    // non c'è da nessuna parte: sta arrivando, e non c'è niente da fare
+    this.foxyNext = s.time + 5;
+    this.foxyLook = -1;
+    this.bino = null;
+    return false;
+  }
+
+  /** Un posto alle spalle si raggiunge voltandosi di scatto (S): mezzo secondo. Uno davanti girando lo sguardo. */
+  private snapTo(yaw: number): number {
+    return Math.abs(angleDiff(this.yaw, yaw)) > 90 ? 0.35 + 0.15 : 0;
+  }
+
+  private bino: { yaw: number; pitch: number; fov: number } | null = null;
+  private foxyNext = -1;
+  private foxyLook = -1;
+  private foxyHold = -1;
+  private foxyTried = 0;
+  private foxyTurn = 0;
+  private foxyBelief = 0;
   private slipT = 0;
   private fangySeen = '';
   private fangyGreedy = false;
@@ -282,7 +376,9 @@ export class Bot {
 
   private finish(_dt: number, reel: boolean): void {
     this.sim.setReelHeld(reel);
-    this.sim.setView(this.yaw, false);
+    // col binocolo alzato gli occhi sono lontani dalla barca (per Molly vale come il sonar), ma non consuma
+    this.sim.setView(this.yaw, this.bino !== null, false);
+    this.sim.setBino(this.bino);
   }
 }
 

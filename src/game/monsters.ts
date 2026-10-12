@@ -1,4 +1,4 @@
-import { LAMP, angleDiff, VIEW, YAW, type ArchieConfig, type FangyConfig, type HatchConfig, type LampLevel, type LampyConfig, type MollyConfig, type MonsterId, type MotherConfig, type GulpyConfig, type RobinConfig, type Side } from './config.ts';
+import { LAMP, angleDiff, VIEW, YAW, type ArchieConfig, type FangyConfig, type FoxyConfig, type HatchConfig, type LampLevel, type LampyConfig, type MollyConfig, type MonsterId, type MotherConfig, type GulpyConfig, type RobinConfig, type Side } from './config.ts';
 import type { GameEvent } from './events.ts';
 import type { Rng } from './rng.ts';
 
@@ -11,6 +11,8 @@ export interface WorldView {
   sonarOpen: boolean;
   /** completamente sotto il telone (non in transizione) */
   hidden: boolean;
+  /** il binocolo alzato: dove guarda (gradi) e quanto è largo il campo; null se è abbassato */
+  bino: { yaw: number; pitch: number; fov: number } | null;
   /** attività in base all'ora e alla lampara */
   activity: number;
   rng: Rng;
@@ -23,6 +25,13 @@ export interface WorldView {
 
 export function isGazing(w: WorldView, yaw: number): boolean {
   return !w.hidden && !w.sonarOpen && Math.abs(angleDiff(w.viewYaw, yaw)) <= VIEW.gazeHalfAngle;
+}
+
+/** Col binocolo alzato, quel punto dell'orizzonte (gradi) sta nel campo? */
+export function seesThroughBino(w: WorldView, yaw: number, pitch: number): boolean {
+  const b = w.bino;
+  if (!b) return false;
+  return Math.hypot(angleDiff(b.yaw, yaw), b.pitch - pitch) <= Math.max(2.5, b.fov * 0.6);
 }
 
 function cooldown(w: WorldView, range: [number, number]): number {
@@ -1073,5 +1082,101 @@ export class Mother {
     if (this.state !== 'passing') return;
     this.state = 'attack';
     w.emit({ t: 'mother', e: 'attack' });
+  }
+}
+
+// ───────────────────────── Il Foxy: va tenuto d'occhio col binocolo ─────────────────────────
+
+export type FoxyState = 'dormant' | 'watching' | 'leaning' | 'gone' | 'attack';
+
+/** Quanto più a lungo aspetta, la prima volta, finché non lo trovi col binocolo. */
+export const FOXY_FIRST_GRACE = 1.6;
+
+/**
+ * L'animatore di Splashland annegato dentro il costume della mascotte di Mama Marina (deciso l'11 ottobre sera; nome e
+ * aspetto ancora da scegliere). Sta in uno dei posti che si guardano col binocolo. Ogni volta che lo guardi il suo tempo
+ * riparte da zero; se lo trascuri si sporge verso di te, poi lascia il posto (il posto è vuoto: sta arrivando) e dopo
+ * pochi secondi salta sulla barca. Si muove solo quando non lo guardi: guardato mentre è sporto resta sporto, e torna
+ * al suo posto (a volte nell'altro) appena abbassi il binocolo.
+ */
+export class Foxy {
+  state: FoxyState = 'dormant';
+  timer: number;
+  /** secondi da quando l'hai guardato l'ultima volta */
+  neglect = 0;
+  /** in quale posto sta (indice in FOXY_PLACES) */
+  place = 0;
+  /** lo stai guardando adesso */
+  watched = false;
+  /** l'hai già visto almeno una volta: finché non lo trovi la prima volta ti lascia più tempo (si impara dov'è) */
+  everSeen = false;
+
+  constructor(
+    private cfg: FoxyConfig,
+    readonly places: { yaw: number; pitch: number }[],
+  ) {
+    this.timer = cfg.firstAt;
+  }
+
+  /** nel suo posto, per la grafica: 0 fermo, 1 sporto verso di te; null se non c'è */
+  get stage(): 0 | 1 | null {
+    return this.state === 'watching' ? 0 : this.state === 'leaning' ? 1 : null;
+  }
+
+  update(dt: number, w: WorldView): void {
+    switch (this.state) {
+      case 'dormant':
+        this.timer -= dt;
+        if (this.timer <= 0) {
+          this.state = 'watching';
+          this.neglect = 0;
+          this.place = w.rng.int(0, this.places.length - 1);
+          w.emit({ t: 'foxy', e: 'appear', place: this.place });
+        }
+        break;
+      case 'watching':
+      case 'leaning': {
+        const p = this.places[this.place]!;
+        if (seesThroughBino(w, p.yaw, p.pitch)) {
+          this.neglect = 0;
+          this.watched = true;
+          this.everSeen = true;
+          break;
+        }
+        if (this.watched) {
+          // hai abbassato il binocolo (o guardi altrove): torna fermo al suo posto, e a volte cambia posto
+          this.watched = false;
+          if (this.state === 'leaning') {
+            this.state = 'watching';
+            w.emit({ t: 'foxy', e: 'back', place: this.place });
+          }
+          if (this.places.length > 1 && w.rng.chance(this.cfg.swap)) {
+            this.place = (this.place + 1) % this.places.length;
+            w.emit({ t: 'foxy', e: 'move', place: this.place });
+          }
+        }
+        // la prima volta, finché non lo trovi, aspetta di più
+        this.neglect += this.everSeen ? dt : dt / FOXY_FIRST_GRACE;
+        if (this.state === 'watching' && this.neglect >= this.cfg.lean) {
+          this.state = 'leaning';
+          w.emit({ t: 'foxy', e: 'lean', place: this.place });
+        }
+        if (this.neglect >= this.cfg.leave) {
+          this.state = 'gone';
+          this.timer = this.cfg.run;
+          w.emit({ t: 'foxy', e: 'leave', place: this.place });
+        }
+        break;
+      }
+      case 'gone':
+        this.timer -= dt;
+        if (this.timer <= 0) {
+          this.state = 'attack';
+          w.emit({ t: 'foxy', e: 'attack' });
+        }
+        break;
+      case 'attack':
+        break;
+    }
   }
 }
