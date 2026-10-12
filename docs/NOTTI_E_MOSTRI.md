@@ -743,8 +743,10 @@ approvare), e il finale B col disegno a pastelli (sotto, la cinematica da approv
 - **Il finale B «Il ricordo»** (la notte 7; cinematica e frase DA APPROVARE): al posto della foto del 1997 (provata
   coi bambini renderizzati, `tools/render/bambini.py` e `finali.foto_1997`, restano nel ramo ma non si usano) un
   **disegno a pastelli: idea dell'utente e approvato il 12 ottobre** (`docs/concept/ricordo_disegno.webp`, disegnato
-  da `tools/render/disegno_ricordo.py`): i quattro bambini davanti all'ingresso di Splashland la sera della Night
-  Splash, tre con la faccia scarabocchiata di nero, il quarto col berretto e la canna col pesce.
+  da `tools/render/pastelli.py`): i quattro bambini davanti all'ingresso di Splashland la sera della Night
+  Splash (14-8-97, la data del braccialetto), tre con la faccia scarabocchiata di nero e una cosa a testa (i braccioli
+  di Molly, il salvagente a paperella di Gulpy, il giocattolo luminoso di Hatch), il quarto col berretto e la canna
+  col pesce.
   - **La scena** (`finali.scena_ricordo`, `public/assets/img/fin_ricordo.webp`; anteprima
     `docs/concept/finali_ricordo_anteprima.jpg`): il foglio sul banco di prua all'alba, bagnato e ondulato (le pieghe,
     gli orli che si alzano), la carta scurita dove ha bevuto l'acqua e la cera che la respinge in goccioline tonde
