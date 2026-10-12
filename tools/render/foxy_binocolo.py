@@ -183,7 +183,9 @@ FEATHER = 18.0    # pixel di sfumatura al bordo del riquadro
 STADI_DEF = (('foxy0', 'lontano'), ('foxy1', 'vicino'))
 # l'animatore ingrandito (12 ottobre, l'utente: «più grande ed evidente, a discapito del realismo della distanza»);
 # luci e posizioni delle luci crescono con lui
-SCALA = {('scivoli', 'foxy0'): 1.8, ('scivoli', 'foxy1'): 2.6, ('relitto', 'foxy0'): 1.5, ('relitto', 'foxy1'): 2.35}
+# la «grande» (scelta il 12 ottobre); agli scivoli da fermo 1,9 è il massimo che lascia margine sopra la testa (in cima,
+# contro il cielo, l'inquadratura finisce poco sopra il tetto)
+SCALA = {('scivoli', 'foxy0'): 1.9, ('scivoli', 'foxy1'): 3.5, ('relitto', 'foxy0'): 2.0, ('relitto', 'foxy1'): 2.6}
 
 
 def water_ring(pos, k):
