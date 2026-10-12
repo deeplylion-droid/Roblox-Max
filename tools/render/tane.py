@@ -935,7 +935,9 @@ def tana_archie():
     fondo = strisce_material('TAStriscione', (0.62, 0.60, 0.55), (0.62, 0.60, 0.55), passo=1.0)
     st = pannello('Striscione', (float(np.linalg.norm(pb - pa)) * 0.9, 0.6), fondo, seed=8, onde=0.06)
     su_parete(st, 0, 2.9, stacco=0.25)
-    scritta('Auguri', 'TANTI AUGURI', 0.38, tuple(np.array(st.location) + np.array((0, -0.03, 0))), (math.radians(90), 0, 0),
+    # «HAPPY BIRTHDAY», uguale in italiano e in inglese (deciso il 12 ottobre sera): 14 lettere invece delle 12 di
+    # «TANTI AUGURI», più piccole perché stiano nello striscione
+    scritta('Auguri', 'HAPPY BIRTHDAY', 0.38 * 12 / 14, tuple(np.array(st.location) + np.array((0, -0.03, 0))), (math.radians(90), 0, 0),
             grotte.plastica('TAScritta', (0.45, 0.06, 0.08), melma=0.2), extrude=0.008)
     for k, (y0, y1, z) in enumerate(((-100, -30, 3.0), (-30, 40, 3.2), (40, 110, 3.0), (-120, -60, 2.2), (60, 120, 2.2))):
         a_, _ = parete(y0, z)
