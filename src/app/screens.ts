@@ -241,6 +241,39 @@ export class Screens {
   }
 
   /**
+   * I titoli di coda, dopo i finali della notte 6 (DA APPROVARE; i nomi sono un segnaposto): su un fondo nero salgono
+   * piano il titolo, i ruoli coi nomi e il ringraziamento; poi `onDone`. Esc, Invio, Spazio o un clic li saltano.
+   * La durata segue la lunghezza (circa 2,6 s a riga), così coi nomi veri resta lo stesso passo.
+   */
+  credits(onDone: () => void): void {
+    const S = this.S;
+    const roll = h('div', { class: 'credits-roll' }, h('h1', {}, S.creditsTitle));
+    for (const [role, name] of S.credits) roll.append(h('div', { class: 'credit' }, h('span', {}, role), h('b', {}, name)));
+    roll.append(h('p', { class: 'credits-end' }, S.creditsEnd));
+    const rows = S.credits.length + 3;
+    const secs = Math.max(18, rows * 2.6);
+    roll.style.animationDuration = `${secs}s`;
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      removeEventListener('keydown', onKey);
+      onDone();
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        finish();
+      }
+    };
+    addEventListener('keydown', onKey);
+    roll.addEventListener('animationend', finish);
+    const el = h('div', { class: 'screen credits fade-in' }, roll, h('p', { class: 'credits-skip muted' }, S.creditsSkip));
+    el.addEventListener('click', finish);
+    this.show(el);
+  }
+
+  /**
    * Il finale speciale della notte extra (vinta con tutti, Madre compresa, almeno a 10): per ora un SEGNAPOSTO, il
    * finale vero è da fare (deciso dall'utente l'11 ottobre che ci sarà, diverso da quello della notte 6).
    */

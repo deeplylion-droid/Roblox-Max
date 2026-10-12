@@ -342,3 +342,15 @@ html, body {
 .dive-buttons { position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); display: flex; gap: 14px; }
 .dive-back { pointer-events: auto; background: none; border: 1px solid rgba(160,230,220,.45); color: #bfe9e2; font: inherit; font-size: 14px; letter-spacing: .25em; text-transform: uppercase; padding: 8px 16px; cursor: pointer; }
 .dive-back:hover { border-color: #bfe9e2; color: #fff; }
+
+/* ── titoli di coda (dopo i finali della notte 6) ── */
+.credits { background: #000; overflow: hidden; justify-content: flex-start; }
+.credits-roll { display: flex; flex-direction: column; align-items: center; gap: calc(34px * var(--ts)); padding-top: 100vh; animation: credits-up linear forwards; }
+.credits-roll h1 { font-size: clamp(40px, 7vw, 88px); margin-bottom: 40px; }
+.credit { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.credit span { font-size: calc(14px * var(--ts)); letter-spacing: .3em; text-transform: uppercase; color: var(--dim); }
+.credit b { font-family: 'Limelight', serif; font-weight: normal; font-size: calc(28px * var(--ts)); color: var(--ink); }
+.credits-end { margin-top: 60px; font-family: 'Limelight', serif; color: var(--amber); }
+.credits-skip { position: fixed; right: 18px; bottom: 12px; font-size: calc(13px * var(--ts)); opacity: .45; }
+@keyframes credits-up { from { transform: translateY(0); } to { transform: translateY(-100%); } }
+@media (prefers-reduced-motion: reduce) { .credits-roll { animation-timing-function: steps(12); } }

@@ -372,6 +372,17 @@ export class App {
       this.audio.play('static_burst', { gain: 0.85 });
       this.timer = 1.2;
       this.afterStatic = show;
+    } else if (!extra && r.kind === 'won' && this.nightNo === 6) {
+      // dopo il finale della notte 6 (A, «I tuoi» o «Nessuno»): i titoli di coda, con la ninna nanna del titolo; poi i
+      // risultati, con l'avviso della notte extra
+      this.mode = 'end';
+      this.night?.destroy();
+      this.night = null;
+      this.titleMusic(true);
+      this.screens.credits(() => {
+        this.titleMusic(false);
+        show();
+      });
     } else if (extra && r.kind === 'won' && extraEndingEarned(this.save.extra)) {
       // la notte extra vinta con tutti, Madre compresa, almeno a 10: prima il finale speciale (per ora un segnaposto,
       // Screens.extraEnding), poi i risultati. Con impostazioni più facili, l'alba normale
