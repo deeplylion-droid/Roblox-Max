@@ -8,7 +8,7 @@ import type { LayerInfo, Vec3 } from '../engine/assets.ts';
 import { dirPos, type AudioEngine, type Voice } from '../engine/audio.ts';
 import type { BinoPlace, LayerDraw, LightGlow, Overlay, Stroke, TubeDraw } from '../engine/renderer.ts';
 import { CHILD, RADIO_VOICE, speak, type Utterance } from '../engine/voice.ts';
-import { FISHING, HOUR_SECONDS, NIGHTS, VIEW, YAW, type LampLevel, type MonsterId, type NightConfig } from '../game/config.ts';
+import { FISHING, HOUR_SECONDS, NIGHTS, VIEW, YAW, angleDiff, type LampLevel, type MonsterId, type NightConfig } from '../game/config.ts';
 import type { GameEvent } from '../game/events.ts';
 import { LAMPY_FIRST_BEAT } from '../game/monsters.ts';
 import { NightSim, type MotherCause } from '../game/sim.ts';
@@ -19,6 +19,8 @@ import type { Options } from './save.ts';
 import type { Sfx } from './sfx.ts';
 import { FINALE_A, between, sample, textAt, type CinematicScript } from './cinematic.ts';
 import { Sonar } from './sonar.ts';
+import { VIVO_DI, Vivi } from './vivi.ts';
+import { Paura } from './paura.ts';
 import { Rod } from './rod.ts';
 import { ROD_COLORS } from './rod_colori.ts';
 import type { Stage } from './stage.ts';
@@ -333,7 +335,6 @@ export class Night {
   private bells: number[] = [];
   private creakTimer = 9;
   private lastHourShown = -1;
-  private heart = 0;
   private listeners: [EventTarget, string, EventListener][] = [];
   /** dove si sente Gulpy: lontano mentre sale, aggrappato alla prua quando pretende (dai render) */
   private gulpyFar: Vec3;
@@ -358,6 +359,15 @@ export class Night {
   private motherPrevT = 0;
   /** la cinematica in corso (i finali): la sequenza, a che punto è, le voci da fermare se la si salta */
   private cine: { s: CinematicScript; t: number; voices: Voice[] } | null = null;
+  /** le creature vive: il respiro, lo scatto quando le guardi, le gocce (vivi.ts) */
+  private vivi = new Vivi();
+  /** dove si vede ogni creatura viva (yaw in gradi, dall'ultimo fotogramma disegnato) */
+  private viviYaw: Record<string, number> = {};
+  /** il cuore, il respiro e la tensione (paura.ts) */
+  private paura: Paura;
+  /** i falsi allarmi: il prossimo (tempo della notte), quanti ne restano, il sussulto del cuore; da quanto è calmo */
+  private falso = { next: 0, left: 0, boost: 0 };
+  private calm = 0;
   /** il secchio svuotato dalla cinematica (i pesci non si disegnano) e il buio della cinematica (0..1) */
   private cineEmptyBucket = false;
   private cineBlack = 0;
@@ -367,6 +377,9 @@ export class Night {
     this.nightNo = d.config ? d.config.night : NIGHTS[d.night ?? 1] ? (d.night ?? 1) : 1;
     this.sim = new NightSim(d.config ?? NIGHTS[this.nightNo]!, d.seed, d.foundLore, { fed: d.fed ?? null });
     this.hud = new Hud(d.ui, d.lang);
+    this.paura = new Paura(d.audio);
+    // i falsi allarmi (più paura): dalla notte 2, uno o due per notte, il primo fra l'una e le tre circa
+    if (this.nightNo >= 2) this.falso = { next: HOUR_SECONDS * (1 + 1.2 * Math.random()), left: Math.random() < 0.6 ? 2 : 1, boost: 0 };
     this.sonarEl = document.createElement('div');
     this.sonarEl.className = 'sonar-full';
     this.sonarEl.appendChild(this.sonar.canvas);
@@ -411,6 +424,7 @@ export class Night {
   }
 
   destroy(): void {
+    this.paura.stop(0.3);
     for (const [t, ev, fn] of this.listeners) t.removeEventListener(ev, fn);
     this.listeners = [];
     for (const v of Object.values(this.loops)) v?.stop(0.4);
@@ -760,6 +774,8 @@ export class Night {
     for (const e of sim.drainEvents()) this.handle(e);
 
     this.updateVisuals(dt);
+    this.updateVivi(dt);
+    this.updateFear(dt);
     this.updateAudio(dt);
     this.updateRadio(dt);
     this.updateHud(dt);
@@ -1344,8 +1360,6 @@ export class Night {
     const reduce = this.d.options.reduceFlash;
     this.js = { killer, t: 0, yaw, scream: this.d.sfx.jumpscare(killer) };
     this.d.stage.view.shake = reduce ? 0.6 : 3.2;
-    this.loops.heart?.stop(0.1);
-    this.loops.heart = null;
   }
 
   // ───────────────────────── grafica ─────────────────────────
@@ -1701,6 +1715,122 @@ export class Night {
     return (-50 + (100 * (volts - 10)) / 5) * D2R;
   }
 
+  /** Il cuore, il respiro e la tensione (paura.ts), e i falsi allarmi. */
+  private updateFear(dt: number): void {
+    const sim = this.sim;
+    const quiet = !!this.js || !!this.cine || this.finished;
+    const danger = this.dangerNow();
+    this.calm = danger > 0.05 ? 0 : this.calm + dt;
+    this.updateFalseAlarms(dt, quiet);
+    // trattieni il fiato quando devi stare immobile: la Madre che passa sotto, Hatch che cerca
+    const hold = sim.mother?.state === 'passing' || sim.hatch.state === 'searching';
+    this.paura.update(dt, Math.min(1, Math.max(danger, this.falso.boost)), { hold, hidden: sim.hide !== 'out', quiet });
+  }
+
+  /**
+   * Il pericolo di adesso (0..1) dagli stati dei mostri: quanto batte il cuore, quanto è corto il respiro, quanta
+   * tensione nella musica. Al massimo (sopra PEAK) la musica tace: la Madre che passa, Hatch che cerca, il Foxy che
+   * corre verso la barca. Numeri da approvare.
+   */
+  private dangerNow(): number {
+    const s = this.sim;
+    let d = 0;
+    const up = (x: number) => {
+      if (x > d) d = x;
+    };
+    const g = s.gulpy;
+    if (g.state === 'rising') up(0.25);
+    else if (g.state === 'climbing') up(0.4);
+    else if (g.state === 'demanding') up(0.55 + 0.35 * g.phase);
+    const mo = s.molly;
+    if (mo.state === 'knocking') up(0.35);
+    else if (mo.state === 'peeking') up(0.45 + 0.4 * mo.rocking);
+    else if (mo.state === 'tantrum') up(0.8 + 0.12 * mo.rocking);
+    const h = s.hatch;
+    // se sei già sotto il telone mentre conta, un po' meno
+    if (h.state === 'counting') up((0.45 + 0.45 * h.countProgress) * (s.hide === 'out' ? 1 : 0.8));
+    else if (h.state === 'boarding') up(0.9);
+    else if (h.state === 'searching') up(0.95);
+    else if (h.state === 'leaving') up(0.3);
+    const r = s.robin;
+    if (r?.state === 'climbing') up(0.35);
+    else if (r?.state === 'stealing') up(s.fish <= 1 ? 0.75 : 0.55);
+    const a = s.archie;
+    if (a?.state === 'rising') up(0.3);
+    else if (a?.state === 'inhaling') up(0.55);
+    else if (a?.state === 'waiting') up(0.65);
+    else if (a?.state === 'blowing') up(0.9);
+    const l = s.lampy;
+    if (l?.state === 'ringing') up(0.45);
+    else if (l?.state === 'surfacing') up(0.6);
+    else if (l?.state === 'staring') up(0.75);
+    else if (l?.state === 'climbing') up(0.9);
+    const f = s.fangy;
+    if (f?.state === 'approaching') up(0.4);
+    else if (f?.state === 'rising') up(0.55);
+    else if (f?.state === 'listening') up(0.72 + 0.08 * f.heard);
+    const m = s.mother;
+    if (m?.state === 'approaching') up(0.7);
+    else if (m?.state === 'passing') up(1);
+    else if (m?.state === 'leaving') up(0.4);
+    const fx = s.foxy;
+    if (fx?.state === 'leaning') up(0.3);
+    else if (fx?.state === 'gone') up(0.96);
+    // a batteria morta, mentre la ninna nanna va avanti
+    if (s.blackout) up(0.5 + 0.4 * (1 - s.lullaby / (s.cfg.battery?.lullaby ?? 60)));
+    return d;
+  }
+
+  /**
+   * I falsi allarmi (più paura, idea approvata il 12 ottobre; da approvare i dettagli): rari e innocui, solo quando
+   * è tutto calmo da almeno 20 s. I colpi sullo scafo di Molly, da un lato, senza nessuno; o un tonfo in acqua
+   * dietro di te. Il cuore sussulta (il pericolo sale per un momento e torna giù piano).
+   */
+  private updateFalseAlarms(dt: number, quiet: boolean): void {
+    const f = this.falso;
+    f.boost = Math.max(0, f.boost - dt * 0.1);
+    if (quiet || f.left <= 0 || this.sim.time < f.next) return;
+    if (this.calm < 20 || this.sim.hide !== 'out' || this.sonarOpen || this.bino > 0.1) {
+      f.next = this.sim.time + 6;
+      return;
+    }
+    const cap = (t: string) => this.d.options.captions && this.hud.caption(t);
+    if (Math.random() < 0.6) {
+      const right = Math.random() < 0.5;
+      this.d.sfx.knock(dirPos(right ? YAW.mollyRight : YAW.mollyLeft, 1.4, -30));
+      cap(this.S.captions.knock);
+    } else {
+      this.d.audio.play('splash_small', { pos: dirPos(180 + (Math.random() * 80 - 40), 7, -6), gain: 0.9 });
+      cap(this.S.captions.falseSplash);
+    }
+    f.boost = 0.45;
+    f.left--;
+    f.next = this.sim.time + HOUR_SECONDS * (1.2 + 1.3 * Math.random());
+  }
+
+  /** Le creature vive: quanto è fuori ognuna, se la stai guardando, lo scatto e le gocce (vivi.ts). */
+  private updateVivi(dt: number): void {
+    const v = this.v;
+    const presence: Record<string, number> = {
+      gulpy: Math.max(v.gSale > 0.002 ? v.gSale * ease(v.gRise) : 0, v.gPret),
+      mollyR: v.mR,
+      mollyL: v.mL,
+      hatch: ease(v.hRise),
+      robin: v.robin,
+      archie: ease(v.aRise),
+      lampy: ease(v.lRise),
+      fangy: ease(v.fRise),
+      madre: ease(v.mdRise),
+    };
+    const view = this.d.stage.view;
+    const looked = (id: string) => {
+      const y = this.viviYaw[id];
+      return y !== undefined && Math.abs(angleDiff(view.yaw, y)) < 18 && this.sim.hide === 'out' && this.bino < 0.5;
+    };
+    const at = (id: string, dist: number) => dirPos(this.viviYaw[id] ?? 0, dist, -12);
+    this.vivi.update(dt, presence, looked, !!this.js || !!this.cine || this.finished, (id) => this.d.sfx.twitch(at(id, 2.6)), (id) => this.d.sfx.drip(at(id, 2.4), 0.35 + 0.3 * Math.random()));
+  }
+
   private layerDraws(): (string | LayerDraw)[] {
     const v = this.v;
     const man = this.d.stage.man;
@@ -1813,6 +1943,16 @@ export class Night {
     const n = sim.fish;
     if (n > 0 && !this.cineEmptyBucket) layers.push(n <= 3 ? 'fish2' : n <= 6 ? 'fish5' : 'fish9');
     layers.push(...aboard);
+    // le creature vive: ogni posa e le sue toppe prendono il respiro e lo scatto della creatura
+    const pano = man.pano;
+    for (const d of layers) {
+      if (typeof d === 'string') continue;
+      const id = VIVO_DI[d.key];
+      const base = id ? this.baseOf(d.key) : undefined;
+      if (!id || !base) continue;
+      d.warp = this.vivi.warp(id, base);
+      this.viviYaw[id] = base.yaw + (((base.rect[0] + base.rect[2]) / 2 / pano.width) - 0.5) * 360;
+    }
     return layers;
   }
 
@@ -2642,26 +2782,7 @@ export class Night {
       const left = sim.lullaby;
       this.lullabyV.setRate(left < 6 ? 0.55 + 0.45 * Math.max(0, left / 6) : 1);
     }
-    // battito del cuore quando qualcosa sta per prenderti
-    let danger = 0;
-    if (sim.gulpy.state === 'demanding') danger = Math.max(danger, 0.4 + 0.6 * sim.gulpy.phase);
-    if (sim.molly.state === 'tantrum') danger = Math.max(danger, 0.6 + 0.4 * (sim.molly.tantrum / sim.cfg.molly.tantrumMax));
-    if (sim.hatch.state === 'counting') danger = Math.max(danger, sim.hatch.countProgress * (sim.hide === 'out' ? 1 : 0.4));
-    if (sim.hatch.state === 'searching') danger = Math.max(danger, 0.7);
-    if (sim.robin?.state === 'stealing') danger = Math.max(danger, sim.fish <= 1 ? 0.8 : 0.45);
-    if (sim.blackout && sim.cfg.battery) danger = Math.max(danger, 0.3 + 0.6 * (1 - sim.lullaby / sim.cfg.battery.lullaby));
-    if (sim.fangy?.listening) danger = Math.max(danger, 0.45 + 0.25 * sim.fangy.heard);
-    if (this.js || this.finished) danger = 0;
-    this.heart = approach(this.heart, danger, 2, dt);
-    if (this.heart > 0.05 && !this.loops.heart) this.loops.heart = a.play('heartbeat', { loop: true, gain: 0 });
-    if (this.loops.heart) {
-      this.loops.heart.setGain(this.heart * 0.8, 0.1);
-      this.loops.heart.setRate(0.9 + this.heart * 0.5);
-      if (this.heart < 0.02) {
-        this.loops.heart.stop(0.3);
-        this.loops.heart = null;
-      }
-    }
+    // il battito del cuore ora è in paura.ts (updateFear), col respiro e la tensione
   }
 
   /** La chiamata alla radio dell'inizio della notte, con i sottotitoli. */

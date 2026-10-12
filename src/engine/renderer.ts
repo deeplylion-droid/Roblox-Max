@@ -39,6 +39,11 @@ export interface LayerDraw {
   tint?: Vec3;
   /** fino a due toppe che entrano sopra questo strato (chiave, quanto): dove sono vuote questo strato sfuma */
   masks?: { key: string; k: number }[];
+  /** la creatura viva (il respiro, lo scatto quando la guardi): lo strato si allunga in alto (scale, metà in largo)
+   *  attorno a un punto alla base (anchor, pixel del panorama dello strato, prima dello spostamento shift), e la testa
+   *  ruota (rot, radianti) attorno al collo (neck: la riga del collo, band: quanto sfuma). Le toppe di una creatura
+   *  prendono lo stesso warp della posa */
+  warp?: { anchor: [number, number]; scale: number; rot: number; neck: number; band: number };
 }
 
 /** Polilinea 3D (spazio barca) disegnata come nastro sottile: la lenza, i cerchi sull'acqua. */
@@ -337,6 +342,8 @@ export class Renderer {
         .f1('uAlpha', key === 'world' ? 0 : 1)
         .f1('uOpacity', d.opacity ?? 1)
         .f2('uShift', d.shift?.[0] ?? 0, d.shift?.[1] ?? 0)
+        .f4('uWarp', d.warp?.anchor[0] ?? 0, d.warp?.anchor[1] ?? 0, d.warp?.scale ?? 1, d.warp?.rot ?? 0)
+        .f2('uNeck', d.warp?.neck ?? 0, d.warp?.band ?? 1)
         .f1('uClipY', d.clipY ?? 0)
         .f3('uPeloX', d.pelo?.x0 ?? 0, d.pelo?.x1 ?? 1, d.pelo ? Math.min(PELO_N, d.pelo.rows.length) : 0)
         .f1('uPart', d.part === 'back' ? 1 : d.part === 'front' ? 2 : 0)
