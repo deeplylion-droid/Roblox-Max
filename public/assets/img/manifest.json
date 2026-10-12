@@ -1488,7 +1488,7 @@
     "lamp": {
      "file": "gulpy_mascella_aperta_lamp.webp",
      "res": 1.0,
-     "scale": 0.28
+     "scale": 0.29
     },
     "lantern": {
      "file": "gulpy_mascella_aperta_lantern.webp",
@@ -1502,6 +1502,25 @@
     4194,
     963
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "gulpy_mascella_aperta_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "gulpy_mascella_aperta_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.28
+     },
+     "lantern": {
+      "file": "gulpy_mascella_aperta_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
    "space": "boat",
    "yaw": -25.5929
   },
@@ -1516,7 +1535,7 @@
     "lamp": {
      "file": "gulpy_mascella_chiusa_lamp.webp",
      "res": 1.0,
-     "scale": 0.34
+     "scale": 0.35000000000000003
     },
     "lantern": {
      "file": "gulpy_mascella_chiusa_lantern.webp",
@@ -1530,6 +1549,25 @@
     4195,
     1034
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "gulpy_mascella_chiusa_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "gulpy_mascella_chiusa_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.34
+     },
+     "lantern": {
+      "file": "gulpy_mascella_chiusa_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
    "space": "boat",
    "yaw": -25.5929
   },
@@ -1555,7 +1593,7 @@
     "lamp": {
      "file": "gulpy_pretende_lamp.webp",
      "res": 1.0,
-     "scale": 0.38
+     "scale": 0.39
     },
     "lantern": {
      "file": "gulpy_pretende_lantern.webp",
@@ -1569,6 +1607,25 @@
     4659,
     1325
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "gulpy_pretende_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "gulpy_pretende_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.38
+     },
+     "lantern": {
+      "file": "gulpy_pretende_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
    "space": "boat",
    "yaw": -25.5929
   },
@@ -1642,6 +1699,25 @@
     4212,
     1190
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "gulpy_sale_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "gulpy_sale_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "gulpy_sale_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
    "space": "world",
    "yaw": -16.2347
   },
