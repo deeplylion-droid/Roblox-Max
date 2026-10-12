@@ -16,6 +16,7 @@ e 'occhio' (gradi) fa dondolare l'occhio che penzola.
 Coordinate: i piedi a z = 0, la faccia guarda −Y.
 
 Uso (vetrina): tools/.venv/bin/python tools/render/animatore.py [--fast] [--tavola]
+     (tavola dei fotogrammi del jumpscare, dagli js_foxy_* del gioco: animatore.py --js-tavola)
 """
 from __future__ import annotations
 
@@ -43,6 +44,7 @@ BASE = dict(FX.VARIANTS['B'])
 BASE.update(
     bony=True, hand_k=1.25, hand_spread=0.95, curl=0.22, hand_res=0.0018,
     neck_end=-0.15,
+    macera=2.2, labbra_gonfie=True,
 )
 
 POSE = {
@@ -60,10 +62,34 @@ POSE = {
 EYE_HANG = V(0.05, -0.06, -0.36)
 
 
+def face_point(P):
+    """Dove sta la faccia dell'uomo (come in foxy_concept.build), per mettere le mani attorno a lei."""
+    hfr = FX.Fr(V(*P['head_c']), FX.rot(P['head_yaw'], P['head_pitch'], P['head_roll']))
+    mfr = FX.Fr(hfr.pt(P['man_off']), hfr.R @ FX.rot(*P['man_rot']))
+    return mfr.pt((0, -0.10, 0.0))
+
+
+# l'abbraccio del jumpscare: le mani ai lati della faccia, appena davanti a lei e un po' sotto, con le dita che si
+# chiudono verso le guance (davanti di più finirebbero sull'obiettivo: la faccia arriva a mezzo metro dalla camera).
+# Per ogni lato: polso rispetto alla faccia, gomito rispetto al polso, verso delle dita (x verso l'esterno del lato)
+ABBRACCIO = {'polso': (0.36, -0.06, -0.14), 'gomito': (0.24, 0.30, -0.10), 'dita': (-0.85, -0.30, 0.35)}
+
+
 def params(posa='riposo', occhio=0.0):
     """I parametri della posa; occhio: di quanti gradi dondola l'occhio che penzola (avanti +, indietro −)."""
     P = dict(BASE)
     P.update(POSE[posa])
+    if posa == 'abbraccio':
+        f = face_point(P)
+        A = ABBRACCIO
+        for s, key in ((1, 'armR'), (-1, 'armL')):
+            sx = V(s, 1, 1)
+            wrist = f + V(*A['polso']) * sx
+            elbow = wrist + V(*A['gomito']) * sx
+            d = (wrist - elbow) / np.linalg.norm(wrist - elbow)
+            P[key] = (tuple(map(float, elbow)), tuple(map(float, wrist - d * 0.17)))
+        P['hand_dir'] = {s: tuple(map(float, V(*A['dita']) * V(s, 1, 1))) for s in (1, -1)}
+        P['hand_up'] = {s: (0.0, 0.3, 1.0) for s in (1, -1)}
     R = sdf.rot_matrix('x', -occhio) @ sdf.rot_matrix('y', occhio * 0.35)
     P['eye_hang'] = tuple(map(float, R @ EYE_HANG))
     P['eye_look'] = tuple(map(float, R @ V(-0.3, -0.5, -0.8)))
@@ -129,7 +155,34 @@ def tavola():
     print('tavola', path, flush=True)
 
 
+def tavola_jumpscare(tile=(480, 270), exposure=0.0):
+    """I fotogrammi finali del jumpscare in una tavola 4×2, come le altre di docs/concept/jumpscare: decodificati dalle
+    immagini del gioco con la loro scala (overlays.json → jumpscares.foxy) e tonemappati come il motore.
+    → docs/concept/jumpscare/js_foxy_finale_fotogrammi.jpg"""
+    import json
+    import post
+    from common import OUT_IMG
+    js = json.load(open(os.path.join(OUT_IMG, 'overlays.json')))['jumpscares']['foxy']
+    W, H = tile
+    gap = 8
+    sheet = Image.new('RGB', (4 * W + 5 * gap, 2 * H + 3 * gap), (14, 14, 16))
+    d = ImageDraw.Draw(sheet)
+    font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 16)
+    for i, fr in enumerate(js['frames']):
+        lin, _ = post.decode_light_pass(os.path.join(OUT_IMG, fr['file']), fr['scale'])
+        im = Image.fromarray((np.clip(post.tonemap(lin, exposure), 0, 1) * 255 + 0.5).astype(np.uint8), 'RGB').resize((W, H), Image.LANCZOS)
+        x, y = gap + (i % 4) * (W + gap), gap + (i // 4) * (H + gap)
+        sheet.paste(im, (x, y))
+        d.text((x + 8, y + 6), str(i), fill=(220, 220, 220), font=font)
+    dst = os.path.join(ROOT, 'docs', 'concept', 'jumpscare', 'js_foxy_finale_fotogrammi.jpg')
+    sheet.save(dst, quality=92)
+    print('tavola', dst, flush=True)
+
+
 if __name__ == '__main__':
+    if '--js-tavola' in sys.argv:
+        tavola_jumpscare()
+        sys.exit(0)
     if '--tavola' not in sys.argv:
         render_shots()
     tavola()

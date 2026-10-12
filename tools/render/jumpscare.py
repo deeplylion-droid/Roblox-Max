@@ -270,6 +270,17 @@ def foxy_attack():
     strip = next(o for o in obs if o.name.startswith('EyeStrip'))
     top = max((strip.matrix_world @ v.co for v in strip.data.vertices), key=lambda v: v.z)
     local = {o.name: (o.matrix_world.copy(), [v.co.copy() for v in o.data.vertices]) for o in swing}
+    # le mani (nei fotogrammi finali si alzano e si chiudono verso la camera): ogni avambraccio ruota attorno al punto
+    # più indietro, dove esce dalla manica, così resta attaccato
+    mani = [o for o in obs if o.type == 'MESH' and o.name.startswith(('ManHands', 'ManNails'))]
+    mani_l = {o.name: (o.matrix_world.copy(), [v.co.copy() for v in o.data.vertices]) for o in mani}
+    perno = {}
+    for o in mani:
+        if o.name.startswith('ManHands'):
+            Mw = o.matrix_world
+            for sd in (1, -1):
+                vs = [Mw @ v.co for v in o.data.vertices if sd * (Mw @ v.co).x > 0.1]
+                perno[sd] = max(vs, key=lambda v: v.y) if vs else Vector((0.4 * sd, -0.7, 1.0))
     # la luce calda dalla parte della lanterna, solo sulla faccia dell'uomo (gli occhi lattiginosi e i denti bagnati
     # brillano, il costume resta scuro): si muove con lui, quindi lo illumina uguale in ogni fotogramma
     faccia = [o for o in obs if o.type == 'MESH' and o.name.startswith(('ManHead', 'ManEye', 'ManTeeth', 'ManDrool', 'ManHair'))]
@@ -294,7 +305,21 @@ def foxy_attack():
     for o in obs:
         o.matrix_world = M0 @ o.matrix_world
 
+    def mani_su(i):
+        k = J['mani'][i]
+        for o in mani:
+            Mw, cos = mani_l[o.name]
+            Minv = Mw.inverted()
+            for v, c in zip(o.data.vertices, cos):
+                w = Mw @ c
+                sd = 1 if w.x > 0 else -1
+                p = perno[sd]
+                Rw = Matrix.Rotation(math.radians(-J['mani_su'] * k), 4, 'X') @ Matrix.Rotation(math.radians(-sd * J['mani_dentro'] * k), 4, 'Z')
+                v.co = Minv @ (p + (Rw @ (w - p).to_4d()).to_3d())
+            o.data.update()
+
     def dondola(i):
+        mani_su(i)
         side, fwd = J['occhio_lato'][i], J['occhio_avanti'][i]
         Rw = Matrix.Translation(top) @ (Matrix.Rotation(math.radians(-fwd), 4, 'X') @ Matrix.Rotation(math.radians(-side), 4, 'Y')) \
             @ Matrix.Translation(-top)
@@ -316,7 +341,14 @@ def foxy_attack():
 FOXY_JS = {'yaw': 45.0, 'parte': 2.25, 'z': -1.05, 'mira_dist': 2.6, 'mira_z': 0.95,
            'sale': 0.80, 'avanza': 0.20, 'dist': 0.46, 'indietro': -14.0, 'parte_da': 0.06, 'meta': 0.42, 'luce': 6.0,
            'occhio_lato': [25.0, 32.0, 40.0, 46.0, 52.0, 44.0, 30.0, 22.0],
-           'occhio_avanti': [0.0, -6.0, -12.0, -8.0, 4.0, 10.0, 6.0, -4.0]}
+           'occhio_avanti': [0.0, -6.0, -12.0, -8.0, 4.0, 10.0, 6.0, -4.0],
+           # le mani attorno alla faccia (posa 'abbraccio' di animatore.py) salgono dal basso negli ultimi fotogrammi
+           # ed entrano dagli angoli in basso: la rotazione di ogni fotogramma (moltiplicatore) di mani_su gradi (in su,
+           # qui in giù) e mani_dentro (verso il centro, qui appena in fuori); scelte proiettando le mani nel quadro
+           # finale (fuori dalla faccia)
+           'mani': [2.0, 2.0, 2.0, 2.0, 2.0, 1.8, 1.4, 1.0], 'mani_su': -20.0, 'mani_dentro': -4.0}
+if os.environ.get('FOXY_MANI'):          # prove: FOXY_MANI=su,dentro
+    FOXY_JS['mani_su'], FOXY_JS['mani_dentro'] = map(float, os.environ['FOXY_MANI'].split(','))
 
 ATTACKS = {'gulpy': gulpy_attack, 'molly': molly_attack, 'hatch': hatch_attack, 'robin': robin_attack,
            'archie': archie_attack, 'lampy': lampy_attack, 'fangy': fangy_attack, 'foxy': foxy_attack}
@@ -398,10 +430,11 @@ def run(q, who, post_mod, overlays_path, build_scene, coll_objects, renderable):
     # la grana del nastro sopra; col denoise 64 bastano e il render dura la metà)
     if os.environ.get('JS_SAMPLES'):
         samples = int(os.environ['JS_SAMPLES'])
-    out_dir = os.path.join(CACHE, q.name, 'jumpscare')
+    # JS_TAG: una cartella a parte (più prove insieme)
+    out_dir = os.path.join(CACHE, q.name, 'jumpscare' + os.environ.get('JS_TAG', ''))
     os.makedirs(out_dir, exist_ok=True)
     # JS_ANTEPRIMA=1: i fotogrammi restano in cache (da approvare), senza toccare il gioco
-    anteprima = bool(os.environ.get('JS_ANTEPRIMA'))
+    anteprima = bool(os.environ.get('JS_ANTEPRIMA')) or bool(os.environ.get('JS_FOTOGRAMMI'))
     out_img = os.path.join(out_dir, 'anteprima') if anteprima else OUT_IMG
     os.makedirs(out_img, exist_ok=True)
 
@@ -410,7 +443,9 @@ def run(q, who, post_mod, overlays_path, build_scene, coll_objects, renderable):
         o.hide_render = True
     bg_exr = os.path.join(out_dir, f'{who}_bg.exr')
     t = time.time()
-    render(bg_exr, samples, (W, H), data_passes=())
+    # JS_RIUSA_SFONDO=1: lo sfondo già reso si riusa (cambia solo la creatura)
+    if not (os.environ.get('JS_RIUSA_SFONDO') and os.path.exists(bg_exr)):
+        render(bg_exr, samples, (W, H), data_passes=())
     log(f'jumpscare {who} sfondo', round(time.time() - t), 's')
     for o in meshes:
         o.hide_render = False
@@ -421,13 +456,21 @@ def run(q, who, post_mod, overlays_path, build_scene, coll_objects, renderable):
     scene_objs = renderable(coll_objects('boat')) + renderable(coll_objects('env'))
     keep = set(o.name for o in meshes)
     for o in scene_objs:
-        # (la nebbia dell'atmosfera resta com'è: un volume in holdout bucherebbe la creatura)
-        if o.name not in keep and o.visible_camera and o.name != 'Nebbia':
+        if o.name == 'Nebbia':
+            # la nebbia dell'atmosfera è già nello sfondo: davanti a una creatura a mezzo metro non conta, e nei
+            # fotogrammi costerebbe il triplo (in holdout, poi, bucherebbe la creatura)
+            o.hide_render = True
+            continue
+        if o.name not in keep and o.visible_camera:
             o.is_holdout = True
     bg = post_mod.read_exr(bg_exr)
     bg_lin = sum(bg[g][..., :3] for g in ('ambient', 'lamp', 'lantern') if g in bg)
     frames = []
+    # JS_FOTOGRAMMI=7 (o 6,7): solo quei fotogrammi, per le prove (implica l'anteprima)
+    solo = [int(x) for x in os.environ.get('JS_FOTOGRAMMI', '').split(',') if x]
     for i in range(FRAMES):
+        if solo and i not in solo:
+            continue
         if who in SPIN:
             SPIN[who](i)
         if who in PATH:
