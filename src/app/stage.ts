@@ -39,11 +39,12 @@ const GLOWS: GlowDef[] = [
   // le luci attorno a Soggy (render della sessione del Foxy, tools/render/foxy_binocolo.py; da approvare): il lampione
   // alla base degli scivoli, che ogni tanto perde un colpo; le due lampadine che pendono dal tetto della torre vicino a
   // lui, che si spengono e si riaccendono ognuna per conto suo; la lanterna del relitto, che trema come una fiamma.
-  // Il lampione e la lanterna dalle posizioni della scena, le lampadine dalle viste (conta solo la direzione)
-  { key: 'soggyLamp', pos: [-95.79, -426.21, 5.95], color: [0.9, 1.0, 0.75], radius: 0.004, anim: (t) => (Math.sin(t * 0.7) * Math.sin(t * 2.9) > 0.9 ? 0.12 : 0.7), bino: true },
-  { key: 'soggyBulb1', pos: [-99.13, -427.85, 26.87], color: [1.0, 0.85, 0.6], radius: 0.003, anim: (t) => (Math.sin(t * 5.3) * Math.sin(t * 1.3) > 0.55 ? 0.03 : 0.45), bino: true },
-  { key: 'soggyBulb2', pos: [-101.59, -427.27, 26.87], color: [1.0, 0.85, 0.6], radius: 0.003, anim: (t) => (Math.sin(t * 3.1 + 2) * Math.sin(t * 0.9) > 0.6 ? 0.03 : 0.45), bino: true },
-  { key: 'soggyLantern', pos: [40.71, 162.8, 2.59], color: [1.0, 0.85, 0.6], radius: 0.004, anim: (t) => 0.55 + 0.2 * Math.sin(t * 11) * Math.sin(t * 6.7), bino: true },
+  // Posizioni e colori dalla scena (cache/foxy/bino_def/luci_posti.json): nel render le lampadine sono fisse, lo
+  // sfarfallio è solo del motore
+  { key: 'soggyLamp', pos: [-95.79, -426.21, 5.95], color: [1.0, 0.86, 0.45], radius: 0.004, anim: (t) => (Math.sin(t * 0.7) * Math.sin(t * 2.9) > 0.9 ? 0.12 : 0.7), bino: true },
+  { key: 'soggyBulb1', pos: [-101.92, -439.71, 27.6], color: [1.0, 0.8, 0.45], radius: 0.003, anim: (t) => (Math.sin(t * 5.3) * Math.sin(t * 1.3) > 0.55 ? 0.03 : 0.45), bino: true },
+  { key: 'soggyBulb2', pos: [-104.45, -439.11, 27.6], color: [1.0, 0.8, 0.45], radius: 0.003, anim: (t) => (Math.sin(t * 3.1 + 2) * Math.sin(t * 0.9) > 0.6 ? 0.03 : 0.45), bino: true },
+  { key: 'soggyLantern', pos: [40.71, 162.8, 2.59], color: [1.0, 0.62, 0.3], radius: 0.004, anim: (t) => 0.55 + 0.2 * Math.sin(t * 11) * Math.sin(t * 6.7), bino: true },
 ];
 
 export class Stage {
