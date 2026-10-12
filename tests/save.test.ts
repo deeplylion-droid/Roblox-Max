@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { afterDive, defaultOptions, fedFor, newGame, pendingDawn, skipDawn, wonNight, type SaveData } from '../src/app/save.ts';
+import { afterDive, chooseEnding, defaultOptions, fedFor, newGame, pendingDawn, skipDawn, wonNight, type SaveData } from '../src/app/save.ts';
+import type { MonsterId } from '../src/game/config.ts';
 import { extraLevels } from '../src/game/config.ts';
 
 function save(): SaveData {
-  return { version: 1, lang: 'it', night: 1, extra: extraLevels(5), lore: [], catalog: {}, options: defaultOptions(), dawn: null, fed: null, dens: [] };
+  return { version: 1, lang: 'it', night: 1, extra: extraLevels(5), lore: [], catalog: {}, options: defaultOptions(), dawn: null, fed: null, dens: [], dawns: {} };
 }
 
 describe('Salvataggio: le immersioni all’alba', () => {
@@ -58,5 +59,79 @@ describe('Salvataggio: le immersioni all’alba', () => {
     expect(pendingDawn(d, 4)).toBeNull();
     skipDawn(d);
     expect(pendingDawn(d, 3)).toBeNull();
+  });
+});
+
+/** Gioca le notti 1..5 e a ogni alba scende (lasciando il pesce a `who`, o a nessuno) oppure no. */
+function play(d: SaveData, dawns: ('fed' | 'dove' | 'skip')[]): void {
+  const who: MonsterId[] = ['gulpy', 'molly', 'hatch', 'robin', 'archie'];
+  dawns.forEach((a, i) => {
+    const n = i + 1;
+    wonNight(d, n, a === 'fed' ? 1 : 0);
+    if (a === 'skip') skipDawn(d);
+    else afterDive(d, n + 1, { fed: a === 'fed' ? who[i]! : null, dens: [who[i]!] });
+  });
+}
+
+describe('Il finale della sesta notte', () => {
+  it('«I tuoi»: un pesce lasciato a ogni alba, dalla prima alla quinta', () => {
+    const d = save();
+    play(d, ['fed', 'fed', 'fed', 'fed', 'fed']);
+    expect(chooseEnding(d)).toBe('tuoi');
+  });
+
+  it('un’alba sola senza pesce (sceso o no) e «I tuoi» non c’è più', () => {
+    const a = save();
+    play(a, ['fed', 'fed', 'dove', 'fed', 'fed']);
+    expect(chooseEnding(a)).toBe('A');
+    const b = save();
+    play(b, ['fed', 'fed', 'fed', 'fed', 'skip']);
+    expect(chooseEnding(b)).toBe('A');
+    // la quinta alba non giocata del tutto (manca nel salvataggio)
+    const c = save();
+    play(c, ['fed', 'fed', 'fed', 'fed']);
+    expect(chooseEnding(c)).toBe('A');
+  });
+
+  it('«Nessuno»: sceso almeno tre volte, mai un pesce', () => {
+    const d = save();
+    play(d, ['dove', 'skip', 'dove', 'skip', 'dove']);
+    expect(chooseEnding(d)).toBe('nessuno');
+    const e = save();
+    play(e, ['dove', 'dove', 'dove', 'dove', 'dove']);
+    expect(chooseEnding(e)).toBe('nessuno');
+  });
+
+  it('sceso due volte sole, o un pesce lasciato anche una volta: il finale A', () => {
+    const d = save();
+    play(d, ['dove', 'skip', 'dove', 'skip', 'skip']);
+    expect(chooseEnding(d)).toBe('A');
+    const e = save();
+    play(e, ['dove', 'dove', 'fed', 'dove', 'dove']);
+    expect(chooseEnding(e)).toBe('A');
+  });
+
+  it('mai sceso: il finale A', () => {
+    const d = save();
+    play(d, ['skip', 'skip', 'skip', 'skip', 'skip']);
+    expect(chooseEnding(d)).toBe('A');
+    expect(chooseEnding(save())).toBe('A');
+  });
+
+  it('rigiocare una notte riscrive la sua alba', () => {
+    const d = save();
+    play(d, ['fed', 'fed', 'dove', 'fed', 'fed']);
+    // si torna alla terza notte, la si rivince e stavolta il pesce lo si lascia
+    wonNight(d, 3, 2);
+    afterDive(d, 4, { fed: 'robin', dens: ['robin'] });
+    expect(chooseEnding(d)).toBe('tuoi');
+  });
+
+  it('«Nuova partita» dimentica le albe', () => {
+    const d = save();
+    play(d, ['fed', 'fed', 'fed', 'fed', 'fed']);
+    newGame(d);
+    expect(d.dawns).toEqual({});
+    expect(chooseEnding(d)).toBe('A');
   });
 });

@@ -17,7 +17,11 @@ import { LORE_TEXT, RADIO, RADIO_FINALE, STRINGS, type Lang, type RadioLine } fr
 import { Hud } from './hud.ts';
 import type { Options } from './save.ts';
 import type { Sfx } from './sfx.ts';
-import { FINALE_A, between, sample, textAt, type CinematicScript } from './cinematic.ts';
+import { FINALE_A, FINALE_NESSUNO, FINALE_TUOI, between, sample, stillFrame, textAt, type CinematicScript, type EndingStill } from './cinematic.ts';
+import type { Ending } from './save.ts';
+
+/** Le cinematiche dei tre finali della notte 6. */
+const ENDING_CINE: Record<Ending, CinematicScript> = { A: FINALE_A, tuoi: FINALE_TUOI, nessuno: FINALE_NESSUNO };
 import { Sonar } from './sonar.ts';
 import { Rod } from './rod.ts';
 import { ROD_COLORS } from './rod_colori.ts';
@@ -38,6 +42,8 @@ export interface NightAssets {
   /** i luoghi dell'orizzonte per il binocolo, e dove sta la luce rossa della videocamera */
   /** i posti del binocolo; foxy: le viste dello stesso posto col Foxy fermo e più vicino (se ci sono i render) */
   binocular: { places: { key: string; yaw: number; pitch: number; hfov: number; place: BinoPlace; foxy?: BinoPlace[] }[]; rec: Vec3 | null };
+  /** le ultime inquadrature dei finali segreti (il molo, l'edicola), se ci sono i render */
+  endings: Partial<Record<EndingStill, OverlayTex & { aspect: number; exposure: number }>>;
 }
 
 export interface NightStats {
@@ -51,7 +57,7 @@ export interface NightStats {
 }
 
 export type NightEnd =
-  | { kind: 'won'; stats: NightStats }
+  | { kind: 'won'; stats: NightStats; /** il finale della sesta notte che si è visto */ ending?: Ending }
   | { kind: 'dead'; killer: MonsterId | 'mother'; cause?: MotherCause; stats: NightStats; /** c'è stato un jumpscare (anche quello della quota) */ js?: boolean };
 
 export interface NightDeps {
@@ -70,6 +76,8 @@ export interface NightDeps {
   config?: NightConfig;
   /** il mostro sfamato all'alba (immersione): stanotte dorme (NightOptions.fed) */
   fed?: MonsterId | null;
+  /** il finale della sesta notte (save.chooseEnding: dipende dai pesci lasciati nelle tane); senza, il finale A */
+  ending?: Ending;
   seed: number;
   onEnd: (r: NightEnd) => void;
   onPause: () => void;
@@ -332,6 +340,8 @@ export class Night {
   private radio: { t: number; next: number; utt: Utterance | null; hiss: Voice | null; lines?: RadioLine[] } | null = null;
   private bells: number[] = [];
   private creakTimer = 9;
+  /** dopo il taglio di un finale su un altro posto: niente più scricchiolii della barca */
+  private quiet = false;
   private lastHourShown = -1;
   private heart = 0;
   private listeners: [EventTarget, string, EventListener][] = [];
@@ -1284,7 +1294,7 @@ export class Night {
         this.lullabyV = null;
         this.motherSong?.stop(3);
         this.motherSong = null;
-        this.endResult = { kind: 'won', stats: this.stats() };
+        this.endResult = { kind: 'won', stats: this.stats(), ...(this.nightNo === 6 ? { ending: this.d.ending ?? 'A' } : {}) };
         this.endTimer = 7;
         a.play('bell_dawn', { pos: dirPos(BELL_YAW, 5, 4), gain: 0.8, lowpass: 3000 });
         this.loops.drone?.stop(3);
@@ -1293,10 +1303,12 @@ export class Night {
         // solo la notte 6: la notte extra, anche con la Madre, ha l'alba normale (o il finale B, per ora un segnaposto
         // nell'App: Screens.extraEnding)
         if (this.nightNo === 6) {
-          // il finale A (notte 6), la cinematica: la Madre sale accanto alla barca, si prende il secchio e torna giù coi
-          // figli; poi sorge il sole e la radio
-          this.startCinematic(FINALE_A);
-          this.endTimer = FINALE_A.length + 0.2;
+          // il finale della notte 6, la cinematica: il finale A (la Madre sale accanto alla barca, si prende il secchio e
+          // torna giù coi figli; poi sorge il sole e la radio) o uno dei due segreti, «I tuoi» e «Nessuno», secondo i
+          // pesci lasciati nelle tane (save.chooseEnding)
+          const cine = ENDING_CINE[this.d.ending ?? 'A'];
+          this.startCinematic(cine);
+          this.endTimer = cine.length + 0.2;
         } else {
           setTimeout(() => a.play('mus_6am', { gain: 0.85 }), 1500);
           this.loops.dawn = a.play('amb_dawn', { loop: true, fadeIn: 4, gain: 0.8 });
@@ -1653,6 +1665,14 @@ export class Night {
       else if (x.e === 'lampOff') st.lampTarget = 0;
       else if (x.e === 'dip') st.lampDip = this.d.options.reduceFlash ? 0.6 : 1;
       else if (x.e === 'radio') this.radio = { t: -0.8, next: 0, utt: null, hiss: null, lines: RADIO_FINALE[this.d.lang] };
+      else if (x.e === 'quiet') {
+        // il taglio su un altro posto: il mare e i rumori della notte si spengono di colpo
+        for (const k of Object.keys(this.loops)) {
+          this.loops[k]?.stop(0.04);
+          this.loops[k] = null;
+        }
+        this.quiet = true;
+      }
     }
     this.hud.cineText(textAt(s, t, this.d.lang));
   }
@@ -2341,6 +2361,16 @@ export class Night {
     const v = this.v;
     const js = this.js;
     const A = this.d.assets;
+    // l'ultima inquadratura di un finale segreto: l'immagine ferma col lento movimento di camera
+    const still = this.cine ? stillFrame(this.cine.s, this.cine.t) : null;
+    const img = still ? A.endings[still.key] : undefined;
+    if (still && img) {
+      // il punto (cx, cy) al centro dello schermo, senza mai uscire dall'immagine
+      const lim = 0.5 - 0.5 / Math.max(1, still.zoom);
+      const ox = Math.max(-lim, Math.min(lim, still.cx - 0.5));
+      const oy = Math.max(-lim, Math.min(lim, 0.5 - still.cy));
+      return { base: img.tex, baseScale: img.scale, wBase: 2 ** img.exposure, aspect: img.aspect, alpha: still.alpha, zoom: still.zoom, offset: [ox, oy] };
+    }
     if (js) {
       const seq = A.jumpscares[js.killer];
       if (seq && seq.frames.length) {
@@ -2623,7 +2653,7 @@ export class Night {
     }
     // scricchiolii (più fitti quando Molly dondola la barca)
     this.creakTimer -= dt * (1 + v.rock * 6);
-    if (this.creakTimer <= 0) {
+    if (this.creakTimer <= 0 && !this.quiet) {
       const k = 1 + Math.floor(Math.random() * 4);
       a.play(`creak_${k}`, { pos: dirPos(Math.random() * 360 - 180, 1.5, -25), gain: 0.35 + v.rock * 0.6 });
       this.creakTimer = 7 + Math.random() * 9;

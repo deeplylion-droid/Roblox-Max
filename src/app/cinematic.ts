@@ -4,7 +4,7 @@
  * della lampara, quanto sono su le creature, la barca che s'inclina, i suoni, le scritte, il buio. Il presentatore della
  * notte (night.ts) la suona al posto dei comandi; Esc la salta.
  */
-import type { Lang } from '../i18n.ts';
+import { STRINGS, type Lang } from '../i18n.ts';
 
 export type Ease = 'lin' | 'smooth' | 'in' | 'out';
 
@@ -16,7 +16,10 @@ export interface Key<T> {
 }
 
 /** Cose che succedono in un istante (oltre ai suoni e alle scritte). */
-export type CineEvent = 'emptyBucket' | 'shake' | 'radio' | 'lampOff' | 'dip';
+export type CineEvent = 'emptyBucket' | 'shake' | 'radio' | 'lampOff' | 'dip' | 'quiet';
+
+/** Le ultime inquadrature dei finali segreti, renderizzate (tools/render/finali.py → overlays.json, endings). */
+export type EndingStill = 'molo' | 'edicola';
 
 export interface CinematicScript {
   /** durata (s): finita, si passa ai risultati */
@@ -38,6 +41,9 @@ export interface CinematicScript {
   /** le scritte, al centro in basso */
   text?: { t: number; dur: number; it: string; en: string }[];
   events?: { t: number; e: CineEvent }[];
+  /** l'ultima inquadratura: un'immagine ferma a tutto schermo da `t`, con la dissolvenza `fade` (0 = taglio netto) e un
+   *  lento movimento di camera: zoom e il punto dell'immagine al centro dello schermo (x, y da in alto a sinistra, 0..1) */
+  still?: { t: number; key: EndingStill; fade: number; move: Key<[number, number, number]>[] };
 }
 
 export type CineCreature = 'gulpy' | 'archie' | 'lampy' | 'fangy' | 'hatch' | 'madre';
@@ -69,6 +75,15 @@ export function sample<T extends number | number[]>(keys: Key<T>[], t: number): 
 /** Le cose da fare fra due istanti (estremo sinistro escluso, destro incluso). */
 export function between<E extends { t: number }>(list: E[] | undefined, t0: number, t1: number): E[] {
   return (list ?? []).filter((x) => x.t > t0 && x.t <= t1);
+}
+
+/** L'ultima inquadratura all'istante t: quanto si vede, lo zoom e il centro (null prima che cominci). */
+export function stillFrame(s: CinematicScript, t: number): { key: EndingStill; alpha: number; zoom: number; cx: number; cy: number } | null {
+  const st = s.still;
+  if (!st || t < st.t) return null;
+  const alpha = st.fade > 0 ? curve((t - st.t) / st.fade, 'smooth') : 1;
+  const [zoom, cx, cy] = sample(st.move, t);
+  return { key: st.key, alpha, zoom, cx, cy };
 }
 
 /** La scritta da mostrare all'istante t (vuota se nessuna). */
@@ -129,5 +144,155 @@ export const FINALE_A: CinematicScript = {
     { t: 8.35, e: 'dip' },
     { t: 8.6, e: 'emptyBucket' },
     { t: 12.6, e: 'radio' },
+  ],
+};
+
+/**
+ * Il finale segreto «I tuoi» (da approvare), sui tempi del suono `finale_tuoi` (18 s): all'alba la Madre sale a sinistra e
+ * canta per richiamare i figli (0-3 s); loro affiorano attorno alla barca ma non la seguono, e lei richiama più forte
+ * (4-6 s); torna giù da sola col suo lamento (6-10 s); i figli restano, poi scendono sotto la barca e la seguono mentre
+ * sorge il sole e si rema verso il porto (10-14 s); la barca tocca il molo (14,6 s) e l'ultima inquadratura è il molo
+ * all'alba con le sette file di impronte che vanno verso il paese, mentre si sentono i passetti (15-18 s).
+ */
+export const FINALE_TUOI: CinematicScript = {
+  length: 21,
+  view: [
+    { t: 0, v: [0, -6, 80] },
+    // lei, a sinistra, che chiama
+    { t: 2.4, v: [-62, -7, 70], ease: 'smooth' },
+    { t: 3.6, v: [-60, -6, 68] },
+    // i figli attorno alla barca: Gulpy e Archie davanti alla prua, Lampy a destra
+    { t: 4.6, v: [-4, -4, 72], ease: 'smooth' },
+    { t: 5.8, v: [30, -5, 74], ease: 'smooth' },
+    // lei che torna giù da sola (dietro di lei, i figli fermi)
+    { t: 7.0, v: [-50, -6, 74], ease: 'smooth' },
+    { t: 9.4, v: [-44, -8, 72] },
+    // l'alba: davanti alla prua, i figli scendono sotto la barca per seguirla
+    { t: 11.0, v: [4, -3, 80], ease: 'smooth' },
+    { t: 14.0, v: [6, 2, 76], ease: 'smooth' },
+  ],
+  dawn: [
+    { t: 0, v: 0.12 },
+    { t: 8.5, v: 0.3, ease: 'in' },
+    { t: 13.2, v: 1, ease: 'smooth' },
+  ],
+  creatures: {
+    madre: [{ t: 0.2, v: 0 }, { t: 2.8, v: 1, ease: 'smooth' }, { t: 6.2, v: 1 }, { t: 9.6, v: 0, ease: 'in' }],
+    gulpy: [{ t: 3.3, v: 0 }, { t: 4.3, v: 1, ease: 'out' }, { t: 10.8, v: 1 }, { t: 12.2, v: 0, ease: 'in' }],
+    archie: [{ t: 3.8, v: 0 }, { t: 4.9, v: 1, ease: 'out' }, { t: 11.0, v: 1 }, { t: 12.4, v: 0, ease: 'in' }],
+    lampy: [{ t: 4.4, v: 0 }, { t: 5.4, v: 1, ease: 'out' }, { t: 11.2, v: 1 }, { t: 12.5, v: 0, ease: 'in' }],
+    fangy: [{ t: 4.9, v: 0 }, { t: 5.9, v: 1, ease: 'out' }, { t: 10.8, v: 1 }, { t: 12.0, v: 0, ease: 'in' }],
+    hatch: [{ t: 5.3, v: 0 }, { t: 6.4, v: 1, ease: 'out' }, { t: 10.9, v: 1 }, { t: 12.1, v: 0, ease: 'in' }],
+  },
+  tilt: [
+    { t: 0, v: [0, 0] },
+    { t: 2.6, v: [-1.4, 0.5], ease: 'smooth' },
+    { t: 6.4, v: [-1.0, 0.3] },
+    { t: 9.6, v: [0.5, -0.2], ease: 'smooth' },
+    { t: 11.4, v: [0, 0], ease: 'smooth' },
+  ],
+  // il viaggio verso il porto passa nel buio di un battito di ciglia: si riapre sul molo quando la barca lo tocca
+  black: [
+    { t: 0, v: 0 },
+    { t: 13.4, v: 0 },
+    { t: 14.3, v: 1, ease: 'in' },
+    { t: 14.6, v: 1 },
+    { t: 15.6, v: 0, ease: 'out' },
+    { t: 20.2, v: 0 },
+    { t: 21, v: 1, ease: 'in' },
+  ],
+  still: {
+    t: 14.6,
+    key: 'molo',
+    fade: 0,
+    // dal molo intero verso le impronte, piano
+    move: [
+      { t: 14.6, v: [1.0, 0.5, 0.5] },
+      { t: 21, v: [1.14, 0.53, 0.6], ease: 'smooth' },
+    ],
+  },
+  sounds: [
+    { t: 0.01, id: 'finale_tuoi' },
+    { t: 10.5, id: 'amb_dawn', loop: true, fadeIn: 3, gain: 0.7 },
+  ],
+  text: [{ t: 16.2, dur: 4.4, it: STRINGS.it.finaleTuoi, en: STRINGS.en.finaleTuoi }],
+};
+
+/**
+ * Il finale segreto «Nessuno» (da approvare), sui tempi del suono `finale_nessuno` (18 s): all'alba la Madre sale
+ * accanto alla barca e si ferma a guardarti, non il secchio (0-3 s); i figli affiorano attorno uno dopo l'altro e
+ * restano fermi a fissarti (3-8 s); la vista scende verso l'acqua e la lampara muore (8-10 s); nel buio la ninna nanna
+ * canticchiata (10-15 s); a 15 s, taglio netto: l'edicola dello scoglio con le foto dei bambini scomparsi e fra loro
+ * la tua, una Polaroid nuova (16,7 s: lo scatto della Polaroid). Dopo il taglio non c'è più il mare.
+ */
+export const FINALE_NESSUNO: CinematicScript = {
+  length: 21.6,
+  view: [
+    { t: 0, v: [0, -6, 80] },
+    // lei sale e ti guarda: l'occhio, da vicino
+    { t: 2.6, v: [-64, -8, 62], ease: 'smooth' },
+    { t: 3.4, v: [-63, -8, 60] },
+    // i figli, uno dopo l'altro, fermi a fissarti: Gulpy, Archie, Lampy, Fangy
+    { t: 4.4, v: [-14, -5, 70], ease: 'smooth' },
+    { t: 5.6, v: [30, -5, 72], ease: 'smooth' },
+    { t: 6.9, v: [104, -14, 76], ease: 'smooth' },
+    // di nuovo lei, che non ha smesso di guardarti
+    { t: 8.0, v: [-60, -10, 62], ease: 'smooth' },
+    // la vista scende verso l'acqua
+    { t: 10.0, v: [-48, -46, 62], ease: 'smooth' },
+    { t: 15.0, v: [-46, -52, 58] },
+  ],
+  dawn: [
+    { t: 0, v: 0.1 },
+    { t: 8, v: 0.22, ease: 'in' },
+  ],
+  lamp: [
+    { t: 0, v: 1.6 },
+    { t: 8.0, v: 1.6 },
+    { t: 8.9, v: 0.7 },
+    { t: 9.5, v: 0 },
+  ],
+  creatures: {
+    madre: [{ t: 0.2, v: 0 }, { t: 2.6, v: 1, ease: 'smooth' }],
+    gulpy: [{ t: 3.1, v: 0 }, { t: 3.8, v: 1, ease: 'out' }],
+    archie: [{ t: 3.8, v: 0 }, { t: 4.5, v: 1, ease: 'out' }],
+    lampy: [{ t: 4.5, v: 0 }, { t: 5.2, v: 1, ease: 'out' }],
+    fangy: [{ t: 5.2, v: 0 }, { t: 5.9, v: 1, ease: 'out' }],
+    hatch: [{ t: 5.9, v: 0 }, { t: 6.6, v: 1, ease: 'out' }],
+  },
+  tilt: [
+    { t: 0, v: [0, 0] },
+    { t: 2.6, v: [-1.2, 0.4], ease: 'smooth' },
+    { t: 8.0, v: [-0.8, 0.3] },
+  ],
+  black: [
+    { t: 0, v: 0 },
+    { t: 9.5, v: 0 },
+    { t: 10.6, v: 0.94, ease: 'in' },
+    { t: 14.97, v: 0.98 },
+    // il taglio netto sull'edicola
+    { t: 15.0, v: 0 },
+    { t: 20.8, v: 0 },
+    { t: 21.6, v: 1, ease: 'in' },
+  ],
+  still: {
+    t: 15.0,
+    key: 'edicola',
+    fade: 0,
+    // verso la Polaroid appesa, piano
+    move: [
+      { t: 15.0, v: [1.0, 0.5, 0.5] },
+      { t: 21.6, v: [1.32, 0.585, 0.5], ease: 'smooth' },
+    ],
+  },
+  sounds: [{ t: 0.01, id: 'finale_nessuno' }],
+  events: [
+    { t: 8.25, e: 'dip' },
+    { t: 8.7, e: 'dip' },
+    { t: 9.5, e: 'lampOff' },
+    { t: 15.0, e: 'quiet' },
+  ],
+  text: [
+    { t: 17.2, dur: 4.0, it: STRINGS.it.finaleNessuno, en: STRINGS.en.finaleNessuno },
   ],
 };

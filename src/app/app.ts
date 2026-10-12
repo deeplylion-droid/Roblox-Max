@@ -8,7 +8,7 @@ import { EXTRA_NIGHT, NIGHTS, extraEndingEarned, extraNight, type MonsterId, typ
 import { STRINGS, type Lang } from '../i18n.ts';
 import { Dive, loadDiveData, type DiveResult } from './dive.ts';
 import { Night, type NightAssets, type NightEnd } from './night.ts';
-import { afterDive, fedFor, newGame, pendingDawn, skipDawn, wonNight, writeSave, type Options, type SaveData } from './save.ts';
+import { afterDive, chooseEnding, fedFor, newGame, pendingDawn, skipDawn, wonNight, writeSave, type Ending, type Options, type SaveData } from './save.ts';
 import { Screens, setUiSound } from './screens.ts';
 import type { Sfx } from './sfx.ts';
 import type { Stage } from './stage.ts';
@@ -26,6 +26,13 @@ const STEAM_URL: string | null = null;
 
 /** Fino a che notte arriva questa build: VITE_ULTIMA_NOTTE=1 per la demo della sola prima notte. */
 const NIGHT_LIMIT = Number(import.meta.env.VITE_ULTIMA_NOTTE) || Infinity;
+
+/** ?finale=tuoi|nessuno|A nell'indirizzo: forza il finale della sesta notte (prove e registrazioni; mai nelle build). */
+const FORCE_ENDING = ((): Ending | null => {
+  if (!import.meta.env.DEV) return null;
+  const f = new URLSearchParams(location.search).get('finale');
+  return f === 'tuoi' || f === 'nessuno' || f === 'A' ? f : null;
+})();
 
 /** ?bozze nell'indirizzo: si possono giocare anche le notti in bozza (prove; mai nelle build). */
 const DRAFTS = import.meta.env.DEV && new URLSearchParams(location.search).has('bozze');
@@ -244,6 +251,8 @@ export class App {
       config: this.nightNo === EXTRA_NIGHT ? this.config(EXTRA_NIGHT) : undefined,
       // il mostro sfamato all'alba dorme stanotte
       fed: fedFor(this.save, this.nightNo),
+      // il finale della sesta notte: dai pesci lasciati nelle tane, alba per alba
+      ending: this.nightNo === 6 ? (FORCE_ENDING ?? chooseEnding(this.save)) : undefined,
       seed: (Date.now() & 0x7fffffff) >>> 0,
       onEnd: (r) => this.endNight(r),
       onPause: () => this.pause(),
@@ -328,7 +337,11 @@ export class App {
         text:
           r.kind === 'won'
             ? this.nightNo === 6
-              ? S.finaleA
+              ? r.ending === 'tuoi'
+                ? S.finaleTuoi
+                : r.ending === 'nessuno'
+                  ? S.finaleNessuno
+                  : S.finaleA
               : S.quotaMet
             : r.cause === 'lullaby'
               ? S.deaths.lullaby
@@ -396,9 +409,11 @@ export class App {
     this.screens.clear();
     this.titleMusic(false);
     const fail = (e: unknown) => {
-      // senza dati o panorami l'immersione non si fa: si va alla notte dopo
+      // senza dati o panorami l'immersione non si fa: si va alla notte dopo (come un'alba senza discesa)
       console.error(e);
-      this.endDive(next, { fed: null, dens: [] });
+      this.diving?.destroy();
+      this.diving = null;
+      this.skipToNight(next);
     };
     loadDiveData()
       .then((data) => {

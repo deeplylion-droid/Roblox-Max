@@ -63,6 +63,22 @@ const IT = {
   quotaMet: 'Quota raggiunta',
   // il finale A della notte 6 (approvato l'11 ottobre): la scritta sotto i risultati
   finaleA: 'Ce l’hai fatta. Per quest’anno.',
+  // i finali segreti della notte 6 (le frasi sono quelle approvate l'11 ottobre in docs/NOTTI_E_MOSTRI.md, «I finali»;
+  // l'inglese è DA APPROVARE): la scritta alla fine della cinematica e sotto i risultati
+  finaleTuoi: 'Non sei tornato da solo.',
+  finaleNessuno: 'Non hai mai dato niente ai suoi piccoli. Adesso sei uno di loro.',
+  // i titoli di coda dopo i finali della notte 6 (DA APPROVARE; i nomi sono un segnaposto)
+  creditsTitle: 'SPLASHLAND IS CLOSED!',
+  credits: [
+    ['Un gioco di', '(nome da inserire)'],
+    ['Storia e mostri', '(nome da inserire)'],
+    ['Programmazione', '(nome da inserire)'],
+    ['Grafica e render', '(nome da inserire)'],
+    ['Suoni e musica', '(nome da inserire)'],
+    ['Si ringraziano', '(nomi da inserire)'],
+  ] as [string, string][],
+  creditsEnd: 'Grazie per aver giocato.',
+  creditsSkip: 'Esc per saltare',
   quotaMissed: 'Quota mancata',
   deathTitle: 'Game over',
   deaths: {
@@ -316,6 +332,19 @@ const EN: typeof IT = {
   survived: 'Night survived',
   quotaMet: 'Quota met',
   finaleA: 'You made it. For this year.',
+  finaleTuoi: "You didn't come back alone.",
+  finaleNessuno: 'You never gave her little ones anything. Now you are one of them.',
+  creditsTitle: 'SPLASHLAND IS CLOSED!',
+  credits: [
+    ['A game by', '(name to come)'],
+    ['Story and monsters', '(name to come)'],
+    ['Programming', '(name to come)'],
+    ['Art and renders', '(name to come)'],
+    ['Sound and music', '(name to come)'],
+    ['Thanks to', '(names to come)'],
+  ] as [string, string][],
+  creditsEnd: 'Thank you for playing.',
+  creditsSkip: 'Esc to skip',
   quotaMissed: 'Quota missed',
   deathTitle: 'Game over',
   deaths: {
