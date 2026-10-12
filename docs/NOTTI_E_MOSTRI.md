@@ -43,8 +43,8 @@ del questionario:
 
 ### Il Foxy nel gioco (logica, notte fra l'11 e il 12 ottobre; branch `claude/foxy-gioco`)
 
-> **Provvisorio finché non arrivano i render** (il modello, le viste del binocolo, il jumpscare) e il nome: per ora nel
-> binocolo si vedono **due occhi rossi** nel suo posto, il jumpscare è un buio con la scossa. **I suoni** (12 ottobre, da
+> **I render sono arrivati** (12 ottobre: il modello, le viste del binocolo di scivoli e relitto, il jumpscare, sotto);
+> dove manca una vista col Foxy restano i **due occhi rossi** nel suo posto. **I suoni** (12 ottobre, da
 > approvare; `docs/AUDIO.md`, «L'animatore») sono i file `foxy_near` (si sporge), `foxy_leave` (lascia il posto e corre
 > verso la barca, finisce sul salto) e `js_foxy` (l'abbraccio); senza i file restano i ripieghi. **Da approvare**: i testi (sotto) e i numeri.
 >
@@ -71,6 +71,13 @@ del questionario:
 > da 2,2 MB a mezzo MB l'una): lui cambia stadio solo quando non lo guardi, quindi le minime differenze della
 > compressione non si vedono. Siccome la nebbia nuova è già nel render, in `overlays.json` questi due posti hanno
 > `fog: 0`: il motore non ci aggiunge la sua (le altre viste la prendono ancora, finché non si rifanno con l'atmosfera).
+>
+> **Il jumpscare definitivo** (12 ottobre, sessione del Foxy, ramo `claude/foxy`, commit 9549a04; tavola
+> `docs/concept/jumpscare/js_foxy_finale_fotogrammi.jpg`): otto fotogrammi a 1920×1080 (`js_foxy_00..07.webp`,
+> `overlays.json` → `jumpscares.foxy`), con le correzioni chieste sull'anteprima: la camera guarda il bordo a prua sulla
+> dritta e lui sale da sotto il capodibanda contro la foschia (fotogrammi 0-3), poi ti viene addosso con la faccia al
+> centro, luce calda solo sulla faccia, l'occhio da cartone che dondola di lato e le mani ossute che salgono dagli angoli
+> in basso (4-7). La faccia da annegato: pelle macerata, chiazze grigio-viola, labbra gonfie e livide.
 
 - **Dove sta**: in uno di due posti del binocolo, la **torre degli scivoli** alle spalle (−167°, 460 m) e il
   **relitto** davanti alla prua (14°, 170 m), da dove salta in acqua e arriva alla barca. Li ha proposti la sessione
