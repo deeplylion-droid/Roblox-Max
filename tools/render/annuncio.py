@@ -13,7 +13,8 @@ Composizione 2D in Python (numpy, scipy, Pillow), senza Blender: la stampa si co
 rilievo, bagnato, trasparenza), poi il foglio si posa nella scena e si illumina coi rilievi (pieghe, grinze, gocce).
 Si lavora al doppio della risoluzione finale e si riduce alla fine.
 
-Uso: tools/.venv/bin/python tools/render/annuncio.py <giornale|volantino_it|volantino_en|tutti> [--uscita cartella] [--scala 1.0] [--webp]
+Uso: tools/.venv/bin/python tools/render/annuncio.py <giornale|volantino|tutti> [--lingua it,en] [--uscita cartella]
+     [--scala 1.0] [--webp]   (il volantino italiano è volantino.webp, le traduzioni volantino_<lingua>.webp)
      (--scala 1.5 dà 2880×1620, per avere margine nella zoomata)
 I font (SIL Open Font License, da Google Fonts) sono in tools/render/fonts/annuncio/.
 """
@@ -973,6 +974,7 @@ def incolla_centro(tela, im, cx, cy):
     tela.incolla(im, int(cx - im.width / 2), int(cy - im.height / 2))
 
 
+# tutti i testi del volantino, per lingua: per una lingua nuova bastano le sue righe (e 'font' se servono altri font)
 TESTI_V = {
     'it': dict(titolo='CERCHIAMO TE!', fumetto=('I nostri', 'piccoli hanno', 'fame!'),
                nastro='TURNO DI NOTTE · SI PESCA DALLA BARCA',
@@ -985,6 +987,13 @@ TESTI_V = {
 }
 
 
+# i font del volantino; una lingua può sostituirli con la chiave 'font' (p. es. per il cirillico, che questi non hanno).
+# Copertura: Luckiest Guy e Baloo 2 hanno il latino esteso (accenti, ß, ñ, polacco, ceco, turco), niente cirillico né
+# greco; Lilita One ha l'Europa occidentale (accenti, ß, ñ) ma non tutto il polacco e il turco; Pacifico ha anche il
+# cirillico. La testata (Limelight) e lo slogan non si traducono. Le stelle si disegnano, non sono un carattere.
+FONT_V = {'titolo': 'LuckiestGuy-Regular', 'testo': 'Baloo2-ExtraBold', 'nastro': 'LilitaOne-Regular'}
+
+
 def font_adatto(nome, px, testi, larg):
     """Il corpo più grande (fino a px) con cui tutti i testi stanno in larg."""
     while px > 20 and max(font(nome, px).getlength(t) for t in testi) > larg:
@@ -995,6 +1004,7 @@ def font_adatto(nome, px, testi, larg):
 def impagina_volantino(lingua='it'):
     """Il volantino nuovo, appena stampato: restituisce il colore (0..1)."""
     TX = TESTI_V[lingua]
+    FV = {**FONT_V, **TX.get('font', {})}
     T = Tela(VW, VH, (176, 230, 244))
     yy, xx = np.mgrid[:VH, :VW].astype(np.float32)
     # cielo: dal celeste al bianco, i raggi del sole dietro Mama Marina (come l'insegna dell'ingresso)
@@ -1020,7 +1030,7 @@ def impagina_volantino(lingua='it'):
     incolla_centro(T, testo_img("MAMA MARINA'S", font('Limelight-Regular', 170), CIANO, NAVY, 9, NAVY, (8, 10)), VW / 2, 200)
     incolla_centro(T, testo_img('SPLASHLAND', font('Limelight-Regular', 360), ROSA, NAVY, 14, NAVY, (16, 20)), VW / 2, 470)
     # CERCHIAMO TE!
-    incolla_centro(T, testo_img(TX['titolo'], font_adatto('LuckiestGuy-Regular', 300, [TX['titolo']], 1900), GIALLO, NAVY, 18, (232, 70, 120), (14, 16),
+    incolla_centro(T, testo_img(TX['titolo'], font_adatto(FV['titolo'], 300, [TX['titolo']], 1900), GIALLO, NAVY, 18, (232, 70, 120), (14, 16),
                                 gradi=4), VW / 2, 870)
     lay = Image.new('RGBA', (VW, VH), (0, 0, 0, 0))
     d = ImageDraw.Draw(lay)
@@ -1039,7 +1049,7 @@ def impagina_volantino(lingua='it'):
     d.ellipse((bx0 - 12, by0 - 12, bx1 + 12, by1 + 12), fill=NAVY + (255,))
     d.ellipse((bx0, by0, bx1, by1), fill=(255, 255, 255, 255))
     d.polygon([(1652, 1500), (1580, 1680), (1790, 1560)], fill=(255, 255, 255, 255))
-    fb = font_adatto('Baloo2-ExtraBold', 116, TX['fumetto'], 720)
+    fb = font_adatto(FV['testo'], 116, TX['fumetto'], 720)
     for k, riga in enumerate(TX['fumetto']):
         d.text(((bx0 + bx1) / 2, by0 + 120 + k * 118), riga, font=fb, fill=NAVY + (255,), anchor='mm')
     T.incolla(lay, 0, 0)
@@ -1053,24 +1063,24 @@ def impagina_volantino(lingua='it'):
     d.polygon([(150, ry1), (230, ry1 + 50), (230, ry1)], fill=(120, 30, 70, 255))
     d.polygon([(VW - 150, ry1), (VW - 230, ry1 + 50), (VW - 230, ry1)], fill=(120, 30, 70, 255))
     d.rectangle((150, ry0, VW - 150, ry1), fill=ROSA + (255,), outline=NAVY + (255,), width=8)
-    d.text((VW / 2, (ry0 + ry1) / 2 + 6), TX['nastro'], font=font_adatto('LilitaOne-Regular', 122, [TX['nastro']], VW - 400),
+    d.text((VW / 2, (ry0 + ry1) / 2 + 6), TX['nastro'], font=font_adatto(FV['nastro'], 122, [TX['nastro']], VW - 400),
            fill=(255, 255, 255, 255), anchor='mm', stroke_width=6, stroke_fill=NAVY + (255,))
     # le condizioni, su un cartiglio bianco
     px0, py0, px1, py1 = 170, 2450, VW - 170, 2840
     d.rounded_rectangle((px0, py0, px1, py1), 50, fill=(255, 255, 255, 235), outline=NAVY + (255,), width=8)
     righe = TX['righe']
     xa, xb = px0 + 145, VW / 2 + 250
-    if max(font('Baloo2-ExtraBold', 92).getlength(b) for _, b in righe) > px1 - 40 - (xb + 55):
-        xb = px1 - 40 - 55 - max(font('Baloo2-ExtraBold', 92).getlength(b) for _, b in righe)
-    fi = font_adatto('Baloo2-ExtraBold', 92, [a for a, _ in righe], xb - 60 - xa)
-    fi = font_adatto('Baloo2-ExtraBold', fi.size, [b for _, b in righe], px1 - 40 - (xb + 55))
+    if max(font(FV['testo'], 92).getlength(b) for _, b in righe) > px1 - 40 - (xb + 55):
+        xb = px1 - 40 - 55 - max(font(FV['testo'], 92).getlength(b) for _, b in righe)
+    fi = font_adatto(FV['testo'], 92, [a for a, _ in righe], xb - 60 - xa)
+    fi = font_adatto(FV['testo'], fi.size, [b for _, b in righe], px1 - 40 - (xb + 55))
     for r_, (a_, b_) in enumerate(righe):
         y = py0 + 85 + r_ * 115
         stella(d, px0 + 90, y, 34, GIALLO + (255,), NAVY + (255,), 5)
         d.text((px0 + 145, y), a_, font=fi, fill=NAVY + (255,), anchor='lm')
         stella(d, xb, y, 34, GIALLO + (255,), NAVY + (255,), 5)
         d.text((xb + 55, y), b_, font=fi, fill=NAVY + (255,), anchor='lm')
-    d.text((VW / 2, py0 + 315), TX['invito'], font=font_adatto('Baloo2-ExtraBold', 104, [TX['invito']], px1 - px0 - 80),
+    d.text((VW / 2, py0 + 315), TX['invito'], font=font_adatto(FV['testo'], 104, [TX['invito']], px1 - px0 - 80),
            fill=(214, 60, 130, 255), anchor='mm')
     T.incolla(lay, 0, 0)
 
@@ -1096,7 +1106,7 @@ def impagina_volantino(lingua='it'):
                 d.line((x0, yd, x0, yd + 13), fill=NAVY + (255,), width=3)
         sub = Image.new('RGBA', (440, 200), (0, 0, 0, 0))
         ds = ImageDraw.Draw(sub)
-        fl = font_adatto('LilitaOne-Regular', 54, TX['linguetta'], 400)
+        fl = font_adatto(FV['nastro'], 54, TX['linguetta'], 400)
         ds.text((220, 62), TX['linguetta'][0], font=fl, fill=NAVY + (255,), anchor='mm')
         ds.text((220, 138), TX['linguetta'][1], font=fl, fill=(214, 60, 130, 255), anchor='mm')
         sub = sub.rotate(90, expand=True)
@@ -1455,7 +1465,7 @@ def volantino(uscita, lingua='it'):
     lin += np.array([0.010, 0.013, 0.022]) * np.clip(0.5 + 0.5 * rumore(rng, sw, 200)[..., None], 0, 1) * 0.12
     out = finitura(lin, rng, vignetta=0.60, grana=0.014)
     if '--webp' in sys.argv:
-        p = os.path.join(uscita, f'volantino_{lingua}.webp')
+        p = os.path.join(uscita, 'volantino.webp' if lingua == 'it' else f'volantino_{lingua}.webp')
         out.save(p, quality=90, method=6)
     else:
         p = os.path.join(uscita, 'annuncio_volantino.jpg' if lingua == 'it' else f'annuncio_volantino_{lingua}.jpg')
@@ -1467,14 +1477,20 @@ def volantino(uscita, lingua='it'):
 # ───────────────────────── main ─────────────────────────
 
 def main():
-    nomi = [a for i, a in enumerate(sys.argv[1:], 1) if not a.startswith('--') and sys.argv[i - 1] not in ('--uscita', '--scala')]
+    nomi = [a for i, a in enumerate(sys.argv[1:], 1) if not a.startswith('--') and sys.argv[i - 1] not in ('--uscita', '--scala', '--lingua')]
     uscita = sys.argv[sys.argv.index('--uscita') + 1] if '--uscita' in sys.argv else os.path.join(ROOT, 'docs', 'concept')
     os.makedirs(uscita, exist_ok=True)
     if not nomi or nomi == ['tutti']:
         nomi = ['giornale', 'volantino', 'volantino_en']
     for n in nomi:
-        {'giornale': giornale, 'volantino': volantino, 'volantino_it': volantino,
-         'volantino_en': lambda u: volantino(u, 'en')}[n](uscita)
+        if n == 'volantino':
+            lingue = sys.argv[sys.argv.index('--lingua') + 1].split(',') if '--lingua' in sys.argv else ['it']
+            for l in lingue:
+                volantino(uscita, l)
+        elif n.startswith('volantino_'):
+            volantino(uscita, n.split('_', 1)[1])
+        else:
+            giornale(uscita)
 
 
 if __name__ == '__main__':

@@ -2,16 +2,16 @@
 
 > **Scelta dell'utente (12 ottobre): B, il volantino.** Lo zampillo di Mama Marina è stato rifatto come un getto
 > d'acqua bianco-azzurro che sale dallo sfiatatoio e ricade in gocce ai lati (prima sembrava una corona). C'è anche la
-> versione inglese. Render finali per il gioco, 2880×1620: `public/assets/img/annuncio/volantino_it.webp` e
-> `volantino_en.webp`; anteprime 1920×1080: `annuncio_volantino.jpg` e `annuncio_volantino_en.jpg`.
+> versione inglese. Render finali per il gioco, 2880×1620: `public/assets/img/annuncio/volantino.webp` (l'originale
+> italiano) e `volantino_en.webp` (regola: `<nome>.webp` è l'originale, `<nome>_<lingua>.webp` le traduzioni); anteprime 1920×1080: `annuncio_volantino.jpg` e `annuncio_volantino_en.jpg`.
 >
 > **Zoomata** (da 1 a 1,25 in 3,6 s): centro in **x = 0,52, y = 0,46**. Alla fine l'inquadratura va da x 0,12 a 0,92 e
 > da y 0,06 a 0,86: c'è tutto il volantino dalla testata alla riga «Ti aspettiamo al molo vecchio…» (le righe delle
 > condizioni stanno a y 0,70-0,73), mentre le linguette in fondo escono di campo. Il centro è un po' a destra del
 > volantino (x 0,49), verso il fumetto.
 >
-> Comandi: `tools/.venv/bin/python tools/render/annuncio.py volantino_it --scala 1.5 --webp --uscita public/assets/img/annuncio`
-> (e `volantino_en`). Un render a scala 1,5 usa ~6 GB di memoria: due insieme non stanno in 15 GB.
+> Comando: `tools/.venv/bin/python tools/render/annuncio.py volantino --lingua it --scala 1.5 --webp --uscita public/assets/img/annuncio`
+> (una lingua alla volta; `--lingua it,en` le fa in fila). Un render a scala 1,5 usa ~6 GB di memoria: due insieme non stanno in 15 GB.
 
 ## Le due proposte di partenza
 
@@ -112,4 +112,21 @@ Stessa impaginazione; «MAMA MARINA'S SPLASHLAND» e «Mama Marina loves her lit
 - *Meet us at the old pier at sunset!*
 - le linguette: **OLD PIER · AT SUNSET**
 
-I testi delle due lingue sono in `TESTI_V`, nello script.
+### Altre lingue
+
+Tutti i testi del volantino sono nella tabella `TESTI_V` dello script, una voce per lingua: per una lingua nuova bastano
+le sue righe (i corpi si adattano da soli alla larghezza) e poi `--lingua <codice>`. Il degrado del foglio è identico in
+tutte le lingue.
+
+Che cosa coprono i font che cambiano con la lingua (la testata in Limelight e lo slogan non si traducono, le stelle sono
+disegnate):
+
+| Font | Dove | Accenti it/fr/es/pt, ß, ñ | Polacco, ceco, turco | Cirillico | Greco |
+|---|---|---|---|---|---|
+| Luckiest Guy | «CERCHIAMO TE!» | sì | sì | no | no |
+| Baloo 2 ExtraBold | fumetto, condizioni, invito | sì | sì | no | no |
+| Lilita One | nastro, linguette | sì | in parte | no | no |
+| Pacifico | slogan (non tradotto) | sì | sì | sì | in parte |
+
+Per il cirillico o il greco servono altri font: una lingua li indica con la chiave `font` nella sua voce
+(`{'titolo': …, 'testo': …, 'nastro': …}`), da aggiungere in `tools/render/fonts/annuncio/`.
