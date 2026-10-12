@@ -284,7 +284,7 @@ export class Screens {
     };
     addEventListener('keydown', onKey);
     roll.addEventListener('animationend', finish);
-    const el = h('div', { class: 'screen credits fade-in' }, roll, h('p', { class: 'credits-skip muted' }, S.creditsSkip));
+    const el = h('div', { class: 'screen credits after-ending' }, roll, h('p', { class: 'credits-skip muted' }, S.creditsSkip));
     el.addEventListener('click', finish);
     this.show(el);
   }
@@ -565,6 +565,9 @@ export class Screens {
   results(o: { won: boolean; text: string; caught: number; fed: number; lore: number; demoEnd: boolean; onNext?: (() => void) | null; onWishlist?: (() => void) | null; onRetry: () => void; onMenu: () => void;
     /** finita l'ultima notte, si è aperta la notte extra: al posto della fine della demo, il pulsante per giocarla */
     onExtra?: (() => void) | null;
+    /** dopo un finale (la cinematica o i titoli di coda, che finiscono nel buio): il fondo nero da subito, se no nella
+     *  dissolvenza si rivedrebbe la barca di notte */
+    afterEnding?: boolean;
     /** pesci avanzati oltre la quota (immersioni) */
     spare?: number;
     /** scendere con le bombole prima della notte dopo (l'immersione è facoltativa) */
@@ -585,7 +588,7 @@ export class Screens {
     if (o.won && o.onExtra) menu.append(button(S.extraNight, o.onExtra, 'start'));
     if (o.demoEnd && !o.onExtra && o.onWishlist) menu.append(button(S.wishlist, o.onWishlist, 'start'));
     menu.append(button(S.menu, o.onMenu, 'back'));
-    const el = h('div', { class: `screen ${o.won ? 'dawn' : 'death'} fade-in` }, h('h2', {}, o.won ? `${S.sixAm} · ${S.survived}` : S.deathTitle), h('p', {}, o.text), stats);
+    const el = h('div', { class: `screen ${o.won ? 'dawn' : 'death'} ${o.afterEnding ? 'after-ending' : 'fade-in'}` }, h('h2', {}, o.won ? `${S.sixAm} · ${S.survived}` : S.deathTitle), h('p', {}, o.text), stats);
     if (o.demoEnd) el.append(h('p', { class: 'muted' }, o.onExtra ? S.extraOpened : S.demoEnd));
     el.append(menu);
     this.show(el);

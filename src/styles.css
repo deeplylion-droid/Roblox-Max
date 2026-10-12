@@ -374,6 +374,9 @@ html.pad .dive-reticle {
 html.pad #ui:not(:has(.screen [data-back])) .pad-legend span:last-child { display: none; }
 
 /* ── titoli di coda (dopo i finali della notte 6) ── */
+/* dopo un finale si arriva dal buio: il fondo nero c'è da subito (sotto c'è ancora la barca di notte), si accende solo il resto */
+.after-ending { background: #000; }
+.after-ending > * { animation: fadeIn 1.2s ease both; }
 .credits { background: #000; overflow: hidden; justify-content: flex-start; }
 .credits-roll { display: flex; flex-direction: column; align-items: center; gap: calc(34px * var(--ts)); padding-top: 100vh; animation: credits-up linear forwards; }
 .credits-roll h1 { font-size: clamp(40px, 7vw, 88px); margin-bottom: 40px; }

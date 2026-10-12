@@ -391,6 +391,7 @@ export class App {
         onDive: diveOk ? () => this.dive(next) : null,
         // finita l'ultima notte (la sesta), si apre la notte extra
         onExtra: r.kind === 'won' && !extra && this.nightNo >= lastNight() && NIGHT_LIMIT === Infinity ? () => this.extraNight() : null,
+        afterEnding: r.kind === 'won' && !!r.ending,
         onWishlist: STEAM_URL ? () => window.open(STEAM_URL, '_blank') : null,
         onRetry: () => this.intro(),
         onMenu: () => this.title(),
