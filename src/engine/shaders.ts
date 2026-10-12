@@ -281,14 +281,23 @@ void main() {
   if (den > 1e-5) {
     float t = (bd * wd - dd * wb) / den;   // lungo il fascio
     float s = (bb * wd - bd * wb) / den;   // lungo il raggio di vista
-    if (t > 0.0 && s > 0.0) {
-      vec3 pa = uBeamPos + b * t;
-      vec3 pb = d * s;
-      float dist = length(pa - pb);
-      float r = 2.0 + t * 0.07;
-      float beam = exp(-pow(dist / r, 2.0)) * exp(-t / 2600.0);
-      c += uBeamColor * beam * 0.06;
+    // i punti più vicini fuori dal fascio (prima del faro) o dietro all'occhio: si prende il più vicino sul bordo
+    // (il faro, l'occhio). Prima si scartavano, e quando il fascio passava sulla barca lo schermo si tagliava con
+    // uno spigolo netto (l'occhio dentro il cono: metà dei raggi aveva il punto più vicino dietro di sé)
+    if (s < 0.0) {
+      s = 0.0;
+      t = -wb / bb;
     }
+    if (t < 0.0) {
+      t = 0.0;
+      s = max(wd / dd, 0.0);
+    }
+    vec3 pa = uBeamPos + b * t;
+    vec3 pb = d * s;
+    float dist = length(pa - pb);
+    float r = 2.0 + t * 0.07;
+    float beam = exp(-pow(dist / r, 2.0)) * exp(-t / 2600.0);
+    c += uBeamColor * beam * 0.06;
   }
   // lampo quando il fascio punta verso di noi
   vec3 toEye = normalize(-uBeamPos);
