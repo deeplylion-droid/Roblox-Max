@@ -1,6 +1,7 @@
 /** HUD in DOM: orologio, secchio/quota, lampara, suggerimenti, sottotitoli della radio, avvisi. */
 import type { Lang } from '../i18n.ts';
 import { STRINGS } from '../i18n.ts';
+import { EXTRA_NIGHT } from '../game/config.ts';
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, parent: HTMLElement, html = ''): HTMLElementTagNameMap[K] {
   const e = document.createElement(tag);
@@ -74,7 +75,7 @@ export class Hud {
 
   setClock(night: number, hour: number, minutes: number): void {
     const S = STRINGS[this.lang];
-    this.nightEl.textContent = `${S.night} ${night}`;
+    this.nightEl.textContent = night === EXTRA_NIGHT ? S.extraNight : `${S.night} ${night}`;
     const h = hour === 0 ? 12 : hour;
     const mm = String(Math.floor(minutes / 10) * 10).padStart(2, '0');
     this.timeEl.textContent = this.lang === 'en' ? `${h}:${mm} ${S.am}` : `${String(hour).padStart(2, '0')}:${mm}`;

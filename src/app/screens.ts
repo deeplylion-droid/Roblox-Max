@@ -1,6 +1,6 @@
 /** Schermate in DOM sopra la scena: avvertenza, titolo, intro, pausa, opzioni, diario, alba, game over. */
 import { FISH, FISH_BY_ID, type FishFamily, type FishSpecies } from '../game/catalog.ts';
-import { EXTRA_IDS, EXTRA_MAX, EXTRA_PRESETS, FOXY_NAME, LORE, clampLevel, type ExtraLevels } from '../game/config.ts';
+import { EXTRA_IDS, EXTRA_MAX, EXTRA_NIGHT, EXTRA_PRESETS, FOXY_NAME, LORE, clampLevel, type ExtraLevels } from '../game/config.ts';
 import { LANGS, LANG_NAMES, LORE_TEXT, STRINGS, decimal, type Lang } from '../i18n.ts';
 import { disegnoSrc } from './disegni.ts';
 import { badge, dualText, type PadButton } from './pad.ts';
@@ -186,7 +186,8 @@ export class Screens {
       h(
         'div',
         { class: 'screen intro fade-in' },
-        h('h2', {}, `${S.night} ${night}`),
+        // la notte extra si chiama così anche qui, come nel menu e alla radio (non «Notte 7»)
+        h('h2', {}, night === EXTRA_NIGHT ? S.extraNight : `${S.night} ${night}`),
         h('div', { class: 'intro-time' }, S.intro.time),
         h('div', { class: 'muted' }, `${S.intro.quota}: ${quota} ${S.intro.fishUnit}`),
       ),
@@ -650,7 +651,7 @@ export class Screens {
     if (!drawing) return h('div', { class: cls }, ...parts);
     const S = this.S;
     const name = S.drawings.names[drawing] ?? drawing;
-    return h('div', { class: `${cls} alba-disegno` }, drawingFigure(drawing, `${S.drawings.found} «${name}»`, this.lang), h('div', { class: 'colonna' }, ...parts));
+    return h('div', { class: `${cls} alba-disegno` }, drawingFigure(drawing, `${S.drawings.found} ${S.quotes[0]}${name}${S.quotes[1]}`, this.lang), h('div', { class: 'colonna' }, ...parts));
   }
 
   /** Statica tra il jumpscare e il game over. */

@@ -138,6 +138,9 @@ describe('Controller: i nomi dei tasti e il dispositivo in uso', () => {
     expect(padFamily('DualSense Wireless Controller (STANDARD GAMEPAD Vendor: 054c Product: 0ce6)')).toBe('playstation');
     expect(padFamily('Steam Virtual Gamepad (Vendor: 28de Product: 11ff)')).toBe('deck');
     expect(padFamily('Xbox 360 Controller (XInput STANDARD GAMEPAD)')).toBe('xbox');
+    // in Bluetooth anche l'Xbox è un «Wireless Controller», come il DualShock
+    expect(padFamily('Xbox Wireless Controller (STANDARD GAMEPAD Vendor: 045e Product: 0b13)')).toBe('xbox');
+    expect(padFamily('Wireless Controller (STANDARD GAMEPAD Vendor: 054c Product: 09cc)')).toBe('playstation');
   });
 
   it('scrive i tasti come sono stampati sul controller', () => {

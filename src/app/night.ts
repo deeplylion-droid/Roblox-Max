@@ -84,6 +84,8 @@ export interface NightDeps {
   ending?: Ending | 'B';
   seed: number;
   onEnd: (r: NightEnd) => void;
+  /** la notte è vinta, alle sei (prima dell'alba e della cinematica del finale): l'App la salva subito */
+  onWon?: (r: NightEnd) => void;
   onPause: () => void;
   /** nuova cattura (per il Catalogo) */
   onCatch?: (species: string, kg: number) => void;
@@ -1433,6 +1435,7 @@ export class Night {
         // l'App l'ha deciso (vinta con tutti, Madre compresa, almeno a 10)
         const ending = this.nightNo === 6 ? (this.d.ending ?? 'A') : this.d.ending === 'B' ? 'B' : undefined;
         this.endResult = { kind: 'won', stats: this.stats(), ...(ending ? { ending } : {}) };
+        this.d.onWon?.(this.endResult);
         this.endTimer = 7;
         a.play('bell_dawn', { pos: dirPos(BELL_YAW, 5, 4), gain: 0.8, lowpass: 3000 });
         this.loops.drone?.stop(3);

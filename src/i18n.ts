@@ -169,6 +169,8 @@ const IT = {
   journalEmpty: 'Non hai ancora ripescato niente. Il mare restituisce le cose solo a chi pesca.',
   journalLocked: '???',
   // i disegni a pastelli dell'alba (approvati il 12 ottobre)
+  /** le virgolette della lingua (attorno al nome di un disegno) */
+  quotes: ['«', '»'] as [string, string],
   drawings: {
     found: 'Sul banco, bagnato, c’è un disegno.',
     title: 'Disegni',
@@ -440,7 +442,7 @@ const EN: typeof IT = {
     offer: (who: string) => `Leave the fish beside ${who}?`,
     offerYes: 'Leave the fish',
     offerNo: 'No',
-    offered: (who: string) => `The fish stays beside ${who}. Tonight it will sleep.`,
+    offered: (who: string) => `The fish stays beside ${who}. Tonight they’ll sleep.`,
     noFish: 'You have no fish to leave: none were left over at six.',
     alreadyFed: 'You already left the fish.',
     // TO APPROVE (12 October)
@@ -449,6 +451,7 @@ const EN: typeof IT = {
   journalTitle: 'Journal',
   journalEmpty: 'You haven’t fished anything up yet. The sea only gives things back to those who fish.',
   journalLocked: '???',
+  quotes: ['“', '”'] as [string, string],
   drawings: {
     found: 'On the bench, soaking wet, there’s a drawing.',
     title: 'Drawings',

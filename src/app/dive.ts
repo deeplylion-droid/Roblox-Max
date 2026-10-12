@@ -684,8 +684,11 @@ export class Dive {
         // dappertutto (la grotta sotto la barca, la cosa da trovare di Molly e di Fangy, Lampy che dorme): vale il
         // punto più vicino entro un raggio più largo
         const reach = usePad ? Math.max(s.r, 22) : s.r;
-        if (a < reach && a < bestA) {
-          bestA = a;
+        // e vince il punto più vicino in proporzione alla sua grandezza: Lampy che dorme (grande, in alto, fuori
+        // dall'inquadratura) non resta coperta dalla cosa da trovare (piccola e più vicina al mirino)
+        const score = usePad ? a / s.r : a;
+        if (a < reach && score < bestA) {
+          bestA = score;
           best = s;
         }
       }

@@ -361,6 +361,8 @@ export class App {
             : undefined,
       seed: (Date.now() & 0x7fffffff) >>> 0,
       onEnd: (r) => this.endNight(r),
+      // la vittoria si salva alle sei: chiudendo il gioco durante l'alba o la cinematica del finale non si perde
+      onWon: (r) => this.saveWin(r),
       onPause: () => this.pause(),
       knownSpecies: new Set(Object.keys(this.save.catalog)),
       onCatch: (species, kg) => {
@@ -419,6 +421,13 @@ export class App {
     this.audio.resume();
     this.night.setPaused(false);
     this.mode = 'night';
+  }
+
+  /** La notte vinta, salvata alle sei (endNight la salva di nuovo alla fine dell'alba: è la stessa cosa). */
+  private saveWin(r: NightEnd): void {
+    for (const l of r.stats.lore) if (!this.save.lore.includes(l)) this.save.lore.push(l);
+    if (this.nightNo !== EXTRA_NIGHT) wonNight(this.save, this.nightNo, Math.max(0, r.stats.bucket - NIGHTS[this.nightNo]!.quota));
+    writeSave(this.save);
   }
 
   private endNight(r: NightEnd): void {

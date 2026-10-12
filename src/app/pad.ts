@@ -135,6 +135,8 @@ export class NavRepeat {
 export type PadFamily = 'xbox' | 'playstation' | 'deck';
 
 export function padFamily(id: string): PadFamily {
+  // Microsoft (045e) prima: in Bluetooth i controller Xbox si chiamano «Xbox Wireless Controller»
+  if (/045e|xbox|xinput/i.test(id)) return 'xbox';
   if (/054c|playstation|dualsense|dualshock|wireless controller/i.test(id)) return 'playstation';
   // il controller virtuale di Steam (Steam Input, il produttore 28de è Valve): sullo Steam Deck i dorsali sono L1 R1
   if (/28de|steam/i.test(id)) return 'deck';
