@@ -130,3 +130,43 @@ disegnate):
 
 Per il cirillico o il greco servono altri font: una lingua li indica con la chiave `font` nella sua voce
 (`{'titolo': …, 'testo': …, 'nastro': …}`), da aggiungere in `tools/render/fonts/annuncio/`.
+
+### Le lingue di prova (notte del 12 ottobre)
+
+> ⚠️ **PROVA, DA FAR CONTROLLARE A UN MADRELINGUA.** I testi di es, fr, de, pt-BR, zh, ja e ko in `TESTI_V` li ho
+> scritti io, per provare impaginazione e font: hanno `prova=True` e non vanno nel gioco così come sono. Anche i render
+> lo dicono, con una scritta rossa in alto a sinistra.
+
+Render di prova a 1920×1080, come li vede il giocatore: `docs/concept/lingue/annuncio_volantino_<lingua>.jpg`.
+Comando (una lingua dopo l'altra, ~2 minuti l'una):
+`tools/.venv/bin/python tools/render/annuncio.py volantino --lingua es,fr,de,pt-BR,zh,ja,ko --uscita docs/concept/lingue`.
+Prima di rifare un render, `annuncio.py --controlla` dice se a qualche font manca un carattere dei testi (finirebbe come
+un quadratino): adesso non ne manca nessuno.
+
+| Lingua | Titolo | Fumetto, condizioni, invito | Nastro, linguette |
+|---|---|---|---|
+| it, en, es, fr, de, pt-BR | Luckiest Guy | Baloo 2 ExtraBold | Lilita One |
+| zh (semplificato) | ZCOOL KuaiLe | Noto Sans SC ExtraBold | ZCOOL QingKe HuangYou |
+| ja | Mochiy Pop One | M PLUS Rounded 1c ExtraBold | Dela Gothic One |
+| ko | Black Han Sans | Jua | Do Hyeon |
+
+I font CJK (Google Fonts, OFL) sono in `tools/render/fonts/annuncio/cjk/` come **sottoinsiemi** coi soli caratteri dei
+testi più l'ASCII (8-65 KB l'uno invece di 1-10 MB). Se cambiano i testi cinesi, giapponesi o coreani bisogna rifarli dai
+font interi: scaricarli da Google Fonts in una cartella (i nomi dei file sono in `FONT_CJK`) e lanciare
+`annuncio.py --sottoinsiemi <cartella>`, che alla fine rifà anche il controllo.
+
+Come si adatta l'impaginazione:
+- ogni scritta si rimpicciolisce fino a stare nel suo spazio (titolo, nastro, invito, le due colonne delle condizioni,
+  le linguette); il fumetto ha le sue righe già divise nella tabella, centrate in verticale qualunque sia il numero;
+- le due colonne delle condizioni: se non stanno con la colonna destra a metà, la colonna destra si sposta e tutte e
+  quattro le righe scendono allo stesso corpo;
+- in cinese, giapponese e coreano (`verticale=True`) le linguette sono scritte in verticale, due colonne da destra a
+  sinistra coi caratteri dritti, invece che coricate; gli a capo del fumetto sono scelti a mano, dove si spezza la frase.
+
+Cosa ho trovato e corretto guardandole:
+- in Lilita One (nastro) del cinese e in Do Hyeon (coreano) manca «·»: in cinese il nastro usa «•», in coreano «★»;
+- in tedesco «BEI SONNENUNTERGANG» sulle linguette diventava minuscolo: ora è «BEI DÄMMERUNG»; le condizioni tedesche
+  restano un po' più piccole delle altre (righe più lunghe);
+- il getto dello zampillo toccava il titolo in tutte le lingue, anche in italiano: il titolo è salito di 65 px sul
+  foglio. Per questo anche i render finali it ed en sono stati rifatti.
+- in francese gli spazi prima di «!» sono spazi non divisibili (non vanno a capo da soli).

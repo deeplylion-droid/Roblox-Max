@@ -984,6 +984,42 @@ TESTI_V = {
                nastro='NIGHT SHIFT · FISHING FROM THE BOAT',
                righe=[('Boat, light and bait provided', 'Midnight to 6 AM'), ('Cash paid at dawn', 'No experience needed!')],
                invito='Meet us at the old pier at sunset!', linguetta=('OLD PIER', 'AT SUNSET')),
+    # ── PROVA, DA FAR CONTROLLARE A UN MADRELINGUA: queste righe non vanno nel gioco così come sono ──
+    'es': dict(prova=True, titolo='¡TE BUSCAMOS!', fumetto=('¡Nuestros', 'pequeños tienen', 'hambre!'),
+               nastro='TURNO DE NOCHE · PESCA DESDE EL BARCO',
+               righe=[('Barco, luz y cebo incluidos', 'De 0 a 6 h'), ('Pago en efectivo al alba', '¡Sin experiencia!')],
+               invito='¡Te esperamos en el muelle viejo, al atardecer!', linguetta=('MUELLE VIEJO', 'AL ATARDECER')),
+    'fr': dict(prova=True, titolo='ON TE CHERCHE\u00a0!', fumetto=('Nos petits', 'ont', 'faim\u00a0!'),
+               nastro='TRAVAIL DE NUIT · PÊCHE EN BATEAU',
+               righe=[('Bateau, lampe et appâts fournis', 'De minuit à 6 h'), ("Payé en liquide à l'aube", 'Sans expérience\u00a0!')],
+               invito='On t\u2019attend à la vieille jetée, au coucher du soleil\u00a0!',
+               linguetta=('VIEILLE JETÉE', 'AU CRÉPUSCULE')),
+    'de': dict(prova=True, titolo='WIR SUCHEN DICH!', fumetto=('Unsere', 'Kleinen haben', 'Hunger!'),
+               nastro='NACHTSCHICHT · ANGELN VOM BOOT',
+               righe=[('Boot, Licht und Köder gestellt', '0 bis 6 Uhr'), ('Bar bezahlt im Morgengrauen', 'Keine Erfahrung nötig!')],
+               invito='Wir warten am alten Steg, bei Sonnenuntergang!', linguetta=('ALTER STEG', 'BEI DÄMMERUNG')),
+    'pt-BR': dict(prova=True, titolo='PROCURAMOS VOCÊ!', fumetto=('Nossos', 'pequenos estão', 'com fome!'),
+                  nastro='TURNO DA NOITE · PESCA NO BARCO',
+                  righe=[('Barco, luz e isca inclusos', 'Da meia-noite às 6h'), ('Pagamento em dinheiro', 'Sem experiência!')],
+                  invito='Te esperamos no píer velho, ao pôr do sol!', linguetta=('PÍER VELHO', 'AO PÔR DO SOL')),
+    'zh': dict(prova=True, titolo='我们需要你！', fumetto=('我们的', '小宝贝们', '饿了！'),
+               nastro='夜班 • 乘船钓鱼',
+               righe=[('提供船、灯和鱼饵', '午夜0点到早上6点'), ('天亮时现金结算', '无需经验！')],
+               invito='日落时分，我们在旧码头等你！', linguetta=('旧码头', '日落时分'), verticale=True,
+               font={'titolo': 'cjk/ZCOOLKuaiLe-volantino', 'testo': 'cjk/NotoSansSC-ExtraBold-volantino',
+                     'nastro': 'cjk/ZCOOLQingKeHuangYou-volantino'}),
+    'ja': dict(prova=True, titolo='キミを募集中！', fumetto=('うちの子たち、', 'おなかが', 'ペコペコ！'),
+               nastro='夜のシフト・ボートで釣り',
+               righe=[('ボート・ライト・エサ支給', '0時〜6時'), ('夜明けに現金払い', '未経験OK！')],
+               invito='日没に、古い桟橋で待ってるよ！', linguetta=('古い桟橋', '日没に'), verticale=True,
+               font={'titolo': 'cjk/MochiyPopOne-volantino', 'testo': 'cjk/MPLUSRounded1c-ExtraBold-volantino',
+                     'nastro': 'cjk/DelaGothicOne-volantino'}),
+    'ko': dict(prova=True, titolo='당신을 찾습니다!', fumetto=('우리 아이들이', '배가', '고파요!'),
+               nastro='야간 근무 ★ 배에서 낚시',
+               righe=[('배, 조명, 미끼 제공', '자정부터 새벽 6시'), ('새벽에 현금 지급', '경험 무관!')],
+               invito='해 질 녘, 낡은 부두에서 기다릴게요!', linguetta=('낡은 부두', '해 질 녘'), verticale=True,
+               font={'titolo': 'cjk/BlackHanSans-volantino', 'testo': 'cjk/Jua-volantino',
+                     'nastro': 'cjk/DoHyeon-volantino'}),
 }
 
 
@@ -993,6 +1029,73 @@ TESTI_V = {
 # cirillico. La testata (Limelight) e lo slogan non si traducono. Le stelle si disegnano, non sono un carattere.
 FONT_V = {'titolo': 'LuckiestGuy-Regular', 'testo': 'Baloo2-ExtraBold', 'nastro': 'LilitaOne-Regular'}
 
+
+# i font interi per cinese, giapponese e coreano (Google Fonts, OFL) da cui si ricavano i sottoinsiemi in
+# tools/render/fonts/annuncio/cjk/ coi soli caratteri dei testi: se cambiano i testi, si rifanno con
+# `annuncio.py --sottoinsiemi <cartella coi font interi>` (i font interi pesano 1-10 MB l'uno e non stanno nel repo)
+FONT_CJK = {
+    'cjk/ZCOOLKuaiLe-volantino': 'ZCOOLKuaiLe-Regular.ttf',
+    'cjk/NotoSansSC-ExtraBold-volantino': 'NotoSansSC-ExtraBold.ttf',
+    'cjk/ZCOOLQingKeHuangYou-volantino': 'ZCOOLQingKeHuangYou-Regular.ttf',
+    'cjk/MochiyPopOne-volantino': 'MochiyPopOne-Regular.ttf',
+    'cjk/MPLUSRounded1c-ExtraBold-volantino': 'MPLUSRounded1c-ExtraBold.ttf',
+    'cjk/DelaGothicOne-volantino': 'DelaGothicOne-Regular.ttf',
+    'cjk/BlackHanSans-volantino': 'BlackHanSans-Regular.ttf',
+    'cjk/Jua-volantino': 'Jua-Regular.ttf',
+    'cjk/DoHyeon-volantino': 'DoHyeon-Regular.ttf',
+}
+
+# quale testo usa quale font del volantino
+USO_FONT = {'titolo': ('titolo',), 'testo': ('fumetto', 'righe', 'invito'), 'nastro': ('nastro', 'linguetta')}
+
+
+def caratteri_per_font():
+    """{nome del font: insieme dei caratteri che deve avere}, da tutte le lingue di TESTI_V."""
+    out = {}
+    for lingua, TX in TESTI_V.items():
+        FV = {**FONT_V, **TX.get('font', {})}
+        for ruolo, campi in USO_FONT.items():
+            car = out.setdefault(FV[ruolo], set())
+            for c in campi:
+                v = TX[c]
+                testi = [v] if isinstance(v, str) else [x for t in v for x in ((t,) if isinstance(t, str) else t)]
+                car.update(ch for t in testi for ch in t if not ch.isspace())
+    return out
+
+
+def controlla_font():
+    """Per ogni font, i caratteri dei testi che non ha (finirebbero come quadratini). Restituisce {font: mancanti}."""
+    from fontTools.ttLib import TTFont
+    mancano = {}
+    for nome, car in caratteri_per_font().items():
+        p = os.path.join(FONTS, 'annuncio', nome + '.ttf')
+        if not os.path.exists(p):
+            p = os.path.join(FONTS, nome + '.ttf')
+        cmap = TTFont(p).getBestCmap()
+        m = sorted(ch for ch in car if ord(ch) not in cmap)
+        if m:
+            mancano[nome] = m
+    return mancano
+
+
+def sottoinsiemi(cartella):
+    """Ricava i sottoinsiemi CJK dai font interi in 'cartella': i caratteri dei testi più l'ASCII stampabile."""
+    from fontTools import subset
+    usati = caratteri_per_font()
+    os.makedirs(os.path.join(FONTS, 'annuncio', 'cjk'), exist_ok=True)
+    for nome, file in FONT_CJK.items():
+        car = usati.get(nome, set()) | {chr(c) for c in range(0x20, 0x7f)} | {'\u00a0', '·', '・', '！', '，', '、', '〜'}
+        opt = subset.Options()
+        opt.layout_features = ['*']
+        opt.name_IDs = ['*']
+        opt.notdef_outline = True
+        f = subset.load_font(os.path.join(cartella, file), opt)
+        sub = subset.Subsetter(opt)
+        sub.populate(text=''.join(sorted(car)))
+        sub.subset(f)
+        out = os.path.join(FONTS, 'annuncio', nome + '.ttf')
+        f.save(out)
+        print(f'{nome}: {len(car)} caratteri, {os.path.getsize(out) // 1024} KB', flush=True)
 
 def font_adatto(nome, px, testi, larg):
     """Il corpo più grande (fino a px) con cui tutti i testi stanno in larg."""
@@ -1031,7 +1134,7 @@ def impagina_volantino(lingua='it'):
     incolla_centro(T, testo_img('SPLASHLAND', font('Limelight-Regular', 360), ROSA, NAVY, 14, NAVY, (16, 20)), VW / 2, 470)
     # CERCHIAMO TE!
     incolla_centro(T, testo_img(TX['titolo'], font_adatto(FV['titolo'], 300, [TX['titolo']], 1900), GIALLO, NAVY, 18, (232, 70, 120), (14, 16),
-                                gradi=4), VW / 2, 870)
+                                gradi=4), VW / 2, 805)
     lay = Image.new('RGBA', (VW, VH), (0, 0, 0, 0))
     d = ImageDraw.Draw(lay)
     for (sx, sy, r) in ((180, 800, 60), (2310, 760, 70), (2240, 1010, 38), (260, 1020, 34)):
@@ -1050,8 +1153,10 @@ def impagina_volantino(lingua='it'):
     d.ellipse((bx0, by0, bx1, by1), fill=(255, 255, 255, 255))
     d.polygon([(1652, 1500), (1580, 1680), (1790, 1560)], fill=(255, 255, 255, 255))
     fb = font_adatto(FV['testo'], 116, TX['fumetto'], 720)
+    nf = len(TX['fumetto'])
     for k, riga in enumerate(TX['fumetto']):
-        d.text(((bx0 + bx1) / 2, by0 + 120 + k * 118), riga, font=fb, fill=NAVY + (255,), anchor='mm')
+        d.text(((bx0 + bx1) / 2, by0 + 238 + (k - (nf - 1) / 2) * fb.size * 1.02), riga, font=fb, fill=NAVY + (255,),
+               anchor='mm')
     T.incolla(lay, 0, 0)
 
     # il nastro: turno di notte, si pesca dalla barca
@@ -1069,11 +1174,15 @@ def impagina_volantino(lingua='it'):
     px0, py0, px1, py1 = 170, 2450, VW - 170, 2840
     d.rounded_rectangle((px0, py0, px1, py1), 50, fill=(255, 255, 255, 235), outline=NAVY + (255,), width=8)
     righe = TX['righe']
-    xa, xb = px0 + 145, VW / 2 + 250
-    if max(font(FV['testo'], 92).getlength(b) for _, b in righe) > px1 - 40 - (xb + 55):
-        xb = px1 - 40 - 55 - max(font(FV['testo'], 92).getlength(b) for _, b in righe)
+    xa, xb, fine = px0 + 145, VW / 2 + 250, px1 - 40
+    la = max(font(FV['testo'], 92).getlength(a) for a, _ in righe)
+    lb = max(font(FV['testo'], 92).getlength(b) for _, b in righe)
+    if la > xb - 60 - xa or lb > fine - (xb + 55):
+        # non ci sta con la colonna a metà: si sposta la colonna destra e si rimpicciolisce tutto quanto basta
+        k = min(1.0, (fine - xa - 115) / (la + lb))
+        xb = xa + la * k + 60
     fi = font_adatto(FV['testo'], 92, [a for a, _ in righe], xb - 60 - xa)
-    fi = font_adatto(FV['testo'], fi.size, [b for _, b in righe], px1 - 40 - (xb + 55))
+    fi = font_adatto(FV['testo'], fi.size, [b for _, b in righe], fine - (xb + 55))
     for r_, (a_, b_) in enumerate(righe):
         y = py0 + 85 + r_ * 115
         stella(d, px0 + 90, y, 34, GIALLO + (255,), NAVY + (255,), 5)
@@ -1104,12 +1213,25 @@ def impagina_volantino(lingua='it'):
         if k:
             for yd in range(ly0, VH, 26):
                 d.line((x0, yd, x0, yd + 13), fill=NAVY + (255,), width=3)
-        sub = Image.new('RGBA', (440, 200), (0, 0, 0, 0))
-        ds = ImageDraw.Draw(sub)
-        fl = font_adatto(FV['nastro'], 54, TX['linguetta'], 400)
-        ds.text((220, 62), TX['linguetta'][0], font=fl, fill=NAVY + (255,), anchor='mm')
-        ds.text((220, 138), TX['linguetta'][1], font=fl, fill=(214, 60, 130, 255), anchor='mm')
-        sub = sub.rotate(90, expand=True)
+        if TX.get('verticale'):
+            # cinese, giapponese, coreano: scrittura verticale, due colonne da destra a sinistra, caratteri dritti
+            sub = Image.new('RGBA', (200, 420), (0, 0, 0, 0))
+            ds = ImageDraw.Draw(sub)
+            nmax = max(len(r) for r in TX['linguetta'])
+            fl = font(FV['nastro'], int(min(64, 400 / nmax * 0.92)))
+            for c_, (riga, colr) in enumerate(zip(TX['linguetta'], (NAVY + (255,), (214, 60, 130, 255)))):
+                cxs = 140 - c_ * 80
+                y0s = 210 - (len(riga) - 1) / 2 * fl.size * 1.05
+                for q, ch in enumerate(riga):
+                    if ch.strip():
+                        ds.text((cxs, y0s + q * fl.size * 1.05), ch, font=fl, fill=colr, anchor='mm')
+        else:
+            sub = Image.new('RGBA', (440, 200), (0, 0, 0, 0))
+            ds = ImageDraw.Draw(sub)
+            fl = font_adatto(FV['nastro'], 54, TX['linguetta'], 400)
+            ds.text((220, 62), TX['linguetta'][0], font=fl, fill=NAVY + (255,), anchor='mm')
+            ds.text((220, 138), TX['linguetta'][1], font=fl, fill=(214, 60, 130, 255), anchor='mm')
+            sub = sub.rotate(90, expand=True)
         lay.alpha_composite(sub, (int(x0 + VW / n / 2 - sub.width / 2), int(ly0 + (VH - ly0) / 2 - sub.height / 2)))
     for xd in range(0, VW, 26):
         d.line((xd, ly0, xd + 13, ly0), fill=NAVY + (255,), width=3)
@@ -1464,6 +1586,11 @@ def volantino(uscita, lingua='it'):
     # nebbiolina
     lin += np.array([0.010, 0.013, 0.022]) * np.clip(0.5 + 0.5 * rumore(rng, sw, 200)[..., None], 0, 1) * 0.12
     out = finitura(lin, rng, vignetta=0.60, grana=0.014)
+    if TESTI_V[lingua].get('prova'):
+        # i testi di prova non sono controllati: l'immagine lo dice da sola, perché non finisca nel gioco per sbaglio
+        d = ImageDraw.Draw(out)
+        d.text((24 * SCALA, 20 * SCALA), f'PROVA [{lingua}] · TESTI DA FAR CONTROLLARE A UN MADRELINGUA',
+               font=font('Oswald-SemiBold', int(30 * SCALA)), fill=(255, 70, 70))
     if '--webp' in sys.argv:
         p = os.path.join(uscita, 'volantino.webp' if lingua == 'it' else f'volantino_{lingua}.webp')
         out.save(p, quality=90, method=6)
@@ -1477,8 +1604,14 @@ def volantino(uscita, lingua='it'):
 # ───────────────────────── main ─────────────────────────
 
 def main():
-    nomi = [a for i, a in enumerate(sys.argv[1:], 1) if not a.startswith('--') and sys.argv[i - 1] not in ('--uscita', '--scala', '--lingua')]
+    nomi = [a for i, a in enumerate(sys.argv[1:], 1) if not a.startswith('--') and sys.argv[i - 1] not in ('--uscita', '--scala', '--lingua', '--sottoinsiemi')]
     uscita = sys.argv[sys.argv.index('--uscita') + 1] if '--uscita' in sys.argv else os.path.join(ROOT, 'docs', 'concept')
+    if '--sottoinsiemi' in sys.argv:
+        sottoinsiemi(sys.argv[sys.argv.index('--sottoinsiemi') + 1])
+    if '--controlla' in sys.argv or '--sottoinsiemi' in sys.argv:
+        m = controlla_font()
+        print('caratteri mancanti:', m if m else 'nessuno')
+        return
     os.makedirs(uscita, exist_ok=True)
     if not nomi or nomi == ['tutti']:
         nomi = ['giornale', 'volantino', 'volantino_en']

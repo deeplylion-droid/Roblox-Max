@@ -83,11 +83,15 @@ ogni lingua.
 - I disegni dell'alba: le righe in `SCRITTE` di `tools/render/pastelli.py`, le lettere che mancano in `LETTERE`, poi
   `pastelli.py --lingua xx --larghezza 1600 --uscita public/assets/img/disegni piscina tesoro compleanno sottacqua`
   e la lingua in `TRADOTTI` di `src/app/disegni.ts`.
-- Il volantino: le righe in `TESTI_V` di `tools/render/annuncio.py`, poi
+- Il volantino: le righe in `TESTI_V` di `tools/render/annuncio.py` (togliendo `prova=True` quando un madrelingua le ha
+  controllate), `annuncio.py --controlla` (nessun carattere mancante), poi
   `annuncio.py volantino --lingua xx --scala 1.5 --webp --uscita public/assets/img/annuncio` (una lingua per volta:
-  servono circa 6 GB) e la lingua in `ANNUNCIO.langs` di `src/app/app.ts`. I font del volantino coprono gli accenti
-  dell'Europa occidentale, ß e ñ (Lilita One solo in parte polacco e turco); per cirillico e greco servono altri font
-  (la chiave `font` della lingua; da provare Rubik).
+  servono circa 6 GB) e la lingua in `ANNUNCIO.langs` di `src/app/app.ts`. Ci sono già testi **di prova, da far
+  controllare a un madrelingua**, per es, fr, de, pt-BR, zh, ja e ko, coi render in `docs/concept/lingue/`.
+  I font: Luckiest Guy, Baloo 2 e Lilita One per le lingue latine (accenti dell'Europa occidentale, ß, ñ; Lilita One
+  solo in parte polacco e turco); per cinese, giapponese e coreano altri font per lingua (chiave `font`), salvati come
+  sottoinsiemi coi soli caratteri dei testi: se i testi cambiano si rifanno con `annuncio.py --sottoinsiemi <font interi>`
+  (vedi `docs/concept/annuncio.md`). Per cirillico e greco servono ancora altri font (da provare Rubik).
 - Poi si guardano le immagini nuove, come le vede il giocatore (regola 4).
 
 ## Come è stato controllato
