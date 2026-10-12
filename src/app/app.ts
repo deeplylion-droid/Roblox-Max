@@ -342,6 +342,8 @@ export class App {
         onNext: r.kind === 'won' && !extra && this.nightNo < lastNight() ? () => this.skipToNight(next) : null,
         spare: r.kind === 'won' && !extra ? spare : undefined,
         onDive: diveOk ? () => this.dive(next) : null,
+        // finita l'ultima notte (la sesta), si apre la notte extra (i titoli di coda non ci sono ancora)
+        onExtra: r.kind === 'won' && !extra && this.nightNo >= lastNight() && NIGHT_LIMIT === Infinity ? () => this.extraNight() : null,
         onWishlist: STEAM_URL ? () => window.open(STEAM_URL, '_blank') : null,
         onRetry: () => this.intro(),
         onMenu: () => this.title(),

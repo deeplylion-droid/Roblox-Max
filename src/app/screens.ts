@@ -520,6 +520,8 @@ export class Screens {
   }
 
   results(o: { won: boolean; text: string; caught: number; fed: number; lore: number; demoEnd: boolean; onNext?: (() => void) | null; onWishlist?: (() => void) | null; onRetry: () => void; onMenu: () => void;
+    /** finita l'ultima notte, si è aperta la notte extra: al posto della fine della demo, il pulsante per giocarla */
+    onExtra?: (() => void) | null;
     /** pesci avanzati oltre la quota (immersioni) */
     spare?: number;
     /** scendere con le bombole prima della notte dopo (l'immersione è facoltativa) */
@@ -537,10 +539,11 @@ export class Screens {
     if (!o.won) menu.append(button(S.retry, o.onRetry, 'start'));
     if (o.won && o.onDive) menu.append(button(S.dive.descend, o.onDive, 'start'));
     if (o.won && o.onNext) menu.append(button(S.nextNight, o.onNext, 'start'));
-    if (o.demoEnd && o.onWishlist) menu.append(button(S.wishlist, o.onWishlist, 'start'));
+    if (o.won && o.onExtra) menu.append(button(S.extraNight, o.onExtra, 'start'));
+    if (o.demoEnd && !o.onExtra && o.onWishlist) menu.append(button(S.wishlist, o.onWishlist, 'start'));
     menu.append(button(S.menu, o.onMenu, 'back'));
     const el = h('div', { class: `screen ${o.won ? 'dawn' : 'death'} fade-in` }, h('h2', {}, o.won ? `${S.sixAm} · ${S.survived}` : S.deathTitle), h('p', {}, o.text), stats);
-    if (o.demoEnd) el.append(h('p', { class: 'muted' }, S.demoEnd));
+    if (o.demoEnd) el.append(h('p', { class: 'muted' }, o.onExtra ? S.extraOpened : S.demoEnd));
     el.append(menu);
     this.show(el);
   }

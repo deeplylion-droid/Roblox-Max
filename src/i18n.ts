@@ -107,6 +107,8 @@ const IT = {
   textSizes: ['Normale', 'Grande', 'Molto grande'],
   menu: 'Menu principale',
   demoEnd: 'Fine della demo. Le altre notti arrivano presto.',
+  // dopo la sesta notte, finché non ci sono i titoli di coda (DA APPROVARE)
+  extraOpened: 'Si è aperta la notte extra.',
   optionsTitle: 'Opzioni',
   volMaster: 'Volume generale',
   volMusic: 'Musica',
@@ -348,6 +350,7 @@ const EN: typeof IT = {
   textSizes: ['Normal', 'Large', 'Extra large'],
   menu: 'Main menu',
   demoEnd: 'End of the demo. More nights are coming.',
+  extraOpened: 'The extra night is now open.',
   optionsTitle: 'Options',
   volMaster: 'Master volume',
   volMusic: 'Music',
