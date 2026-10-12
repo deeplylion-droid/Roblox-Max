@@ -41,6 +41,36 @@ del questionario:
   c'è il jumpscare immediato. Il binocolo diventa uno strumento vero (finora era un easter egg). Prima la tavola
   con le varianti, i nomi e i posti, da approvare.
 
+### Più paura nel gioco (12 ottobre, ramo `claude/paura`; le idee sono approvate, i dettagli da approvare)
+
+Dal questionario del 12 ottobre l'utente ha scelto tutte e quattro le idee. Sono solo nel presentatore: la
+simulazione, le regole e il bilanciamento non cambiano.
+
+- **Le creature vive** (`src/app/vivi.ts`): mentre aspettano in posa **respirano** (lo strato si allunga e si accorcia
+  attorno alla base, dallo 0,4 all'1,1% dell'altezza, da 0,18 a 0,36 respiri al secondo; la Madre più piano). Quando
+  ne guardi una che è tutta fuori da almeno 1,2 s, ogni tanto **la testa scatta**: una rotazione di 3-4° sopra il
+  collo in 70 ms, ferma un quarto di secondo con un tremito, poi torna piano; una ogni 6-13 s, con lo schiocco della
+  cartilagine bagnata (`vivo_scatto_*`). Chi è appena uscito dall'acqua **gocciola** (`goccia_*`, una ogni 0,8-2,5 s).
+  Robin e la Madre non scattano. Nel renderer gli strati hanno `uWarp` e `uNeck` (le toppe seguono la loro posa; il
+  bordo del riquadro si sfuma di 14 px mentre si deforma).
+- **Il cuore del pescatore** (`src/app/paura.ts`): un solo numero, **il pericolo** (0..1, dagli stati dei mostri in
+  `dangerNow()` di `night.ts`; per esempio Gulpy che pretende 0,55-0,9, Molly nei capricci 0,8-0,92, Hatch che cerca
+  0,95, Soggy che corre verso la barca 0,96, la Madre che passa sotto 1; a batteria morta fino a 0,9), che sale in
+  fretta e scende piano. Dallo 0,15 in su il **battito**, da 66 a 132 al minuto e sempre più forte; il **respiro** si
+  fa corto; quando devi stare immobile (la Madre che passa sotto, Hatch che cerca) **trattieni il fiato**, e quando
+  finisce lo butti fuori. Sono suoni «dentro la testa» (bus `body`): sotto il telone non si ovattano, anzi il cuore si
+  sente di più. Sostituisce il vecchio battito.
+- **La tensione nella musica**: due fondi in loop (`tensione_bassa`, 24 s; `tensione_alta`, 16 s) che entrano col
+  pericolo medio e con quello forte; **sopra 0,92, un attimo prima del peggio, la musica sparisce di colpo** e resta
+  solo il cuore.
+- **I falsi allarmi** (dalla notte 2): una o due volte per notte, solo se è tutto calmo da almeno 20 s e sei fuori
+  dal telone, senza sonar né binocolo: **i colpi di Molly sullo scafo**, da un lato, senza nessuno (6 volte su 10), o
+  **un tonfo in acqua dietro di te** (sottotitolo «un tonfo in acqua, dietro di te» / «a splash in the water, behind
+  you»). Il cuore sussulta e torna giù piano. Il primo fra la prima ora e le due passate, il secondo almeno 1,2 ore
+  dopo.
+- Le anteprime (la scena col suono e Gulpy vivo) le ho mandate in chat il 12 ottobre. **Da fare**: la sagoma nella
+  nebbia (serve un render, dopo l'atmosfera).
+
 ### Il Foxy nel gioco (logica, notte fra l'11 e il 12 ottobre; branch `claude/foxy-gioco`)
 
 > **I render sono arrivati** (12 ottobre: il modello, le viste del binocolo di scivoli e relitto, il jumpscare, sotto);

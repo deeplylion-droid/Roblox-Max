@@ -159,6 +159,30 @@
     "gain": 0.6,
     "category": "sfx"
   },
+  "cuore_1": {
+    "file": "cuore_1.ogg",
+    "duration": 0.62,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.85,
+    "category": "body"
+  },
+  "cuore_2": {
+    "file": "cuore_2.ogg",
+    "duration": 0.62,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.85,
+    "category": "body"
+  },
+  "cuore_3": {
+    "file": "cuore_3.ogg",
+    "duration": 0.62,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.85,
+    "category": "body"
+  },
   "dive_air_low": {
     "file": "dive_air_low.ogg",
     "duration": 2.4,
@@ -287,6 +311,54 @@
     "gain": 0.9,
     "category": "mon"
   },
+  "fiato_dentro_1": {
+    "file": "fiato_dentro_1.ogg",
+    "duration": 0.9,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.55,
+    "category": "body"
+  },
+  "fiato_dentro_2": {
+    "file": "fiato_dentro_2.ogg",
+    "duration": 0.7,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.55,
+    "category": "body"
+  },
+  "fiato_dentro_3": {
+    "file": "fiato_dentro_3.ogg",
+    "duration": 0.5,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.55,
+    "category": "body"
+  },
+  "fiato_fuori_1": {
+    "file": "fiato_fuori_1.ogg",
+    "duration": 1.2,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.55,
+    "category": "body"
+  },
+  "fiato_fuori_2": {
+    "file": "fiato_fuori_2.ogg",
+    "duration": 0.95,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.55,
+    "category": "body"
+  },
+  "fiato_fuori_3": {
+    "file": "fiato_fuori_3.ogg",
+    "duration": 0.7,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.55,
+    "category": "body"
+  },
   "finale_nessuno": {
     "file": "finale_nessuno.ogg",
     "duration": 18.0,
@@ -357,6 +429,38 @@
     "loop": false,
     "channels": 1,
     "gain": 0.95,
+    "category": "sfx"
+  },
+  "goccia_1": {
+    "file": "goccia_1.ogg",
+    "duration": 0.32,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.5,
+    "category": "sfx"
+  },
+  "goccia_2": {
+    "file": "goccia_2.ogg",
+    "duration": 0.32,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.5,
+    "category": "sfx"
+  },
+  "goccia_3": {
+    "file": "goccia_3.ogg",
+    "duration": 0.32,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.5,
+    "category": "sfx"
+  },
+  "goccia_4": {
+    "file": "goccia_4.ogg",
+    "duration": 0.32,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.5,
     "category": "sfx"
   },
   "gulpy_breath_1": {
@@ -1231,6 +1335,22 @@
     "gain": 0.7,
     "category": "sfx"
   },
+  "tensione_alta": {
+    "file": "tensione_alta.ogg",
+    "duration": 16.0,
+    "loop": true,
+    "channels": 2,
+    "gain": 0.6,
+    "category": "mus"
+  },
+  "tensione_bassa": {
+    "file": "tensione_bassa.ogg",
+    "duration": 24.0,
+    "loop": true,
+    "channels": 2,
+    "gain": 0.7,
+    "category": "mus"
+  },
   "ui_back": {
     "file": "ui_back.ogg",
     "duration": 0.11,
@@ -1270,5 +1390,29 @@
     "channels": 2,
     "gain": 0.7,
     "category": "ui"
+  },
+  "vivo_scatto_1": {
+    "file": "vivo_scatto_1.ogg",
+    "duration": 0.45,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.75,
+    "category": "mon"
+  },
+  "vivo_scatto_2": {
+    "file": "vivo_scatto_2.ogg",
+    "duration": 0.45,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.75,
+    "category": "mon"
+  },
+  "vivo_scatto_3": {
+    "file": "vivo_scatto_3.ogg",
+    "duration": 0.45,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.75,
+    "category": "mon"
   }
 }

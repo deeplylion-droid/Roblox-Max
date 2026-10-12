@@ -231,7 +231,7 @@ export class App {
     const v = this.audio.volumes;
     v.master = o.master;
     v.music = o.music;
-    v.sfx = v.amb = v.voice = v.ui = o.sfx;
+    v.sfx = v.amb = v.voice = v.ui = v.body = o.sfx;
     this.audio.applyVolumes();
     this.stage.brightness = o.brightness;
     this.stage.renderer.renderScale = o.quality;

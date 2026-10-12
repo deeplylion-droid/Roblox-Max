@@ -210,6 +210,8 @@ const IT = {
     bowEat: 'Gulpy mastica',
     bowLeave: 'tonfo in acqua a prua',
     knock: 'toc toc sullo scafo',
+    // il falso allarme (più paura, 12 ottobre): DA APPROVARE
+    falseSplash: 'un tonfo in acqua, dietro di te',
     peek: 'Molly si affaccia',
     giggle: 'risatina',
     whine: 'Molly piagnucola',
@@ -473,6 +475,7 @@ const EN: typeof IT = {
     bowEat: 'Gulpy chews',
     bowLeave: 'splash at the bow',
     knock: 'knock knock on the hull',
+    falseSplash: 'a splash in the water, behind you',
     peek: 'Molly peeks in',
     giggle: 'giggle',
     whine: 'Molly whimpers',
