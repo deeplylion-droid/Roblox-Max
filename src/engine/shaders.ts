@@ -64,8 +64,13 @@ uniform float uClipY;    // > 0: sotto questa riga del panorama non si disegna (
 uniform float uPelo[32];
 uniform vec3 uPeloX;
 uniform float uPart;     // creatura che sale o scende dietro il bordo: 0 tutta, 1 la parte contro mare e cielo
-                         // (disegnata prima della barca, che la copre), 2 la parte davanti alla barca (le mani)
+                         // (disegnata prima della barca, che la copre), 2 la parte davanti alla barca (le mani),
+                         // 3 le mani che mollano la presa (uRelease)
 uniform sampler2D uBoat; // la barca: il suo alfa dice dov'era coperta la creatura nella posa
+// le mani che mollano la presa (uPart 3): di quanto si sono ritirate verso il bordo (x, y, pixel del panorama) e
+// quanto resta di quello che non l'ha ancora passato (z). Ritirandosi scivolano oltre il bordo e da lì in giù, fuori
+// dallo scafo: quello che è passato non si vede più (niente pezzi che restano in aria sopra il mare)
+uniform vec3 uRelease;
 // fino a due toppe che entrano sopra questo strato (una mascella che si sposta): dove la toppa è vuota questo strato
 // sfuma, se no si vedrebbe la mascella vecchia. Stesso yaw: il riquadro è in pixel del panorama dello strato
 uniform sampler2D uMask0, uMask1;
@@ -75,6 +80,11 @@ uniform vec2 uMaskK;
 // strato); uTorch.w = coseno del bordo del cono, 0 = niente torcia (il passo resta com'è)
 uniform vec4 uTorch;
 uniform vec3 uTint;      // tinta dello strato (1, 1, 1: nessuna)
+// l'alfa della barca nel punto p del panorama dello strato (lo strato è centrato sul suo yaw, la barca su 0)
+float boatAt(vec2 p) {
+  return texture(uBoat, vec2(fract(p.x / uPano.x + uYaw / (2.0 * PI)), p.y / uPano.y)).a;
+}
+
 float maskOf(sampler2D m, vec4 r, float k, vec2 p) {
   if (k <= 0.0 || p.x < r.x || p.x > r.z || p.y < r.y || p.y > r.w) return 1.0;
   return 1.0 - k * (1.0 - texture(m, (p - r.xy) / (r.zw - r.xy)).a);
@@ -119,10 +129,13 @@ void main() {
     part = smoothstep(0.0, 14.0, edge);
   }
   if (uPart > 0.5) {
-    // il punto della posa da cui viene questo pixel: davanti alla barca o contro il mare? (lo strato è centrato
-    // sul suo yaw, la barca su 0)
-    float b = texture(uBoat, vec2(fract(p.x / uPano.x + uYaw / (2.0 * PI)), p.y / uPano.y)).a;
+    // il punto della posa da cui viene questo pixel: davanti alla barca o contro il mare?
+    float b = boatAt(p);
     part *= uPart < 1.5 ? 1.0 - b : b;
+    if (uPart > 2.5) {
+      // le mani che mollano la presa: si vede solo quello che, ritirato, sta ancora dentro il bordo
+      part *= smoothstep(0.3, 0.7, boatAt(p + uRelease.xy)) * uRelease.z;
+    }
     if (part < 0.004) discard;
   }
   part *= onWater * maskOf(uMask0, uMaskRect0, uMaskK.x, p) * maskOf(uMask1, uMaskRect1, uMaskK.y, p);

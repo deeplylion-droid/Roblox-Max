@@ -209,6 +209,14 @@ interface Aboard {
   /** la parte davanti alla barca (le mani sul bordo) resta ferma mentre svanisce: se scendesse col resto
    *  passerebbe attraverso lo scafo */
   handsStay?: boolean;
+  /**
+   * Le mani mollano la presa (prova dell'utente del 12 ottobre sera: svanendo sul posto la mano sembrava passare
+   * attraverso lo scafo): la parte davanti alla barca si ritira di tanto verso il mare (pixel del panorama) mentre p va
+   * da 1 a `hands`, poi scende col resto. Quello che passa oltre il bordo da lì in poi sta dietro lo scafo; il poco che
+   * non ci arriva svanisce mentre si ritira. La distanza è quella che porta oltre il bordo quasi tutta la parte
+   * davanti (misurata sull'alfa della barca: Gulpy e Molly le dita che pendono dentro, Robin testa, braccio e zampe).
+   */
+  release?: [number, number];
   /** spostamento in più (pixel del panorama) */
   recoil?: [number, number];
   light?: [number, number, number];
@@ -2059,6 +2067,15 @@ export class Night {
         continue;
       }
       layers.push({ key: a.key, shift, part: 'back', opacity: k, light: a.light, masks });
+      if (a.release) {
+        const r = smooth01((1 - a.p) / (1 - a.hands));
+        const rx = a.release[0] * r;
+        const ry = a.release[1] * r;
+        // il poco che a fine ritirata non ha passato il bordo svanisce nell'ultimo quarto
+        const rest = 1 - smooth01((r - 0.75) / 0.25);
+        if (rest > 0.002) aboard.push({ key: a.key, shift: [shift[0] + rx, shift[1] + ry], part: 'front', opacity: k, light: a.light, masks, release: [rx, ry, rest] });
+        continue;
+      }
       const hands = smooth01((a.p - a.hands) / (1 - a.hands));
       const handsShift: [number, number] = a.handsStay ? [a.recoil?.[0] ?? 0, a.recoil?.[1] ?? 0] : shift;
       if (hands > 0.002) aboard.push({ key: a.key, shift: handsShift, part: 'front', opacity: hands * k, light: a.light, masks });
@@ -2094,7 +2111,7 @@ export class Night {
     // Gulpy: la mascella va avanti e indietro fra la toppa più aperta e quella più chiusa, passando per la posa
     const kOpen = L[POSE.gulpyJawOpen] ? smooth01(Math.max(0, v.gJaw)) : 0;
     const kShut = L[POSE.gulpyJawShut] ? smooth01(Math.max(0, -v.gJaw)) : 0;
-    const gulpy = { p: v.gPret, hands: 0.8, out: 0, handsStay: true };
+    const gulpy = { p: v.gPret, hands: 0.8, out: 0, handsStay: true, release: [-110, -190] as [number, number] };
     const out: Aboard[] = [
       { key: POSE.gulpyPretende, ...gulpy, masks: [{ key: POSE.gulpyJawOpen, k: kOpen }, { key: POSE.gulpyJawShut, k: kShut }] },
       { key: POSE.gulpyJawOpen, ...gulpy, opacity: kOpen },
@@ -2102,7 +2119,7 @@ export class Night {
     ];
     // Molly: gli occhi che sbattono, sui due lati
     for (const [side, key, p] of [['right', POSE.mollyRight, v.mR], ['left', POSE.mollyLeft, v.mL]] as const) {
-      const molly = { p, hands: 0.8, out: 0, handsStay: true };
+      const molly = { p, hands: 0.8, out: 0, handsStay: true, release: (side === 'right' ? [0, -190] : [-44, -164]) as [number, number] };
       out.push({ key, ...molly });
       out.push({ key: MOLLY_EYES[side][0], ...molly, opacity: v.mBlink1 });
       out.push({ key: MOLLY_EYES[side][1], ...molly, opacity: v.mBlink2 });
@@ -2116,10 +2133,14 @@ export class Night {
     const recoil: [number, number] = [-(9 + 3 * noise1(t * 21, 5)) * f, (12 + 3 * noise1(t * 19, 6)) * f];
     const light: [number, number, number] = [1, 1, 1 + 2.2 * f];
     const squint = smooth01(f * 1.6);
-    out.push({ key: POSE.robin, p: v.robin, hands: 0.75, out: -0.45, handsStay: true, recoil, light });
-    out.push({ key: POSE.robinSquint, p: v.robin, hands: 0.75, out: -0.45, handsStay: true, recoil, light, opacity: squint });
+    // per Robin le mani che mollano la presa non bastano: dentro la barca ha mezzo corpo (testa, braccio nel secchio,
+    // zampe) e ritirandolo tutto a mano si spezzerebbe in pezzi. Quello che sta sopra la barca svanisce sul posto ma in
+    // un lampo (tre o quattro fotogrammi), finché non c'è un'animazione renderizzata della ritirata
+    const robin = { p: v.robin, hands: 0.92, out: -0.45, handsStay: true, recoil, light };
+    out.push({ key: POSE.robin, ...robin });
+    out.push({ key: POSE.robinSquint, ...robin, opacity: squint });
     // ogni tanto sbatte gli occhi (non quando li strizza nella luce)
-    out.push({ key: POSE.robinBlink, p: v.robin, hands: 0.75, out: -0.45, handsStay: true, recoil, light, opacity: v.robinBlink * (1 - squint) });
+    out.push({ key: POSE.robinBlink, ...robin, opacity: v.robinBlink * (1 - squint) });
     return out;
   }
 

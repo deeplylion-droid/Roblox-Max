@@ -33,6 +33,10 @@ export interface LayerDraw {
    * scende; 'front' è quella davanti alla barca (le mani sul bordo), da disegnare dopo.
    */
   part?: 'back' | 'front';
+  /** con part 'front': le mani che mollano la presa. Di quanto si sono ritirate verso il mare (pixel del panorama, già
+   *  compreso in shift) e quanto resta di quello che non ha ancora passato il bordo (0..1): quello che l'ha passato da
+   *  lì in poi sta dietro lo scafo (shaders.ts, uRelease) */
+  release?: [number, number, number];
   /** moltiplica le luci di questo strato: ambiente, lampara, lanterna (Robin con la luce in faccia) */
   light?: [number, number, number];
   /** tinta dello strato (un panorama segnaposto riusato per più posti delle immersioni) */
@@ -346,7 +350,8 @@ export class Renderer {
         .f2('uNeck', d.warp?.neck ?? 0, d.warp?.band ?? 1)
         .f1('uClipY', d.clipY ?? 0)
         .f3('uPeloX', d.pelo?.x0 ?? 0, d.pelo?.x1 ?? 1, d.pelo ? Math.min(PELO_N, d.pelo.rows.length) : 0)
-        .f1('uPart', d.part === 'back' ? 1 : d.part === 'front' ? 2 : 0)
+        .f1('uPart', d.part === 'back' ? 1 : d.part === 'front' ? (d.release ? 3 : 2) : 0)
+        .f3('uRelease', d.release?.[0] ?? 0, d.release?.[1] ?? 0, d.release?.[2] ?? 1)
         .f1('uHasData', l.data ? 1 : 0)
         .f4('uTorch', world && f.torch ? f.torch.dir[0] : 0, world && f.torch ? f.torch.dir[1] : 1, world && f.torch ? f.torch.dir[2] : 0, world && f.torch ? f.torch.cos : 0)
         .f3('uTint', d.tint ? d.tint[0] : 1, d.tint ? d.tint[1] : 1, d.tint ? d.tint[2] : 1)
