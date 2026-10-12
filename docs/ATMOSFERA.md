@@ -88,3 +88,14 @@ Il mondo e la barca stanno in una notte. Il resto in un'altra.
 - Facoltativo: un leggerissimo scorrere della nebbia già resa, una distorsione lenta degli UV solo dove c'è
   nebbia vicina, per non averla immobile. Va provato con cautela, dopo la bocciatura degli sbuffi.
 - Nient'altro: l'alone segue già la luce, perché sta nel passo `lamp`.
+
+## Dopo il render del mondo: la pulizia dei passi lamp e lantern
+
+Nel gioco (build #29) i passi `lamp` e `lantern` del mondo sono stati ripuliti dopo il render con
+`tools/render/liscia_nebbia.py` (ramo claude/atmosfera-motore, 1f90678). Il motivo: la diffusione della lanterna
+nella nebbia esce da Cycles a chiazze, e sull'acqua scura a sinistra della barca sembrava pixellata;
+`liscia_lontano` tocca solo il `lamp`, e solo lontano.
+
+Lo script prende la media dell'intorno: mezzo grado vicino alla barca, un grado oltre i 15-60 m. Tiene i riflessi
+veri, cioè i punti molto più chiari dell'intorno e più grandi di un pixel. **Se si rifà il mondo, va rifatta la
+stessa pulizia.**
