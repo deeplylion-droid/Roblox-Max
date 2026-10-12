@@ -152,7 +152,10 @@ Volume generale/musica/effetti, lingua (italiano, inglese), luminosità, schermo
 
 ## 14. Piattaforme e tecnologia
 
-TypeScript + WebGL2 (renderer proprio), interfaccia in HTML/CSS, Web Audio. Desktop con Electron (Windows, Linux/Steam Deck, macOS), Steamworks in un secondo momento (achievement, salvataggi cloud). Tutti gli asset sono generati da script nel repository (`tools/`).
+TypeScript + WebGL2 (renderer proprio), interfaccia in HTML/CSS, Web Audio. Desktop con Electron (Windows, Linux/Steam Deck, macOS), Steamworks in un secondo momento (achievement, salvataggi cloud).
+
+**La demo per Steam** (Next Fest di febbraio 2027): **1 o 2 notti** (nota dell'utente del 12 ottobre; prima era solo la
+prima notte). Il piano dei passi è nella pagina «Splashland su Steam». Tutti gli asset sono generati da script nel repository (`tools/`).
 
 ## 15. Oltre la Notte 1 (roadmap)
 
