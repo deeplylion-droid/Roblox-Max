@@ -450,11 +450,10 @@ export const NIGHTS: Record<number, NightConfig> = {
   // Notte 6: la Madre, il finale (approvato l'11 ottobre, docs/NOTTI_E_MOSTRI.md). Tornano tutti e sette i figli e la
   // regia ne manda di più insieme; tre volte (verso le 2, le 4 e le 5:30) arriva lei: i figli tornano giù, e mentre
   // passa sotto la barca (10, 15, 20 s) serve l'immobilità totale. Quota 10 (nella proposta 12: ma ogni passata ferma
-  // la pesca per una trentina di secondi; giocatori simulati: esperto 86%, medio 68%, maldestro 34%). In lavorazione
-  // finché non c'è il suo aspetto (le sagome sono da approvare)
+  // la pesca per una trentina di secondi; giocatori simulati: esperto 86%, medio 68%, maldestro 34%). Giocabile dalla
+  // notte del 12 ottobre: c'è il suo aspetto (la posa del finale A e il jumpscare, scelti col via libera dell'utente)
   6: {
     night: 6,
-    bozza: true,
     quota: 10,
     hourlyRamp: 0.17,
     biteMul: 0.12,

@@ -450,6 +450,8 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
     la sua camera, che si inclina con la barca.
   - **Render finali** (notte fra l'11 e il 12 ottobre, scelti da me col via libera dell'utente): la posa e il
     jumpscare (otto fotogrammi a 10 al secondo). L'utente li vede domattina e può ancora cambiarli.
+- **Giocabile** dalla notte del 12 ottobre (prima era in bozza, finché non c'era il suo aspetto): il gioco la propone
+  dopo la quinta.
 - **Come si gioca**: tornano tutti e sette i mostri e la regia ne manda di più insieme (è la notte più dura). Quota 10
   (proposta 12; con 12 l'esperto simulato vinceva 5 notti su 100; **approvato 10** l'11 ottobre),
   la batteria come sempre. In più c'è lei: sul sonar un'**ombra enorme** gira attorno alla barca, lontana, per tutta
