@@ -511,6 +511,10 @@ def run(q, post_mod, overlays_path, build_scene, coll_objects):
     out_dir = os.path.join(CACHE, q.name, 'binocolo')
     os.makedirs(out_dir, exist_ok=True)
     only = [k for k in os.environ.get('LUOGHI', '').split(',') if k]
+    atmo = bool(os.environ.get('ATMOSFERA'))
+    if atmo:
+        # il passo Depth per il mist (vedi sotto)
+        bpy.context.scene.view_layers[0].use_pass_z = True
     fill = wreck_fill()
     # i fari colorati della statua, pensati per la vista a occhio nudo, bruciano la pancia nello zoom
     for k in range(2):
@@ -531,12 +535,21 @@ def run(q, post_mod, overlays_path, build_scene, coll_objects):
         scale = {'draft': 0.5, 'preview': 0.75}.get(q.name, 1.0)
         w, h = int(W * scale) // 2 * 2, int(H * scale) // 2 * 2
         samples = {'draft': q.samples, 'preview': 40}.get(q.name, min(q.samples, 64))
+        if atmo and q.name == 'final':
+            # la nebbia lungo 400-700 m di linea di vista è rumorosa: 64 campioni non bastano
+            samples = int(os.environ.get('CAMPIONI', 192))
         exr = os.path.join(out_dir, f'{key}.exr')
         t = time.time()
-        render(exr, samples, (w, h), data_passes=('Mist',))
+        render(exr, samples, (w, h), data_passes=('Mist', 'Depth') if atmo else ('Mist',))
         p = post_mod.read_exr(exr)
         lin = post_mod.rgb(p['ambient'])
-        mist = np.clip(p['mist'], 0, 1)
+        if atmo:
+            # con la nebbia il mist di Cycles si accumula nei volumi: la distanza vera dal passo Depth, sqrt(d / 2500 m)
+            # come nel mist di Blender (lo stesso conto di encode_layer in jobs.py)
+            d = np.where(np.isfinite(p['depth']), p['depth'], 1e9)
+            mist = np.sqrt(np.clip(d / 2500.0, 0.0, 1.0))
+        else:
+            mist = np.clip(p['mist'], 0, 1)
         sc = post_mod.pick_scale(lin, pct=99.5)
         rgb8 = np.asarray(post_mod.encode_light_pass(lin, sc))
         a8 = np.clip(mist * 255 + 0.5, 0, 255).astype(np.uint8)
