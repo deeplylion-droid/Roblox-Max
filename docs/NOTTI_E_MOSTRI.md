@@ -108,6 +108,8 @@ simulazione, le regole e il bilanciamento non cambiano.
 > dritta e lui sale da sotto il capodibanda contro la foschia (fotogrammi 0-3), poi ti viene addosso con la faccia al
 > centro, luce calda solo sulla faccia, l'occhio da cartone che dondola di lato e le mani ossute che salgono dagli angoli
 > in basso (4-7). La faccia da annegato: pelle macerata, chiazze grigio-viola, labbra gonfie e livide.
+> **Più vicino** (richiesta dell'utente del 12 ottobre, «così che ti arriva proprio in faccia, alla FNAF»): nel gioco i
+> fotogrammi si ingrandiscono del 20% attorno al centro, senza rifare il render (`JS_ZOOM` in `src/app/night.ts`).
 
 - **Dove sta**: in uno di due posti del binocolo, la **torre degli scivoli** alle spalle (−167°, 460 m) e il
   **relitto** davanti alla prua (14°, 170 m), da dove salta in acqua e arriva alla barca. Li ha proposti la sessione

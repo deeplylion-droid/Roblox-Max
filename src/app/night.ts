@@ -243,6 +243,10 @@ function noise1(x: number, seed: number): number {
   return a + (b - a) * u;
 }
 
+/** Zoom in più sui fotogrammi del jumpscare di qualcuno, senza rifare il render: Soggy ti arriva proprio in faccia, alla
+ *  FNAF (richiesta dell'utente del 12 ottobre: +20%). */
+const JS_ZOOM: Partial<Record<MonsterId | 'mother' | 'quota', number>> = { foxy: 1.2 };
+
 /** Camera a mano del jumpscare, in post: sobbalzo all'impatto, tremito rapido, rollio, un colpo di zoom a
  *  ogni fotogramma nuovo e una lenta spinta in avanti. Lo zoom copre sempre lo schermo, anche con lo
  *  spostamento e il rollio più grandi possibili in quell'istante. calm < 1 attenua tutto. */
@@ -2584,6 +2588,7 @@ export class Night {
         // Molly è renderizzata a destra: dal lato sinistro l'immagine si specchia
         const flipX = js.killer === 'molly' && this.sim.molly.side === 'left';
         const cam = jumpscareCamera(js.t, seq.fps, seq.frames.length, seq.aspect, this.d.options.reduceFlash ? 0.35 : 1);
+        cam.zoom *= JS_ZOOM[js.killer] ?? 1;
         return { base: fr.tex, baseScale: fr.scale, wBase: 1, aspect: seq.aspect, alpha: Math.min(1, js.t * 12), flipX, ...cam };
       }
       return null;
