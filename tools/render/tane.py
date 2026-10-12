@@ -825,7 +825,7 @@ def cabinato(pos):
     # girato con la faccia verso l'occhio, poi caduto sul fianco (attorno all'asse avanti-dietro: la faccia resta
     # verso chi entra) e appoggiato alla parete
     yaw = math.degrees(math.atan2(OCCHIO_T[0] - pos[0], pos[1] - OCCHIO_T[1]))
-    M = Matrix.Translation((pos[0], pos[1], 0.0)) @ Matrix.Rotation(math.radians(yaw), 4, 'Z') @ Matrix.Rotation(math.radians(62), 4, 'Y')
+    M = Matrix.Translation((pos[0], pos[1], 0.0)) @ Matrix.Rotation(math.radians(yaw), 4, 'Z') @ Matrix.Rotation(math.radians(50), 4, 'Y')
     bpy.context.view_layer.update()
     for o in obs:
         o.matrix_world = M @ o.matrix_world
@@ -887,7 +887,7 @@ def tana_robin():
         ob = sweep('Biglietti', pts, rect_profile(0.065, 0.002), col=COL, cap=False, up=(0, 0, 1))
         ob.data.materials.append(grotte.plastica('TRBiglietti', (0.80, 0.24, 0.02), melma=0.3))
         _lg(ob)
-    cabinato((3.0, 1.6))
+    cabinato((2.3, 0.9))
     manifesto_su_parete('smarriti', [('LOST &', 80, (30, 30, 30), 'Limelight-Regular'), ('FOUND', 80, (30, 30, 30), 'Limelight-Regular'),
                                      ('SPLASHLAND', 50, (150, 30, 60), 'Limelight-Regular')], ((210, 200, 170), (60, 40, 30)), -40, 2.0, size=(0.8, 0.6))
     trov = (1.6, 0.4, 0.04)
