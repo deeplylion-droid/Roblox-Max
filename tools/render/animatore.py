@@ -49,9 +49,9 @@ POSE = {
     'riposo': dict(),
     # le braccia si alzano verso chi guarda, i gomiti in fuori, le mani aperte che vengono avanti per l'abbraccio
     'abbraccio': dict(
-        armR=((0.72, -0.58, 1.10), (0.60, -0.92, 1.16)),
-        armL=((-0.70, -0.52, 1.12), (-0.58, -0.88, 1.20)),
-        hand_dir={1: (-0.45, -1.0, 0.05), -1: (0.45, -1.0, 0.08)},
+        armR=((0.66, -0.58, 1.02), (0.46, -0.94, 0.98)),
+        armL=((-0.64, -0.52, 1.04), (-0.44, -0.90, 1.00)),
+        hand_dir={1: (-0.55, -1.0, 0.10), -1: (0.55, -1.0, 0.12)},
         hand_up={1: (1.0, 0.1, 0.25), -1: (-1.0, 0.1, 0.25)},
         curl=0.38, fin_len=0.20,
     ),
