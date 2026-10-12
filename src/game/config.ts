@@ -659,8 +659,8 @@ export function extraMother(level: number): MotherConfig | undefined {
 
 /**
  * Il finale speciale della notte extra si vede solo vincendola con tutti, Madre compresa, almeno a 10 (confermato
- * dall'utente l'11 ottobre: è il finale B «Il ricordo», da fare quando la Madre sarà renderizzata; per ora c'è un
- * segnaposto, Screens.extraEnding); con impostazioni più facili all'alba c'è l'alba normale.
+ * dall'utente l'11 ottobre: è il finale B «Il ricordo», la cinematica FINALE_B col disegno a pastelli); con impostazioni
+ * più facili all'alba c'è l'alba normale.
  */
 export const EXTRA_ENDING_MIN = 10;
 

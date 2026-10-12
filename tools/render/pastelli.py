@@ -6,7 +6,7 @@ I disegni a pastelli a cera dei bambini di Splashland (idea dell'utente del 12 o
   (sotto si intravede ancora il sorriso) e una cosa sola a testa che dice chi erano: i braccioli (Molly), il salvagente
   a paperella (Gulpy), il giocattolo luminoso (Hatch). Il quarto (sei tu) è intatto, col berretto e la canna col
   pesciolino. Nel lago, la cosa con un occhio solo e i dentini bianchi.
-- I disegni dell'alba (12 ottobre, DA APPROVARE): all'alba di ogni notte vinta, dalla prima alla quinta, sul banco
+- I disegni dell'alba (approvati dall'utente il 12 ottobre): all'alba di ogni notte vinta, dalla prima alla quinta, sul banco
   c'è un disegno bagnato dei bambini di quella notte, com'erano prima della Madre (poi restano nel Diario):
   1 «La piscina»: Gulpy allo Snack Shack col panino gigante («HO FAME!»), Molly sul trampolino coi braccioli
     («GUARDAMI!»), gli occhi di Hatch nel tunnel dello scivolo e il suo giocattolo che brilla;
@@ -842,7 +842,7 @@ def d_piscina():
         tondo(['rosso', 'verde', 'arancione', 'viola'][k], 1920 + k * 95, 930, 26, press=1.0)
     mani, testa = bambino(1990, 1580, 480, 'verde', 'nero', espressione='urlo', mano_sx=(1865, 1400), mano_dx=(2115, 1400))
     panino(1990, 1420, 1.0)
-    fumetto('HO FAME!', 1420, 900, 56, verso=(1, 1))
+    fumetto('HO FAME!', 1480, 1075, 52, verso=(1, 1))
     # il prato in basso e la data
     prato = (ys > 1600 + 14 * np.sin(xs / 140.0))
     riempi(strato('verde'), prato, angolo=-4, passo=14, press=0.75, larg=22, fuori=10, buchi=0.06)
