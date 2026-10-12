@@ -362,14 +362,16 @@ LETTERE.update({
     ':': [[(0.5, 0.3), (0.52, 0.4)], [(0.5, 0.9), (0.52, 1)]],
 })
 STRETTE |= set('¡.,:')
-# gli accenti: sopra la lettera (v < 0), la cediglia sotto
+LETTERE['‐'] = [[(0.1, 0.55), (0.9, 0.5)]]
+# gli accenti: sopra la lettera (v < 0), la cediglia sotto; abbastanza grandi e staccati dalla lettera che nelle
+# scritte piccole (AOÛT 97) non si impastino col pastello della lettera
 _SEGNI = {
-    'acuto': [[(0.42, -0.1), (0.64, -0.32)]],
-    'grave': [[(0.36, -0.32), (0.58, -0.1)]],
-    'circonflesso': [[(0.2, -0.1), (0.5, -0.32), (0.8, -0.1)]],
-    'tilde': [[(0.15, -0.16), (0.33, -0.28), (0.5, -0.2), (0.67, -0.12), (0.85, -0.24)]],
-    'dieresi': [[(0.28, -0.24), (0.3, -0.14)], [(0.7, -0.24), (0.72, -0.14)]],
-    'cediglia': [[(0.5, 1.0), (0.62, 1.12), (0.42, 1.25)]],
+    'acuto': [[(0.42, -0.14), (0.7, -0.42)]],
+    'grave': [[(0.3, -0.42), (0.58, -0.14)]],
+    'circonflesso': [[(0.22, -0.17), (0.5, -0.5), (0.78, -0.17)]],
+    'tilde': [[(0.08, -0.2), (0.29, -0.35), (0.5, -0.26), (0.71, -0.17), (0.92, -0.32)]],
+    'dieresi': [[(0.26, -0.32), (0.28, -0.17)], [(0.72, -0.32), (0.74, -0.17)]],
+    'cediglia': [[(0.5, 1.0), (0.64, 1.14), (0.4, 1.28)]],
 }
 _ACCENTATE = {
     'À': 'A grave', 'Á': 'A acuto', 'Â': 'A circonflesso', 'Ã': 'A tilde', 'Ä': 'A dieresi', 'Ç': 'C cediglia',
@@ -389,7 +391,10 @@ _SCIOGLI = {'ß': 'SS', 'ẞ': 'SS', 'Œ': 'OE', 'Æ': 'AE', '！': '!', '？': 
 
 def _sciogli(testo):
     testo = testo.upper()
-    return ''.join(_SCIOGLI.get(c, c) for c in testo)
+    testo = ''.join(_SCIOGLI.get(c, c) for c in testo)
+    # il trattino fra due lettere (TROUVE-MOI) è largo come una lettera; quello delle date (14-8-97) resta stretto
+    return ''.join('‐' if c == '-' and 0 < i < len(testo) - 1 and testo[i - 1].isalpha() and testo[i + 1].isalpha() else c
+                   for i, c in enumerate(testo))
 
 
 def _e_cjk(ch):
@@ -580,12 +585,23 @@ def scrivi(colore, testo, x, y, alt, *a, **k):
 
 def fumetto(testo, x, y, alt, *a, **k):
     """Una nuvoletta con la scritta (vedi _fumetto), nella lingua scelta se la scritta è fra quelle da tradurre: la
-    nuvoletta resta quella dell'italiano, la scritta tradotta ci sta dentro."""
+    nuvoletta resta quella dell'italiano, la scritta tradotta ci sta dentro. `allarga`: quanto può allargarsi al
+    massimo per una traduzione lunga (dove accanto c'è poco posto)."""
+    allarga = k.pop('allarga', 1.5)
     if not _da_tradurre(testo):
         return _fumetto(testo, x, y, alt, *a, **k)
     tr = SCRITTE[LINGUA][testo]
     x2, alt2 = _al_posto(testo, tr, x, alt, pieno=0.92)
-    return _come_in_italiano(lambda it: _fumetto(testo, x, y, alt, *a, **k) if it else _fumetto(testo, x, y, alt, *a, scritta=(tr, x2, alt2), **k),
+    # una traduzione molto più lunga (AIUTO! → AU SECOURS!) si leggerebbe appena: la nuvoletta si allarga, fino a una
+    # volta e mezza, dalla parte opposta a chi parla (dall'altra c'è chi parla, e spesso altro: il chiosco accanto a
+    # HO FAME!), e la scritta va nel mezzo della nuvoletta nuova
+    largo = 1.0
+    if alt2 < alt * 0.6:
+        largo = min(allarga, 0.75 * alt / alt2)
+        bw = len(testo) * alt * 0.86 + alt * 0.8
+        centro = x - alt * 0.5 + bw / 2 - k.get('verso', (-1, 1))[0] * bw * (largo - 1) / 2
+        x2, alt2 = _al_posto(testo, tr, centro - _larghezza(testo, alt) / 2, alt, pieno=0.92 * largo)
+    return _come_in_italiano(lambda it: _fumetto(testo, x, y, alt, *a, **k) if it else _fumetto(testo, x, y, alt, *a, scritta=(tr, x2, alt2), largo=largo, **k),
                              testo)
 
 
@@ -613,20 +629,28 @@ def _scrivi(colore, testo, x, y, alt, larg=14.0, press=1.1, spazio=0.32, specchi
                 rx = px * math.cos(rot) - py * math.sin(rot)
                 ry = px * math.sin(rot) + py * math.cos(rot)
                 pts.append((cx + w / 2 + rx, y + dy + ry))
-            # nei caratteri quadrati i tratti sono tanti e fitti: il pastello un po' più fine e la mano più ferma
-            tratto(st, pts, larg * (0.6 if quadrata else 1.0), press, trema=0.25 if quadrata else 0.35)
+            # nei caratteri quadrati i tratti sono tanti e fitti: il pastello un po' più fine e la mano più ferma; gli
+            # accenti (tutti sopra la lettera) un po' più fini, che restino staccati
+            fine = 0.6 if quadrata else 0.8 if all(v < 0 for _, v in s) else 1.0
+            tratto(st, pts, larg * fine, press, trema=0.25 if quadrata else 0.35)
         cx += w + _passo(ch, alt, spazio)
     return cx
 
 
-def _fumetto(testo, x, y, alt, colore='nero', verso=(-1, 1), bordo='nero', scritta=None):
+def _fumetto(testo, x, y, alt, colore='nero', verso=(-1, 1), bordo='nero', scritta=None, largo=1.0):
     """Una nuvoletta coi bordi a onda attorno alla scritta, con la punta verso chi parla (verso: da che parte).
-    `scritta` (testo, x, altezza): dentro c'è un'altra scritta, la traduzione di `testo` (vedi fumetto)."""
+    `scritta` (testo, x, altezza): dentro c'è un'altra scritta, la traduzione di `testo` (vedi fumetto); `largo`: la
+    nuvoletta più larga di tanto, dalla parte opposta a chi parla (la punta resta dov'è)."""
     rng = rnd()
     larg_t = sum(alt * (0.6 if c == ' ' else 0.62 * (0.3 if c in STRETTE else 1.0) + 0.32 * alt / alt) for c in testo)
     larg_t = len(testo) * alt * 0.86
     bx, by = x - alt * 0.5, y - alt * 1.05
     bw, bh = larg_t + alt * 0.8, alt * 2.1
+    px = bx + bw / 2 + verso[0] * bw * 0.25
+    if largo != 1.0:
+        if verso[0] > 0:
+            bx -= bw * (largo - 1)
+        bw *= largo
     cx, cy = bx + bw / 2, by + bh / 2
     pts = []
     n = 40
@@ -636,7 +660,6 @@ def _fumetto(testo, x, y, alt, colore='nero', verso=(-1, 1), bordo='nero', scrit
         pts.append((cx + bw / 2 * r * math.cos(t), cy + bh / 2 * r * math.sin(t)))
     contorno(strato(bordo), pts, larg=10, press=1.0)
     # la punta
-    px = cx + verso[0] * bw * 0.25
     py = cy + verso[1] * bh * 0.45
     tratto(strato(bordo), [(px - 20, py), (px + verso[0] * 70, py + verso[1] * 80), (px + 25, py + 4)], 10, 1.0)
     st, sx, sa = scritta or (testo, x, alt)
@@ -1124,7 +1147,8 @@ def d_piscina():
         tondo(['rosso', 'verde', 'arancione', 'viola'][k], 1920 + k * 95, 930, 26, press=1.0)
     mani, testa = bambino(1990, 1580, 480, 'verde', 'nero', espressione='urlo', mano_sx=(1865, 1400), mano_dx=(2115, 1400))
     panino(1990, 1420, 1.0)
-    fumetto('HO FAME!', 1480, 1075, 52, verso=(1, 1))
+    # allargandosi verso sinistra, oltre una volta e un terzo arriverebbe alla palla in fondo allo scivolo
+    fumetto('HO FAME!', 1480, 1075, 52, verso=(1, 1), allarga=1.33)
     # il prato in basso e la data
     prato = (ys > 1600 + 14 * np.sin(xs / 140.0))
     riempi(strato('verde'), prato, angolo=-4, passo=14, press=0.75, larg=22, fuori=10, buchi=0.06)
