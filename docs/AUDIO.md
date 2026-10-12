@@ -297,6 +297,21 @@ sbatacchio). La voce è di un uomo (formanti a ×0,94) coi polmoni pieni d'acqua
 Ascolti di prova: `docs/concept/suoni/foxy_near.mp3`, `foxy_leave.mp3`, `js_foxy.mp3` e `foxy_sequenza.mp3` (il mare,
 si sporge, lascia il posto, corre, jumpscare; livelli approssimati come nel gioco, corsa da 3,2 s come nella notte 3).
 
+## Più paura (12 ottobre) — DA APPROVARE
+
+`tools/audio/sounds/paura.py`. Il cuore e il respiro sono della categoria `body`: suonano dentro la testa, senza
+posizione e senza l'ovattato del telone (`src/app/paura.ts` li ripete col suo ritmo). I colpi dei falsi allarmi sono
+quelli di Molly (`molly_knock_*`): devono ingannare.
+
+| id | durata | descrizione |
+|---|---|---|
+| `cuore_1..3` | 0,62 s | Un battito (lub-dub): un'onda bassa che cala subito di tono, un'armonica e il tonfo sordo dei tessuti, un filo di saturazione perché si senta anche dalle casse di un portatile. Dal 1 al 3 sempre più agitato: i due colpi più vicini e il secondo più forte. |
+| `fiato_dentro_1..3`, `fiato_fuori_1..3` | 0,5-1,2 s | Inspiro ed espiro a parte (il gioco li alterna): dal calmo al corto, col tremito della paura (il fiato che trema attorno ai 9 Hz); nell'espiro più agitato un filo di voce, un gemito soffocato. |
+| `tensione_bassa` | 24 s, loop | Il fondo basso: due note gravi a un soffio di distanza che battono lente, un grappolo scuro (la, si bemolle, mi bemolle) che respira, e lontano il fasciame della barca che geme. Ogni oscillatore fa un numero intero di giri nel loop: niente giunture. |
+| `tensione_alta` | 16 s, loop | Il fondo alto, per quando è vicino: archi stonati in alto in un grappolo che non risolve, col vibrato lento e il tremolo, il fruscio del crine, e un metallo strofinato che fischia appena. |
+| `vivo_scatto_1..3` | 0,45 s | Lo scatto della testa quando la guardi: la cartilagine che schiocca, la carne bagnata che segue, un fiato corto dal naso (tre grandezze). |
+| `goccia_1..4` | 0,32 s | Una goccia che cade da chi è uscito dall'acqua: il «plic» di una bollicina che risuona e sale di tono, a volte una seconda più piccola. |
+
 ## Musica e stinger (stereo) — DA APPROVARE
 
 | id | durata | descrizione |
