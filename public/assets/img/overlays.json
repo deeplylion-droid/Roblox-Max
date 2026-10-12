@@ -49,6 +49,17 @@
    {
     "aspect": 1.7778,
     "file": "bino_relitto.webp",
+    "fog": 0,
+    "foxy": [
+     {
+      "file": "bino_relitto_foxy0.webp",
+      "scale": 0.25
+     },
+     {
+      "file": "bino_relitto_foxy1.webp",
+      "scale": 0.25
+     }
+    ],
     "hfov": 11.0,
     "key": "relitto",
     "pitch": 0.42,
@@ -67,6 +78,17 @@
    {
     "aspect": 1.7778,
     "file": "bino_scivoli.webp",
+    "fog": 0,
+    "foxy": [
+     {
+      "file": "bino_scivoli_foxy0.webp",
+      "scale": 0.25
+     },
+     {
+      "file": "bino_scivoli_foxy1.webp",
+      "scale": 0.25
+     }
+    ],
     "hfov": 7.5,
     "key": "scivoli",
     "pitch": 1.789,

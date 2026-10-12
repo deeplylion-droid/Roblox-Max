@@ -99,6 +99,8 @@ export interface BinoPlace {
   cam: number[];
   /** tan dei mezzi campi orizzontale e verticale */
   tan: [number, number];
+  /** quanta nebbia ci aggiunge il motore (1, il default; 0 per le viste rese con la nebbia nuova, che ce l'hanno già) */
+  fog?: number;
 }
 
 export interface FrameParams {
@@ -457,7 +459,7 @@ export class Renderer {
       .f3('uFogColor', 0.006, 0.010, 0.017)
       .f1('uFogDensity', 1 / 3200);
     for (const pl of b.places) {
-      pp.m3('uCam', new Float32Array(pl.cam)).f2('uCamTan', pl.tan[0], pl.tan[1]).f1('uScale', pl.scale).tex('uTex', 0, pl.tex);
+      pp.m3('uCam', new Float32Array(pl.cam)).f2('uCamTan', pl.tan[0], pl.tan[1]).f1('uScale', pl.scale).f1('uFogMul', pl.fog ?? 1).tex('uTex', 0, pl.tex);
       this.tri.draw();
     }
   }

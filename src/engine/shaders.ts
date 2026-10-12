@@ -168,6 +168,7 @@ uniform float uW;        // intensità dell'ambiente
 uniform float uAmount;   // quanto è alzato il binocolo
 uniform vec3 uFogColor;
 uniform float uFogDensity;
+uniform float uFogMul;   // 0 per le viste che hanno già la nebbia nel render
 
 vec3 dec(vec4 t, float s) { vec3 c = t.rgb * t.rgb; return c * c * s; }
 
@@ -186,7 +187,7 @@ void main() {
   float fog = 1.0 - exp(-mist * mist * 2500.0 * uFogDensity);
   float lat = atan(d.z, length(d.xy));
   fog = mix(fog, exp(-abs(lat) * 22.0) * 0.35, sky);
-  col = mix(col, uFogColor, clamp(fog, 0.0, 0.92));
+  col = mix(col, uFogColor, clamp(fog * uFogMul, 0.0, 0.92));
   float a = smoothstep(1.0, 0.82, m) * uAmount;
   frag = vec4(col * a, a);
 }`;

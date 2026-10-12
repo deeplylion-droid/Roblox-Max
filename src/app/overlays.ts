@@ -19,7 +19,7 @@ interface OverlayManifest {
   /** i jumpscare: dei mostri, della Madre (notte 6) e della quota mancata (l'occhio della Madre, notti 1-5) */
   jumpscares?: Partial<Record<MonsterId | 'mother' | 'quota', { frames: PassFile[]; fps: number; aspect: number }>>;
   /** i posti del binocolo; dove sta il Foxy anche le sue due viste (fermo, più vicino), con la stessa inquadratura */
-  binocular?: { places: (PassFile & { key: string; yaw: number; pitch: number; hfov: number; aspect: number; foxy?: PassFile[] })[]; rec?: [number, number, number] };
+  binocular?: { places: (PassFile & { key: string; yaw: number; pitch: number; hfov: number; aspect: number; foxy?: PassFile[]; fog?: number })[]; rec?: [number, number, number] };
 }
 
 async function tex(gl: GL, p: PassFile): Promise<OverlayTex> {
@@ -94,7 +94,7 @@ export async function loadNightAssets(gl: GL): Promise<NightAssets> {
       // camera del luogo: yaw (a destra) poi pitch (in su), come lo sguardo; la trasposta porta il mondo nella camera
       const R = mul(rotZ(pl.yaw), rotX(pl.pitch));
       const tx = Math.tan((pl.hfov / 2) * (Math.PI / 180));
-      const place = { tex: t.tex, scale: t.scale, cam: transpose(R), tan: [tx, tx / pl.aspect] as [number, number] };
+      const place = { tex: t.tex, scale: t.scale, cam: transpose(R), tan: [tx, tx / pl.aspect] as [number, number], fog: pl.fog };
       // le viste col Foxy: servono tutte e due, se no resta il segnaposto (gli occhi rossi)
       let foxy: (typeof place)[] | undefined;
       if (pl.foxy?.length) {

@@ -54,6 +54,14 @@ del questionario:
 > **Le viste del binocolo** col Foxy: per ogni posto due immagini con la stessa inquadratura di quella vuota (lui fermo,
 > lui più vicino), in `overlays.json` → `binocular.places[].foxy` (`bino_<posto>_foxy0.webp`, `_foxy1.webp`). Il motore
 > le mostra al posto della vista vuota secondo lo stadio; finché non ci sono restano gli occhi rossi.
+>
+> **Le viste definitive** (notte fra l'11 e il 12 ottobre, sessione del Foxy, ramo `claude/foxy`): scivoli e relitto,
+> vuoto, fermo e più vicino, rese con la nebbia nuova (ATMOSFERA=1). Agli scivoli lui sta in cima alla torre sotto il
+> tetto rosso, poi ai piedi della torre davanti agli scivoli; al relitto sulla tuga, poi in acqua fino alla vita davanti
+> al relitto. Le tre immagini di un posto combaciano fuori dalla sua sagoma; le ho ricodificate con perdita (qualità 90,
+> da 2,2 MB a mezzo MB l'una): lui cambia stadio solo quando non lo guardi, quindi le minime differenze della
+> compressione non si vedono. Siccome la nebbia nuova è già nel render, in `overlays.json` questi due posti hanno
+> `fog: 0`: il motore non ci aggiunge la sua (le altre viste la prendono ancora, finché non si rifanno con l'atmosfera).
 
 - **Dove sta**: in uno di due posti del binocolo, la **torre degli scivoli** alle spalle (−167°, 460 m) e il
   **relitto** davanti alla prua (14°, 170 m), da dove salta in acqua e arriva alla barca. Li ha proposti la sessione
