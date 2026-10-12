@@ -796,7 +796,8 @@ def foto_1997(path):
     """La foto della Night Splash, sera del 1997: render vero dell'ingresso di Splashland con le luci accese, le lucine
     e lo striscione, e dei quattro bambini in posa col flash della macchinetta usa e getta; poi resa come una stampa di
     allora (pellicola virata, flash duro che cala in fretta, grana, vignettatura), coi volti dei tre scomparsi mangiati
-    dal chimico, un filo di occhi rossi sul quarto e la data arancione stampata nell'angolo."""
+    dal chimico, il mosso della posa lunga e la data arancione stampata nell'angolo. Il flash quasi non è partito: i
+    bambini stanno in controluce davanti all'ingresso illuminato, quasi sagome."""
     import binocolo
     import bambini as BB
     import jobs
@@ -862,7 +863,7 @@ def foto_1997(path):
     cam.data.dof.aperture_fstop = 4.0
     # il flash: piccolo, forte, appena sopra e a sinistra dell'obiettivo (le ombre nette dietro ai bambini)
     fl = bpy.data.lights.new('Flash', 'SPOT')
-    fl.energy = 600.0
+    fl.energy = 22.0
     fl.spot_size = math.radians(85)
     fl.spot_blend = 0.5
     fl.shadow_soft_size = 0.01
@@ -872,12 +873,42 @@ def foto_1997(path):
     fo.rotation_mode = 'QUATERNION'
     fo.rotation_quaternion = cam.rotation_quaternion.copy()
     set_lightgroup(fo, 'ambient')
+    # il flash quasi non è partito: la luce è quella dell'ingresso alle loro spalle (le lucine, l'insegna, i lampioni
+    # del piazzale), e i bambini stanno in controluce, con un filo di luce sui bordi
+    for k, (lx, h, e) in enumerate(((-2.2, 2.2, 900.0), (1.8, 2.0, 850.0), (0.0, 3.2, 1200.0))):
+        ld = bpy.data.lights.new(f'Controluce{k}', 'AREA')
+        ld.shape = 'DISK'
+        ld.size = 2.5
+        ld.energy = e
+        ld.color = (1.0, 0.72, 0.42)
+        lo = bpy.data.objects.new(f'Controluce{k}', ld)
+        collection(COL).objects.link(lo)
+        lp_ = kp - fwd * 4.5 + right * lx
+        lp_[2] = kz + h
+        lo.location = tuple(lp_)
+        lo.rotation_mode = 'QUATERNION'
+        lo.rotation_quaternion = (Vector(tuple(cam_p - fwd * 1.0)) - Vector(tuple(lp_))).to_track_quat('-Z', 'Y')
+        lo.visible_camera = False
+        set_lightgroup(lo, 'ambient')
+    # il piazzale illuminato davanti all'ingresso (i bambini ci si stagliano davanti)
+    ld = bpy.data.lights.new('LuceIngresso', 'AREA')
+    ld.shape = 'RECTANGLE'
+    ld.size, ld.size_y = 30.0, 6.0
+    ld.energy = 8000.0
+    ld.color = (1.0, 0.66, 0.38)
+    lo = bpy.data.objects.new('LuceIngresso', ld)
+    collection(COL).objects.link(lo)
+    lo.location = tuple(gate + fwd * 6.0 + np.array((0, 0, 14.0)))
+    lo.rotation_mode = 'QUATERNION'
+    lo.rotation_quaternion = (Vector(tuple(gate + fwd * 14.0)) - Vector(lo.location)).to_track_quat('-Z', 'Y')
+    lo.visible_camera = False
+    set_lightgroup(lo, 'ambient')
     W, H = (1500, 1000) if not FINALE else (2400, 1600)
     exr = os.path.join(TEX, 'foto_1997.exr')
     render(exr, 32 if not FINALE else 128, (W, H), data_passes=())
     p = post.read_exr(exr)
     lin = sum(post.rgb(p[k]) for k in ('ambient', 'lamp', 'lantern') if k in p)
-    img = post.tonemap(lin, exposure_ev=0.35, contrast=1.1)
+    img = post.tonemap(lin, exposure_ev=-0.2, contrast=1.15)
     # la pellicola di allora: neri slavati verdognoli, alte luci calde, colori stanchi, vignettatura forte
     l = (img * np.array([0.2126, 0.7152, 0.0722])).sum(-1, keepdims=True)
     img = l + (img - l) * 0.9
@@ -891,19 +922,18 @@ def foto_1997(path):
     def px(pw):
         q = world_to_camera_view(sc, cam, Vector(tuple(float(x) for x in pw)))
         return q.x * W, (1 - q.y) * H, q.z
-    # un filo di occhi rossi sul quarto (il flash vicino all'obiettivo)
-    for key, pts in heads:
-        if key != 'D':
-            continue
-        for e in pts['eyes']:
-            ex, ey, _ = px(e)
-            r = 0.0016 * W
-            m = np.exp(-(((xx - ex) ** 2 + (yy - ey) ** 2) / (r * r)))
-            img = img * (1 - 0.45 * m[..., None]) + np.array([0.50, 0.05, 0.04]) * 0.45 * m[..., None]
+    # la posa lunga a mano libera: un po' di mosso (le lucine strisciano)
+    ang = math.radians(24.0)
+    steps = 11
+    acc = np.zeros_like(img)
+    for t_ in np.linspace(-1, 1, steps):
+        dx, dy = int(round(t_ * 2.5 * math.cos(ang))), int(round(t_ * 2.5 * math.sin(ang)))
+        acc += np.roll(np.roll(img, dy, axis=0), dx, axis=1)
+    img = acc / steps
     img = img + np.random.default_rng(97).normal(0, 0.022, img.shape) * (0.6 + 0.4 * (1 - l))
     im = Image.fromarray((np.clip(img, 0, 1) * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(0.8))
     a = np.asarray(im).astype(np.float32)
-    # i volti dei tre che non sono tornati: la stampa mangiata, bianco carta piatto coi bordi irregolari e un alone
+    # i volti dei tre che non sono tornati: gli ovali bianco carta dell'edicola, la stampa mangiata coi bordi appena irregolari e un alone
     # giallastro dove il chimico si è fermato (niente luce: è carta)
     rng = np.random.default_rng(1997)
     for key, pts in heads:
@@ -918,7 +948,7 @@ def foto_1997(path):
             n = rng.random((int(H / scale) + 2, int(W / scale) + 2)).astype(np.float32)
             return np.asarray(Image.fromarray((n * 255).astype(np.uint8)).resize((W, H), Image.BICUBIC), np.float32) / 255.0 - 0.5
         noise = 0.55 * fbm(rad * 0.45) + 0.3 * fbm(rad * 0.18) + 0.15 * fbm(3.0)
-        rho = np.hypot((xx - cx) / 0.92, yy - cy) / rad + noise * 0.55
+        rho = np.hypot((xx - cx) / 0.85, yy - cy) / rad + noise * 0.3
         eaten = np.clip((1.0 - rho) * 7.0, 0, 1)
         ring = np.clip(1.0 - np.abs(rho - 1.06) * 12.0, 0, 1) * (1 - eaten)
         paper = np.array([236, 231, 216], np.float32)
