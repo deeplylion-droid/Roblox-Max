@@ -602,6 +602,8 @@ export class Night {
       return [0, 0];
     }
     if (p.pressed('Start')) {
+      // lo stesso Start non deve anche riprendere dalla pausa appena aperta
+      p.consume();
       if (!this.finished) this.d.onPause();
       return [0, 0];
     }

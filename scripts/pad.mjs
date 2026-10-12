@@ -62,7 +62,11 @@ async function session(query, textSize) {
   const focused = () => page.evaluate(() => document.activeElement?.textContent?.trim() ?? '');
   const mode = () => page.evaluate(() => window.__game.app.mode);
   // (senza GPU i fotogrammi si disegnano davvero solo allo scatto: può volerci molto)
-  const shot = (name) => page.screenshot({ path: `${dir}/${name}.png`, timeout: 600000 });
+  // (prima si lascia finire la dissolvenza delle schermate, 1,2 s di tempo vero)
+  const shot = async (name) => {
+    await page.waitForTimeout(1300);
+    await page.screenshot({ path: `${dir}/${name}.png`, timeout: 600000 });
+  };
   /** niente esce dallo schermo (testi e pulsanti delle schermate) */
   const fits = (what) =>
     page.evaluate(([W, H]) => {
@@ -195,6 +199,13 @@ for (const ts of [1, 1.4]) {
   const hint = await page.evaluate(() => document.querySelector('.hud-hint.show')?.textContent ?? '');
   console.log(`     suggerimento: «${hint}»`);
   check(!/Spazio|Clic|clic|Tab\b/.test(hint), 'il suggerimento non parla di tastiera o mouse');
+  // verso la canna (31°) con lo stick: il suggerimento del lancio col grilletto
+  await axes([0, 0, -1, 0]);
+  await step(4, 0.1);
+  await axes([0, 0, 0, 0]);
+  await step(10, 0.1);
+  const castHint = await page.evaluate(() => document.querySelector('.hud-hint.show')?.textContent ?? '');
+  check(/RT/.test(castHint), `davanti alla canna: «${castHint}»`);
   // la luce
   const l0 = await sim('sim.lamp');
   await press('LB');
@@ -255,7 +266,8 @@ for (const ts of [1, 1.4]) {
   check(!!r2 && r2.strongMagnitude === 1, `il jumpscare vibra forte (${JSON.stringify(r2)})`);
   // i risultati della morte, poi Riprova col controller
   await page.evaluate(() => window.__game.app.endNight({ kind: 'dead', killer: 'molly', stats: { caught: 2, fed: 1, lore: [], time: 300, bucket: 0 }, js: false }));
-  await step(5, 0.1);
+  // (prima il segnale che salta: 1,2 secondi di neve)
+  await step(20, 0.1);
   check(!!(await page.$('.screen.death')), 'la morte: i risultati');
   await shot(`${tag}-11-morte`);
   await fits('morte');
