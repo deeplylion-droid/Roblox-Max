@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DISEGNI_ALBA, disegnoAlba, disegnoSrc, disegniTrovati } from '../src/app/disegni.ts';
-import { localizedImage } from '../src/i18n.ts';
+import { decimal, localizedImage } from '../src/i18n.ts';
 
 describe('I disegni a pastelli dell’alba', () => {
   it('uno per notte, dalla prima alla quinta; la sesta e la notte extra non ne lasciano', () => {
@@ -35,5 +35,12 @@ describe('Le immagini con scritte nelle lingue del gioco', () => {
     expect(localizedImage('a/b.webp', 'de', ['en', 'de'])).toBe('a/b_de.webp');
     expect(localizedImage('a/b.webp', 'fr', ['en'])).toBe('a/b_en.webp');
     expect(localizedImage('a/b.webp', 'fr', [])).toBe('a/b.webp');
+  });
+
+  it('i decimali: la virgola in italiano e nelle lingue europee, il punto in inglese e nelle lingue asiatiche', () => {
+    expect(decimal('2.4', 'it')).toBe('2,4');
+    expect(decimal('0.07', 'de')).toBe('0,07');
+    expect(decimal('2.4', 'en')).toBe('2.4');
+    expect(decimal('2.4', 'ja')).toBe('2.4');
   });
 });

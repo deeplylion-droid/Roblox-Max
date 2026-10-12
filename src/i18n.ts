@@ -912,6 +912,12 @@ export const LANG_NAMES: Record<string, string> = {
   ko: '한국어',
 };
 
+/** Un numero coi decimali come lo scrive la lingua: con la virgola in italiano e nelle altre lingue europee del gioco
+ *  (2,4 kg), col punto in inglese, cinese, giapponese e coreano (2.4 kg). */
+export function decimal(n: string, lang: string): string {
+  return ['it', 'es', 'fr', 'de', 'pt'].includes(lang) ? n.replace('.', ',') : n;
+}
+
 /** La lingua del sistema, se il gioco ce l'ha (pt-BR → pt, zh-CN → zh); se no l'inglese. */
 export function detectLang(prefs: readonly string[] = typeof navigator === 'undefined' ? [] : navigator.languages?.length ? navigator.languages : [navigator.language]): Lang {
   for (const p of prefs) {

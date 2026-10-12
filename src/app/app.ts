@@ -239,8 +239,11 @@ export class App {
     });
   }
 
-  private options(back: () => void): void {
+  /** Le opzioni; `inNight`: aperte dalla pausa, senza la lingua (l'HUD e la radio della notte in corso resterebbero
+   *  nella lingua di prima: la lingua si cambia dal titolo). */
+  private options(back: () => void, inNight = false): void {
     this.screens.options(this.save.options, {
+      lang: !inNight,
       onChange: (k, v) => {
         if (k === 'lang') {
           this.lang = v as Lang;
@@ -250,7 +253,7 @@ export class App {
           useLangFonts(this.lang);
           this.legend();
           writeSave(this.save);
-          this.options(back);
+          this.options(back, inNight);
           return;
         }
         (this.save.options as unknown as Record<string, number | boolean>)[k] = v as number | boolean;
@@ -388,7 +391,7 @@ export class App {
           this.night = null;
           this.intro(this.nightNo);
         },
-        onOptions: () => this.options(show),
+        onOptions: () => this.options(show, true),
         onMenu: () => {
           removeEventListener('keydown', this.escResume);
           this.audio.resume();

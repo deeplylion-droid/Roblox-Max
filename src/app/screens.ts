@@ -1,7 +1,7 @@
 /** Schermate in DOM sopra la scena: avvertenza, titolo, intro, pausa, opzioni, diario, alba, game over. */
 import { FISH, FISH_BY_ID, type FishFamily, type FishSpecies } from '../game/catalog.ts';
 import { EXTRA_IDS, EXTRA_MAX, EXTRA_PRESETS, FOXY_NAME, LORE, clampLevel, type ExtraLevels } from '../game/config.ts';
-import { LANGS, LANG_NAMES, LORE_TEXT, STRINGS, type Lang } from '../i18n.ts';
+import { LANGS, LANG_NAMES, LORE_TEXT, STRINGS, decimal, type Lang } from '../i18n.ts';
 import { disegnoSrc } from './disegni.ts';
 import { badge, dualText, type PadButton } from './pad.ts';
 import type { CatalogEntry, Options } from './save.ts';
@@ -205,7 +205,8 @@ export class Screens {
     );
   }
 
-  options(opts: Options, o: { onChange: (k: keyof Options | 'lang', v: number | boolean | string) => void; onBack: () => void; fullscreen: (() => void) | null }): void {
+  /** `lang: false`: senza la lingua (dalla pausa: la notte in corso resterebbe nella lingua di prima). */
+  options(opts: Options, o: { onChange: (k: keyof Options | 'lang', v: number | boolean | string) => void; onBack: () => void; fullscreen: (() => void) | null; lang?: boolean }): void {
     const S = this.S;
     const rows = h('div', { class: 'options' });
     const slider = (label: string, key: keyof Options, min: number, max: number, step: number) => {
@@ -249,9 +250,11 @@ export class Screens {
       tb.textContent = tLabel(v);
     });
     rows.append(h('label', {}, h('span', {}, S.textSize), tb));
-    // il pulsante passa alla lingua dopo (con due lingue, all'altra)
-    const lang = button(LANG_NAMES[this.lang] ?? this.lang, () => o.onChange('lang', LANGS[(LANGS.indexOf(this.lang) + 1) % LANGS.length]!));
-    rows.append(h('label', {}, h('span', {}, S.language), lang));
+    if (o.lang !== false) {
+      // il pulsante passa alla lingua dopo (con due lingue, all'altra)
+      const lang = button(LANG_NAMES[this.lang] ?? this.lang, () => o.onChange('lang', LANGS[(LANGS.indexOf(this.lang) + 1) % LANGS.length]!));
+      rows.append(h('label', {}, h('span', {}, S.language), lang));
+    }
     if (o.fullscreen) {
       const fs = o.fullscreen;
       rows.append(h('label', {}, h('span', {}, S.fullscreen), button('⛶', fs)));
@@ -456,7 +459,7 @@ export class Screens {
       if (!big) el.append(h('figcaption', {}, k ? f.name[L] : S.unknownFish));
       return el;
     };
-    const kgText = (x: number) => (x < 1 ? x.toFixed(2) : x.toFixed(1)).replace('.', L === 'it' ? ',' : '.');
+    const kgText = (x: number) => decimal(x < 1 ? x.toFixed(2) : x.toFixed(1), L);
     const whenText = (f: FishSpecies) => {
       const w = f.when;
       if (!w) return S.when.always;

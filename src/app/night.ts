@@ -13,7 +13,7 @@ import type { GameEvent } from '../game/events.ts';
 import { LAMPY_FIRST_BEAT } from '../game/monsters.ts';
 import { NightSim, type MotherCause } from '../game/sim.ts';
 import { FISH_BY_ID } from '../game/catalog.ts';
-import { LORE_TEXT, RADIO, RADIO_FINALE, STRINGS, type Lang, type RadioLine } from '../i18n.ts';
+import { LORE_TEXT, RADIO, RADIO_FINALE, STRINGS, decimal, type Lang, type RadioLine } from '../i18n.ts';
 import { Hud } from './hud.ts';
 import { dualText, pad } from './pad.ts';
 import type { Options } from './save.ts';
@@ -92,8 +92,6 @@ export interface NightDeps {
 }
 
 const D2R = Math.PI / 180;
-/** I decimali dei chili come li scrive la lingua: in italiano con la virgola (come il Catalogo). */
-const decimal = (n: string, lang: Lang): string => (lang === 'it' ? n.replace('.', ',') : n);
 
 // dove stanno le cose, dall'occhio del pescatore (coordinate dei render, metri)
 const RADIO_AT: Vec3 = [-0.3, -1.51, -0.655];
