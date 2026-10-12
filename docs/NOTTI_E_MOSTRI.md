@@ -24,9 +24,13 @@ del questionario:
 - **La luce si regola anche da sotto il telone** (Q, E e rotella). *Fatto l'11 ottobre sera.*
 - **«Lampara» diventa «luce»** in tutti i testi del gioco («light» in inglese). Nei documenti e nel codice il nome
   resta. *Fatto l'11 ottobre sera.*
-- **Jumpscare della quota mancata**: alle sei senza la quota, la **Madre vista solo in parte** (la mano enorme che
-  afferra la barca, oppure l'occhio che sale da sotto: due anteprime da far scegliere). La Madre intera resta per la
-  notte 6. Il testo c'è già: «Alle sei il secchio non era pieno. Stanotte la Madre si prenderà un altro bambino.»
+- **Jumpscare della quota mancata**: alle sei senza la quota, la **Madre vista solo in parte**. Scelto **l'occhio**
+  che sale da sotto la barca e ti guarda attraverso l'acqua (11 ottobre sera; l'altra proposta era la mano enorme che
+  afferra la barca). La Madre intera resta per la notte 6. **Fotogrammi finali fatti** (12 ottobre): otto
+  fotogrammi 1920×1080 a 10 al secondo, 96 campioni (`tools/render/quota.py`, voce `jumpscares.quota` in
+  `overlays.json`, tavola `docs/concept/jumpscare/js_quota_finale_fotogrammi.jpg`). Il motore lo fa partire alle sei
+  quando manca la quota, al posto delle campane e della Madre che si sveglia (che restano se i fotogrammi mancano).
+  Il testo c'è già: «Alle sei il secchio non era pieno. Stanotte la Madre si prenderà un altro bambino.»
 - **Atmosfera più buia, con foschia e nebbia «ma ben fatte»**: nebbia volumetrica renderizzata in Blender e
   illuminata dalla luce della barca (un alone attorno alla barca, oltre il buio), la scena più buia, la foschia
   bassa sull'acqua; devono restare leggibili le facce dei mostri e i posti del binocolo. Prima le immagini di prova.
