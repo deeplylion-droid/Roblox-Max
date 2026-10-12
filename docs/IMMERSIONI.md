@@ -184,7 +184,7 @@ strato sopra, con la toppa del respiro che si dissolve.
 |---|---|---|---|
 | **Gulpy** | Lo Snack Shack rimontato a sinistra (bancone rosso, tenda a strisce, l'insegna, lo scaffale delle merendine), carte di merendine dappertutto, i cestini del pranzo, una pila di salvagenti a paperella. | Accasciato sulla pila di salvagenti, la schiena all'indietro, la mascella che pende aperta. | **Il menù dello Snack Shack** a pastelli, coi prezzi e i disegnini, tutto cerchiato in rosso: «TUTTO!». |
 | **Molly** | Il trampolino con la scaletta, gli specchi ossidati appoggiati alle pareti, le medaglie appese, la corsia galleggiante della piscina tirata da parete a parete, braccioli ed elastici rosa sulla sabbia. | Su un fianco sulla sabbia, abbracciata ai braccioli; un occhio chiuso, quello che scivola via socchiuso. | Una **foto**: lei in cima al trampolino con i braccioli, le braccia alzate («GUARDAMI! – giugno 1997»). |
-| **Hatch** | Tre armadi con le ante spalancate, una capanna di asciugamani tra due sedie, i numeri della conta scritti col gesso sulle pareti. | In piedi, curvo, chiuso dentro l'armadio grande in fondo, la bocca chiusa, il pesciolino luminoso acceso. | **Il foglio della conta**: i numeri da 1 a 10 scritti e riscritti, e in mezzo «…DIECI! CHI C'È C'È». |
+| **Hatch** | Tre armadi con le ante spalancate, una capanna di asciugamani tra due sedie, i numeri della conta scritti col gesso sulle pareti. | In piedi, curvo, chiuso dentro l'armadio grande in fondo, la bocca chiusa, il pesciolino luminoso acceso. | **Il foglio della conta**: i numeri da 1 a 10 scritti e riscritti, e in mezzo «10!» (che si legge nel gioco ed è uguale in tutte le lingue) e sotto, piccolo, «CHI C'È C'È». |
 | **Robin** | Un mucchio di cose rubate (scarpe, palline, giocattoli, secchielli) avvolto nelle strisce dei biglietti. | Disteso sul mucchio come un granchio sul bottino, gli occhi chiusi. | **I premi della sala giochi** a pastelli: l'orso da 5000 biglietti, la palla, la macchinina; lui davanti: «VOGLIO TUTTO». |
 | **Archie** | La festa: il tavolo tondo con la tovaglia, tre torte con le candeline spente, i cappellini sparsi, i palloncini che galleggiano legati al tavolo, lo striscione «HAPPY BIRTHDAY» (uguale in italiano e in inglese, deciso il 12 ottobre sera). | Avvolto in spire attorno al tavolo, la testa appoggiata sul bordo; a ogni respiro la trombetta si srotola un poco. | **Tutti i compleanni** del 1999: dodici torte, una per mese, con le fiammelle cancellate col nero. |
 | **Lampy** | La culla con la copertina, la giostrina di pesciolini appesa alla volta, la vaschetta da bagno, le cuffie a fiori appese alla parete. | Attaccata con la ventosa al soffitto sopra la culla, a testa in giù; dorme a occhi aperti. | **Il braccialetto dell'ospedale** da neonata («KG 3,1»), con scritto «non lasciarla mai andare». |
@@ -240,11 +240,33 @@ Regole e salvataggio: `DiveRun.findHere()` e `take()` (le voci già nel Diario n
 `afterDive` le aggiunge al Diario. Test in `tests/dive.test.ts`, `tests/save.test.ts`, `tests/sim.test.ts`. Il suono
 della cosa trovata per ora è quello delle bolle dell'erogatore, più piano (un suono suo è da fare).
 
-**Problemi aperti delle tane (12 ottobre).** Il braccio lungo di Robin è ancora nella posa della barca (teso in
-avanti), non raccolto nel sonno; il cabinato dei biglietti rovesciato si legge poco; le strisce della coperta di Molly
-non si vedono (sembra un telo rosa); Lampy ha un'inquadratura diversa dalle altre (da −45° a +35°, sguardo a −5°) e va
-guardata nel gioco; il suono della cosa trovata è provvisorio. Le tane di Hatch (le ante dell'armadio aperte verso
-fuori) e di Archie (la tovaglia tonda che ricade dal tavolo) sono state rifatte dopo il primo giro di finali.
+**Rifatte il 12 ottobre notte.** Hatch (le ante dell'armadio aperte verso fuori) e Archie (la tovaglia tonda che
+ricade dal tavolo; lo striscione «HAPPY BIRTHDAY», uguale in tutte le lingue, orientato come il telo e con le lucine
+sopra). Poi, una tana alla volta:
+
+- **Le scritte** (docs/LOCALIZZAZIONE.md: niente italiano leggibile nelle scene, scritte inglesi come le insegne del
+  parco o neutre, così non si rifà un render per lingua): Gulpy «ICE CREAM / SUMMER 1997» e «FRIES»; Hatch «10!» nel
+  foglio della conta (e «CHI C'È C'È» con l'accento: la È è in `pastelli.py`), il Diario cita «10!»; Robin «LOST &
+  FOUND»; nel sorgente, per i render futuri, Archie «PARTY / MAY 1999», Lampy «WELCOME! / JULY 2003», Fangy «EYES
+  CLOSED!» e «AUGUST». I disegni a pastelli tengono le loro parole («MENU», «TUTTO!», «VOGLIO TUTTO», «IO»): nel gioco
+  sono piccoli e non si leggono; il «!» di «TUTTO!» ora sta sul foglio.
+- **Molly**: la foto è caduta sulla sabbia davanti al trampolino (sopra la tavola, all'altezza degli occhi, si vedeva
+  di taglio), con «6 / 1997»; la coperta ha le strisce. Le strisce non comparivano in nessun telo
+  (`strisce_material`: la soglia era fissa a 0,5 e il passo più corto): ora sì anche negli asciugamani di Hatch, e nella
+  tenda di Gulpy e nella tovaglia di Archie al prossimo render.
+- **Lampy**: il cartoncino del braccialetto rosa acceso (bianco spariva sotto la torcia), legato al corrimano davanti
+  della culla, verso chi entra: «3,1 KG – 7 / 2003»; le parole («non lasciarla mai andare») stanno nel Diario.
+- **Robin**: il braccio lungo raccolto nel sonno (il gomito alto ripiegato, il pugno sotto il mento); il cabinato dei
+  biglietti caduto sul fianco ma con la faccia verso chi entra: il cartellone «TICKETS» acceso, lo schermo verde, la
+  plancia con la leva e i pulsanti, lo sportello delle monete, la striscia di biglietti che esce e si arrotola sulla
+  sabbia (`tane.cabinato`). Il disegno da trovare è dall'altra parte del mucchio.
+- **La cosa trovata** ha un suo suono, `dive_found` (docs/AUDIO.md): la carta fradicia fra le dita, un gonfiore grave
+  e sordo, la roccia lontana; non un premio.
+
+**Lampy resta con la sua inquadratura** (da −45° a +35°, sguardo a −5°): dorme attaccata al soffitto sopra la culla,
+a 3,5 m (la posa approvata), e con l'inquadratura delle altre (fino a +18° in alto) il soffitto e lei sarebbero fuori
+campo. Per portarla come le altre bisognerebbe abbassarla di un metro abbondante, attaccata a qualcos'altro (la
+corda della giostrina, una trave): è una scelta da approvare.
 
 ## Il pesce e i finali
 

@@ -616,6 +616,37 @@ def _offer(s, rng):
 register('offer_fish', _offer, 1.9, category='sfx', gain=0.85, rms=-20.0)
 
 
+def _found(s, rng):
+    """La cosa trovata (un disegno, una foto, il cartoncino): non è un premio. La carta fradicia che si stacca dalla
+    sabbia e si piega fra le dita (scatti molli), l'acqua che si sposta attorno alla mano; sotto, un gonfiore grave e
+    sordo che sale e se ne va, come se la stanza trattenesse il fiato; lontano, la roccia che geme un momento."""
+    n, d = s.n, s.dur
+    out = np.zeros((2, n))
+    # la carta che si stacca e si piega
+    paper = _wet_paper(rng, 0.7, [(0, 0), (0.06, 1.0), (0.3, 0.55), (0.7, 0)], density=320.0)
+    place(out, pan(0.5 * paper, 0.15), 0.0)
+    # l'acqua spostata dalla mano
+    m = ns(0.6)
+    sw = lowpass(bandpass(rng.standard_normal(m), 150, 900, 2), 900, 2) * curve(m, [(0, 0), (0.12, 1), (0.6, 0)])
+    place(out, pan(0.25 * normalize(sw), -0.1), 0.02)
+    # il gonfiore grave: rumore filtrato bassissimo che sale piano e si spegne, con un battito sordo dentro
+    m = ns(d - 0.1)
+    sw2 = tv_lowpass(rng.standard_normal(m), curve(m, [(0, 40), (0.45, 95), (d - 0.1, 35)], 'log'), 0.7)
+    swell = normalize(sw2) * curve(m, [(0, 0), (0.45, 1.0), (0.8, 0.6), (d - 0.1, 0)])
+    k = ns(0.18)
+    beat = lowpass(rng.standard_normal(k), 70, 2) * curve(k, [(0, 0), (0.01, 1), (0.18, 0)])
+    place(swell, 0.6 * normalize(beat), 0.42)
+    place(out, pan(0.55 * normalize(swell), 0.0), 0.08)
+    # la roccia lontana, un attimo
+    g = _rock_groan(rng, 0.9)
+    place(out, pan(0.16 * g, -0.6), 0.55)
+    out = np.stack([_den_shot(out[0], rng, wet=0.35, lp=3800.0), _den_shot(out[1], rng, wet=0.35, lp=3800.0)])
+    return out[:, :n]
+
+
+register('dive_found', _found, 1.8, channels=2, category='sfx', gain=0.75, rms=-23.0)
+
+
 # ═════════════════════════ il respiro nel sonno ═════════════════════════
 # Mono, loop. Ognuno con i tratti dei suoi versi sulla barca, ma addormentato: lento, basso, sott'acqua.
 
