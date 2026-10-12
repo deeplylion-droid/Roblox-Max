@@ -335,7 +335,9 @@ def definitivo():
         entries.append({'key': luogo, 'file': f'bino_{luogo}.webp', 'scale': scale,
                         'yaw': round(math.degrees(math.atan2(d.x, d.y)), 3),
                         'pitch': round(math.degrees(math.atan2(d.z, math.hypot(d.x, d.y))), 3),
-                        'hfov': hfov, 'aspect': round(W / H, 4)})
+                        'hfov': hfov, 'aspect': round(W / H, 4),
+                        # gli stadi dell'animatore (0 fermo, 1 si sporge): stessa inquadratura e stessa scala del vuoto
+                        'foxy': [f'bino_{luogo}_foxy0.webp', f'bino_{luogo}_foxy1.webp']})
     if os.environ.get('RENDER_OUT'):
         # prove fuori dal gioco: il manifesto non si tocca
         json.dump(entries, open(os.path.join(OUT_IMG, 'bino_foxy_entries.json'), 'w'), indent=1)

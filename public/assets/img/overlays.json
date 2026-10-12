@@ -49,6 +49,10 @@
    {
     "aspect": 1.7778,
     "file": "bino_relitto.webp",
+    "foxy": [
+     "bino_relitto_foxy0.webp",
+     "bino_relitto_foxy1.webp"
+    ],
     "hfov": 11.0,
     "key": "relitto",
     "pitch": 0.42,
@@ -67,6 +71,10 @@
    {
     "aspect": 1.7778,
     "file": "bino_scivoli.webp",
+    "foxy": [
+     "bino_scivoli_foxy0.webp",
+     "bino_scivoli_foxy1.webp"
+    ],
     "hfov": 7.5,
     "key": "scivoli",
     "pitch": 1.789,
