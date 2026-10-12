@@ -62,8 +62,10 @@ async function boot(): Promise<void> {
     const worldExtra = extra.filter((k) => man.layers[k]!.space === 'world');
     const boatExtra = extra.filter((k) => man.layers[k]!.space !== 'world');
     const keys = ['world', ...worldExtra, 'boat', 'rod0', 'fish5', ...boatExtra].filter((k) => man.layers[k]);
+    // ?senza: la serie senza la nebbia resa (l'opzione «Nebbia» spenta), per confrontare le due
+    const senzaV = params.has('senza');
     for (const [i, k] of keys.entries()) {
-      r.addLayer(await loadLayer(r.gl, man, k));
+      r.addLayer(await loadLayer(r.gl, man, k, senzaV));
       screens.loading((i + 1) / keys.length);
     }
     screens.clear();

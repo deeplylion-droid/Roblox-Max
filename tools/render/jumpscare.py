@@ -475,6 +475,35 @@ def _set_creature(obs, base, M0inv, M):
     bpy.context.view_layer.update()
 
 
+# con la nebbia: quanto vale la luce della lampara fuori dalla barca nello sfondo (la scala del passo lamp del mondo con
+# la nebbia nel manifest, 0,05, su quella del render, 0,25)
+LAMPARA_MONDO = 0.2
+
+
+def _lampara_fuori_barca(out_dir, who, W, H, coll_objects, renderable, riprendi):
+    """Il peso della lampara nello sfondo: 1 sulla barca, LAMPARA_MONDO sul resto (mare, cielo e nebbia), dalla
+    copertura della barca in un render rapido senza la nebbia, con la stessa camera dello sfondo."""
+    import post
+    exr = os.path.join(out_dir, f'{who}_bg_barca.exr')
+    if not (riprendi and os.path.exists(exr)):
+        boat = set(o.name for o in renderable(coll_objects('boat')))
+        saved = {}
+        for o in renderable(coll_objects('env')) + [o for o in bpy.data.objects if o.name == 'Nebbia']:
+            if o.name in boat:
+                continue
+            saved[o.name] = (o.visible_camera, o.hide_render)
+            if o.name == 'Nebbia':
+                o.hide_render = True
+            else:
+                o.visible_camera = False
+        render(exr, 4, (W, H), transparent=True, groups=('ambient',), data_passes=('Alpha',), denoise=False)
+        for n, (vc, hr) in saved.items():
+            o = bpy.data.objects[n]
+            o.visible_camera, o.hide_render = vc, hr
+    a = np.clip(post.read_exr(exr)['alpha'], 0.0, 1.0)
+    return a + LAMPARA_MONDO * (1.0 - a)
+
+
 def run(q, who, post_mod, overlays_path, build_scene, coll_objects, renderable):
     """Rende i fotogrammi di un jumpscare e li scrive in public/assets/img (funzioni di scena da jobs.py)."""
     build_scene(fish=0, rod=False)
@@ -518,6 +547,9 @@ def run(q, who, post_mod, overlays_path, build_scene, coll_objects, renderable):
     if not ((riprendi or os.environ.get('JS_RIUSA_SFONDO')) and os.path.exists(bg_exr)):
         render(bg_exr, samples, (W, H), data_passes=())
     log(f'jumpscare {who} sfondo', round(time.time() - t), 's')
+    if os.environ.get('ATMOSFERA'):
+        # prima di rimettere la creatura e le maschere: la copertura della sola barca
+        k_lamp = _lampara_fuori_barca(out_dir, who, W, H, coll_objects, renderable, riprendi)
     for o in meshes:
         o.hide_render = False
     if who in FILL:
@@ -535,6 +567,10 @@ def run(q, who, post_mod, overlays_path, build_scene, coll_objects, renderable):
         if o.name not in keep and o.visible_camera:
             o.is_holdout = True
     bg = post_mod.read_exr(bg_exr)
+    if os.environ.get('ATMOSFERA') and 'lamp' in bg:
+        # con la nebbia, fuori dalla barca la luce della lampara vale un quinto, come il passo lamp del mondo nel gioco
+        # (docs/ATMOSFERA.md, «L'alone della luce più leggero»: diffusa nella nebbia faceva un alone bianco)
+        bg['lamp'] = bg['lamp'][..., :3] * k_lamp[..., None]
     bg_lin = sum(bg[g][..., :3] for g in ('ambient', 'lamp', 'lantern') if g in bg)
     frames = []
     # JS_FOTOGRAMMI=7 (o 6,7): solo quei fotogrammi, per le prove (implica l'anteprima)
