@@ -269,78 +269,73 @@
    "acquaCotta": true
   },
   "tana_molly": {
-   "_nota": "SEGNAPOSTO: la stessa cameretta per tutti, tinta col colore del mostro. Inquadratura fissa (deciso l'11 ottobre): un panorama parziale di 160° × 80°, lo sguardo si gira di 30° per parte.",
+   "_nota": "La tana di Molly (render finale, tools/render/tane.py): la cameretta vuota è anche la tana vuota del mostro nuovo; il mostro che dorme e la toppa del respiro sono strati sopra. L'acqua è cotta.",
    "den": "molly",
    "pano": {
     "ambient": {
-     "file": "immersioni/segnaposto/cameretta_ambient.webp",
-     "scale": 1
+     "file": "immersioni/tana_molly_ambient.webp",
+     "scale": 0.6900000000000001
     },
     "lantern": {
-     "file": "immersioni/segnaposto/cameretta_lantern.webp",
-     "scale": 1
+     "file": "immersioni/tana_molly_lantern.webp",
+     "scale": 0.27
     },
-    "data": "immersioni/segnaposto/cameretta_data.webp"
+    "data": "immersioni/tana_molly_data.webp"
    },
    "size": [
-    1760,
-    880
+    3640,
+    1820
    ],
-   "latMin": -55,
-   "latMax": 25,
+   "latMin": -55.0,
+   "latMax": 25.0,
    "yaw": 0,
-   "tint": [
-    0.85,
-    0.62,
-    0.78
-   ],
    "rays": 0.12,
    "sleeper": {
-    "yaw": 0,
-    "pitch": -27,
-    "r": 16,
+    "yaw": -7.3,
+    "pitch": -9.4,
+    "r": 13.7,
     "layers": [
      {
       "passes": {
        "ambient": {
-        "file": "immersioni/segnaposto/dormiente_ambient.webp",
-        "scale": 1
+        "file": "immersioni/tana_molly_posa_ambient.webp",
+        "scale": 0.25
        },
        "lantern": {
-        "file": "immersioni/segnaposto/dormiente_lantern.webp",
-        "scale": 1
+        "file": "immersioni/tana_molly_posa_lantern.webp",
+        "scale": 0.25
        }
       },
       "rect": [
-       550,
-       385,
-       1210,
-       770
+       1241,
+       498,
+       2067,
+       1021
       ]
      },
      {
       "passes": {
        "ambient": {
-        "file": "immersioni/segnaposto/dormiente_respiro_ambient.webp",
-        "scale": 1
+        "file": "immersioni/tana_molly_respiro_ambient.webp",
+        "scale": 0.25
        },
        "lantern": {
-        "file": "immersioni/segnaposto/dormiente_respiro_lantern.webp",
-        "scale": 1
+        "file": "immersioni/tana_molly_respiro_lantern.webp",
+        "scale": 0.25
        }
       },
       "rect": [
-       550,
-       385,
-       1210,
-       770
+       1241,
+       498,
+       2067,
+       1021
       ],
-      "breath": 4.2
+      "breath": 3.8
      }
     ],
     "bubbles": {
-     "yaw": -15,
-     "pitch": -23
+     "yaw": -7.4,
+     "pitch": -0.9
     }
    },
    "links": [
@@ -353,20 +348,21 @@
      "r": 0
     }
    ],
-   "lonMin": -80,
-   "lonMax": 80,
+   "lonMin": -80.0,
+   "lonMax": 80.0,
    "frame": {
     "yaw": 0,
-    "pitch": -15,
+    "pitch": -15.0,
     "yawRange": 30,
     "pitchRange": 4
    },
    "find": {
     "lore": "den_molly",
-    "yaw": -35,
-    "pitch": -30,
-    "r": 6
-   }
+    "yaw": 32.5,
+    "pitch": 2.0,
+    "r": 5
+   },
+   "acquaCotta": true
   },
   "tana_hatch": {
    "_nota": "SEGNAPOSTO: la stessa cameretta per tutti, tinta col colore del mostro. Inquadratura fissa (deciso l'11 ottobre): un panorama parziale di 160° × 80°, lo sguardo si gira di 30° per parte.",
