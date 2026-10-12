@@ -115,6 +115,7 @@ def tavola_webp(src, serie='', out=None, scale=None):
 if __name__ == '__main__':
     if '--webp' in sys.argv:
         a = sys.argv[sys.argv.index('--webp') + 1]
-        tavola_webp(a, '_senza' if '--senza' in sys.argv else '')
+        out = sys.argv[sys.argv.index('--out') + 1] if '--out' in sys.argv else None
+        tavola_webp(a, '_senza' if '--senza' in sys.argv else '', out=out)
         sys.exit(0)
     main()

@@ -310,7 +310,7 @@ def definitivo():
             for o in fig:
                 o.matrix_world = rest[o.name]
                 o.hide_render = False
-            k = SCALA[(luogo, tag)]
+            k = SCALA[(luogo, tag)] * float(os.environ.get('FOXY_K', '1'))     # FOXY_K: prove di grandezza
             transform(fig, tuple(pos), yaw_deg=facing(tuple(pos)) + dyaw, scale=k)
             # un filo di luce fredda da dietro e dall'alto, solo su di lui: la sagoma si stacca dal fondo
             to_eye = (Vector(EYE) - pos)
