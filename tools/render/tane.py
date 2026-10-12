@@ -293,21 +293,11 @@ def disegno(nome):
         if fill:
             dr.polygon(pts, fill=fill)
         segno(pts, col, w)
-    if nome == 'gulpy':
-        # un bambino con la bocca enorme davanti allo Snack Shack, e un panino più grande di lui
-        dr.rectangle((40, 120, 230, 330), outline=(180, 30, 30), width=6)
-        for k in range(6):
-            dr.rectangle((40 + k * 32, 90, 72 + k * 32, 125), fill=(200, 40, 40) if k % 2 == 0 else (240, 240, 230))
-        dr.text((60, 140), 'SNACK', fill=(30, 30, 160))
-        cerchio((340, 220), 60, (40, 40, 40))
-        dr.chord((300, 210, 380, 290), 0, 180, fill=(150, 20, 20))
-        segno([(340, 280), (340, 360)], (40, 40, 40))
-        segno([(340, 300), (300, 330)], (40, 40, 40))
-        segno([(340, 300), (380, 330)], (40, 40, 40))
-        cerchio((450, 160), 45, (170, 110, 40), fill=(220, 170, 80))
-        segno([(410, 160), (490, 160)], (40, 140, 40), 8)
-        dr.text((300, 30), 'IO E IL PANINO GIGANTE', fill=(40, 40, 40))
-    elif nome == 'molly':
+    # le scritte sono neutre (una data, un nome, un peso), uguali in tutte le lingue: le parole («GUARDAMI!», «non
+    # lasciarla mai andare») stanno nel Diario, tradotte (docs/LOCALIZZAZIONE.md)
+    from PIL import ImageFont
+    fonts = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fonts')
+    if nome == 'molly':
         # una foto: la bambina in cima al trampolino, i braccioli, le braccia alzate
         im = Image.new('RGB', (W, H), (90, 150, 190))
         dr = ImageDraw.Draw(im)
@@ -323,44 +313,19 @@ def disegno(nome):
         im = im.filter(ImageFilter.GaussianBlur(1.2))
         dr = ImageDraw.Draw(im)
         dr.rectangle((0, 0, W - 1, H - 1), outline=(240, 236, 220), width=18)
-        dr.text((30, 350), 'GUARDAMI! - giugno 1997', fill=(60, 60, 60))
-    elif nome == 'hatch':
-        # la conta: i numeri da 1 a 10 scritti e riscritti, sempre più fitti
-        for k in range(70):
-            x, y = rr.uniform(10, W - 40), rr.uniform(10, H - 30)
-            dr.text((x, y), str(rr.integers(1, 11)), fill=(30, 30, 120) if k % 3 else (160, 20, 20))
-        dr.text((140, 170), '...DIECI! CHI C\'E\' C\'E\'', fill=(10, 10, 10))
-    elif nome == 'robin':
-        # una pagina di quaderno: l'elenco delle cose prese, con le crocette
-        for y in range(40, H, 24):
-            dr.line((20, y, W - 20, y), fill=(150, 170, 210), width=1)
-        righe = ['scarpe rosse', 'macchinina', 'occhiali da sole', 'cappellino blu', 'pallone', 'braccialetto',
-                 '1000 biglietti', 'ANCORA']
-        for k, t in enumerate(righe):
-            dr.text((60, 28 + k * 24 * 1.3), f'[x] {t}', fill=(40, 40, 50))
-    elif nome == 'archie':
-        # il biglietto d'auguri, con le candeline disegnate e una spenta
-        dr.rectangle((20, 20, W - 20, H - 20), outline=(200, 40, 40), width=8)
-        dr.text((150, 50), 'TANTI AUGURI!', fill=(200, 40, 40))
-        dr.rectangle((150, 200, 360, 300), fill=(240, 200, 220), outline=(150, 60, 90), width=5)
-        for k in range(7):
-            x = 170 + k * 28
-            dr.rectangle((x, 160, x + 8, 200), fill=(60, 120, 200))
-            if k != 3:
-                cerchio((x + 4, 148), 7, (240, 160, 30), fill=(250, 200, 50))
-        dr.text((140, 320), 'per il compleanno di tutti', fill=(60, 60, 60))
+        dr.text((W - 150, H - 40), '6 / 1997', fill=(200, 120, 40), font=ImageFont.truetype(os.path.join(fonts, 'Monoton-Regular.ttf'), 22))
     elif nome == 'lampy':
-        # il braccialetto dell'ospedale da neonata, disegnato come un cartoncino: e una manina
-        dr.rounded_rectangle((60, 140, 450, 230), 30, fill=(250, 210, 225), outline=(200, 120, 150), width=4)
-        dr.text((100, 165), 'NEONATA  -  KG 3,1', fill=(80, 40, 60))
-        cerchio((260, 320), 30, (230, 180, 160), fill=(240, 200, 180))
-        dr.text((120, 40), 'non lasciarla mai andare', fill=(80, 80, 80))
-    elif nome == 'fangy':
-        # un disegno fatto a occhi bendati: scarabocchi che non si toccano, e in mezzo "MARCO?"
-        for k in range(14):
-            pts = [(rr.uniform(20, W - 20), rr.uniform(20, H - 20)) for _ in range(5)]
-            segno(pts, (30, 30, 30), 4)
-        dr.text((200, 180), 'MARCO?', fill=(160, 20, 20))
+        # il cartoncino del braccialetto dell'ospedale, rosa acceso (il bianco sparisce sotto la torcia): il peso e la
+        # data; sotto, la riga a penna (illeggibile: le parole sono nel Diario)
+        im = Image.new('RGB', (W, H), (226, 120, 160))
+        dr = ImageDraw.Draw(im)
+        dr.rounded_rectangle((14, 14, W - 14, H - 14), 36, outline=(150, 50, 90), width=10)
+        f1 = ImageFont.truetype(os.path.join(fonts, 'Limelight-Regular.ttf'), 92)
+        f2 = ImageFont.truetype(os.path.join(fonts, 'Limelight-Regular.ttf'), 64)
+        for testo, f, y, col in (('3,1 KG', f1, 50, (70, 20, 45)), ('7 / 2003', f2, 190, (70, 20, 45))):
+            dr.text(((W - dr.textlength(testo, font=f)) / 2, y), testo, fill=col, font=f)
+        pts = [(90 + k * 8, 335 + 7 * math.sin(k * 0.9) + rr.normal(0, 2)) for k in range(42)]
+        dr.line(pts, fill=(40, 40, 110), width=4, joint='curve')
     im = im.filter(ImageFilter.GaussianBlur(0.6))
     im.save(path)
     return path
@@ -634,6 +599,9 @@ def manifesto(nome, testo_righe, colori, w=600, h=840):
     for testo, size, col, font in testo_righe:
         f = ImageFont.truetype(os.path.join(fonts, font + '.ttf'), size)
         tw = dr.textlength(testo, font=f)
+        if tw > w - 70:                # le scritte inglesi sono più lunghe: si rimpicciolisce finché sta nel foglio
+            f = ImageFont.truetype(os.path.join(fonts, font + '.ttf'), int(size * (w - 70) / tw))
+            tw = dr.textlength(testo, font=f)
         dr.text(((w - tw) / 2, y), testo, fill=col, font=f)
         y += size * 1.3
     dr.rectangle((0, 0, w - 1, h - 1), outline=colori[1], width=14)
@@ -694,9 +662,11 @@ def tana_gulpy():
     # i manifesti dello Snack Shack sulle pareti (estate 1997)
     manifesto_su_parete('hotdog', [('HOT DOG', 100, (200, 40, 30), 'Limelight-Regular'), ('L. 3.000', 80, (30, 30, 30), 'Monoton-Regular'),
                                    ('SNACK SHACK', 50, (30, 60, 150), 'Limelight-Regular')], ((240, 220, 120), (200, 40, 30)), 35, 1.8)
-    manifesto_su_parete('gelati', [('GELATI', 100, (30, 90, 160), 'Limelight-Regular'), ('ESTATE 1997', 60, (200, 40, 30), 'Limelight-Regular')],
+    # le scritte delle scene sono inglesi (le insegne del parco) o neutre, uguali in tutte le lingue: niente italiano
+    # leggibile nel gioco (docs/LOCALIZZAZIONE.md), così non si rifà un render per lingua
+    manifesto_su_parete('gelati', [('ICE CREAM', 100, (30, 90, 160), 'Limelight-Regular'), ('SUMMER 1997', 60, (200, 40, 30), 'Limelight-Regular')],
                         ((235, 235, 225), (30, 90, 160)), 70, 1.5, inclina=0.15)
-    manifesto_su_parete('patatine', [('PATATINE', 90, (200, 120, 20), 'Limelight-Regular'), ('MAXI', 120, (200, 40, 30), 'Monoton-Regular')],
+    manifesto_su_parete('patatine', [('FRIES', 110, (200, 120, 20), 'Limelight-Regular'), ('MAXI', 120, (200, 40, 30), 'Monoton-Regular')],
                         ((250, 240, 200), (200, 120, 20)), -75, 1.7, inclina=-0.1)
     # la cosa da trovare: il disegno a pastelli, appeso al bancone
     trov = (-2.3, 2.05, 0.75)
@@ -762,9 +732,9 @@ def tana_molly():
     rosa = grotte.plastica('MollyElastico', (0.60, 0.07, 0.26), rough=0.4, melma=0.2)
     for k in range(14):
         palla('Elastico', 0.03, (rr.uniform(-2.5, 2.5), rr.uniform(0.5, 3.5), 0.02), mat=rosa, scale=(1.0, 1.0, 0.35))
-    # la foto sul trampolino
-    trov = (1.85, 0.2, 1.62)
-    foglio('Trovato', disegno('molly'), (0.30, 0.24), trov, (0, 0, math.radians(8)), curva=0.005)
+    # la foto caduta sulla sabbia davanti al trampolino (sopra la tavola, all'altezza degli occhi, non si vedeva)
+    trov = (1.15, 0.35, 0.03)
+    foglio('Trovato', disegno('molly'), (0.36, 0.28), trov, (math.radians(4), 0, math.radians(-14)), curva=0.005)
     return {'trovato': trov, 'letto': (-0.6, 2.0, 0.0)}
 
 
@@ -868,7 +838,7 @@ def tana_robin():
     M = Matrix.Translation((3.0, 1.6, 0.35)) @ Matrix.Rotation(math.radians(-55), 4, 'Z') @ Matrix.Rotation(math.radians(70), 4, 'Y')
     for o in obs:
         o.matrix_world = M @ o.matrix_world
-    manifesto_su_parete('smarriti', [('OGGETTI', 80, (30, 30, 30), 'Limelight-Regular'), ('SMARRITI', 80, (30, 30, 30), 'Limelight-Regular'),
+    manifesto_su_parete('smarriti', [('LOST &', 80, (30, 30, 30), 'Limelight-Regular'), ('FOUND', 80, (30, 30, 30), 'Limelight-Regular'),
                                      ('SPLASHLAND', 50, (150, 30, 60), 'Limelight-Regular')], ((210, 200, 170), (60, 40, 30)), -40, 2.0, size=(0.8, 0.6))
     trov = (1.6, 0.4, 0.04)
     foglio('Trovato', disegno('robin'), (0.40, 0.30), trov, (0, 0, math.radians(-20)), curva=0.01)
@@ -953,7 +923,7 @@ def tana_archie():
         a_, _ = parete(y0, z)
         b_, _ = parete(y1, z)
         lucine(f'Lucine{k}', a_ + np.array((0, 0, 0)), b_, n=24, sag=sag, seed=k)
-    manifesto_su_parete('festa', [('FESTA', 90, (200, 40, 60), 'Limelight-Regular'), ('MAGGIO 1999', 60, (40, 40, 120), 'Limelight-Regular')],
+    manifesto_su_parete('festa', [('PARTY', 90, (200, 40, 60), 'Limelight-Regular'), ('MAY 1999', 60, (40, 40, 120), 'Limelight-Regular')],
                         ((235, 220, 170), (200, 40, 60)), 70, 1.6, size=(0.6, 0.45))
     trov = (c[0] - 0.55, c[1] - 0.6, 0.85)
     foglio('Trovato', disegno('archie'), (0.36, 0.26), trov, (math.radians(4), 0, math.radians(15)), curva=0.004)
@@ -1039,10 +1009,13 @@ def tana_lampy():
     for k in range(6):
         p, n = parete(55 + k * 9, 1.6 + 0.3 * math.sin(k * 1.3))
         palla('Cuffia', 0.13, tuple(p + n * 0.18), mat=fiori, scale=(1.0, 1.1, 0.8))
-    manifesto_su_parete('lampy', [('BENVENUTA!', 70, (170, 60, 110), 'Limelight-Regular'), ('LUGLIO 2003', 55, (60, 60, 60), 'Limelight-Regular')],
+    manifesto_su_parete('lampy', [('WELCOME!', 70, (170, 60, 110), 'Limelight-Regular'), ('JULY 2003', 55, (60, 60, 60), 'Limelight-Regular')],
                         ((240, 215, 225), (170, 60, 110)), -20, 2.3, size=(0.6, 0.4))
-    trov = (c[0] + 0.25, c[1] - 0.1, 0.56)
-    foglio('Trovato', disegno('lampy'), (0.30, 0.22), trov, (0, 0, math.radians(-12)), curva=0.004)
+    # il cartoncino legato al corrimano davanti della culla, rivolto a chi entra (dentro la culla non si vedeva)
+    trov = (c[0] + 0.25, c[1] - 0.42, 0.78)
+    foglio('Trovato', disegno('lampy'), (0.30, 0.22), trov, (math.radians(84), 0, math.radians(-6)), curva=0.004)
+    tube('TrovatoNastro', [(trov[0] - 0.1, trov[1] + 0.02, 0.92), (trov[0] - 0.08, trov[1], trov[2] + 0.1)], 0.004, n=4,
+         col=COL).data.materials.append(grotte.corda_material())
     return {'trovato': trov, 'letto': tuple(c), 'soffitto': (c[0], c[1], 3.5)}
 
 
@@ -1073,8 +1046,8 @@ def tana_fangy():
         palla('Lente', 0.045, (1.6 + s_ * 0.06, 1.0, 0.56), mat=nero, scale=(1.0, 0.6, 0.8))
     # le cose del lido sulle pareti: il cartello del Marco Polo, il calendario di agosto 2008, il salvagente
     manifesto_su_parete('marco', [('MARCO?', 110, (180, 30, 30), 'Limelight-Regular'), ('POLO!', 110, (30, 60, 150), 'Limelight-Regular'),
-                                  ('si gioca a occhi chiusi', 36, (60, 60, 60), 'Limelight-Regular')], ((225, 225, 210), (30, 60, 150)), -35, 1.9, size=(0.8, 0.7))
-    manifesto_su_parete('agosto', [('AGOSTO', 80, (40, 40, 40), 'Limelight-Regular'), ('2008', 120, (180, 30, 30), 'Monoton-Regular')],
+                                  ('EYES CLOSED!', 44, (60, 60, 60), 'Limelight-Regular')], ((225, 225, 210), (30, 60, 150)), -35, 1.9, size=(0.8, 0.7))
+    manifesto_su_parete('agosto', [('AUGUST', 80, (40, 40, 40), 'Limelight-Regular'), ('2008', 120, (180, 30, 30), 'Monoton-Regular')],
                         ((230, 230, 220), (90, 90, 90)), 40, 2.0, size=(0.5, 0.6))
     p, n = parete(75, 1.5)
     o = sdf_ring('Salvagente', tuple(p + n * 0.2), 0.0, 0.0, grotte.plastica('TFSalvagente', (0.75, 0.30, 0.05), melma=0.4))

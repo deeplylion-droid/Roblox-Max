@@ -613,7 +613,7 @@ export const LORE_TEXT: Record<Lang, Record<string, { title: string; body: strin
     },
     den_hatch: {
       title: 'Il foglio della conta',
-      body: 'I numeri da uno a dieci, scritti e riscritti a pastello finché non c’è più posto. In mezzo, calcato in rosso: «DIECI! CHI C’È C’È».',
+      body: 'I numeri da uno a dieci, scritti e riscritti a pastello finché non c’è più posto. In mezzo, calcato in rosso, grande: «10!», e sotto, più piccolo: «CHI C’È C’È».',
     },
     den_robin: {
       title: 'I premi della sala giochi',
@@ -680,7 +680,7 @@ export const LORE_TEXT: Record<Lang, Record<string, { title: string; body: strin
     },
     den_hatch: {
       title: 'The counting sheet',
-      body: 'The numbers one to ten, written over and over in crayon until there’s no room left. In the middle, pressed hard in red: "TEN! READY OR NOT".',
+      body: 'The numbers one to ten, written over and over in crayon until there’s no room left. In the middle, big and pressed hard in red: "10!", and underneath, smaller: "READY OR NOT".',
     },
     den_robin: {
       title: 'The arcade prizes',

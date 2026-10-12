@@ -4,7 +4,7 @@ mano dei disegni dell'alba e di «Il ricordo». I soggetti non ripetono i cinque
 tesoro di Robin, la festa di Archie, Lampy sott'acqua, Marco Polo):
 
     gulpy   il menù dello Snack Shack, coi prezzi e i disegnini, e tutto cerchiato: «TUTTO!»
-    hatch   il foglio della conta: i numeri da 1 a 10 scritti e riscritti, e in mezzo «DIECI! CHI C'È C'È»
+    hatch   il foglio della conta: i numeri da 1 a 10 scritti e riscritti, e in mezzo «10! CHI C'È C'È»
     robin   gli scaffali dei premi della sala giochi, coi biglietti che costano: «VOGLIO TUTTO»
     archie  tutti i compleanni dell'anno: dodici torte, una per mese, con le candeline cancellate col nero (1999)
     fangy   io: lui con gli occhialini dipinti di nero, calcati fino a bucare la carta, e «IO»
@@ -54,14 +54,16 @@ def gulpy():
     # il cerchio attorno a tutto, calcato due volte, e la freccia
     giro = P.cerchio(1200, 900, 1050, giri=1.9, schiaccia=0.62)
     P.tratto(P.strato('rosso'), giro, larg=22, press=1.5, trema=1.6)
-    P.tratto(P.strato('rosso'), [(2150, 1450), (2000, 1330), (1960, 1420)], larg=20, press=1.4)
-    P.scrivi('rosso', 'TUTTO!', 1800, 1560, 130, larg=22, press=1.5)
+    P.tratto(P.strato('rosso'), [(2050, 1450), (1900, 1330), (1860, 1420)], larg=20, press=1.4)
+    fine = P.scrivi('rosso', 'TUTTO!', 1560, 1560, 130, larg=22, press=1.5)
+    assert fine < W - 60, fine         # il «!» resta sul foglio
     return 'gulpy', dict(pieghe=(True, False), strappo=True, angolo=False, macchie=2)
 
 
 def hatch():
     """Il foglio della conta: i numeri da 1 a 10 scritti e riscritti in righe storte, sempre più calcati e fitti, e in
-    mezzo, sopra a tutto, «DIECI! CHI C'È C'È» in rosso."""
+    mezzo, sopra a tutto, «10! CHI C'È C'È» in rosso. Il «10!» si legge nel gioco ed è uguale in tutte le lingue
+    (docs/LOCALIZZAZIONE.md: niente italiano leggibile nelle scene); «CHI C'È C'È», più piccolo, non si legge."""
     P.foglio(202, 'album')
     rng = P.rnd()
     colori = ['blu', 'blu_notte', 'nero', 'viola']
@@ -76,8 +78,8 @@ def hatch():
             k += 1
         y += alt * 1.35
     P.riempi(P.strato('bianco'), P.maschera_poligono([(360, 600), (2060, 585), (2090, 1080), (340, 1100)]), passo=9, press=1.6, larg=24)
-    P.scrivi('rosso', 'DIECI!', 560, 750, 220, larg=26, press=1.5)
-    P.scrivi('rosso', "CHI C'E' C'E'", 440, 995, 160, larg=22, press=1.4, specchia=(2,))
+    P.scrivi('rosso', '10!', 960, 770, 300, larg=30, press=1.6)
+    P.scrivi('rosso', "CHI C'È C'È", 560, 1010, 150, larg=22, press=1.4, specchia=(2,))
     return 'hatch', dict(pieghe=(True, True), strappo=False, angolo=True, macchie=2)
 
 
