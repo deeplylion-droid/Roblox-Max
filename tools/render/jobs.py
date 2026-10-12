@@ -50,10 +50,17 @@ def build_scene(fish=0, rod=False):
     reset_scene()
     info = env.build_environment(with_glow=True)
     LIGHT_POINTS.clear()
+    prima = set(bpy.data.objects.keys())
     LIGHT_POINTS.update(landmarks.build_landmarks())
+    luoghi = set(bpy.data.objects.keys()) - prima
     LIGHT_POINTS['lighthouse'] = tuple(info['lighthouse'])
     parts, mats = boat.build_boat(fish_in_bucket=fish, rod=rod)
     parts['props'] += props.build_props()
+    if os.environ.get('ATMOSFERA'):
+        # l'atmosfera dell'11 ottobre (atmosfera.py): la baia più buia e la nebbia volumetrica
+        import atmosfera
+        atmosfera.applica_buio(luoghi)
+        atmosfera.costruisci_nebbia()
     return info, parts, mats
 
 
@@ -123,8 +130,17 @@ def yaw_of(p):
 
 # ───────────────────────── codifica ─────────────────────────
 
-def encode_layer(key, exr, space, width, rect=None, yaw_center=0.0, with_alpha=False, data=False, extra=None, quality=90):
-    p = post.read_exr(exr)
+def encode_layer(key, exr, space, width, rect=None, yaw_center=0.0, with_alpha=False, data=False, extra=None, quality=90,
+                 copertura=None):
+    """copertura: l'alfa vera dello strato (senza la nebbia, vedi job_boat); il colore si riscala sulla copertura,
+    così dove lo strato non copre niente non resta la nebbia."""
+    p = post.read_exr(exr) if isinstance(exr, str) else exr
+    if copertura is not None:
+        k = np.clip(copertura / np.maximum(p['alpha'], 1e-4), 0.0, 1.0)[..., None]
+        for g in ('ambient', 'lamp', 'lantern'):
+            if g in p:
+                p[g] = p[g] * k
+        p['alpha'] = copertura
     if rect is not None:
         # Blender a volte rende una riga in più in fondo alla regione (i conti in float32 sul bordo): si taglia alle
         # misure del riquadro, se no l'immagine non combacia col rect
@@ -132,6 +148,16 @@ def encode_layer(key, exr, space, width, rect=None, yaw_center=0.0, with_alpha=F
         p = {k: (v[:h, :w] if v.ndim >= 2 and v.shape[0] >= h and v.shape[1] >= w else v) for k, v in p.items()}
     W, H = pano_size(width)
     alpha = p.get('alpha') if with_alpha else None
+    if 'depth' in p:
+        # atmosfera (atmosfera.py): il mist del motore dalla distanza vera, sqrt(d / 2500 m) come nel mist di Blender,
+        # e la luce della lampara diffusa lontano dalla nebbia smussata (Cycles la lascia a chiazze)
+        import atmosfera
+        d = np.where(np.isfinite(p['depth']), p['depth'], 1e9)
+        p['mist'] = np.sqrt(np.clip(d / 2500.0, 0.0, 1.0))
+        if 'lamp' in p:
+            p['lamp'] = p['lamp'].copy()
+            p['lamp'][..., :3] = atmosfera.liscia_lontano(p['lamp'][..., :3], np.clip(d / 2500.0, 0.0, 1.0),
+                                                          sigma=width / 360.0)
     entry = {'space': space, 'yaw': yaw_center, 'rect': list(rect) if rect else [0, 0, W, H], 'passes': {}}
     total = 0
     for g in ('ambient', 'lamp', 'lantern'):
@@ -202,6 +228,45 @@ def write_globals(width):
 
 # ───────────────────────── job ─────────────────────────
 
+def campioni(q):
+    """I campioni del job: quelli della qualità, o CAMPIONI=n; SOGLIA=x cambia la soglia del campionamento adattivo
+    (più bassa: i pixel rumorosi, come l'acqua nella nebbia, prendono più campioni, il cielo si ferma prima)."""
+    if os.environ.get('SOGLIA'):
+        bpy.context.scene.cycles.adaptive_threshold = float(os.environ['SOGLIA'])
+    return int(os.environ.get('CAMPIONI', q.samples))
+
+
+def render_a_strisce(exr, samples, size, **kw):
+    """Come render(), ma a strisce verticali (STRISCE=n, predefinito 1: tutto in una volta). Ogni striscia si
+    salva appena finita e si salta se c'è già: un render di molte ore riparte da dove era arrivato se la macchina
+    si ferma. Le strisce si rendono con un margine (il denoiser vuole il contesto ai bordi) e si cuciono tagliandolo.
+    Restituisce i passi dell'immagine intera, come post.read_exr."""
+    n = int(os.environ.get('STRISCE', '1'))
+    W, H = size
+    if n <= 1:
+        render(exr, samples, size, **kw)
+        return post.read_exr(exr)
+    M = 48
+    full = {}
+    for i in range(n):
+        a, b = i * W // n, (i + 1) * W // n
+        x0, x1 = max(a - M, 0), min(b + M, W)
+        part = exr.replace('.exr', f'_s{i}.exr')
+        if os.path.exists(part):
+            log(f'striscia {i + 1}/{n} già fatta')
+        else:
+            t = time.time()
+            render(part, samples, size, region=(x0, 0, x1, H), **kw)
+            log(f'striscia {i + 1}/{n} in', round(time.time() - t), 's')
+        p = post.read_exr(part)
+        for k, v in p.items():
+            v = v[:H, :x1 - x0]
+            if k not in full:
+                full[k] = np.zeros((H, W) + v.shape[2:], np.float32)
+            full[k][:, a:b] = v[:, a - x0:b - x0]
+    return full
+
+
 def job_world(q):
     build_scene(fish=0, rod=False)
     for o in coll_objects('boat'):
@@ -210,23 +275,51 @@ def job_world(q):
     W, H = pano_size(q.pano_width)
     exr = os.path.join(CACHE, q.name, 'world.exr')
     t = time.time()
-    render(exr, q.samples, (W, H), data_passes=('Mist', 'Object Index'))
+    passes = ('Mist', 'Object Index')
+    if os.environ.get('ATMOSFERA'):
+        # con la nebbia il mist di Cycles si accumula nei volumi: le distanze vere vengono dal passo Depth
+        bpy.context.scene.view_layers[0].use_pass_z = True
+        passes += ('Depth',)
+    p = render_a_strisce(exr, campioni(q), (W, H), data_passes=passes)
     log('world render', round(time.time() - t), 's')
-    encode_layer('world', exr, 'world', q.pano_width, data=True)
+    encode_layer('world', p, 'world', q.pano_width, data=True)
     write_globals(q.pano_width)
 
 
 def job_boat(q):
     build_scene(fish=0, rod=False)
+    atmo = bool(os.environ.get('ATMOSFERA'))
     for o in coll_objects('env'):
-        o.visible_camera = False
+        if atmo and o.name == 'Nebbia':
+            # solo la nebbia attorno alla barca: quella oltre (davanti al mare e al cielo) è già nello strato del
+            # mondo. La densità dipende dalla posizione nel mondo, quindi stringere la scatola non la cambia
+            d = o.dimensions
+            o.scale = (3.4 / d.x, 7.0 / d.y, 3.4 / d.z)
+            o.location = (0.0, 0.0, 1.2)
+            continue
+        if atmo and o.type == 'MESH':
+            # con la nebbia: il mondo fa da maschera (la nebbia fra l'occhio e la barca resta nello strato)
+            o.is_holdout = True
+        else:
+            o.visible_camera = False
     panorama_camera()
     W, H = pano_size(q.pano_width)
     exr = os.path.join(CACHE, q.name, 'boat.exr')
     t = time.time()
-    render(exr, q.samples, (W, H), transparent=True, data_passes=('Alpha',))
+    p = render_a_strisce(exr, campioni(q), (W, H), transparent=True, data_passes=('Alpha',))
     log('boat render', round(time.time() - t), 's')
-    encode_layer('boat', exr, 'boat', q.pano_width, with_alpha=True)
+    copertura = None
+    if atmo:
+        # Cycles mette la nebbia anche nell'alfa (sul mare lo strato sarebbe velato di nebbia, che il mondo ha già):
+        # l'alfa vera è la copertura della sola barca, da un render rapido senza la nebbia
+        neb = bpy.data.objects['Nebbia']
+        neb.hide_render = True
+        mask = os.path.join(CACHE, q.name, 'boat_copertura.exr')
+        if not os.path.exists(mask):
+            render(mask, 4, (W, H), transparent=True, groups=('ambient',), data_passes=('Alpha',), denoise=False)
+        neb.hide_render = False
+        copertura = post.read_exr(mask)['alpha']
+    encode_layer('boat', p, 'boat', q.pano_width, with_alpha=True, copertura=copertura)
     write_globals(q.pano_width)
 
 
