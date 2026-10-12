@@ -984,7 +984,8 @@ def render_a_strisce(nome, q, samples, W, H, strisce=8, sov=24):
                 f.write('ok')
             log(f'{nome} striscia {k + 1}/{strisce}', round(time.time() - t), 's')
         p = post.read_exr(exr)
-        p['raggi'] = post.read_exr(exr.replace('.exr', '_raggi.exr'))['ambient']
+        if os.path.exists(exr.replace('.exr', '_raggi.exr')):          # nelle tane non ci sono raggi
+            p['raggi'] = post.read_exr(exr.replace('.exr', '_raggi.exr'))['ambient']
         parti.append({c: v[y0 - r0: y1 - r0, :W] for c, v in p.items()})
     return {c: np.concatenate([pp[c] for pp in parti], 0) for c in parti[0]}
 
@@ -1072,6 +1073,201 @@ def job_sotto(q):
     post.save_png(pv, os.path.join(CACHE, q.name, 'sotto_barca_pano.png'))
 
 
+def tavola(nomi_file, size, out, cols=4, titoli=None, cancella=True):
+    """Mette insieme le immagini in una tavola (cols per riga) col titolo di ognuna; cancella le immagini."""
+    from PIL import Image, ImageDraw, ImageFont
+    W, H = size
+    rows = (len(nomi_file) + cols - 1) // cols
+    sheet = Image.new('RGB', (W * cols, H * rows), (8, 10, 12))
+    font = ImageFont.truetype(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fonts', 'Limelight-Regular.ttf'), max(14, H // 14))
+    dr = ImageDraw.Draw(sheet)
+    for k, path in enumerate(nomi_file):
+        im = Image.open(path).resize((W, H))
+        x, y = (k % cols) * W, (k // cols) * H
+        sheet.paste(im, (x, y))
+        if titoli:
+            dr.text((x + 12, y + 8), titoli[k], fill=(230, 220, 200), font=font)
+        if cancella:
+            os.remove(path)
+    sheet.save(out, quality=88)
+    log('tavola', out)
+
+
+def job_tane_anteprime(q):
+    """Le anteprime delle tane (da approvare): docs/concept/tane_camerette.jpg (le sette camerette vuote viste
+    dall'ingresso, con la torcia) e docs/concept/tane_pose.jpg (i sette mostri addormentati da vicino). TANE=gulpy,molly
+    per farne solo alcune (le tavole si fanno quando ci sono tutte e sette)."""
+    import tane
+    global CONCEPT
+    concept, CONCEPT = CONCEPT, os.path.join(CACHE, 'tane_tessere')    # le singole viste restano in cache
+    try:
+        _tane_anteprime(q, tane)
+    finally:
+        CONCEPT = concept
+    fatte = [os.path.join(CACHE, 'tane_tessere', f'tane_cameretta_{c}.jpg') for c in tane.ORDINE]
+    if all(os.path.exists(f) for f in fatte):
+        tit = [c.capitalize() for c in tane.ORDINE]
+        s = q.persp_scale
+        size = (round(960 * s), round(540 * s))
+        tavola(fatte, size, os.path.join(CONCEPT, 'tane_camerette.jpg'), titoli=tit, cancella=False)
+        tavola([os.path.join(CACHE, 'tane_tessere', f'tane_posa_{c}.jpg') for c in tane.ORDINE], size,
+               os.path.join(CONCEPT, 'tane_pose.jpg'), titoli=tit, cancella=False)
+
+
+def _tane_anteprime(q, tane):
+    import grotte
+    grotte.TORCIA_BLEND = 1.0          # la macchia della torcia sulla sabbia, morbida (12 ottobre)
+    chi_tutti = [c for c in os.environ.get('TANE', ','.join(tane.ORDINE)).split(',') if c]
+    s = q.persp_scale
+    size = (round(960 * s), round(540 * s))
+    for chi in chi_tutti:
+        reset_scene()
+        info = tane.build_tana(chi)
+        tgt = (tane.OCCHIO_T[0], tane.OCCHIO_T[1] + 10.0, tane.OCCHIO_T[2] + 10.0 * math.tan(math.radians(tane.PITCH_T)))
+        grotte_vista(q, f'tane_cameretta_{chi}', tane.OCCHIO_T, tgt, 15.0, size, torcia=True, esposizione=0.5, cono=45.0,
+                    pesi={'ambient': 1.0, 'lantern': 0.6})
+        obs = tane.mostro(chi, info)
+        P = world_bbox([o for o in obs if o.type == 'MESH'])
+        c = (P.min(0) + P.max(0)) / 2
+        r = float(np.linalg.norm(P.max(0) - P.min(0))) / 2
+        # la camera della posa: dalla parte del sub, alla sua quota (mai dentro il soffitto), a una distanza che lo
+        # contiene tutto
+        d = np.array(tane.OCCHIO_T) - c
+        d[2] = 0.0
+        d /= np.linalg.norm(d)
+        pos = c + d * max(2.4, r * 2.2)
+        pos[2] = min(max(pos[2], 0.8), 2.6)
+        grotte_vista(q, f'tane_posa_{chi}', tuple(pos), tuple(c), 24.0, size, torcia=True, esposizione=0.5, cono=50.0)
+
+
+def job_tane(q):
+    """Le tane delle immersioni, render finali (12 ottobre) nel formato del motore (docs/IMMERSIONI.md, «Come si
+    aggiungono i posti veri»), e il collegamento in public/assets/img/immersioni.json.
+
+    Per ogni tana: la cameretta vuota come panorama parziale (inquadratura fissa: 160° × 80°, da −55° a +25°, frame
+    a −15° che si gira di 30° per parte; passi ambient, lantern e dati come la grotta grande, con l'acqua cotta) — è
+    anche la tana vuota del mostro nuovo; poi il mostro addormentato come strato ritagliato con l'alfa (la stanza fa
+    da maschera e gli fa la luce) e la toppa del respiro (la stessa posa col fiato preso), con la stessa acqua della
+    stanza davanti; le direzioni del mostro (dove si clicca per il pesce), delle bolle e della cosa da trovare.
+    TANE=gulpy,molly per farne solo alcune; GROTTE_CAMPIONI per i campioni (64)."""
+    import tane
+    path_dati = os.path.join(OUT_IMG, 'immersioni.json')
+    for chi in [c for c in os.environ.get('TANE', ','.join(tane.ORDINE)).split(',') if c]:
+        voce = tana_finale(q, chi)
+        with open(path_dati) as f:
+            dati = json.load(f)
+        posto = dati['places'][f'tana_{chi}']
+        for k in ('tint', 'panoEmpty'):
+            posto.pop(k, None)
+        posto.update(voce)
+        with open(path_dati, 'w') as f:
+            f.write(json.dumps(dati, indent=1, ensure_ascii=False) + '\n')
+        log(f'tana {chi}: posto aggiornato in immersioni.json')
+
+
+def tana_finale(q, chi):
+    import grotte
+    import tane
+    from PIL import Image
+    reset_scene()
+    info = tane.build_tana(chi, res=0.05)
+    occhio = np.array(tane.OCCHIO_T)
+    LON = 80.0
+    LAT_MIN, LAT_MAX, PITCH = tane.INQUADRATURA.get(chi, (-55.0, 25.0, tane.PITCH_T))
+    cam = panorama_camera(location=tuple(occhio), name='TanaCam')
+    cam.data.longitude_min = math.radians(-LON)
+    cam.data.longitude_max = math.radians(LON)
+    cam.data.latitude_min = math.radians(LAT_MIN)
+    cam.data.latitude_max = math.radians(LAT_MAX)
+    grotte.torcia_panorama(occhio=tuple(occhio))
+    px = q.pano_width / 360.0
+    W = int(round(2 * LON * px / 2)) * 2
+    H = int(round((LAT_MAX - LAT_MIN) * px / 2)) * 2
+    samples = int(os.environ.get('GROTTE_CAMPIONI', min(q.samples, 64)))
+    cartella = os.path.join(OUT_IMG, 'immersioni')
+    # ── la cameretta vuota
+    t = time.time()
+    p = render_a_strisce(f'tana_{chi}', q, samples, W, H, strisce=4)
+    log(f'tana {chi}: cameretta', round(time.time() - t), 's')
+    stanza = grotte.acqua(p, blur_px=360.0 * px / 24)
+    pano = codifica_posto(f'tana_{chi}', stanza, p, np.zeros_like(p['mist']), cartella)
+    post.save_png(post.tonemap(post.compose(stanza, {'ambient': 1.0, 'lantern': 0.6}), 0.5),
+                  os.path.join(CACHE, q.name, f'tana_{chi}_pano.png'))
+
+    def dirz(v):
+        e = np.array(v) - occhio
+        return math.degrees(math.atan2(e[0], e[1])), math.degrees(math.atan2(e[2], math.hypot(e[0], e[1])))
+
+    def pixel(v):
+        yaw, pitch = dirz(v)
+        return (yaw + LON) / (2 * LON) * W, (LAT_MAX - pitch) / (LAT_MAX - LAT_MIN) * H
+
+    # ── il mostro che dorme e la toppa del respiro: strati ritagliati, la stanza fa da maschera
+    stanza_obs = [o for o in bpy.data.objects if o.type in ('MESH', 'FONT', 'CURVE')]
+    strati = []
+    rect = None
+    for fiato in (0.0, 1.0):
+        prima = set(bpy.data.objects.keys())
+        obs = tane.mostro(chi, info, fiato=fiato)
+        mesh = [o for o in obs if o.type == 'MESH']
+        if rect is None:
+            pts = np.array(dense_points(mesh, n=3000))
+            uv = np.array([pixel(v) for v in pts])
+            m = 24
+            rect = [max(0, int(uv[:, 0].min()) - m), max(0, int(uv[:, 1].min()) - m),
+                    min(W, int(math.ceil(uv[:, 0].max())) + m), min(H, int(math.ceil(uv[:, 1].max())) + m)]
+            c = (pts.min(0) + pts.max(0)) / 2
+            sy, sp = dirz(c)
+            raggio = max(abs(uv[:, 0] - pixel(c)[0]).max(), abs(uv[:, 1] - pixel(c)[1]).max()) / px * 0.8
+            testa = [o for o in mesh if 'Head' in o.name] or mesh
+            hb = world_bbox(testa)
+            by, bp = dirz((hb.min(0) + hb.max(0)) / 2 + np.array((0, 0, 0.15)))
+        for o in stanza_obs:
+            o.is_holdout = True
+        exr = os.path.join(CACHE, q.name, f'tana_{chi}_{"respiro" if fiato else "posa"}.exr')
+        t = time.time()
+        render(exr, samples, (W, H), region=tuple(rect), transparent=True, data_passes=('Alpha', 'Mist'))
+        log(f'tana {chi}: {"respiro" if fiato else "posa"}', round(time.time() - t), 's', rect)
+        for o in stanza_obs:
+            o.is_holdout = False
+        sp_ = post.read_exr(exr)
+        h_, w_ = rect[3] - rect[1], rect[2] - rect[0]
+        sp_ = {k: v[:h_, :w_] for k, v in sp_.items()}
+        alpha = np.clip(sp_['alpha'], 0, 1)
+        cotto = grotte.acqua(sp_, blur_px=1, sfocata=stanza['sfocata'][rect[1]:rect[3], rect[0]:rect[2]], alpha=alpha)
+        passes = {}
+        nome = f'tana_{chi}_{"respiro" if fiato else "posa"}'
+        for g in ('ambient', 'lantern'):
+            lin = cotto[g][..., :3]
+            scale = post.pick_scale(lin / np.maximum(alpha[..., None], 1e-4), alpha)
+            post.save_webp(post.encode_light_pass(lin, scale, alpha), os.path.join(cartella, f'{nome}_{g}.webp'))
+            passes[g] = {'file': f'immersioni/{nome}_{g}.webp', 'scale': scale}
+        strato = {'passes': passes, 'rect': list(rect)}
+        if fiato:
+            strato['breath'] = BREATH.get(chi, 4.2)
+        strati.append(strato)
+        for nm in set(bpy.data.objects.keys()) - prima:
+            o = bpy.data.objects.get(nm)
+            if o is not None:
+                bpy.data.objects.remove(o)
+    fy, fp = dirz(info['trovato'])
+    voce = {
+        '_nota': f"La tana di {chi.capitalize()} (render finale, tools/render/tane.py): la cameretta vuota è anche la tana "
+                 "vuota del mostro nuovo; il mostro che dorme e la toppa del respiro sono strati sopra. L'acqua è cotta.",
+        'pano': pano, 'size': [W, H], 'latMin': LAT_MIN, 'latMax': LAT_MAX, 'lonMin': -LON, 'lonMax': LON, 'yaw': 0,
+        'frame': {'yaw': 0, 'pitch': PITCH, 'yawRange': 30, 'pitchRange': 4},
+        'rays': 0.12, 'acquaCotta': True,
+        'sleeper': {'yaw': round(sy, 1), 'pitch': round(sp, 1), 'r': round(max(6.0, raggio), 1), 'layers': strati,
+                    'bubbles': {'yaw': round(by, 1), 'pitch': round(bp, 1)}},
+        'find': {'lore': f'den_{chi}', 'yaw': round(fy, 1), 'pitch': round(fp, 1), 'r': 5},
+    }
+    return voce
+
+
+# il periodo del respiro nel sonno, per mostro (secondi): i grandi respirano lenti, Fangy lentissimo
+BREATH = {'gulpy': 5.0, 'molly': 3.8, 'hatch': 4.2, 'robin': 3.6, 'archie': 4.6, 'lampy': 3.4, 'fangy': 6.5}
+
+
 def job_grotte(q):
     """Il panorama a 360° della grotta grande per il motore delle immersioni (docs/IMMERSIONI.md, «Come si aggiungono i
     posti veri»): sfera intera (latitudine da −90° a 90°, larghezza = quella della qualità, altezza la metà), passi
@@ -1148,7 +1344,7 @@ def job_grotte(q):
         post.save_png(v, os.path.join(CACHE, q.name, f'grotta_vista_{nome}.png'))
 
 
-JOBS = {'grotte': job_grotte, 'sotto': job_sotto, 'sotto_anteprima': job_sotto_anteprima, 'grotte_ricomponi': job_grotte_ricomponi, 'grotte_anteprime': job_grotte_anteprime, 'grotte_tane': job_grotte_tane,
+JOBS = {'grotte': job_grotte, 'tane': job_tane, 'tane_anteprime': job_tane_anteprime, 'sotto': job_sotto, 'sotto_anteprima': job_sotto_anteprima, 'grotte_ricomponi': job_grotte_ricomponi, 'grotte_anteprime': job_grotte_anteprime, 'grotte_tane': job_grotte_tane,
         'world': job_world, 'boat': job_boat, 'props': job_props, 'creature': job_creature, 'reencode': job_reencode, 'tarp': job_tarp, 'jumpscare': job_jumpscare, 'binocolo': job_binocolo, 'bordo': job_bordo, 'pelo': job_pelo}
 
 

@@ -173,78 +173,73 @@
    ]
   },
   "tana_gulpy": {
-   "_nota": "SEGNAPOSTO: la stessa cameretta per tutti, tinta col colore del mostro. Inquadratura fissa (deciso l'11 ottobre): un panorama parziale di 160° × 80°, lo sguardo si gira di 30° per parte.",
+   "_nota": "La tana di Gulpy (render finale, tools/render/tane.py): la cameretta vuota è anche la tana vuota del mostro nuovo; il mostro che dorme e la toppa del respiro sono strati sopra. L'acqua è cotta.",
    "den": "gulpy",
    "pano": {
     "ambient": {
-     "file": "immersioni/segnaposto/cameretta_ambient.webp",
-     "scale": 1
+     "file": "immersioni/tana_gulpy_ambient.webp",
+     "scale": 0.37
     },
     "lantern": {
-     "file": "immersioni/segnaposto/cameretta_lantern.webp",
-     "scale": 1
+     "file": "immersioni/tana_gulpy_lantern.webp",
+     "scale": 0.31
     },
-    "data": "immersioni/segnaposto/cameretta_data.webp"
+    "data": "immersioni/tana_gulpy_data.webp"
    },
    "size": [
-    1760,
-    880
+    3640,
+    1820
    ],
-   "latMin": -55,
-   "latMax": 25,
+   "latMin": -55.0,
+   "latMax": 25.0,
    "yaw": 0,
-   "tint": [
-    0.62,
-    0.66,
-    0.72
-   ],
    "rays": 0.12,
    "sleeper": {
-    "yaw": 0,
-    "pitch": -27,
-    "r": 16,
+    "yaw": -4.7,
+    "pitch": -7.4,
+    "r": 14.7,
     "layers": [
      {
       "passes": {
        "ambient": {
-        "file": "immersioni/segnaposto/dormiente_ambient.webp",
-        "scale": 1
+        "file": "immersioni/tana_gulpy_posa_ambient.webp",
+        "scale": 0.63
        },
        "lantern": {
-        "file": "immersioni/segnaposto/dormiente_lantern.webp",
-        "scale": 1
+        "file": "immersioni/tana_gulpy_posa_lantern.webp",
+        "scale": 0.29
        }
       },
       "rect": [
-       550,
-       385,
-       1210,
-       770
+       1272,
+       546,
+       2144,
+       912
       ]
      },
      {
       "passes": {
        "ambient": {
-        "file": "immersioni/segnaposto/dormiente_respiro_ambient.webp",
-        "scale": 1
+        "file": "immersioni/tana_gulpy_respiro_ambient.webp",
+        "scale": 0.63
        },
        "lantern": {
-        "file": "immersioni/segnaposto/dormiente_respiro_lantern.webp",
-        "scale": 1
+        "file": "immersioni/tana_gulpy_respiro_lantern.webp",
+        "scale": 0.29
        }
       },
       "rect": [
-       550,
-       385,
-       1210,
-       770
+       1272,
+       546,
+       2144,
+       912
       ],
-      "breath": 4.2
+      "breath": 5.0
      }
     ],
     "bubbles": {
-     "yaw": -15,
-     "pitch": -23
+     "yaw": -14.9,
+     "pitch": -4.9
     }
    },
    "links": [
@@ -257,88 +252,90 @@
      "r": 0
     }
    ],
-   "lonMin": -80,
-   "lonMax": 80,
+   "lonMin": -80.0,
+   "lonMax": 80.0,
    "frame": {
     "yaw": 0,
-    "pitch": -15,
+    "pitch": -15.0,
     "yawRange": 30,
     "pitchRange": 4
-   }
+   },
+   "find": {
+    "lore": "den_gulpy",
+    "yaw": -25.8,
+    "pitch": -8.1,
+    "r": 5
+   },
+   "acquaCotta": true
   },
   "tana_molly": {
-   "_nota": "SEGNAPOSTO: la stessa cameretta per tutti, tinta col colore del mostro. Inquadratura fissa (deciso l'11 ottobre): un panorama parziale di 160° × 80°, lo sguardo si gira di 30° per parte.",
+   "_nota": "La tana di Molly (render finale, tools/render/tane.py): la cameretta vuota è anche la tana vuota del mostro nuovo; il mostro che dorme e la toppa del respiro sono strati sopra. L'acqua è cotta.",
    "den": "molly",
    "pano": {
     "ambient": {
-     "file": "immersioni/segnaposto/cameretta_ambient.webp",
-     "scale": 1
+     "file": "immersioni/tana_molly_ambient.webp",
+     "scale": 0.6900000000000001
     },
     "lantern": {
-     "file": "immersioni/segnaposto/cameretta_lantern.webp",
-     "scale": 1
+     "file": "immersioni/tana_molly_lantern.webp",
+     "scale": 0.27
     },
-    "data": "immersioni/segnaposto/cameretta_data.webp"
+    "data": "immersioni/tana_molly_data.webp"
    },
    "size": [
-    1760,
-    880
+    3640,
+    1820
    ],
-   "latMin": -55,
-   "latMax": 25,
+   "latMin": -55.0,
+   "latMax": 25.0,
    "yaw": 0,
-   "tint": [
-    0.85,
-    0.62,
-    0.78
-   ],
    "rays": 0.12,
    "sleeper": {
-    "yaw": 0,
-    "pitch": -27,
-    "r": 16,
+    "yaw": -7.3,
+    "pitch": -9.4,
+    "r": 13.7,
     "layers": [
      {
       "passes": {
        "ambient": {
-        "file": "immersioni/segnaposto/dormiente_ambient.webp",
-        "scale": 1
+        "file": "immersioni/tana_molly_posa_ambient.webp",
+        "scale": 0.25
        },
        "lantern": {
-        "file": "immersioni/segnaposto/dormiente_lantern.webp",
-        "scale": 1
+        "file": "immersioni/tana_molly_posa_lantern.webp",
+        "scale": 0.25
        }
       },
       "rect": [
-       550,
-       385,
-       1210,
-       770
+       1241,
+       498,
+       2067,
+       1021
       ]
      },
      {
       "passes": {
        "ambient": {
-        "file": "immersioni/segnaposto/dormiente_respiro_ambient.webp",
-        "scale": 1
+        "file": "immersioni/tana_molly_respiro_ambient.webp",
+        "scale": 0.25
        },
        "lantern": {
-        "file": "immersioni/segnaposto/dormiente_respiro_lantern.webp",
-        "scale": 1
+        "file": "immersioni/tana_molly_respiro_lantern.webp",
+        "scale": 0.25
        }
       },
       "rect": [
-       550,
-       385,
-       1210,
-       770
+       1241,
+       498,
+       2067,
+       1021
       ],
-      "breath": 4.2
+      "breath": 3.8
      }
     ],
     "bubbles": {
-     "yaw": -15,
-     "pitch": -23
+     "yaw": -7.4,
+     "pitch": -0.9
     }
    },
    "links": [
@@ -351,88 +348,90 @@
      "r": 0
     }
    ],
-   "lonMin": -80,
-   "lonMax": 80,
+   "lonMin": -80.0,
+   "lonMax": 80.0,
    "frame": {
     "yaw": 0,
-    "pitch": -15,
+    "pitch": -15.0,
     "yawRange": 30,
     "pitchRange": 4
-   }
+   },
+   "find": {
+    "lore": "den_molly",
+    "yaw": 32.5,
+    "pitch": 2.0,
+    "r": 5
+   },
+   "acquaCotta": true
   },
   "tana_hatch": {
-   "_nota": "SEGNAPOSTO: la stessa cameretta per tutti, tinta col colore del mostro. Inquadratura fissa (deciso l'11 ottobre): un panorama parziale di 160° × 80°, lo sguardo si gira di 30° per parte.",
+   "_nota": "La tana di Hatch (render finale, tools/render/tane.py): la cameretta vuota è anche la tana vuota del mostro nuovo; il mostro che dorme e la toppa del respiro sono strati sopra. L'acqua è cotta.",
    "den": "hatch",
    "pano": {
     "ambient": {
-     "file": "immersioni/segnaposto/cameretta_ambient.webp",
-     "scale": 1
+     "file": "immersioni/tana_hatch_ambient.webp",
+     "scale": 0.25
     },
     "lantern": {
-     "file": "immersioni/segnaposto/cameretta_lantern.webp",
-     "scale": 1
+     "file": "immersioni/tana_hatch_lantern.webp",
+     "scale": 0.34
     },
-    "data": "immersioni/segnaposto/cameretta_data.webp"
+    "data": "immersioni/tana_hatch_data.webp"
    },
    "size": [
-    1760,
-    880
+    3640,
+    1820
    ],
-   "latMin": -55,
-   "latMax": 25,
+   "latMin": -55.0,
+   "latMax": 25.0,
    "yaw": 0,
-   "tint": [
-    1.0,
-    0.62,
-    0.38
-   ],
    "rays": 0.12,
    "sleeper": {
-    "yaw": 0,
-    "pitch": -27,
-    "r": 16,
+    "yaw": -0.0,
+    "pitch": -9.8,
+    "r": 6.0,
     "layers": [
      {
       "passes": {
        "ambient": {
-        "file": "immersioni/segnaposto/dormiente_ambient.webp",
-        "scale": 1
+        "file": "immersioni/tana_hatch_posa_ambient.webp",
+        "scale": 1.4000000000000001
        },
        "lantern": {
-        "file": "immersioni/segnaposto/dormiente_lantern.webp",
-        "scale": 1
+        "file": "immersioni/tana_hatch_posa_lantern.webp",
+        "scale": 0.25
        }
       },
       "rect": [
-       550,
-       385,
-       1210,
-       770
+       1718,
+       614,
+       1921,
+       958
       ]
      },
      {
       "passes": {
        "ambient": {
-        "file": "immersioni/segnaposto/dormiente_respiro_ambient.webp",
-        "scale": 1
+        "file": "immersioni/tana_hatch_respiro_ambient.webp",
+        "scale": 1.4000000000000001
        },
        "lantern": {
-        "file": "immersioni/segnaposto/dormiente_respiro_lantern.webp",
-        "scale": 1
+        "file": "immersioni/tana_hatch_respiro_lantern.webp",
+        "scale": 0.25
        }
       },
       "rect": [
-       550,
-       385,
-       1210,
-       770
+       1718,
+       614,
+       1921,
+       958
       ],
       "breath": 4.2
      }
     ],
     "bubbles": {
-     "yaw": -15,
-     "pitch": -23
+     "yaw": 0.0,
+     "pitch": -3.6
     }
    },
    "links": [
@@ -445,88 +444,90 @@
      "r": 0
     }
    ],
-   "lonMin": -80,
-   "lonMax": 80,
+   "lonMin": -80.0,
+   "lonMax": 80.0,
    "frame": {
     "yaw": 0,
-    "pitch": -15,
+    "pitch": -15.0,
     "yawRange": 30,
     "pitchRange": 4
-   }
+   },
+   "find": {
+    "lore": "den_hatch",
+    "yaw": -28.1,
+    "pitch": -7.0,
+    "r": 5
+   },
+   "acquaCotta": true
   },
   "tana_robin": {
-   "_nota": "SEGNAPOSTO: la stessa cameretta per tutti, tinta col colore del mostro. Inquadratura fissa (deciso l'11 ottobre): un panorama parziale di 160° × 80°, lo sguardo si gira di 30° per parte.",
+   "_nota": "La tana di Robin (render finale, tools/render/tane.py): la cameretta vuota è anche la tana vuota del mostro nuovo; il mostro che dorme e la toppa del respiro sono strati sopra. L'acqua è cotta.",
    "den": "robin",
    "pano": {
     "ambient": {
-     "file": "immersioni/segnaposto/cameretta_ambient.webp",
-     "scale": 1
+     "file": "immersioni/tana_robin_ambient.webp",
+     "scale": 0.36
     },
     "lantern": {
-     "file": "immersioni/segnaposto/cameretta_lantern.webp",
-     "scale": 1
+     "file": "immersioni/tana_robin_lantern.webp",
+     "scale": 0.39
     },
-    "data": "immersioni/segnaposto/cameretta_data.webp"
+    "data": "immersioni/tana_robin_data.webp"
    },
    "size": [
-    1760,
-    880
+    3640,
+    1820
    ],
-   "latMin": -55,
-   "latMax": 25,
+   "latMin": -55.0,
+   "latMax": 25.0,
    "yaw": 0,
-   "tint": [
-    1.0,
-    0.5,
-    0.45
-   ],
    "rays": 0.12,
    "sleeper": {
-    "yaw": 0,
-    "pitch": -27,
-    "r": 16,
+    "yaw": 8.8,
+    "pitch": -6.2,
+    "r": 13.4,
     "layers": [
      {
       "passes": {
        "ambient": {
-        "file": "immersioni/segnaposto/dormiente_ambient.webp",
-        "scale": 1
+        "file": "immersioni/tana_robin_posa_ambient.webp",
+        "scale": 0.47000000000000003
        },
        "lantern": {
-        "file": "immersioni/segnaposto/dormiente_lantern.webp",
-        "scale": 1
+        "file": "immersioni/tana_robin_posa_lantern.webp",
+        "scale": 0.26
        }
       },
       "rect": [
-       550,
-       385,
-       1210,
-       770
+       1647,
+       434,
+       2425,
+       1005
       ]
      },
      {
       "passes": {
        "ambient": {
-        "file": "immersioni/segnaposto/dormiente_respiro_ambient.webp",
-        "scale": 1
+        "file": "immersioni/tana_robin_respiro_ambient.webp",
+        "scale": 0.48
        },
        "lantern": {
-        "file": "immersioni/segnaposto/dormiente_respiro_lantern.webp",
-        "scale": 1
+        "file": "immersioni/tana_robin_respiro_lantern.webp",
+        "scale": 0.26
        }
       },
       "rect": [
-       550,
-       385,
-       1210,
-       770
+       1647,
+       434,
+       2425,
+       1005
       ],
-      "breath": 4.2
+      "breath": 3.6
      }
     ],
     "bubbles": {
-     "yaw": -15,
-     "pitch": -23
+     "yaw": 3.7,
+     "pitch": 0.8
     }
    },
    "links": [
@@ -539,88 +540,90 @@
      "r": 0
     }
    ],
-   "lonMin": -80,
-   "lonMax": 80,
+   "lonMin": -80.0,
+   "lonMax": 80.0,
    "frame": {
     "yaw": 0,
-    "pitch": -15,
+    "pitch": -15.0,
     "yawRange": 30,
     "pitchRange": 4
-   }
+   },
+   "find": {
+    "lore": "den_robin",
+    "yaw": 27.3,
+    "pitch": -22.7,
+    "r": 5
+   },
+   "acquaCotta": true
   },
   "tana_archie": {
-   "_nota": "SEGNAPOSTO: la stessa cameretta per tutti, tinta col colore del mostro. Inquadratura fissa (deciso l'11 ottobre): un panorama parziale di 160° × 80°, lo sguardo si gira di 30° per parte.",
+   "_nota": "La tana di Archie (render finale, tools/render/tane.py): la cameretta vuota è anche la tana vuota del mostro nuovo; il mostro che dorme e la toppa del respiro sono strati sopra. L'acqua è cotta.",
    "den": "archie",
    "pano": {
     "ambient": {
-     "file": "immersioni/segnaposto/cameretta_ambient.webp",
-     "scale": 1
+     "file": "immersioni/tana_archie_ambient.webp",
+     "scale": 1.5
     },
     "lantern": {
-     "file": "immersioni/segnaposto/cameretta_lantern.webp",
-     "scale": 1
+     "file": "immersioni/tana_archie_lantern.webp",
+     "scale": 0.25
     },
-    "data": "immersioni/segnaposto/cameretta_data.webp"
+    "data": "immersioni/tana_archie_data.webp"
    },
    "size": [
-    1760,
-    880
+    3640,
+    1820
    ],
-   "latMin": -55,
-   "latMax": 25,
+   "latMin": -55.0,
+   "latMax": 25.0,
    "yaw": 0,
-   "tint": [
-    0.95,
-    0.9,
-    0.4
-   ],
    "rays": 0.12,
    "sleeper": {
-    "yaw": 0,
-    "pitch": -27,
-    "r": 16,
+    "yaw": -0.3,
+    "pitch": -10.7,
+    "r": 12.0,
     "layers": [
      {
       "passes": {
        "ambient": {
-        "file": "immersioni/segnaposto/dormiente_ambient.webp",
-        "scale": 1
+        "file": "immersioni/tana_archie_posa_ambient.webp",
+        "scale": 0.74
        },
        "lantern": {
-        "file": "immersioni/segnaposto/dormiente_lantern.webp",
-        "scale": 1
+        "file": "immersioni/tana_archie_posa_lantern.webp",
+        "scale": 0.32
        }
       },
       "rect": [
-       550,
-       385,
-       1210,
-       770
+       1448,
+       654,
+       2179,
+       1081
       ]
      },
      {
       "passes": {
        "ambient": {
-        "file": "immersioni/segnaposto/dormiente_respiro_ambient.webp",
-        "scale": 1
+        "file": "immersioni/tana_archie_respiro_ambient.webp",
+        "scale": 0.75
        },
        "lantern": {
-        "file": "immersioni/segnaposto/dormiente_respiro_lantern.webp",
-        "scale": 1
+        "file": "immersioni/tana_archie_respiro_lantern.webp",
+        "scale": 0.32
        }
       },
       "rect": [
-       550,
-       385,
-       1210,
-       770
+       1448,
+       654,
+       2179,
+       1081
       ],
-      "breath": 4.2
+      "breath": 4.6
      }
     ],
     "bubbles": {
-     "yaw": -15,
-     "pitch": -23
+     "yaw": -0.5,
+     "pitch": -4.5
     }
    },
    "links": [
@@ -633,88 +636,90 @@
      "r": 0
     }
    ],
-   "lonMin": -80,
-   "lonMax": 80,
+   "lonMin": -80.0,
+   "lonMax": 80.0,
    "frame": {
     "yaw": 0,
-    "pitch": -15,
+    "pitch": -15.0,
     "yawRange": 30,
     "pitchRange": 4
-   }
+   },
+   "find": {
+    "lore": "den_archie",
+    "yaw": -7.3,
+    "pitch": -8.5,
+    "r": 5
+   },
+   "acquaCotta": true
   },
   "tana_lampy": {
-   "_nota": "SEGNAPOSTO: la stessa cameretta per tutti, tinta col colore del mostro. Inquadratura fissa (deciso l'11 ottobre): un panorama parziale di 160° × 80°, lo sguardo si gira di 30° per parte.",
+   "_nota": "La tana di Lampy (render finale, tools/render/tane.py): la cameretta vuota è anche la tana vuota del mostro nuovo; il mostro che dorme e la toppa del respiro sono strati sopra. L'acqua è cotta.",
    "den": "lampy",
    "pano": {
     "ambient": {
-     "file": "immersioni/segnaposto/cameretta_ambient.webp",
-     "scale": 1
+     "file": "immersioni/tana_lampy_ambient.webp",
+     "scale": 0.33
     },
     "lantern": {
-     "file": "immersioni/segnaposto/cameretta_lantern.webp",
-     "scale": 1
+     "file": "immersioni/tana_lampy_lantern.webp",
+     "scale": 0.25
     },
-    "data": "immersioni/segnaposto/cameretta_data.webp"
+    "data": "immersioni/tana_lampy_data.webp"
    },
    "size": [
-    1760,
-    880
+    3640,
+    1820
    ],
-   "latMin": -55,
-   "latMax": 25,
+   "latMin": -45.0,
+   "latMax": 35.0,
    "yaw": 0,
-   "tint": [
-    0.8,
-    0.45,
-    0.9
-   ],
    "rays": 0.12,
    "sleeper": {
-    "yaw": 0,
-    "pitch": -27,
-    "r": 16,
+    "yaw": -0.5,
+    "pitch": 16.2,
+    "r": 13.9,
     "layers": [
      {
       "passes": {
        "ambient": {
-        "file": "immersioni/segnaposto/dormiente_ambient.webp",
-        "scale": 1
+        "file": "immersioni/tana_lampy_posa_ambient.webp",
+        "scale": 0.89
        },
        "lantern": {
-        "file": "immersioni/segnaposto/dormiente_lantern.webp",
-        "scale": 1
+        "file": "immersioni/tana_lampy_posa_lantern.webp",
+        "scale": 0.37
        }
       },
       "rect": [
-       550,
-       385,
-       1210,
-       770
+       1389,
+       249,
+       2129,
+       730
       ]
      },
      {
       "passes": {
        "ambient": {
-        "file": "immersioni/segnaposto/dormiente_respiro_ambient.webp",
-        "scale": 1
+        "file": "immersioni/tana_lampy_respiro_ambient.webp",
+        "scale": 0.89
        },
        "lantern": {
-        "file": "immersioni/segnaposto/dormiente_respiro_lantern.webp",
-        "scale": 1
+        "file": "immersioni/tana_lampy_respiro_lantern.webp",
+        "scale": 0.38
        }
       },
       "rect": [
-       550,
-       385,
-       1210,
-       770
+       1389,
+       249,
+       2129,
+       730
       ],
-      "breath": 4.2
+      "breath": 3.4
      }
     ],
     "bubbles": {
-     "yaw": -15,
-     "pitch": -23
+     "yaw": -8.9,
+     "pitch": 15.5
     }
    },
    "links": [
@@ -727,88 +732,90 @@
      "r": 0
     }
    ],
-   "lonMin": -80,
-   "lonMax": 80,
+   "lonMin": -80.0,
+   "lonMax": 80.0,
    "frame": {
     "yaw": 0,
-    "pitch": -15,
+    "pitch": -5.0,
     "yawRange": 30,
     "pitchRange": 4
-   }
+   },
+   "find": {
+    "lore": "den_lampy",
+    "yaw": 3.2,
+    "pitch": -11.8,
+    "r": 5
+   },
+   "acquaCotta": true
   },
   "tana_fangy": {
-   "_nota": "SEGNAPOSTO: la stessa cameretta per tutti, tinta col colore del mostro. Inquadratura fissa (deciso l'11 ottobre): un panorama parziale di 160° × 80°, lo sguardo si gira di 30° per parte.",
+   "_nota": "La tana di Fangy (render finale, tools/render/tane.py): la cameretta vuota è anche la tana vuota del mostro nuovo; il mostro che dorme e la toppa del respiro sono strati sopra. L'acqua è cotta.",
    "den": "fangy",
    "pano": {
     "ambient": {
-     "file": "immersioni/segnaposto/cameretta_ambient.webp",
-     "scale": 1
+     "file": "immersioni/tana_fangy_ambient.webp",
+     "scale": 0.3
     },
     "lantern": {
-     "file": "immersioni/segnaposto/cameretta_lantern.webp",
-     "scale": 1
+     "file": "immersioni/tana_fangy_lantern.webp",
+     "scale": 0.3
     },
-    "data": "immersioni/segnaposto/cameretta_data.webp"
+    "data": "immersioni/tana_fangy_data.webp"
    },
    "size": [
-    1760,
-    880
+    3640,
+    1820
    ],
-   "latMin": -55,
-   "latMax": 25,
+   "latMin": -55.0,
+   "latMax": 25.0,
    "yaw": 0,
-   "tint": [
-    0.4,
-    0.5,
-    0.9
-   ],
    "rays": 0.12,
    "sleeper": {
-    "yaw": 0,
-    "pitch": -27,
-    "r": 16,
+    "yaw": 4.6,
+    "pitch": -11.1,
+    "r": 8.1,
     "layers": [
      {
       "passes": {
        "ambient": {
-        "file": "immersioni/segnaposto/dormiente_ambient.webp",
-        "scale": 1
+        "file": "immersioni/tana_fangy_posa_ambient.webp",
+        "scale": 0.59
        },
        "lantern": {
-        "file": "immersioni/segnaposto/dormiente_lantern.webp",
-        "scale": 1
+        "file": "immersioni/tana_fangy_posa_lantern.webp",
+        "scale": 0.27
        }
       },
       "rect": [
-       550,
-       385,
-       1210,
-       770
+       1683,
+       649,
+       2180,
+       982
       ]
      },
      {
       "passes": {
        "ambient": {
-        "file": "immersioni/segnaposto/dormiente_respiro_ambient.webp",
-        "scale": 1
+        "file": "immersioni/tana_fangy_respiro_ambient.webp",
+        "scale": 0.6
        },
        "lantern": {
-        "file": "immersioni/segnaposto/dormiente_respiro_lantern.webp",
-        "scale": 1
+        "file": "immersioni/tana_fangy_respiro_lantern.webp",
+        "scale": 0.28
        }
       },
       "rect": [
-       550,
-       385,
-       1210,
-       770
+       1683,
+       649,
+       2180,
+       982
       ],
-      "breath": 4.2
+      "breath": 6.5
      }
     ],
     "bubbles": {
-     "yaw": -15,
-     "pitch": -23
+     "yaw": 4.4,
+     "pitch": -8.7
     }
    },
    "links": [
@@ -821,14 +828,21 @@
      "r": 0
     }
    ],
-   "lonMin": -80,
-   "lonMax": 80,
+   "lonMin": -80.0,
+   "lonMax": 80.0,
    "frame": {
     "yaw": 0,
-    "pitch": -15,
+    "pitch": -15.0,
     "yawRange": 30,
     "pitchRange": 4
-   }
+   },
+   "find": {
+    "lore": "den_fangy",
+    "yaw": -16.7,
+    "pitch": -25.3,
+    "r": 5
+   },
+   "acquaCotta": true
   }
  }
 }

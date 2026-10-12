@@ -17,7 +17,7 @@ import { textureFromImage, type GL } from '../engine/gl.ts';
 import type { LayerDraw } from '../engine/renderer.ts';
 import { apply, wrap180 } from '../engine/view.ts';
 import type { NightMonster as NightMonster } from '../game/config.ts';
-import { STRINGS, type Lang } from '../i18n.ts';
+import { LORE_TEXT, STRINGS, type Lang } from '../i18n.ts';
 import { DiveRun, type DiveData, type DiveLink, type DivePano, type DivePlace } from './dive_run.ts';
 import { badge, dualText, pad } from './pad.ts';
 import type { Options } from './save.ts';
@@ -41,6 +41,8 @@ const SND = {
   airOut: 'dive_air_out',
   up: 'dive_up',
   offer: 'offer_fish',
+  /** una cosa trovata nella tana: per ora le bolle dell'erogatore, più piano (un suono suo è da fare) */
+  found: 'dive_bubbles',
 } as const;
 /** il respiro nel sonno (in loop) e i movimenti ogni tanto, per ogni mostro */
 const sleepSound = (who: NightMonster) => `sleep_${who}`;
@@ -51,6 +53,8 @@ export interface DiveResult {
   fed: NightMonster | null;
   /** le tane viste */
   dens: NightMonster[];
+  /** le cose trovate nelle tane (voci del Diario) */
+  lore: string[];
 }
 
 export interface DiveDeps {
@@ -65,6 +69,8 @@ export interface DiveDeps {
   nextNight: number;
   /** pesci avanzati alle sei oltre la quota */
   spare: number;
+  /** le voci già nel Diario */
+  known?: string[];
   onEnd: (r: DiveResult) => void;
 }
 
@@ -122,6 +128,8 @@ interface Spot {
   r: number;
   link?: DiveLink;
   sleeper?: boolean;
+  /** la cosa da trovare (voce del Diario) */
+  find?: string;
   el: HTMLDivElement | null;
 }
 
@@ -176,7 +184,7 @@ export class Dive {
   private destroyed = false;
 
   constructor(private d: DiveDeps) {
-    this.run = new DiveRun(d.data, d.nextNight, d.spare);
+    this.run = new DiveRun(d.data, d.nextNight, d.spare, d.known ?? []);
     const S = this.S;
     this.root = el('div', 'hud dive-hud');
     this.spotsEl = el('div', 'dive-spots');
@@ -315,6 +323,13 @@ export class Dive {
       this.spots.push({ dir: dirOf(l.yaw + yaw0, l.pitch), r: l.r, link: l, el: e });
     }
     if (state === 'asleep' && p.sleeper) this.spots.push({ dir: dirOf(p.sleeper.yaw + yaw0, p.sleeper.pitch), r: p.sleeper.r, sleeper: true, el: null });
+    const find = this.run.findHere();
+    if (find && p.find) {
+      const e = el('div', 'dive-spot');
+      e.append(el('span', '', this.S.dive.links.find ?? ''));
+      this.spotsEl.append(e);
+      this.spots.push({ dir: dirOf(p.find.yaw + yaw0, p.find.pitch), r: p.find.r, find, el: e });
+    }
   }
 
   /** Appena arrivati in un posto (caricato, e già dentro in DiveRun): i punti cliccabili, lo sguardo, la dissolvenza in
@@ -494,8 +509,21 @@ export class Dive {
       const h = this.hover;
       if (!h) return;
       if (h.sleeper) this.offer();
+      else if (h.find) this.take(h);
       else if (h.link) this.follow(h.link);
     });
+  }
+
+  /** Prende la cosa da trovare: va nel Diario (con la sua didascalia), e il punto sparisce. */
+  private take(h: Spot): void {
+    const id = this.run.take();
+    if (!id) return;
+    h.el?.remove();
+    this.spots = this.spots.filter((s) => s !== h);
+    if (this.hover === h) this.hover = null;
+    const t = LORE_TEXT[this.d.lang][id];
+    this.caption(this.S.dive.found(t?.title ?? ''), 5);
+    this.play(SND.found, { gain: 0.45 });
   }
 
   /** Segue un passaggio (o la risalita, o una cosa da guardare). */
@@ -602,7 +630,7 @@ export class Dive {
         this.fade = Math.max(0, this.fade - dt / this.ascendTime);
         if (this.fade <= 0) {
           this.phase = 'done';
-          this.d.onEnd({ fed: this.run.fed, dens: [...this.run.dens] });
+          this.d.onEnd({ fed: this.run.fed, dens: [...this.run.dens], lore: [...this.run.found] });
         }
         break;
       default:

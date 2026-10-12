@@ -143,10 +143,12 @@ export function skipDawn(d: SaveData): void {
 }
 
 /** Risaliti: chi è stato sfamato dorme la notte `next`; le tane viste restano; l'alba è chiusa. */
-export function afterDive(d: SaveData, next: number, r: { fed: MonsterId | null; dens: MonsterId[] }): void {
+export function afterDive(d: SaveData, next: number, r: { fed: MonsterId | null; dens: MonsterId[]; lore?: string[] }): void {
   d.dawns[String(next - 1)] = { dove: true, fed: !!r.fed };
   d.fed = r.fed ? { night: next, who: r.fed } : null;
   for (const m of r.dens) if (!d.dens.includes(m)) d.dens.push(m);
+  // le cose trovate nelle tane vanno nel Diario, come i frammenti ripescati
+  for (const l of r.lore ?? []) if (!d.lore.includes(l)) d.lore.push(l);
   d.dawn = null;
 }
 

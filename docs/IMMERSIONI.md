@@ -169,6 +169,83 @@ addormentata, con una piccola animazione (il respiro, le bolle).
 | **Lampy** | Una culla con la giostrina di pesciolini, una vaschetta da bagno, cuffie a fiori appese. | Attaccata con la ventosa al soffitto sopra la culla; non ha palpebre e dorme a occhi aperti. |
 | **Fangy** | Bende per gli occhi, occhialini dipinti di nero, il gioco del Marco Polo; attorno al letto conchiglie appese che tintinnano quando ti avvicini (le sente anche nel sonno, ma dorme). | Raggomitolato, gli occhialini neri, le lucine del ventre quasi spente che respirano lentissime. |
 
+### Le tane disegnate (12 ottobre, anteprime **da approvare**)
+
+Scena in `tools/render/tane.py`, anteprime col job `tane_anteprime`: `docs/concept/tane_camerette.jpg` (le sette
+camerette vuote come le vede il sub entrando, con la torcia) e `docs/concept/tane_pose.jpg` (i sette mostri
+addormentati da vicino). Sono bozze: mostri a risoluzione ridotta, pochi campioni.
+
+Ogni tana è una grotta laterale di circa 9 × 8 m, alta 4-5 m, con la stessa roccia, sabbia, ciottoli, alghe e acqua
+della grotta grande; il sub entra dal tunnel e guarda la stanza da un punto solo (inquadratura fissa, ±30°). La
+cameretta senza il mostro è anche **la tana vuota** del mostro nuovo della notte dopo; il mostro addormentato è uno
+strato sopra, con la toppa del respiro che si dissolve.
+
+| Tana | Cosa c'è (proposta) | Come dorme (proposta) | La cosa da trovare (diario) |
+|---|---|---|---|
+| **Gulpy** | Lo Snack Shack rimontato a sinistra (bancone rosso, tenda a strisce, l'insegna, lo scaffale delle merendine), carte di merendine dappertutto, i cestini del pranzo, una pila di salvagenti a paperella. | Accasciato sulla pila di salvagenti, la schiena all'indietro, la mascella che pende aperta. | **Il menù dello Snack Shack** a pastelli, coi prezzi e i disegnini, tutto cerchiato in rosso: «TUTTO!». |
+| **Molly** | Il trampolino con la scaletta, gli specchi ossidati appoggiati alle pareti, le medaglie appese, la corsia galleggiante della piscina tirata da parete a parete, braccioli ed elastici rosa sulla sabbia. | Su un fianco sulla sabbia, abbracciata ai braccioli; un occhio chiuso, quello che scivola via socchiuso. | Una **foto**: lei in cima al trampolino con i braccioli, le braccia alzate («GUARDAMI! – giugno 1997»). |
+| **Hatch** | Tre armadi con le ante spalancate, una capanna di asciugamani tra due sedie, i numeri della conta scritti col gesso sulle pareti. | In piedi, curvo, chiuso dentro l'armadio grande in fondo, la bocca chiusa, il pesciolino luminoso acceso. | **Il foglio della conta**: i numeri da 1 a 10 scritti e riscritti, e in mezzo «…DIECI! CHI C'È C'È». |
+| **Robin** | Un mucchio di cose rubate (scarpe, palline, giocattoli, secchielli) avvolto nelle strisce dei biglietti. | Disteso sul mucchio come un granchio sul bottino, gli occhi chiusi. | **I premi della sala giochi** a pastelli: l'orso da 5000 biglietti, la palla, la macchinina; lui davanti: «VOGLIO TUTTO». |
+| **Archie** | La festa: il tavolo tondo con la tovaglia, tre torte con le candeline spente, i cappellini sparsi, i palloncini che galleggiano legati al tavolo, lo striscione «TANTI AUGURI». | Avvolto in spire attorno al tavolo, la testa appoggiata sul bordo; a ogni respiro la trombetta si srotola un poco. | **Tutti i compleanni** del 1999: dodici torte, una per mese, con le fiammelle cancellate col nero. |
+| **Lampy** | La culla con la copertina, la giostrina di pesciolini appesa alla volta, la vaschetta da bagno, le cuffie a fiori appese alla parete. | Attaccata con la ventosa al soffitto sopra la culla, a testa in giù; dorme a occhi aperti. | **Il braccialetto dell'ospedale** da neonata («KG 3,1»), con scritto «non lasciarla mai andare». |
+| **Fangy** | Il letto con il lenzuolo, decine di conchiglie appese ai fili tutt'attorno, le bende per terra, gli occhialini dipinti di nero sullo sgabello, il cartello «MARCO? POLO!» e i tubi galleggianti. | Raggomitolato sul fianco sul letto, gli occhialini neri, le lucine del ventre quasi spente. | **«IO»**: lui disegnato con gli occhialini ripassati col nero finché la cera luccica. |
+
+**Deciso dall'utente (12 ottobre)**, guardate le due tavole: l'idea va avanti. Le camerette dei mostri arrivati
+dopo il 1997 sono **del loro anno**, come nei ritagli: Archie 1999, Lampy 2003, Fangy 2008 (Molly, Gulpy e Hatch
+1997, la Night Splash; Robin senza data). **Hatch** non sta in piedi rigido nell'armadio (sembrava appeso): è
+**rannicchiato in fondo all'armadio, le ginocchia al petto**, come un bambino nascosto a nascondino.
+
+Correzioni per i finali (dalla sessione che coordina, 12 ottobre): Gulpy addormentato davvero, disteso sulla pila di
+paperelle, occhi chiusi, mascella rilassata; Molly (il modello ha solo testa e mani) sotto una coperta di
+asciugamani e braccioli, con fuori solo la testa e le mani; niente più scatole negli arredi (armadi con le ante, le
+maniglie e il legno gonfio, lo sgabello, il letto col materasso e le lenzuola, il trampolino vero); ogni cameretta si
+riconosce dall'ingresso anche dalle pareti (le piastrelle della piscina di Molly, la carta da parati a fiori strappata
+di Lampy, le lucine della festa di Archie...); la macchia della torcia sulla sabbia più morbida; i disegni a pastelli
+delle cose da trovare fatti con la stessa mano del disegno di «Il ricordo» e dei disegni dell'alba
+(`tools/render/pastelli.py`), su soggetti diversi da quelli dell'alba.
+
+**Ancora da approvare**: le sette cose da trovare e i loro testi (in italiano e inglese, nel gioco).
+
+**Fatto per i finali (12 ottobre).** Arredi veri: gli armadi con le ante sui cardini, i riquadri, i pomelli e il
+legno gonfio e imbarcato; le sedie e la capanna di asciugamani di Hatch; il letto di Fangy con la testiera a
+colonnine, il materasso, il lenzuolo e il cuscino; lo sgabello; il trampolino vero di Molly (la tavola blu che si
+piega, il fulcro, la scaletta coi corrimano). Le pareti di ognuna: le piastrelle della piscina e il cartello «2,5 m –
+DEEP END» di Molly, i manifesti dello Snack Shack («ESTATE 1997») di Gulpy, i numeri e le tacche della conta col gesso
+di Hatch, il cartello «OGGETTI SMARRITI» e il cabinato dei biglietti rovesciato di Robin, le lucine della festa e il
+manifesto «MAGGIO 1999» di Archie, la carta da parati a fiori strappata e «BENVENUTA! – LUGLIO 2003» di Lampy, il
+cartello «MARCO? POLO!», il calendario «AGOSTO 2008» e il salvagente di Fangy. La macchia della torcia sulla sabbia è
+sfumata. Le pose: Gulpy disteso sul fianco sulla pila di paperelle, gli occhi chiusi (le palpebre abbassate sul
+bulbo) e la mascella appena aperta, un salvagente grande dove finisce il modello; Molly sotto una coperta di
+asciugamani a strisce tirata fino al mento, le mani che ne stringono l'orlo; Hatch rannicchiato in fondo
+all'armadio, le ginocchia al petto e le braccia attorno alle gambe (`tane.corpo_rannicchiato`). I disegni a pastelli
+(Gulpy, Hatch, Robin, Archie, Fangy) li fa `tools/render/disegni_tane.py` con `pastelli.py`; i soggetti non ripetono
+quelli dei cinque disegni dell'alba (la piscina, il tesoro, la festa, sott'acqua, Marco Polo).
+
+**Nel motore.** Ogni tana è un posto di `public/assets/img/immersioni.json` (il job `tane` lo aggiorna):
+
+- `pano`: la cameretta **vuota** (panorama parziale, 3640 × 1820 a qualità finale: 160° × 80°, da −55° a +25°;
+  per Lampy da −45° a +35°, perché dorme al soffitto), con l'acqua cotta (`acquaCotta`); vale anche come tana vuota
+  del mostro nuovo;
+- `frame`: lo sguardo a −15° (Lampy −5°), ±30° di lato, ±4° in su e in giù;
+- `sleeper.layers`: la posa del mostro (strato ritagliato con l'alfa, la stanza gli fa da maschera) e la toppa del
+  respiro (la stessa posa col fiato preso: la gola o il corpo appena gonfi, la mascella o la trombetta che si muovono,
+  le lucine di Fangy più accese), con `breath`, il periodo in secondi (Fangy 6,5, lentissimo); `sleeper.yaw/pitch/r`
+  dove si clicca per lasciare il pesce, `sleeper.bubbles` da dove salgono le bolle (sopra la testa);
+- `find`: la cosa da trovare (`lore`: la voce del Diario `den_<mostro>`, `yaw`, `pitch`, `r`). Nel gioco compare il
+  punto «Guarda»; cliccato, la cosa va nel **Diario** («Nel Diario: …») e non si offre più. Le sette voci stanno in
+  `LORE` (`src/game/config.ts`, con `den`): **non si pescano** di notte. I testi, in italiano e inglese, sono in
+  `src/i18n.ts` (`LORE_TEXT.den_*`, `dive.links.find`, `dive.found`), segnati **DA APPROVARE**.
+
+Regole e salvataggio: `DiveRun.findHere()` e `take()` (le voci già nel Diario non si offrono), `DiveResult.lore`,
+`afterDive` le aggiunge al Diario. Test in `tests/dive.test.ts`, `tests/save.test.ts`, `tests/sim.test.ts`. Il suono
+della cosa trovata per ora è quello delle bolle dell'erogatore, più piano (un suono suo è da fare).
+
+**Problemi aperti delle tane (12 ottobre).** Il braccio lungo di Robin è ancora nella posa della barca (teso in
+avanti), non raccolto nel sonno; il cabinato dei biglietti rovesciato si legge poco; le strisce della coperta di Molly
+non si vedono (sembra un telo rosa); Lampy ha un'inquadratura diversa dalle altre (da −45° a +35°, sguardo a −5°) e va
+guardata nel gioco; il suono della cosa trovata è provvisorio. Le tane di Hatch (le ante dell'armadio aperte verso
+fuori) e di Archie (la tovaglia tonda che ricade dal tavolo) sono state rifatte dopo il primo giro di finali.
+
 ## Il pesce e i finali
 
 Il pesce lasciato nelle tane decide anche **il finale della sesta notte** (approvato l'11 ottobre, vedi

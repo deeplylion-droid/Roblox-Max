@@ -493,6 +493,7 @@ export class App {
           data,
           nextNight: next,
           spare,
+          known: this.save.lore,
           onEnd: (r) => this.endDive(next, r),
         });
         this.diving.start().catch(fail);

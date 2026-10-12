@@ -1194,3 +1194,15 @@ describe('Immersioni all’alba: il mostro sfamato', () => {
     expect(a.fed).toBe(0);
   });
 });
+
+describe('Le cose delle tane', () => {
+  it('non si pescano di notte: si trovano solo giù nelle tane', () => {
+    for (const n of [1, 2, 3, 4, 5, 6]) {
+      for (const seed of [1, 2, 3]) {
+        const sim = new NightSim(NIGHTS[n]!, seed, []);
+        playNight(sim, SKILLS.expert!, seed);
+        for (const id of sim.loreThisNight) expect(LORE.find((l) => l.id === id)!.den, `notte ${n}: ${id}`).toBeUndefined();
+      }
+    }
+  });
+});

@@ -19,6 +19,15 @@ describe('Salvataggio: le immersioni all’alba', () => {
     expect(d.dens).toEqual(['gulpy', 'robin']);
   });
 
+  it('le cose trovate nelle tane vanno nel Diario, una volta sola', () => {
+    const d = save();
+    d.lore.push('wristband');
+    wonNight(d, 1, 1);
+    afterDive(d, 2, { fed: null, dens: ['gulpy'], lore: ['den_gulpy'] });
+    afterDive(d, 3, { fed: null, dens: ['gulpy'], lore: ['den_gulpy', 'den_molly'] });
+    expect(d.lore).toEqual(['wristband', 'den_gulpy', 'den_molly']);
+  });
+
   it('«Nuova partita» azzera il mostro sfamato, l’alba e le tane viste', () => {
     const d = save();
     wonNight(d, 1, 2);
