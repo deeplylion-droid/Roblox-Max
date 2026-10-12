@@ -265,7 +265,15 @@ def drowned():
     mix.inputs['B'].default_value = (0.20, 0.10, 0.22, 1)
     nt.links.new(mr.outputs['Result'], mix.inputs['Factor'])
     nt.links.new(src, mix.inputs['A'])
-    nt.links.new(mix.outputs['Result'], bsdf.inputs['Base Color'])
+    # 'buio': dove l'uomo sparisce dentro il costume (il collo) la pelle va al nero
+    att = nt.nodes.new('ShaderNodeAttribute')
+    att.attribute_name = 'buio'
+    dark = nt.nodes.new('ShaderNodeMix')
+    dark.data_type = 'RGBA'
+    dark.inputs['B'].default_value = (0.004, 0.004, 0.005, 1)
+    nt.links.new(att.outputs['Fac'], dark.inputs['Factor'])
+    nt.links.new(mix.outputs['Result'], dark.inputs['A'])
+    nt.links.new(dark.outputs['Result'], bsdf.inputs['Base Color'])
     return m
 
 
@@ -462,7 +470,7 @@ def man_head_field(P):
     jaw = sdf.rotate(sdf.union(sdf.ellipsoid((0, -0.046, -0.080), (0.050 + b * 0.8, 0.050, 0.026)),
                                sdf.sphere((0, -0.084, -0.096), 0.016 + b * 0.5),
                                sdf.ellipsoid((0, -0.084, -0.068), (0.027 + b * 0.5, 0.013, 0.009)), k=0.016), Rj, center=HINGE)
-    neck = sdf.round_cone((0, 0.025, -0.08), (0, 0.035, -0.24), 0.050 + b, 0.058 + b)
+    neck = sdf.round_cone((0, 0.025, -0.08), (0, 0.035, P.get('neck_end', -0.24)), 0.050 + b, 0.058 + b)
     f = sdf.union(cran, face, k=0.035)
     f = sdf.union(f, brow, zyg, k=0.018)
     f = sdf.union(f, muzzle, k=0.014)
@@ -573,11 +581,11 @@ def man_head(P, fr, cut=None):
             o = np.maximum(o, np.exp(-np.sum(((q - V(s * 0.031, -0.090, 0.008)) / V(0.026, 0.03, 0.022)) ** 2, axis=1)))
         return o
 
-    def mouth_neck(p):
+    def buio(p):
         q = fr.local(p)
-        return np.maximum(mouth(q), np.clip((-0.11 - q[:, 2]) / 0.06, 0, 1) * 0.85).astype(F)
+        return (np.clip((-0.135 - q[:, 2]) / 0.03, 0, 1) * 0.97).astype(F)
 
-    attrs = {'mouth': mouth_neck, 'scar': lambda p: np.zeros(len(p), F),
+    attrs = {'mouth': lambda p: mouth(fr.local(p)), 'buio': buio, 'scar': lambda p: np.zeros(len(p), F),
              'blush': sockets,
              'slime': lambda p: (np.clip(1.0 - np.abs(fr.local(p)[:, 2] + 0.06) / 0.05, 0, 1) * (fr.local(p)[:, 1] < -0.07)).astype(F)}
     obs = [mesh('ManHead', f, fr.pos - 0.2, fr.pos + 0.2, drowned(), res=FINE, attrs=attrs)]
@@ -603,10 +611,12 @@ def man_head(P, fr, cut=None):
     return obs
 
 
-def man_hand(wrist, fwd, n_curl, seed, spread=0.3, k=1.0, elbow=None):
-    """La mano gonfia dell'annegato che esce dalla pinna sfondata: dita lunghe e grigie, le unghie scure."""
+def man_hand(wrist, fwd, n_curl, seed, spread=0.3, k=1.0, elbow=None, bony=False, nails=None, up=None):
+    """La mano dell'annegato che esce dalla pinna sfondata. bony: la mano del modello definitivo, lunga e ossuta,
+    con le nocche gonfie e le dita aperte (nails: lista in cui aggiungere i campi delle unghie scure; up: dove
+    guarda il dorso della mano)."""
     fwd = unit(fwd)
-    side = unit(np.cross(fwd, V(0, 0, 1)))
+    side = unit(np.cross(fwd, V(0, 0, 1) if up is None else V(*up)))
     if np.linalg.norm(side) < 1e-3:
         side = V(1, 0, 0)
     down = unit(np.cross(side, fwd))
@@ -614,28 +624,49 @@ def man_hand(wrist, fwd, n_curl, seed, spread=0.3, k=1.0, elbow=None):
     wrist = V(*wrist)
     palm_c = wrist + fwd * 0.05 * k
     root = wrist - fwd * 0.22 if elbow is None else V(*elbow)
-    parts = [sdf.round_cone(root, wrist - fwd * 0.03, 0.030 * k, 0.022 * k),
-             sdf.sphere(wrist - fwd * 0.03, 0.024 * k),
-             sdf.round_cone(wrist - fwd * 0.03, palm_c, 0.024 * k, 0.036 * k),
-             sdf.ellipsoid(palm_c + fwd * 0.02 * k, (0.045 * k, 0.045 * k, 0.045 * k))]
+    if bony:
+        # avambraccio magro coi tendini, polso ossuto, palmo lungo e piatto
+        parts = [sdf.round_cone(root, wrist - fwd * 0.03, 0.026 * k, 0.017 * k),
+                 sdf.sphere(wrist - fwd * 0.03, 0.020 * k),
+                 sdf.round_cone(wrist - fwd * 0.03, palm_c + fwd * 0.02 * k, 0.019 * k, 0.026 * k),
+                 sdf.ellipsoid(palm_c + fwd * 0.025 * k, (0.040 * k, 0.040 * k, 0.016 * k))]
+        parts[-1] = sdf.rotate(parts[-1], np.stack([side, fwd, -down], axis=1).astype(F), center=palm_c + fwd * 0.025 * k)
+        for t in (-1, 0, 1):
+            parts.append(sdf.capsule(root + side * t * 0.008 * k - down * 0.010 * k, wrist - fwd * 0.04 + side * t * 0.007 * k - down * 0.006 * k, 0.0045 * k))
+    else:
+        parts = [sdf.round_cone(root, wrist - fwd * 0.03, 0.030 * k, 0.022 * k),
+                 sdf.sphere(wrist - fwd * 0.03, 0.024 * k),
+                 sdf.round_cone(wrist - fwd * 0.03, palm_c, 0.024 * k, 0.036 * k),
+                 sdf.ellipsoid(palm_c + fwd * 0.02 * k, (0.045 * k, 0.045 * k, 0.045 * k))]
     for i in range(4):
         a = (i / 3 - 0.5) * spread
         d = fwd * math.cos(a) + side * math.sin(a)
         base = palm_c + d * 0.05 * k + side * (i - 1.5) * 0.004
         c1 = n_curl * rng.uniform(0.7, 1.2)
-        L = (0.15 - abs(i - 1.5) * 0.016) * k
+        if bony:
+            L = (0.21 - abs(i - 1.5) * 0.022) * k
+            r = (0.0085 * k, 0.0062 * k, 0.0052 * k, 0.0036 * k)
+            kn = 0.0098 * k
+        else:
+            L = (0.15 - abs(i - 1.5) * 0.016) * k
+            r = (0.0105 * k, 0.0085 * k, 0.0075 * k, 0.0055 * k)
+            kn = 0.0105 * k
         p1 = base + d * L * 0.45
         d2 = unit(d * math.cos(c1) + down * math.sin(c1))
-        p2 = p1 + d2 * L * 0.35
+        p2 = p1 + d2 * L * 0.32
         d3 = unit(d * math.cos(c1 * 2) + down * math.sin(c1 * 2))
-        p3 = p2 + d3 * L * 0.3
-        parts.append(chain([base, p1, p2, p3], [0.0105 * k, 0.0085 * k, 0.0075 * k, 0.0055 * k], k=0.004))
-        for kn in (p1, p2):
-            parts.append(sdf.sphere(kn, 0.0105 * k))
+        p3 = p2 + d3 * L * 0.26
+        parts.append(chain([base, p1, p2, p3], list(r), k=0.004))
+        for q in (base, p1, p2):
+            parts.append(sdf.sphere(q, kn if q is not base else kn * 1.15))
+        if nails is not None:
+            nails.append(sdf.ellipsoid(p3 - d3 * 0.006 * k - down * 0.0025 * k, (0.0045 * k, 0.0045 * k, 0.0045 * k)))
     thumb_b = palm_c - side * 0.035 * k
-    tp = thumb_b + unit(fwd - side * 0.8 + down * 0.3) * 0.07 * k
-    parts.append(chain([thumb_b, (thumb_b + tp) / 2, tp], [0.014 * k, 0.012 * k, 0.009 * k], k=0.006))
-    f = sdf.union(*parts, k=0.012)
+    tp = thumb_b + unit(fwd - side * 0.8 + down * 0.3) * (0.10 if bony else 0.07) * k
+    parts.append(chain([thumb_b, (thumb_b + tp) / 2, tp], [0.012 * k, 0.010 * k, 0.007 * k] if bony else [0.014 * k, 0.012 * k, 0.009 * k], k=0.006))
+    if nails is not None:
+        nails.append(sdf.sphere(tp, 0.005 * k))
+    f = sdf.union(*parts, k=0.008 if bony else 0.012)
     f = sdf.displace(f, skin.wrinkles(seed + 3, 0.008, 1.0), 0.0012)
     return f
 
@@ -808,8 +839,15 @@ def build(P):
 
     # — le mani dell'uomo che escono dalle pinne sfondate (B, C) —
     if hands:
-        hf = sdf.union(*[man_hand(t, d, P['curl'], P['seed'] + 60 + s, k=P.get('hand_k', 1.0)) for t, d, s in hands])
-        obs.append(mesh('ManHands', hf, *bounds([h[0] for h in hands], 0.32), drowned(), res=0.0025 if not FAST else 0.004))
+        nails = []
+        hd = P.get('hand_dir', {})
+        hf = sdf.union(*[man_hand(t, hd.get(s, d), P['curl'], P['seed'] + 60 + s, spread=P.get('hand_spread', 0.3), k=P.get('hand_k', 1.0),
+                                  bony=P.get('bony', False), nails=nails, elbow=t - unit(hd.get(s, d)) * 0.24 if s in hd else None,
+                                  up=P.get('hand_up', {}).get(s)) for t, d, s in hands])
+        obs.append(mesh('ManHands', hf, *bounds([h[0] for h in hands], 0.40), drowned(), res=P.get('hand_res', 0.0025) if not FAST else 0.004))
+        if P.get('bony'):
+            obs.append(mesh('ManNails', sdf.union(*nails), *bounds([h[0] for h in hands], 0.40),
+                            mat_simple('Nails', (0.06, 0.05, 0.035), rough=0.3, coat=0.6), res=0.0015 if not FAST else 0.003))
 
     # — l'uomo dentro —
     mfr = Fr(hfr.pt(P['man_off']), hfr.R @ rot(*P['man_rot']))

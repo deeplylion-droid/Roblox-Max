@@ -8,10 +8,11 @@ Molly si rende sul lato destro: per il sinistro il motore specchia l'immagine.
 Archie (notte 3) arriva dopo che il vetro della lampara è esploso: nella sua scena la lampara è spenta.
 Lampy (notte 4) arriva dalla lenza con la ventosa spalancata, e da un fotogramma all'altro gli anelli di denti girano.
 Fangy (notte 5) si lancia dalla fiancata con le zanne avanti e tutte le lucine accese.
+L'animatore (dalla notte 2) sale dall'acqua a prua e ti abbraccia; l'occhio che penzola dondola (SPIN).
 
 Uso: tools/.venv/bin/python tools/render/jobs.py jumpscare --quality preview   (JUMPSCARES=gulpy,molly,hatch,robin;
 JS_ANTEPRIMA=1 per lasciare i fotogrammi in cache senza toccare il gioco; Archie, Lampy e Fangy si chiedono a parte:
-JUMPSCARES=archie, JUMPSCARES=lampy, JUMPSCARES=fangy)
+JUMPSCARES=archie, JUMPSCARES=lampy, JUMPSCARES=fangy, JUMPSCARES=foxy)
 """
 from __future__ import annotations
 
@@ -221,8 +222,60 @@ def fangy_attack():
 # (gradi: le zanne vengono verso la camera)
 FANGY_JS = {'dist': 0.55, 'pitch': 6.0}
 
+def foxy_attack():
+    import animatore as an
+    # l'animatore (dalla notte 2): l'hai trascurato e dal relitto è venuto fino alla barca. Sale dall'acqua sul bordo
+    # di prua a dritta, dalla parte del relitto, e ti abbraccia: le braccia avanti, le mani ossute aperte che ti
+    # arrivano ai lati della faccia, la sua faccia fuori dalla bocca del costume, l'occhio da cartone che dondola.
+    # «Lo spettacolo finiva sempre con un abbraccio.»
+    before = set(bpy.data.objects)
+    _, face = an.build('abbraccio', occhio=0.0)
+    obs = [o for o in bpy.data.objects if o not in before]
+    bpy.context.view_layer.update()
+    eye = Vector(EYE)
+    a = math.radians(FOXY_JS['yaw'])
+    pos = eye + Vector((math.sin(a), math.cos(a), 0.0)) * FOXY_JS['parte']
+    pos.z = FOXY_JS['z']
+    t = eye - pos
+    yaw = math.atan2(t.x, -t.y)
+    M0 = Matrix.Translation(pos) @ Matrix.Rotation(yaw, 4, 'Z')
+    # l'occhio che dondola: si ruotano i vertici dell'occhio, del brandello e dei suoi fili attorno al punto in cui il
+    # brandello esce dall'orbita (nelle coordinate della creatura, prima di metterla in scena)
+    swing = [o for o in obs if o.name.startswith(('ToonEyeHang', 'EyeStrip'))]
+    threads = sorted((o for o in obs if o.name.startswith('Threads')), key=lambda o: o.name)
+    if threads:
+        swing.append(threads[-1])
+    strip = next(o for o in obs if o.name.startswith('EyeStrip'))
+    top = max((strip.matrix_world @ v.co for v in strip.data.vertices), key=lambda v: v.z)
+    local = {o.name: (o.matrix_world.copy(), [v.co.copy() for v in o.data.vertices]) for o in swing}
+    for o in obs:
+        o.matrix_world = M0 @ o.matrix_world
+    face_l = Vector(tuple(map(float, face)))
+    M1 = _toward_eye(M0, face_l, FOXY_JS['dist'], extra_pitch=FOXY_JS['pitch'])
+    aim = M0 @ (face_l + Vector((0.0, 0.0, -0.05)))
+
+    def dondola(i):
+        ang = FOXY_JS['occhio'][i]
+        Rw = Matrix.Translation(top) @ (Matrix.Rotation(math.radians(-ang), 4, 'X') @ Matrix.Rotation(math.radians(ang * 0.4), 4, 'Y')) \
+            @ Matrix.Translation(-top)
+        for o in swing:
+            Mw, cos = local[o.name]
+            k = Mw.inverted() @ Rw @ Mw
+            for v, c in zip(o.data.vertices, cos):
+                v.co = k @ c
+            o.data.update()
+    SPIN['foxy'] = dondola
+    return obs, M0, M1, aim
+
+
+# L'animatore: da dove parte (gradi di yaw dall'occhio, metri, quota dei piedi: è in acqua fin quasi al petto), a
+# quanti metri dall'occhio arriva la sua faccia (le mani gli stanno davanti di 30-40 cm: più vicino escono dal quadro),
+# quanto si china, e di quanti gradi dondola l'occhio che penzola a ogni fotogramma (avanti +, indietro −)
+FOXY_JS = {'yaw': 28.0, 'parte': 2.4, 'z': -0.80, 'dist': 0.78, 'pitch': -6.0,
+           'occhio': [0.0, 10.0, 24.0, 32.0, 20.0, -6.0, -28.0, -38.0]}
+
 ATTACKS = {'gulpy': gulpy_attack, 'molly': molly_attack, 'hatch': hatch_attack, 'robin': robin_attack,
-           'archie': archie_attack, 'lampy': lampy_attack, 'fangy': fangy_attack}
+           'archie': archie_attack, 'lampy': lampy_attack, 'fangy': fangy_attack, 'foxy': foxy_attack}
 
 # I pezzi che cambiano da un fotogramma all'altro (oltre a muoversi): funzione del numero del fotogramma, preparata
 # dall'attacco (i denti di Lampy che girano)
@@ -238,7 +291,9 @@ FILL = {'robin': {'energy': 3.0, 'dist': 0.35},
         'lampy': {'energy': 3.0, 'dist': 0.35},
         # Fangy arriva da dietro a destra, con la lampara alle spalle del pescatore: la faccia la fanno questa luce e le
         # sue lucine
-        'fangy': {'energy': 3.0, 'dist': 0.35}}
+        'fangy': {'energy': 3.0, 'dist': 0.35},
+        # l'animatore sale dall'acqua a prua, con la luce di lato: la sua faccia esce dal buio della bocca del costume
+        'foxy': {'energy': 3.0, 'dist': 0.35}}
 
 
 def _fill_light(cfg):
@@ -311,7 +366,8 @@ def run(q, who, post_mod, overlays_path, build_scene, coll_objects, renderable):
     scene_objs = renderable(coll_objects('boat')) + renderable(coll_objects('env'))
     keep = set(o.name for o in meshes)
     for o in scene_objs:
-        if o.name not in keep and o.visible_camera:
+        # (la nebbia dell'atmosfera resta com'è: un volume in holdout bucherebbe la creatura)
+        if o.name not in keep and o.visible_camera and o.name != 'Nebbia':
             o.is_holdout = True
     bg = post_mod.read_exr(bg_exr)
     bg_lin = sum(bg[g][..., :3] for g in ('ambient', 'lamp', 'lantern') if g in bg)
