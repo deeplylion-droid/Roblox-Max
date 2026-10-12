@@ -332,6 +332,44 @@
     }
    ]
   },
+  "quota": {
+   "aspect": 1.7778,
+   "fps": 10,
+   "frames": [
+    {
+     "file": "js_quota_00.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_quota_01.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_quota_02.webp",
+     "scale": 0.37
+    },
+    {
+     "file": "js_quota_03.webp",
+     "scale": 0.45
+    },
+    {
+     "file": "js_quota_04.webp",
+     "scale": 0.56
+    },
+    {
+     "file": "js_quota_05.webp",
+     "scale": 0.63
+    },
+    {
+     "file": "js_quota_06.webp",
+     "scale": 0.76
+    },
+    {
+     "file": "js_quota_07.webp",
+     "scale": 0.89
+    }
+   ]
+  },
   "robin": {
    "aspect": 1.7778,
    "fps": 10,
