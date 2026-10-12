@@ -117,6 +117,12 @@ Il mondo e la barca stanno in una notte. Il resto in un'altra.
 | Soggy al binocolo (scivoli, relitto), tutte e due le serie | sessione del Foxy, `claude/foxy` 1079fdf e 737f944 | con lampione, festone e lanterna |
 | Telone (vista da sotto) | catena di questa macchina | |
 
+**L'alone della luce più leggero** (prova dell'utente del 12 ottobre sera: «la nebbia mescolandosi con la luce della
+lampara crea un alone bianco davanti alla barca che è brutto»): era la luce della barca diffusa nella nebbia del
+mondo, un velo chiaro su metà della scena. Il passo `lamp` del mondo con la nebbia vale un quinto (la sua scala nel
+manifest, 0,25 → 0,05): resta un velo leggero attorno alla lampada, si rivedono la luna sull'acqua e il paese. La serie
+senza nebbia non cambia. Se si reinstalla il mondo, va rifatto. Da allora la nebbia è anche **spenta di partenza**.
+
 **Ripulitura dopo il render** (`tools/render/liscia_nebbia.py`, 12 ottobre sera, segnalazione dell'utente: «sul lato
 sinistro della barca la nebbia sembra pixellare la luce»): la diffusione nella nebbia della lanterna (e in parte della
 lampara) usciva da Cycles a chiazze, che sull'acqua scura sembravano pixel. I passi `lamp` e `lantern` del mondo
