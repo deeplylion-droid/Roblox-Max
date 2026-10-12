@@ -2822,7 +2822,7 @@ export class Night {
     // gli aloni delle luci lontane sono pensati per la vista normale: col binocolo si stringono. Quelle che la Madre ha
     // dietro (la candela dell'edicola) non si vedono attraverso di lei
     const madreDrop = v.mdRise > 0.002 ? this.wavePx(POSE.madre, ease(v.mdRise)) : null;
-    const land = madreDrop === null ? st.landscapeGlows() : st.landscapeGlows().filter((g) => !this.behind(POSE.madre, madreDrop, g.dir));
+    const land = madreDrop === null ? st.landscapeGlows([], be) : st.landscapeGlows([], be).filter((g) => !this.behind(POSE.madre, madreDrop, g.dir));
     let glows = land.concat(eyes.world).slice(0, 16);
     if (be > 0) {
       const k = 1 - be * (1 - Math.min(1, (st.view.hfov / 90) * 1.6));
