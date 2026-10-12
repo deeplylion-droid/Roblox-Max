@@ -123,6 +123,12 @@
    "exposure": 0.2,
    "file": "fin_molo.webp",
    "scale": 6.0
+  },
+  "ricordo": {
+   "aspect": 1.7778,
+   "exposure": 0.3,
+   "file": "fin_ricordo.webp",
+   "scale": 0.45
   }
  },
  "jumpscares": {
