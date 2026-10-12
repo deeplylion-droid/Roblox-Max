@@ -106,6 +106,9 @@ stampatello con la S girata.
 
 ### Il Foxy nel gioco (logica, notte fra l'11 e il 12 ottobre; branch `claude/foxy-gioco`)
 
+**La radio della notte 2 lo annuncia** (prova dell'utente del 12 ottobre, DA APPROVARE), dopo Robin: «Al parco c'è
+Soggy. / Col binocolo. Non perderlo di vista.» (EN: «Soggy is in the park. / Binoculars. Don't lose sight of him.»)
+
 > **I render sono arrivati** (12 ottobre: il modello, le viste del binocolo di scivoli e relitto, il jumpscare, sotto);
 > dove manca una vista col Foxy restano i **due occhi rossi** nel suo posto. **I suoni** (12 ottobre, da
 > approvare; `docs/AUDIO.md`, «L'animatore») sono i file `foxy_near` (si sporge), `foxy_leave` (lascia il posto e corre

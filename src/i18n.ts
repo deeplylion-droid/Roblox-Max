@@ -756,7 +756,9 @@ export const RADIO_NIGHT1: Record<Lang, RadioLine[]> = {
   ],
 };
 
-/** La chiamata della seconda notte (la batteria e Robin), accorciata e più criptica: approvata il 10 ottobre. */
+/** La chiamata della seconda notte (la batteria e Robin), accorciata e più criptica: approvata il 10 ottobre. Le due
+ *  battute su Soggy (prova dell'utente del 12 ottobre: «all'inizio della notte 2 una linea di dialogo che ti avverte»)
+ *  sono DA APPROVARE. */
 export const RADIO_NIGHT2: Record<Lang, RadioLine[]> = {
   it: [
     { at: 0.0, text: 'Seconda notte. Dieci pesci.' },
@@ -764,8 +766,10 @@ export const RADIO_NIGHT2: Record<Lang, RadioLine[]> = {
     { at: 5.4, text: 'A zero, buio. Al buio, lei canta.' },
     { at: 8.4, text: 'Robin ruba dal secchio. Luce al massimo.' },
     { at: 11.8, text: 'La luce piena costa.' },
-    { at: 13.6, text: 'Buona pesca.' },
-    { at: 15.0, text: '' },
+    { at: 13.6, text: 'Al parco c’è Soggy.' },
+    { at: 15.6, text: 'Col binocolo. Non perderlo di vista.' },
+    { at: 18.8, text: 'Buona pesca.' },
+    { at: 20.2, text: '' },
   ],
   en: [
     { at: 0.0, text: 'Second night. Ten fish.' },
@@ -773,8 +777,10 @@ export const RADIO_NIGHT2: Record<Lang, RadioLine[]> = {
     { at: 5.4, text: 'At zero, dark. In the dark, she sings.' },
     { at: 8.4, text: 'Robin steals from the bucket. Light on full.' },
     { at: 11.8, text: 'Full light costs.' },
-    { at: 13.6, text: 'Good fishing.' },
-    { at: 15.0, text: '' },
+    { at: 13.6, text: 'Soggy is in the park.' },
+    { at: 15.6, text: 'Binoculars. Don’t lose sight of him.' },
+    { at: 18.8, text: 'Good fishing.' },
+    { at: 20.2, text: '' },
   ],
 };
 
