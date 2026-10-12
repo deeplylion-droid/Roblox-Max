@@ -92,6 +92,8 @@ export interface NightDeps {
 }
 
 const D2R = Math.PI / 180;
+/** I decimali dei chili come li scrive la lingua: in italiano con la virgola (come il Catalogo). */
+const decimal = (n: string, lang: Lang): string => (lang === 'it' ? n.replace('.', ',') : n);
 
 // dove stanno le cose, dall'occhio del pescatore (coordinate dei render, metri)
 const RADIO_AT: Vec3 = [-0.3, -1.51, -0.655];
@@ -486,6 +488,11 @@ export class Night {
     st.view.steady = st.view.swayYaw = st.view.swayPitch = 0;
     st.view.liftRoll = st.view.liftPitch = 0;
     st.view.swell = 1;
+  }
+
+  /** La notte è finita (l'alba, la cinematica del finale, la morte): niente più pausa. */
+  get over(): boolean {
+    return this.finished;
   }
 
   setPaused(p: boolean): void {
@@ -1005,14 +1012,14 @@ export class Night {
               img: this.d.assets.fish[sp.id] ?? null,
               name: sp.name[L],
               meta: `${S.families[sp.family]} · ${S.rarities[sp.rarity]}`,
-              kg: `${e.kg < 1 ? e.kg.toFixed(2) : e.kg.toFixed(1)} ${S.kg}`,
+              kg: `${decimal(e.kg < 1 ? e.kg.toFixed(2) : e.kg.toFixed(1), L)} ${S.kg}`,
               desc: sp.desc[L] ?? sp.desc.it,
               family: sp.family,
               isNew: known ? null : S.newSpecies,
             });
             this.d.knownSpecies?.add(sp.id);
           } else {
-            this.hud.toast(e.species, `${S.caught} · ${e.kg.toFixed(2)} ${S.kg}`, 2.4);
+            this.hud.toast(e.species, `${S.caught} · ${decimal(e.kg.toFixed(2), this.d.lang)} ${S.kg}`, 2.4);
           }
           this.d.onCatch?.(e.species, e.kg);
         }
@@ -1939,7 +1946,8 @@ export class Night {
       this.d.sfx.knock(dirPos(right ? YAW.mollyRight : YAW.mollyLeft, 1.4, -30));
       cap(this.S.captions.knock);
     } else {
-      this.d.audio.play('splash_small', { pos: dirPos(180 + (Math.random() * 80 - 40), 7, -6), gain: 0.9 });
+      // i tonfi piccoli del manifest sono splash_s1..s3 (splash_small non c'è: il falso allarme era muto)
+      this.d.audio.play(Math.random() < 0.5 ? 'splash_s2' : 'splash_s3', { pos: dirPos(180 + (Math.random() * 80 - 40), 7, -6), gain: 0.9 });
       cap(this.S.captions.falseSplash);
     }
     f.boost = 0.45;

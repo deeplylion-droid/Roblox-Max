@@ -38,6 +38,9 @@ export interface SaveData {
   lang: Lang | null;
   /** ultima notte sbloccata */
   night: number;
+  /** la notte della partita in corso: da qui riprende «Continua» (dopo una «Nuova partita» può essere prima di
+   *  `night`, che resta la più lontana mai sbloccata) */
+  current: number;
   /** gli ultimi livelli scelti per la notte extra (la notte 7) */
   extra: ExtraLevels;
   lore: string[];
@@ -78,7 +81,7 @@ export function defaultOptions(): Options {
 }
 
 function fresh(): SaveData {
-  return { version: 1, rev: OPTIONS_REV, lang: null, night: 1, extra: extraLevels(5), lore: [], catalog: {}, options: defaultOptions(), dawn: null, fed: null, dens: [], dawns: {} };
+  return { version: 1, rev: OPTIONS_REV, lang: null, night: 1, current: 1, extra: extraLevels(5), lore: [], catalog: {}, options: defaultOptions(), dawn: null, fed: null, dens: [], dawns: {} };
 }
 
 export function loadSave(): SaveData {
@@ -95,6 +98,8 @@ export function loadSave(): SaveData {
       rev: OPTIONS_REV,
       lang: d.lang === 'it' || d.lang === 'en' ? d.lang : null,
       night: typeof d.night === 'number' ? d.night : 1,
+      // i salvataggi di prima non l'hanno: la partita in corso arrivava all'ultima notte sbloccata
+      current: typeof d.current === 'number' ? d.current : typeof d.night === 'number' ? d.night : 1,
       extra: Object.fromEntries(EXTRA_IDS.map((m) => [m, clampLevel(Number((d.extra as Partial<ExtraLevels> | undefined)?.[m] ?? f.extra[m]))])) as ExtraLevels,
       lore: Array.isArray(d.lore) ? d.lore.filter((x) => typeof x === 'string') : [],
       catalog: d.catalog && typeof d.catalog === 'object' ? d.catalog : {},
@@ -121,8 +126,10 @@ function cleanDawns(x: unknown): Record<string, DawnRecord> {
   return out;
 }
 
-/** Nuova partita: si riparte senza pesci da portare giù, senza mostri sfamati, senza tane viste e senza albe. */
+/** Nuova partita: si riparte dalla prima notte, senza pesci da portare giù, senza mostri sfamati, senza tane viste e
+ *  senza albe (le notti sbloccate restano sbloccate). */
 export function newGame(d: SaveData): void {
+  d.current = 1;
   d.dawn = null;
   d.fed = null;
   d.dens = [];
@@ -133,6 +140,7 @@ export function newGame(d: SaveData): void {
  *  avanzati oltre la quota. */
 export function wonNight(d: SaveData, night: number, spare: number): void {
   d.night = Math.max(d.night, night + 1);
+  d.current = night + 1;
   d.fed = null;
   d.dawn = { night, spare };
 }

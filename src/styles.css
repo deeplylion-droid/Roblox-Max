@@ -53,6 +53,8 @@ html, body {
 
 /* ── HUD ── */
 .hud { position: fixed; inset: 0; pointer-events: none; color: var(--ink); text-shadow: 0 1px 3px #000, 0 0 12px rgba(0,0,0,.8); }
+/* sotto la pausa (e le opzioni aperte dalla pausa) l'HUD non si vede: i suggerimenti coprivano «Indietro» */
+#ui:has(> .screen.pause, > .screen.opts) > .hud { visibility: hidden; }
 .hud-clock { position: absolute; top: 18px; left: 22px; line-height: 1.1; }
 .hud-clock .night { font-size: calc(17px * var(--ts)); color: var(--dim); text-transform: uppercase; letter-spacing: 0.25em; }
 .hud-clock .time { font-family: 'Limelight', serif; font-size: 40px; color: var(--amber); }
@@ -60,7 +62,7 @@ html, body {
 .hud-quota .label { font-size: calc(15px * var(--ts)); letter-spacing: 0.25em; text-transform: uppercase; color: var(--dim); }
 .hud-quota .count { font-family: 'Limelight', serif; font-size: 34px; }
 .hud-quota .count.ok { color: #9fe0a8; }
-.hud-lamp { position: absolute; top: 74px; right: 22px; display: flex; gap: 6px; align-items: center; font-size: calc(14px * var(--ts)); color: var(--dim); letter-spacing: 0.2em; text-transform: uppercase; }
+.hud-lamp { position: absolute; top: calc(29px + 45px * var(--ts)); right: 22px; display: flex; gap: 6px; align-items: center; font-size: calc(14px * var(--ts)); color: var(--dim); letter-spacing: 0.2em; text-transform: uppercase; }
 .hud-lamp i { width: 10px; height: 10px; border-radius: 50%; border: 1px solid var(--amber); display: inline-block; }
 .hud-lamp i.on { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
 .hud-hint { position: absolute; bottom: 64px; width: 100%; text-align: center; font-size: calc(19px * var(--ts)); color: var(--ink); opacity: 0; transition: opacity .3s; }
@@ -146,8 +148,9 @@ html, body {
 .extra-grid > .extra-card { width: 124px; }
 .extra-card { --fury: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 6px 12px; border: 1px solid rgba(233,226,208,.14);
   background: linear-gradient(180deg, rgba(233,226,208,.05), rgba(122,14,20,calc(var(--fury) * .45))), rgba(5,8,13,.72); border-radius: 3px; transition: background .2s, opacity .2s, border-color .2s; }
-.extra-card .who { font-family: 'Limelight', serif; font-size: 21px; letter-spacing: .04em; white-space: nowrap; }
-.extra-card .rule { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); min-height: 2.6em; display: flex; align-items: center; }
+/* un nome lungo («The Mother») va a capo; il resto della scheda resta in fila con quello delle altre */
+.extra-card .who { font-family: 'Limelight', serif; font-size: 21px; letter-spacing: .04em; text-align: center; line-height: 1.05; }
+.extra-card .rule { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); min-height: 2.6em; display: flex; align-items: center; margin-top: auto; }
 .extra-card .ctl { display: flex; align-items: center; gap: 2px; }
 .extra-card .lv { font-family: 'Limelight', serif; font-weight: normal; font-size: 36px; min-width: 1.6em; color: color-mix(in srgb, var(--blood) calc(var(--fury) * 100%), var(--amber)); }
 .extra-card .lv-word { font-size: 12px; font-style: italic; color: var(--ink); opacity: .7; min-height: 1.4em; }
@@ -390,7 +393,7 @@ html.pad .dive-reticle {
   border: 2px solid rgba(191,233,226,.75); border-radius: 50%; box-shadow: 0 0 6px rgba(0,0,0,.6);
 }
 /* dove B non torna indietro (il titolo, i risultati) la legenda non lo dice */
-html.pad #ui:not(:has(.screen [data-back])) .pad-legend span:last-child { display: none; }
+html.pad #ui:not(:has(.screen [data-back])) .pad-legend > span:last-child { display: none; }
 
 /* ── titoli di coda (dopo i finali della notte 6) ── */
 /* dopo un finale si arriva dal buio: il fondo nero c'è da subito (sotto c'è ancora la barca di notte), si accende solo il resto */

@@ -2,6 +2,9 @@
 
 export type Lang = 'it' | 'en';
 
+/** «a» o «ad» davanti a un nome: la d eufonica davanti alla stessa vocale (accanto ad Archie). */
+const ad = (who: string): string => (/^a/i.test(who) ? 'ad' : 'a');
+
 const IT = {
   title: 'SPLASHLAND IS CLOSED!',
   newGame: 'Nuova partita',
@@ -153,10 +156,10 @@ const IT = {
     emptyDen: 'La tana è vuota. Chi ci dorme è già in giro.',
     blocked: 'Di là non si passa. Torni indietro.',
     airOut: 'Aria finita: risali.',
-    offer: (who: string) => `Lasci il pesce accanto a ${who}?`,
+    offer: (who: string) => `Lasci il pesce accanto ${ad(who)} ${who}?`,
     offerYes: 'Lascia il pesce',
     offerNo: 'No',
-    offered: (who: string) => `Il pesce resta accanto a ${who}. Stanotte dormirà.`,
+    offered: (who: string) => `Il pesce resta accanto ${ad(who)} ${who}. Stanotte dormirà.`,
     noFish: 'Non hai pesci da lasciare: alle sei non ne avanzava nessuno.',
     alreadyFed: 'Il pesce l’hai già lasciato.',
     // DA APPROVARE (12 ottobre): la didascalia quando prendi la cosa da trovare

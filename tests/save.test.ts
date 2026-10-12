@@ -4,7 +4,7 @@ import type { MonsterId } from '../src/game/config.ts';
 import { extraLevels } from '../src/game/config.ts';
 
 function save(): SaveData {
-  return { version: 1, lang: 'it', night: 1, extra: extraLevels(5), lore: [], catalog: {}, options: defaultOptions(), dawn: null, fed: null, dens: [], dawns: {} };
+  return { version: 1, lang: 'it', night: 1, current: 1, extra: extraLevels(5), lore: [], catalog: {}, options: defaultOptions(), dawn: null, fed: null, dens: [], dawns: {} };
 }
 
 describe('Salvataggio: le immersioni all’alba', () => {
@@ -68,6 +68,36 @@ describe('Salvataggio: le immersioni all’alba', () => {
     expect(pendingDawn(d, 4)).toBeNull();
     skipDawn(d);
     expect(pendingDawn(d, 3)).toBeNull();
+  });
+});
+
+describe('«Continua»', () => {
+  it('dopo una «Nuova partita» riprende la partita in corso, non l’ultima notte sbloccata', () => {
+    const d = save();
+    play(d, ['fed', 'fed', 'fed', 'fed', 'fed']);
+    wonNight(d, 6, 0);
+    expect(d.night).toBe(7);
+    newGame(d);
+    expect(d.current).toBe(1);
+    wonNight(d, 1, 2);
+    // si riprende dall'alba della prima notte (o dalla seconda), e le notti sbloccate restano sbloccate
+    expect(d.current).toBe(2);
+    expect(pendingDawn(d, d.current)).toEqual({ night: 1, spare: 2 });
+    expect(d.night).toBe(7);
+  });
+
+  it('i salvataggi di prima riprendono dall’ultima notte sbloccata, come prima', () => {
+    const store = new Map<string, string>();
+    vi.stubGlobal('localStorage', { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, v) });
+    try {
+      const { current: _, ...old } = { ...save(), night: 4 };
+      store.set('splashland.save.v1', JSON.stringify(old));
+      expect(loadSave().current).toBe(4);
+      store.set('splashland.save.v1', JSON.stringify({ ...save(), night: 7, current: 3 }));
+      expect(loadSave().current).toBe(3);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });
 

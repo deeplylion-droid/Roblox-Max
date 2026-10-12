@@ -158,7 +158,8 @@ export class App {
     this.stage.view.hfov = 90;
     // ?notte=N: la nuova partita parte da quella notte (prove); ?notte=7 apre la notte extra
     const forced = Number(new URLSearchParams(location.search).get('notte'));
-    const reached = Math.min(this.save.night, lastNight());
+    // «Continua» riprende la partita in corso, non l'ultima notte mai sbloccata (dopo una «Nuova partita» sono diverse)
+    const reached = Math.min(this.save.current, lastNight());
     // la notte extra si sblocca finendo l'ultima notte giocabile (sarà la sesta, la Madre)
     const extraOpen = this.save.night > lastNight() || forced === EXTRA_NIGHT;
     // Alt + numero sul titolo: comincia da quella notte (per provare le notti dopo la prima nelle build di prova;
@@ -364,7 +365,9 @@ export class App {
   }
 
   private pause(): void {
-    if (!this.night || this.mode !== 'night') return;
+    // a notte finita (l'alba, la cinematica del finale) niente pausa: perdendo il fuoco della finestra, «Menu
+    // principale» o «Ricomincia la notte» butterebbero via la notte vinta (Esc la pausa già non l'apre)
+    if (!this.night || this.mode !== 'night' || this.night.over) return;
     this.mode = 'paused';
     this.night.setPaused(true);
     this.audio.suspend();

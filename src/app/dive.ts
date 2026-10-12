@@ -552,6 +552,7 @@ export class Dive {
         const h = this.hover;
         if (pad.pressed('A') && h) {
           if (h.sleeper) this.offer();
+          else if (h.find) this.take(h);
           else if (h.link) this.follow(h.link);
         }
         if (pad.pressed('B')) this.buttonsEl.querySelector<HTMLButtonElement>('.dive-back')?.click();
@@ -679,7 +680,11 @@ export class Dive {
       let bestA = Infinity;
       for (const s of this.spots) {
         const a = angle(m, s.dir);
-        if (a < s.r && a < bestA) {
+        // col controller il mirino è il centro dello schermo, e le inquadrature fisse non lo lasciano arrivare
+        // dappertutto (la grotta sotto la barca, la cosa da trovare di Molly e di Fangy, Lampy che dorme): vale il
+        // punto più vicino entro un raggio più largo
+        const reach = usePad ? Math.max(s.r, 22) : s.r;
+        if (a < reach && a < bestA) {
           bestA = a;
           best = s;
         }
