@@ -42,9 +42,57 @@ mancano (À È É Ì Ò Ù, Ä Ö Ü ß, Ñ, Ç…).
 | Immagine | Scritte |
 |---|---|
 | `disegni/pastelli_marcopolo` | MARCO!, POLO! (il gioco si chiama così anche in inglese) |
-| `fin_ricordo` («Il ricordo», finale B) | SPLASHLAND, NIGHT SPLASH, 14-8-97 |
-| panorama e binocolo | SPLASHLAND, MAMA MARINA'S, MIRAMARE, NIGHT SPLASH ★ TONIGHT ★ |
-| barca | adesivi SPLASHLAND; la batteria: VOLT e i numeri |
-| biglietti di Robin | SPLASHLAND, 1 TICKET, Nº 040217 |
+| `fin_ricordo` («Il ricordo», finale B) | SPLASHLAND (con la S girata), NIGHT SPLASH, 14-8-97 |
+| `bino_ingresso`, panorama | MAMA MARINA'S, SPLASHLAND (lettere spente), lo striscione NIGHT SPLASH ★ TONIGHT ★ |
+| `bino_albergo`, panorama | MIRAMARE (con lettere spente) |
+| `bino_relitto`, barca, `catalogo/sfondo` | tacche contate a cinque (58, 23, 15) |
+| barca | l'adesivo SPLASHLAND a prua; la batteria: VOLT e i numeri |
+| biglietti di Robin (jumpscare, toppe) | SPLASHLAND, 1 TICKET, Nº 040217 |
 | foto del finale | la data della macchinetta, '97 7 26 |
-| tana di Archie | HAPPY BIRTHDAY (era TANTI AUGURI: cambiato il 12 ottobre, scelta dell'utente) |
+| pesci del catalogo | `alaccia_registrata_sopra`: 14.08.1997; `sciarrano_scrivano`: le date giorno·mese·anno (vedi sotto) |
+| `annuncio/volantino` | lo slogan «Mama Marina loves her little ones!» resta in inglese anche nella versione italiana, come il nome del parco |
+| tane | SNACK SHACK, DEEP END, SPLASHLAND, i numeri di Hatch, POLO!, 2008; Archie: HAPPY BIRTHDAY (era TANTI AUGURI, scelta dell'utente del 12 ottobre) |
+| `favicon.png` | la S al neon |
+
+### Le tane: l'italiano che si leggeva (revisione del 12 ottobre)
+
+Le tane sono render lunghi: niente versioni per lingua, le scritte diventano neutre o inglesi (regola 3). Le fa la
+sessione delle grotte (`tools/render/tane.py`, `tools/render/disegni_tane.py`).
+
+| Tana | Si leggeva | Diventa |
+|---|---|---|
+| Archie | lo striscione «TANTI AU…» | HAPPY BIRTHDAY |
+| Gulpy | il manifesto «GELATI / ESTATE 1997» | ICE CREAM / SUMMER 1997 |
+| Robin | il manifesto «…TTI SMARRITI» | LOST & FOUND |
+| Hatch | il foglio della conta (la cosa da trovare) «DIECI!» | 10! (il Diario cita la stessa scritta, in ogni lingua) |
+
+Nel gioco non si leggono, ma nel sorgente diventano neutre per i render futuri: il menu di Gulpy (PATATINE, GELATO,
+PANINO, TUTTO!), «si gioca a occhi chiusi» di Fangy, «FESTA / MAGGIO 1999» di Archie, «BENVENUTA! / LUGLIO 2003» di
+Lampy, «CHI C'È C'È» di Hatch. Le cose da trovare hanno il loro testo nel Diario (`LORE_TEXT` in `src/i18n.ts`), in
+ogni lingua.
+
+### Da decidere più avanti
+
+- **Le date giorno·mese·anno**: sul pesce `sciarrano_scrivano` c'è «3·11·2004», che un americano legge 11 marzo. Per
+  le scritte neutre meglio date che non si confondono (giorno oltre il 12) o l'anno da solo.
+- **I numeri coi decimali**: nella tana di Molly «2,5 m» ha la virgola italiana (in inglese 2.5 m). È piccolo.
+
+## Per una lingua nuova
+
+- I testi dell'interfaccia, della radio e del Diario: `src/i18n.ts` (e il tipo `Lang`).
+- I disegni dell'alba: le righe in `SCRITTE` di `tools/render/pastelli.py`, le lettere che mancano in `LETTERE`, poi
+  `pastelli.py --lingua xx --larghezza 1600 --uscita public/assets/img/disegni piscina tesoro compleanno sottacqua`
+  e la lingua in `TRADOTTI` di `src/app/disegni.ts`.
+- Il volantino: le righe in `TESTI_V` di `tools/render/annuncio.py`, poi
+  `annuncio.py volantino --lingua xx --scala 1.5 --webp --uscita public/assets/img/annuncio` (una lingua per volta:
+  servono circa 6 GB) e la lingua in `ANNUNCIO.langs` di `src/app/app.ts`. I font del volantino coprono gli accenti
+  dell'Europa occidentale, ß e ñ (Lilita One solo in parte polacco e turco); per cirillico e greco servono altri font
+  (la chiave `font` della lingua; da provare Rubik).
+- Poi si guardano le immagini nuove, come le vede il giocatore (regola 4).
+
+## Come è stato controllato
+
+Il 12 ottobre sera tutte le immagini del gioco (notte, binocolo, barca, jumpscare, finali, catalogo e pesci, disegni,
+volantino, tane e grotte, con le varianti senza nebbia, le pose e le toppe) sono state guardate una per una, schiarite
+come nel motore e ritagliate a piena risoluzione dove c'era una scritta; quelle in italiano ricontrollate a 1920×1080
+come le vede il giocatore. Quello che non è nelle tabelle sopra non ha scritte.
