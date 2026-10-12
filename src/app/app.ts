@@ -8,6 +8,8 @@ import { EXTRA_NIGHT, NIGHTS, extraEndingEarned, extraNight, type MonsterId, typ
 import { STRINGS, type Lang } from '../i18n.ts';
 import { Dive, loadDiveData, type DiveResult } from './dive.ts';
 import { Night, type NightAssets, type NightEnd } from './night.ts';
+import { badge, pad } from './pad.ts';
+import { PadNav } from './padnav.ts';
 import { afterDive, chooseEnding, fedFor, newGame, pendingDawn, skipDawn, wonNight, writeSave, type Ending, type Options, type SaveData } from './save.ts';
 import { Screens, setUiSound } from './screens.ts';
 import type { Sfx } from './sfx.ts';
@@ -60,6 +62,10 @@ export class App {
   private nightKeys: ((e: KeyboardEvent) => void) | null = null;
   /** la notte in corso (o l'ultima giocata) */
   private nightNo = 1;
+  /** i menu col controller */
+  private nav = new PadNav();
+  /** in basso a destra nei menu, col controller in uso: «A Scegli · B Indietro» */
+  private legendEl: HTMLDivElement;
 
   constructor(
     private stage: Stage,
@@ -73,6 +79,10 @@ export class App {
   ) {
     this.lang = lang;
     this.screens = new Screens(ui, lang);
+    this.legendEl = document.createElement('div');
+    this.legendEl.className = 'pad-legend';
+    ui.appendChild(this.legendEl);
+    this.legend();
     this.applyOptions();
     addEventListener('blur', () => {
       if (this.mode === 'night') this.pause();
@@ -81,6 +91,16 @@ export class App {
 
   get S() {
     return STRINGS[this.lang];
+  }
+
+  private legend(): void {
+    const S = this.S;
+    const item = (b: 'A' | 'B', text: string) => {
+      const s = document.createElement('span');
+      s.append(badge(b), text);
+      return s;
+    };
+    this.legendEl.replaceChildren(item('A', S.pad.select), item('B', S.back));
   }
 
   begin(): void {
@@ -194,6 +214,7 @@ export class App {
           this.lang = v as Lang;
           this.save.lang = this.lang;
           this.screens.lang = this.lang;
+          this.legend();
           writeSave(this.save);
           this.options(back);
           return;
@@ -217,10 +238,12 @@ export class App {
     const v = this.audio.volumes;
     v.master = o.master;
     v.music = o.music;
-    v.sfx = v.amb = v.voice = v.ui = o.sfx;
+    v.sfx = v.amb = v.voice = v.ui = v.body = o.sfx;
     this.audio.applyVolumes();
     this.stage.brightness = o.brightness;
     this.stage.renderer.renderScale = o.quality;
+    // «Riduci lampi e scosse» spegne anche le vibrazioni del controller
+    pad.rumbleOn = !o.reduceFlash;
     document.documentElement.style.setProperty('--ts', String(o.textSize || 1));
   }
 
@@ -461,7 +484,13 @@ export class App {
 
   // ───────────────────────── ciclo ─────────────────────────
 
+  /** Un fotogramma: si legge il controller, poi si va avanti. */
   frame(dt: number): void {
+    pad.poll();
+    this.tick(dt);
+  }
+
+  private tick(dt: number): void {
     const st = this.stage;
     switch (this.mode) {
       case 'night':
@@ -469,17 +498,22 @@ export class App {
         // la notte può finire dentro l'aggiornamento (alba, la Madre, il segnale che salta): allora
         // si disegna subito quello che viene dopo
         if (this.mode === 'night' && this.night) this.night.render();
-        else this.frame(0);
+        else this.tick(0);
         return;
       case 'paused':
-        this.night!.render();
+        // col controller: Start riprende, il resto lo fanno i menu (B riprende anche lui)
+        if (pad.pressed('Start')) this.resume();
+        else this.nav.update(this.ui, dt);
+        this.night?.render();
         return;
       case 'dive':
+        // prima i menu (la conferma del pesce), poi l'immersione: un tasto usato da uno non arriva all'altra
+        this.nav.update(this.ui, dt);
         this.diving?.update(dt);
         // l'immersione può finire dentro l'aggiornamento (la risalita): allora si disegna quello che viene dopo
         if (this.mode === 'dive' && this.diving) this.diving.render();
         else if (this.mode === 'dive') st.frame({ layers: [], fade: 0 });
-        else this.frame(0);
+        else this.tick(0);
         return;
       case 'intro':
         this.timer -= dt;
@@ -503,6 +537,8 @@ export class App {
       default:
         break;
     }
+    // i menu col controller (l'avvertenza, il titolo, le opzioni, i risultati…)
+    this.nav.update(this.ui, dt);
     // sfondo dei menu: la barca alla deriva, lo sguardo che vaga piano
     st.view.rockBoost = 0;
     st.view.swell = 1;

@@ -226,6 +226,8 @@ const IT = {
     bowEat: 'Gulpy mastica',
     bowLeave: 'tonfo in acqua a prua',
     knock: 'toc toc sullo scafo',
+    // il falso allarme (più paura, 12 ottobre): DA APPROVARE
+    falseSplash: 'un tonfo in acqua, dietro di te',
     peek: 'Molly si affaccia',
     giggle: 'risatina',
     whine: 'Molly piagnucola',
@@ -278,6 +280,27 @@ const IT = {
   hatchReady: 'Chi c’è c’è, chi non c’è non c’è!',
   hatchName: 'Hatch',
   kg: 'kg',
+  // i comandi col controller (12 ottobre, DA APPROVARE: tutti i testi qui sotto). {A}, {RT}… diventano i tasti del
+  // controller in uso (A o ✕, RT o R2…: src/app/pad.ts)
+  pad: {
+    pressAny: 'Premi un tasto',
+    hints: {
+      cast: '{RT} per lanciare',
+      hook: 'Ha abboccato! {RT}',
+      reel: 'Tieni premuto {RT} per recuperare, molla quando strattona',
+      throw: '{X}: lancia un pesce',
+      hide: '{A}: nasconditi sotto il telone',
+      unhide: '{A} per uscire dal telone',
+      robin: 'Robin: luce al massimo ({RB})',
+      archie: 'Archie prende fiato: spegni la luce ({LB})',
+      foxy: 'Col binocolo ({LT}): non perderlo di vista',
+    } as Partial<Record<string, string>>,
+    look: 'Stick destro per guardarti intorno, croce per voltarti di scatto',
+    sonarClose: '{Y} o {B} per chiudere',
+    bookTurn: '{LB} {RB} per sfogliare',
+    diveHint: 'Guardati attorno con lo stick. {A} su un passaggio per nuotarci.',
+    select: 'Scegli',
+  },
 };
 
 const EN: typeof IT = {
@@ -481,6 +504,7 @@ const EN: typeof IT = {
     bowEat: 'Gulpy chews',
     bowLeave: 'splash at the bow',
     knock: 'knock knock on the hull',
+    falseSplash: 'a splash in the water, behind you',
     peek: 'Molly peeks in',
     giggle: 'giggle',
     whine: 'Molly whimpers',
@@ -527,6 +551,25 @@ const EN: typeof IT = {
   hatchReady: 'Ready or not, here I come!',
   hatchName: 'Hatch',
   kg: 'kg',
+  pad: {
+    pressAny: 'Press any button',
+    hints: {
+      cast: '{RT} to cast',
+      hook: 'Bite! {RT}',
+      reel: 'Hold {RT} to reel in, let go when it jerks',
+      throw: '{X}: throw a fish',
+      hide: '{A}: hide under the tarp',
+      unhide: '{A} to leave the tarp',
+      robin: 'Robin: light on full ({RB})',
+      archie: 'Archie is drawing breath: light off ({LB})',
+      foxy: 'With the binoculars ({LT}): don’t lose sight of him',
+    },
+    look: 'Right stick to look around, D-pad to snap around',
+    sonarClose: '{Y} or {B} to close',
+    bookTurn: '{LB} {RB} to turn the page',
+    diveHint: 'Look around with the stick. {A} on a passage to swim through it.',
+    select: 'Select',
+  },
 };
 
 /** Specie dei pesci (nomi provvisori finché non c'è il Catalogo completo). */

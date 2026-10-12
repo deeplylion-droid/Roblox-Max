@@ -86,6 +86,18 @@ export class Sfx {
     setTimeout(fn, ms);
   }
 
+  // ───────────────────────── le creature vive («più paura») ─────────────────────────
+
+  /** Lo scatto della testa quando la guardi: cartilagine e carne bagnata. */
+  twitch(pos: Vec3): void {
+    this.playAny('vivo_scatto', { pos, gain: 0.9, spread: 0.06 });
+  }
+
+  /** Una goccia che cade da chi è appena uscito dall'acqua. */
+  drip(pos: Vec3, gain = 0.5): void {
+    this.playAny('goccia', { pos, gain, spread: 0.12, spreadDb: 4 });
+  }
+
   // ───────────────────────── Gulpy ─────────────────────────
 
   /**

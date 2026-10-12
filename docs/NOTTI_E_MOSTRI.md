@@ -41,10 +41,40 @@ del questionario:
   c'è il jumpscare immediato. Il binocolo diventa uno strumento vero (finora era un easter egg). Prima la tavola
   con le varianti, i nomi e i posti, da approvare.
 
+### Più paura nel gioco (12 ottobre, ramo `claude/paura`; le idee sono approvate, i dettagli da approvare)
+
+Dal questionario del 12 ottobre l'utente ha scelto tutte e quattro le idee. Sono solo nel presentatore: la
+simulazione, le regole e il bilanciamento non cambiano.
+
+- **Le creature vive** (`src/app/vivi.ts`): mentre aspettano in posa **respirano** (lo strato si allunga e si accorcia
+  attorno alla base, dallo 0,4 all'1,1% dell'altezza, da 0,18 a 0,36 respiri al secondo; la Madre più piano). Quando
+  ne guardi una che è tutta fuori da almeno 1,2 s, ogni tanto **la testa scatta**: una rotazione di 3-4° sopra il
+  collo in 70 ms, ferma un quarto di secondo con un tremito, poi torna piano; una ogni 6-13 s, con lo schiocco della
+  cartilagine bagnata (`vivo_scatto_*`). Chi è appena uscito dall'acqua **gocciola** (`goccia_*`, una ogni 0,8-2,5 s).
+  Robin e la Madre non scattano. Nel renderer gli strati hanno `uWarp` e `uNeck` (le toppe seguono la loro posa; il
+  bordo del riquadro si sfuma di 14 px mentre si deforma).
+- **Il cuore del pescatore** (`src/app/paura.ts`): un solo numero, **il pericolo** (0..1, dagli stati dei mostri in
+  `dangerNow()` di `night.ts`; per esempio Gulpy che pretende 0,55-0,9, Molly nei capricci 0,8-0,92, Hatch che cerca
+  0,95, Soggy che corre verso la barca 0,96, la Madre che passa sotto 1; a batteria morta fino a 0,9), che sale in
+  fretta e scende piano. Dallo 0,15 in su il **battito**, da 66 a 132 al minuto e sempre più forte; il **respiro** si
+  fa corto; quando devi stare immobile (la Madre che passa sotto, Hatch che cerca) **trattieni il fiato**, e quando
+  finisce lo butti fuori. Sono suoni «dentro la testa» (bus `body`): sotto il telone non si ovattano, anzi il cuore si
+  sente di più. Sostituisce il vecchio battito.
+- **La tensione nella musica**: due fondi in loop (`tensione_bassa`, 24 s; `tensione_alta`, 16 s) che entrano col
+  pericolo medio e con quello forte; **sopra 0,92, un attimo prima del peggio, la musica sparisce di colpo** e resta
+  solo il cuore.
+- **I falsi allarmi** (dalla notte 2): una o due volte per notte, solo se è tutto calmo da almeno 20 s e sei fuori
+  dal telone, senza sonar né binocolo: **i colpi di Molly sullo scafo**, da un lato, senza nessuno (6 volte su 10), o
+  **un tonfo in acqua dietro di te** (sottotitolo «un tonfo in acqua, dietro di te» / «a splash in the water, behind
+  you»). Il cuore sussulta e torna giù piano. Il primo fra la prima ora e le due passate, il secondo almeno 1,2 ore
+  dopo.
+- Le anteprime (la scena col suono e Gulpy vivo) le ho mandate in chat il 12 ottobre. **Da fare**: la sagoma nella
+  nebbia (serve un render, dopo l'atmosfera).
+
 ### Il Foxy nel gioco (logica, notte fra l'11 e il 12 ottobre; branch `claude/foxy-gioco`)
 
-> **Provvisorio finché non arrivano i render** (il modello, le viste del binocolo, il jumpscare) e il nome: per ora nel
-> binocolo si vedono **due occhi rossi** nel suo posto, il jumpscare è un buio con la scossa. **I suoni** (12 ottobre, da
+> **I render sono arrivati** (12 ottobre: il modello, le viste del binocolo di scivoli e relitto, il jumpscare, sotto);
+> dove manca una vista col Foxy restano i **due occhi rossi** nel suo posto. **I suoni** (12 ottobre, da
 > approvare; `docs/AUDIO.md`, «L'animatore») sono i file `foxy_near` (si sporge), `foxy_leave` (lascia il posto e corre
 > verso la barca, finisce sul salto) e `js_foxy` (l'abbraccio); senza i file restano i ripieghi. **Da approvare**: i testi (sotto) e i numeri.
 >
@@ -71,6 +101,15 @@ del questionario:
 > da 2,2 MB a mezzo MB l'una): lui cambia stadio solo quando non lo guardi, quindi le minime differenze della
 > compressione non si vedono. Siccome la nebbia nuova è già nel render, in `overlays.json` questi due posti hanno
 > `fog: 0`: il motore non ci aggiunge la sua (le altre viste la prendono ancora, finché non si rifanno con l'atmosfera).
+>
+> **Il jumpscare definitivo** (12 ottobre, sessione del Foxy, ramo `claude/foxy`, commit 9549a04; tavola
+> `docs/concept/jumpscare/js_foxy_finale_fotogrammi.jpg`): otto fotogrammi a 1920×1080 (`js_foxy_00..07.webp`,
+> `overlays.json` → `jumpscares.foxy`), con le correzioni chieste sull'anteprima: la camera guarda il bordo a prua sulla
+> dritta e lui sale da sotto il capodibanda contro la foschia (fotogrammi 0-3), poi ti viene addosso con la faccia al
+> centro, luce calda solo sulla faccia, l'occhio da cartone che dondola di lato e le mani ossute che salgono dagli angoli
+> in basso (4-7). La faccia da annegato: pelle macerata, chiazze grigio-viola, labbra gonfie e livide.
+> **Più vicino** (richiesta dell'utente del 12 ottobre, «così che ti arriva proprio in faccia, alla FNAF»): nel gioco i
+> fotogrammi si ingrandiscono del 20% attorno al centro, senza rifare il render (`JS_ZOOM` in `src/app/night.ts`).
 
 - **Dove sta**: in uno di due posti del binocolo, la **torre degli scivoli** alle spalle (−167°, 460 m) e il
   **relitto** davanti alla prua (14°, 170 m), da dove salta in acqua e arriva alla barca. Li ha proposti la sessione

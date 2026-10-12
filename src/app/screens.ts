@@ -2,6 +2,7 @@
 import { FISH, FISH_BY_ID, type FishFamily, type FishSpecies } from '../game/catalog.ts';
 import { EXTRA_IDS, EXTRA_MAX, EXTRA_PRESETS, FOXY_NAME, LORE, clampLevel, type ExtraLevels } from '../game/config.ts';
 import { LORE_TEXT, STRINGS, type Lang } from '../i18n.ts';
+import { badge, dualText, type PadButton } from './pad.ts';
 import type { CatalogEntry, Options } from './save.ts';
 
 /** Sagoma generica per le specie senza figura. */
@@ -32,6 +33,21 @@ function button(label: string, onClick: () => void, kind: 'click' | 'back' | 'st
     uiSound(kind === 'back' ? 'ui_back' : kind === 'start' ? 'ui_start' : 'ui_click');
     onClick();
   });
+  return b;
+}
+
+/** B (col controller) preme questo pulsante: tornare indietro. Col controller in uso ci compare accanto il tasto. */
+function backKey<T extends HTMLElement>(b: T): T {
+  b.dataset.back = '';
+  b.append(badge('B'));
+  return b;
+}
+
+/** Un pulsante di pagina (LB, RB): col controller in uso ci compare accanto il tasto. */
+function pageKey<T extends HTMLElement>(b: T, key: Extract<PadButton, 'LB' | 'RB'>): T {
+  b.dataset[key === 'LB' ? 'padPrev' : 'padNext'] = '';
+  if (key === 'LB') b.prepend(badge(key));
+  else b.append(badge(key));
   return b;
 }
 
@@ -71,7 +87,7 @@ export class Screens {
   warning(onDone: () => void): void {
     const S = this.S;
     const el = this.show(
-      h('div', { class: 'screen warning fade-in' }, h('h2', {}, S.warningTitle), h('p', {}, S.warning), h('div', { class: 'muted blink' }, S.pressAny)),
+      h('div', { class: 'screen warning fade-in' }, h('h2', {}, S.warningTitle), h('p', {}, S.warning), dualText(h('div', { class: 'muted blink' }), S.pressAny, S.pad.pressAny)),
     );
     const go = () => {
       removeEventListener('keydown', go);
@@ -112,7 +128,7 @@ export class Screens {
         'div',
         { class: 'screen pause' },
         h('h2', {}, S.paused),
-        h('div', { class: 'menu' }, button(S.resume, o.onResume), button(S.restartNight, o.onRestart), button(S.options, o.onOptions), button(S.menu, o.onMenu, 'back')),
+        h('div', { class: 'menu' }, backKey(button(S.resume, o.onResume)), button(S.restartNight, o.onRestart), button(S.options, o.onOptions), button(S.menu, o.onMenu, 'back')),
       ),
     );
   }
@@ -165,7 +181,7 @@ export class Screens {
       const fs = o.fullscreen;
       rows.append(h('label', {}, h('span', {}, S.fullscreen), button('⛶', fs)));
     }
-    this.show(h('div', { class: 'screen opts fade-in' }, h('h2', {}, S.optionsTitle), rows, h('div', { class: 'menu' }, button(S.back, o.onBack, 'back'))));
+    this.show(h('div', { class: 'screen opts fade-in' }, h('h2', {}, S.optionsTitle), rows, h('div', { class: 'menu' }, backKey(button(S.back, o.onBack, 'back')))));
   }
 
   /**
@@ -235,7 +251,7 @@ export class Screens {
         h('p', {}, S.extraHelp),
         grid,
         presets,
-        h('div', { class: 'menu' }, button(S.extraStart, () => o.onStart({ ...lv }), 'start'), button(S.back, o.onBack, 'back')),
+        h('div', { class: 'menu' }, button(S.extraStart, () => o.onStart({ ...lv }), 'start'), backKey(button(S.back, o.onBack, 'back'))),
       ),
     );
   }
@@ -293,14 +309,14 @@ export class Screens {
       if (found.includes(l.id)) list.append(h('div', { class: 'entry' }, h('h3', {}, t.title), h('p', {}, t.body)));
       else list.append(h('div', { class: 'entry locked' }, h('h3', {}, S.journalLocked)));
     }
-    this.show(h('div', { class: 'screen journal-screen fade-in' }, h('h2', {}, S.journalTitle), list, h('div', { class: 'menu' }, button(S.back, onBack, 'back'))));
+    this.show(h('div', { class: 'screen journal-screen fade-in' }, h('h2', {}, S.journalTitle), list, h('div', { class: 'menu' }, backKey(button(S.back, onBack, 'back')))));
   }
 
   /** Extra: il Diario degli oggetti ripescati e il Catalogo dei pesci. */
   extras(o: { onJournal: () => void; onCatalog: () => void; onBack: () => void }): void {
     const S = this.S;
     this.show(
-      h('div', { class: 'screen title fade-in' }, h('h2', {}, S.extras), h('div', { class: 'menu' }, button(S.journalTitle, o.onJournal), button(S.catalogTitle, o.onCatalog), button(S.back, o.onBack, 'back'))),
+      h('div', { class: 'screen title fade-in' }, h('h2', {}, S.extras), h('div', { class: 'menu' }, button(S.journalTitle, o.onJournal), button(S.catalogTitle, o.onCatalog), backKey(button(S.back, o.onBack, 'back')))),
     );
   }
 
@@ -396,6 +412,9 @@ export class Screens {
         const el = snap(f);
         if (known(f)) {
           el.classList.add('can');
+          // col controller le foto si scelgono come i pulsanti
+          el.tabIndex = -1;
+          el.dataset.padFocus = '';
           if (sel[fam] === f.id) el.classList.add('on');
           el.addEventListener('click', () => {
             sel[fam] = f.id;
@@ -510,11 +529,11 @@ export class Screens {
     });
     prevCorner.addEventListener('click', () => turn(spread - 1));
     nextCorner.addEventListener('click', () => turn(spread + 1));
-    const prevBtn = button('‹', () => turn(spread - 1));
-    const nextBtn = button('›', () => turn(spread + 1));
+    const prevBtn = pageKey(button('‹', () => turn(spread - 1)), 'LB');
+    const nextBtn = pageKey(button('›', () => turn(spread + 1)), 'RB');
     prevBtn.classList.add('turnbtn');
     nextBtn.classList.add('turnbtn');
-    const nav = h('div', { class: 'book-nav' }, prevBtn, h('span', { class: 'hint' }, S.bookTurn), nextBtn, button(S.bookClose, o.onBack, 'back'));
+    const nav = h('div', { class: 'book-nav' }, prevBtn, dualText(h('span', { class: 'hint' }), S.bookTurn, S.pad.bookTurn), nextBtn, backKey(button(S.bookClose, o.onBack, 'back')));
 
     left.append(...renderLeft(0));
     right.append(...renderRight(0));
