@@ -11,7 +11,7 @@ Rigenerazione: `tools/.venv/bin/python tools/audio/generate.py [id...] [--spectr
 - `dsp.py`: mattoni (filtri, rumori periodici, voce a formanti, riverberi, limitatore, misure).
 - `instruments.py`: modelli di medio livello (acqua: bolle, gocce, schizzi, colpi d'onda; legno; corpi bagnati; campane e lamelle; respiri, gabbiani, balene).
 - `creatures.py`: modelli dei versi (voce irregolare con jitter e shimmer variabili, diplofonia, fry, ruvidità da urlo; gola bagnata, saliva, deglutizioni; ossa, denti, masticazione; nocche, unghie, passi bagnati, gomma; compressione e saturazione per bande degli urli).
-- `sounds/`: un modulo per tema (`ambience`, `world`, `fishing`, `gulpy`, `molly`, `hatch`, `robin`, `archie`, `lampy`, `music`, `ui`); ogni id si registra con `@sound(...)` o `register(...)`.
+- `sounds/`: un modulo per tema (`ambience`, `world`, `fishing`, `gulpy`, `molly`, `hatch`, `robin`, `archie`, `lampy`, `fangy`, `foxy`, `music`, `ui`); ogni id si registra con `@sound(...)` o `register(...)`.
 - `master.py`: pulizia, livello (RMS "attivo"), limitatore, codifica Vorbis e verifica sul file decodificato (lunghezza, picco, giunzione del loop).
 
 ## Regole tecniche
@@ -180,6 +180,22 @@ suona uno dei tre scatti (`fangy_snap`, varianti `_2` e `_3`, scelte a caso).
 | `fangy_leave` | 2,2 s | Torna giù: un fiato lungo che esce gorgogliando mentre il muso va sotto, l'acqua che si richiude sopra la testa, le bolle, lo sciabordio contro la fiancata. |
 | `js_fangy` | 1,6 s | Jumpscare (**stereo**): l'acqua che esplode sulla fiancata, la mascella che schiocca e le zanne che sbattono, e il ruggito di un mastino enorme in una gola d'acqua con sopra, alta e rotta, la voce di un bambino che strilla (tre voci). RMS ≈ −7,3 dBFS. |
 
+### L'animatore (il «Foxy») — notti 2-5, da tenere d'occhio col binocolo (12 ottobre, DA APPROVARE)
+L'animatore di Splashland annegato dentro il costume di Mama Marina (variante B «Fradicio»; il nome lo sceglie
+l'utente, intanto gli id sono `foxy_*`). Non parla: solo fiato, gorgoglio e il costume. Il suo suono è **il peluche
+fradicio**: la gommapiuma marcia che si strizza a ogni movimento e butta fuori acqua a fiotti, i tonfi molli, e un segno
+acuto tutto suo, **l'occhio di plastica da cartone** (una cupola vuota con la pupilla libera dentro: «toc» e
+sbatacchio). La voce è di un uomo (formanti a ×0,94) coi polmoni pieni d'acqua. Modulo `tools/audio/sounds/foxy.py`.
+
+| id | durata | descrizione |
+|---|---|---|
+| `foxy_near` | 2,2 s | Si sporge verso di te mentre non lo guardi (evento `lean`): laggiù il costume si piega in avanti e l'acqua ne esce tutta insieme (uno scroscio lungo che cade sul mare, l'unica cosa che da lassù arriva sull'acqua ferma), la gommapiuma che si strizza, l'occhio che batte due volte. Lontano (pochi acuti, la coda dell'acqua aperta) e basso (RMS ≈ −24 dBFS); il gioco lo suona dal suo posto a 9 m. |
+| `foxy_leave` | 3,2 s | Lascia il posto (evento `leave`): un tonfo pesante laggiù (il costume gonfio d'acqua che si butta), poi la corsa verso la barca, mezzo a nuoto e mezzo coi piedi sul fondo: bracciate spugnose che accelerano (da una ogni 0,46 s a una ogni 0,22 s), sempre più vicine e chiare (la coda lunga sull'acqua lascia il posto al suono asciutto), l'acqua spinta via che ribolle, i fiati gorgoglianti, l'occhio di plastica. Gli ultimi 0,35 s sono lo slancio fuori dall'acqua con un inspiro a bocca piena: il jumpscare parte sulla fine. Il gioco lo suona dal suo posto a 6 m e ne adatta la velocità a `run` (3,5 s nella notte 2 → ×0,91; 3 s nelle notti 4-5 → ×1,07). |
+| `js_foxy` | 2 s | Jumpscare (**stereo**): lo slancio e il costume zuppo che sbatte sul capodibanda (la barca sobbalza e geme), il peluche che ti si schiaccia addosso strizzando acqua (e stringe ancora a metà), l'urlo di un uomo annegato dentro la testa del costume (tre voci appena scordate, soffocato dalla gommapiuma che si mangia gli acuti e rimbomba, un filo che esce dalla bocca; gorgogliante, affoga in un rantolo), l'occhio di plastica che sbatte dal lato dove la testa è crollata, e, schiacciata dall'abbraccio, la scatoletta sonora nel pancione che suonava la sigla: l'ultimo «ta-daaa» dello spettacolo (Sol, poi l'accordo di Do) da un altoparlantino pieno d'acqua, che gracchia e crolla storto mentre la pila muore. RMS ≈ −7,2 dBFS. |
+
+Ascolti di prova: `docs/concept/suoni/foxy_near.mp3`, `foxy_leave.mp3`, `js_foxy.mp3` e `foxy_sequenza.mp3` (il mare,
+si sporge, lascia il posto, corre, jumpscare; livelli approssimati come nel gioco, corsa da 3,2 s come nella notte 3).
+
 ## Musica e stinger (stereo) — DA APPROVARE
 
 | id | durata | descrizione |
@@ -204,4 +220,4 @@ Legno e ottone, come gli oggetti della barca.
 
 ## Come li usa il gioco
 
-`src/app/sfx.ts` (classe `Sfx`): `gurgle(pos, gain)` (fiato o gorgoglio di Gulpy, ogni tanto la gomma; con `gain ≥ 1,3`, il momento in cui pretende, prima si sgancia la mascella), `chew(pos)` (`gulpy_eat`), `knock(pos)`, `giggle(pos)`, `whine(pos)`, `tantrum(pos)` (Molly), `step(pos)`, `sniff(pos)` (Hatch), `sonarWarn()` (`sonar_warn`), `scream(gain, pitch)` (compatibilità: sceglie il jumpscare dall'intonazione), più i nuovi `jumpscare(who)`, `emerge(who, pos)`, `jaw(pos)`, `grab(pos)`, `peek(pos)`, `board(pos)`, `rock(amount)` (loop `molly_rock`, da chiamare a ogni fotogramma con la forza del dondolio), `toy(amount, pos)` (loop `hatch_toy`) e `stopLoops()`. Musica, stinger e interfaccia si suonano con `AudioEngine.play(id)`; vanno sul bus `music` o `ui` in base alla categoria.
+`src/app/sfx.ts` (classe `Sfx`): `gurgle(pos, gain)` (fiato o gorgoglio di Gulpy, ogni tanto la gomma; con `gain ≥ 1,3`, il momento in cui pretende, prima si sgancia la mascella), `chew(pos)` (`gulpy_eat`), `knock(pos)`, `giggle(pos)`, `whine(pos)`, `tantrum(pos)` (Molly), `step(pos)`, `sniff(pos)` (Hatch), `sonarWarn()` (`sonar_warn`), `scream(gain, pitch)` (compatibilità: sceglie il jumpscare dall'intonazione), più i nuovi `jumpscare(who)`, `emerge(who, pos)`, `jaw(pos)`, `grab(pos)`, `peek(pos)`, `board(pos)`, `rock(amount)` (loop `molly_rock`, da chiamare a ogni fotogramma con la forza del dondolio), `toy(amount, pos)` (loop `hatch_toy`) e `stopLoops()`; per l'animatore `foxyNear(pos)` e `foxyLeave(pos, run)` (la corsa, troncata dal jumpscare; il jumpscare è `jumpscare('foxy')` → `js_foxy`). Musica, stinger e interfaccia si suonano con `AudioEngine.play(id)`; vanno sul bus `music` o `ui` in base alla categoria.

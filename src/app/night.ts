@@ -969,15 +969,17 @@ export class Night {
         }
         break;
       case 'foxy': {
-        // il Foxy (grafica e suoni provvisori finché non arrivano i render e i suoni veri)
+        // il Foxy (grafica provvisoria finché non arrivano i render; i suoni sono i file foxy_*, da approvare)
         const at = this.sim.foxy?.places[e.place ?? 0];
         switch (e.e) {
           case 'lean':
+            // si sporge mentre non lo guardi: laggiù, appena udibile, il costume che si svuota d'acqua
+            if (at) fx.foxyNear(dirPos(at.yaw, 9, 0));
             cap(S.captions.foxyLean);
             break;
           case 'leave':
-            // il posto è vuoto: un tonfo lontano, poi qualcosa che corre sull'acqua verso la barca
-            if (at) a.play('splash_big', { pos: dirPos(at.yaw, 40, 0), gain: 0.45, rate: 1.25, lowpass: 1400 });
+            // il posto è vuoto: un tonfo lontano, poi qualcosa che corre sull'acqua verso la barca (finisce sul salto)
+            if (at) fx.foxyLeave(dirPos(at.yaw, 6, 0), this.sim.foxy?.timer ?? 3.2);
             cap(S.captions.foxyLeave);
             break;
           default:

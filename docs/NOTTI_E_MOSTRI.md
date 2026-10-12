@@ -40,8 +40,9 @@ del questionario:
 ### Il Foxy nel gioco (logica, notte fra l'11 e il 12 ottobre; branch `claude/foxy-gioco`)
 
 > **Provvisorio finché non arrivano i render** (il modello, le viste del binocolo, il jumpscare) e il nome: per ora nel
-> binocolo si vedono **due occhi rossi** nel suo posto, il jumpscare è un buio con la scossa, il suono del posto vuoto è
-> un tonfo lontano. **Da approvare**: i testi (sotto) e i numeri.
+> binocolo si vedono **due occhi rossi** nel suo posto, il jumpscare è un buio con la scossa. **I suoni** (12 ottobre, da
+> approvare; `docs/AUDIO.md`, «L'animatore») sono i file `foxy_near` (si sporge), `foxy_leave` (lascia il posto e corre
+> verso la barca, finisce sul salto) e `js_foxy` (l'abbraccio); senza i file restano i ripieghi. **Da approvare**: i testi (sotto) e i numeri.
 >
 > **La variante** (notte fra l'11 e il 12 ottobre, scelta da me col via libera dell'utente; tavola
 > `docs/concept/foxy_varianti.jpg` sul ramo `claude/foxy`): la **B «Fradicio»**, il costume gonfio d'acqua che cede,
