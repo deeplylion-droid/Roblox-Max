@@ -238,9 +238,10 @@ export const FINALE_NESSUNO: CinematicScript = {
     { t: 6.9, v: [104, -14, 76], ease: 'smooth' },
     // di nuovo lei, che non ha smesso di guardarti
     { t: 8.0, v: [-60, -10, 62], ease: 'smooth' },
-    // la vista scende verso l'acqua, oltre il bordo (più giù si vedrebbe l'interno della fiancata)
-    { t: 10.0, v: [-56, -24, 60], ease: 'smooth' },
-    { t: 15.0, v: [-54, -27, 56] },
+    // la vista scende verso l'acqua accanto a lei, oltre il bordo (dal banco, più giù di così si vedrebbe solo
+    // l'interno della fiancata)
+    { t: 10.0, v: [-46, -13, 60], ease: 'smooth' },
+    { t: 15.0, v: [-44, -15, 56] },
   ],
   dawn: [
     { t: 0, v: 0.1 },
