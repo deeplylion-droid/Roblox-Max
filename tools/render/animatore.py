@@ -96,9 +96,12 @@ def params(posa='riposo', occhio=0.0):
     return P
 
 
-def build(posa='riposo', occhio=0.0):
-    """Costruisce l'animatore nell'origine. Restituisce (oggetti, punto della faccia)."""
-    obs, face, _ = FX.build(params(posa, occhio))
+def build(posa='riposo', occhio=0.0, **extra):
+    """Costruisce l'animatore nell'origine (extra: parametri in più, per esempio il peluche del binocolo).
+    Restituisce (oggetti, punto della faccia)."""
+    P = params(posa, occhio)
+    P.update(extra)
+    obs, face, _ = FX.build(P)
     return obs, face
 
 

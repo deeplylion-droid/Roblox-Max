@@ -112,7 +112,65 @@ def tavola_webp(src, serie='', out=None, scale=None):
     print(out)
 
 
+def tavola_ritagli(src, serie='', out=None, r=200):
+    """Tavola di prova: per luogo e stadio la vista intera (decodificata e tonemappata come il motore) e accanto un ritaglio
+    al 100% attorno all'animatore (lo stesso ritaglio anche per il vuoto, per confrontare)."""
+    import json
+    import numpy as np
+    import post
+    entries = {e['key']: e for e in json.load(open(os.path.join(src, f'bino_foxy_entries{serie}.json')))}
+    font = '/usr/share/fonts/truetype/dejavu/DejaVuSans{}.ttf'
+    tf = ImageFont.truetype(font.format('-Bold'), 26)
+    lf = ImageFont.truetype(font.format('-Bold'), 18)
+    W, H = 720, 405
+    C = 2 * r
+    gap, head, lab = 14, 60, 30
+    rows = [(k, st) for k in ('scivoli', 'relitto') if k in entries for st in ('_foxy0', '_foxy1', '')]
+    sheet = Image.new('RGB', (W + 2 * C + gap * 4, head + len(rows) * (max(H, C) + lab)), (12, 14, 19))
+    d = ImageDraw.Draw(sheet)
+    d.text((gap, 16), "SOGGY nel binocolo — prova dell'inserimento" + (' (senza nebbia)' if serie else ' (con la nebbia)') +
+           ": vista intera, ritaglio al 100%, lo stesso ritaglio vuoto", fill=(235, 228, 210), font=tf)
+    y = head
+    names = {'_foxy0': 'fermo', '_foxy1': 'più vicino', '': 'vuoto'}
+    centers = {}
+    for key, st in rows:
+        sc = entries[key]['scale']
+        dec = lambda t: post.decode_light_pass(os.path.join(src, f'bino_{key}{t}{serie}.webp'), sc)[0]
+        lin, vuoto = dec(st), dec('')
+        tm = lambda a: Image.fromarray((np.clip(post.tonemap(a, 1.0), 0, 1) * 255 + 0.5).astype(np.uint8))
+        im, imv = tm(lin), tm(vuoto)
+        if st:
+            dd = np.abs(lin - vuoto).sum(-1)
+            m = dd > max(0.05, float(np.percentile(dd, 99.5)))
+            # il riquadro reso con lui (dove l'immagine cambia): il suo centro
+            from scipy.ndimage import binary_opening, label
+            lb, n = label(binary_opening(dd > 0.02, iterations=2))
+            if n:
+                big = np.argmax(np.bincount(lb.ravel())[1:]) + 1
+                ys, xs = np.nonzero(lb == big)
+            else:
+                ys, xs = np.nonzero(dd > 0.02)
+            centers[(key, st)] = ((int(xs.min()) + int(xs.max())) // 2, (int(ys.min()) + int(ys.max())) // 2) if len(xs) else (im.size[0] // 2, im.size[1] // 2)
+        cx, cy = centers.get((key, st), centers.get((key, '_foxy0')))
+        cx = min(max(cx, r), im.size[0] - r)
+        cy = min(max(cy, r), im.size[1] - r)
+        sheet.paste(im.resize((W, H), Image.LANCZOS), (gap, y))
+        sx, sy = W / im.size[0], H / im.size[1]
+        d.rectangle((gap + (cx - r) * sx, y + (cy - r) * sy, gap + (cx + r) * sx, y + (cy + r) * sy), outline=(255, 179, 92))
+        sheet.paste(im.crop((cx - r, cy - r, cx + r, cy + r)), (gap * 2 + W, y))
+        sheet.paste(imv.crop((cx - r, cy - r, cx + r, cy + r)), (gap * 3 + W + C, y))
+        d.text((gap + 4, y + max(H, C) + 4), f'{key}: {names[st]}', fill=(235, 228, 210), font=lf)
+        y += max(H, C) + lab
+    out = out or os.path.join(ROOT, 'docs', 'concept', f'soggy_binocolo_inserimento{serie}.jpg')
+    sheet.save(out, quality=92)
+    print(out)
+
+
 if __name__ == '__main__':
+    if '--ritagli' in sys.argv:
+        a = sys.argv[sys.argv.index('--ritagli') + 1]
+        tavola_ritagli(a, '_senza' if '--senza' in sys.argv else '')
+        sys.exit(0)
     if '--webp' in sys.argv:
         a = sys.argv[sys.argv.index('--webp') + 1]
         out = sys.argv[sys.argv.index('--out') + 1] if '--out' in sys.argv else None

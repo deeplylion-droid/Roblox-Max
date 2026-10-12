@@ -77,6 +77,8 @@ def spots():
     shore = Vector(env.surface_at(192.4, 28.0))
     wt = wreck_house_top()
     w_eye = Vector((EYE[0] - wt.x, EYE[1] - wt.y, 0)).normalized()
+    # in piedi sulla tuga, un passo dietro il bordo davanti: il bordo gli nasconde i piedi
+    wt = wt - w_eye * 0.9 - Vector((0, 0, 0.15))
     water = Vector((wt.x, wt.y, -0.95)) + w_eye * 9.0 + Vector((-w_eye.y, w_eye.x, 0)) * 2.5
     return {
         'scivoli': {'lontano': (top, 0.0), 'vicino': (shore, 0.0), 'vuoto': None},
@@ -169,22 +171,49 @@ def main():
 
 # ───────────────────────── le viste definitive (il modello vero, con l'atmosfera) ─────────────────────────
 # Per ogni luogo: il posto vuoto reso intero (bino_<luogo>.webp), poi l'animatore nei due stadi reso solo nel
-# riquadro attorno a lui e incollato sul vuoto con la maschera del suo indice oggetto: fuori dalla sagoma le tre
-# immagini sono identiche pixel per pixel (quando se ne va non si vede il salto). Stessa inquadratura, dimensione
+# riquadro attorno a lui (con la sua ombra, le luci del posto, la nebbia, l'acqua) e incollato sul vuoto con il bordo
+# sfumato: fuori dal riquadro le tre immagini sono identiche (quando se ne va non si vede il salto). Stessa inquadratura, dimensione
 # e scala di codifica: la scala si sceglie sul vuoto e vale per tutte e tre.
 # Uso: ATMOSFERA=1 tools/.venv/bin/python tools/render/foxy_binocolo.py --definitivo [--luoghi ...] [--samples N]
 # (con RENDER_OUT=<cartella> le immagini vanno lì e il manifesto non si tocca: per le prove)
 
 IDX_FOXY = 7
+PAD = 90          # pixel attorno a lui nel riquadro (la sua ombra, l'acqua)
+FEATHER = 18.0    # pixel di sfumatura al bordo del riquadro
 STADI_DEF = (('foxy0', 'lontano'), ('foxy1', 'vicino'))
-RIM = {'foxy0': 450.0, 'foxy1': 650.0}     # il filo di luce da dietro (watt): più vicino all'acqua c'è più foschia
-# la luce di luna morbida da davanti e dall'alto, solo su di lui (watt, per luogo e stadio): la sagoma, il blu del costume
-# e la pancia chiara devono leggersi nella nebbia; da lontano sotto il tetto basta il filo di luce
-KEY = {('scivoli', 'foxy0'): 700.0, ('scivoli', 'foxy1'): 900.0, ('relitto', 'foxy0'): 500.0, ('relitto', 'foxy1'): 500.0}
 # l'animatore ingrandito (12 ottobre, l'utente: «più grande ed evidente, a discapito del realismo della distanza»);
 # luci e posizioni delle luci crescono con lui
-SCALA = {('scivoli', 'foxy0'): 1.8, ('scivoli', 'foxy1'): 2.6, ('relitto', 'foxy0'): 1.5, ('relitto', 'foxy1'): 1.9}
-RIM_LUOGO = {'scivoli': 1.0, 'relitto': 2.0}
+SCALA = {('scivoli', 'foxy0'): 1.8, ('scivoli', 'foxy1'): 2.6, ('relitto', 'foxy0'): 1.5, ('relitto', 'foxy1'): 2.35}
+
+
+def water_ring(pos, k):
+    """L'acqua attorno a chi sta in acqua fino alla vita: un anello basso d'increspature lucide e uno stretto di schiuma."""
+    import sdf
+    from common import set_lightgroup
+    from creature import sdf_object
+    from nodes import material
+    c = (float(pos.x), float(pos.y), 0.0)
+    R = 0.55 * k
+    obs = []
+    for name, rr, r, h, col, rough in (('FoxyRipples', R * 1.5, R * 0.9, 0.035 * k, (0.012, 0.016, 0.02), 0.06),
+                                       ('FoxyFoam', R * 0.98, R * 0.22, 0.045 * k, (0.42, 0.44, 0.42), 0.8)):
+        n3 = sdf.Noise3(7 if name == 'FoxyFoam' else 3)
+
+        def f(p, rr=rr, r=r, h=h, n3=n3):
+            q = p - np.array(c, np.float32)
+            rad = np.sqrt(q[:, 0] ** 2 + q[:, 1] ** 2)
+            ring = np.sqrt(((rad - rr) / r) ** 2 + (q[:, 2] / h) ** 2) - 1.0
+            return (ring * min(r, h) - h * 0.5 * n3(p, scale=0.25 * k, octaves=3)).astype(np.float32)
+        ext = rr + r + 0.2 * k
+        ob = sdf_object(name, f, np.array(c) - (ext, ext, h * 2), np.array(c) + (ext, ext, h * 2), res=0.03 * k)
+        m = bpy.data.materials.get(name + 'Mat')
+        if m is None:
+            m, g = material(name + 'Mat')
+            g.output_material(g.principled(color=col, rough=rough, spec=0.6, coat=0.8 if rough < 0.5 else 0.0, coat_rough=0.03))
+        ob.data.materials.append(m)
+        set_lightgroup(ob, 'ambient')
+        obs.append(ob)
+    return obs
 
 
 def light_only(name, objs, loc, target, energy, color, size):
@@ -236,7 +265,6 @@ def mist_of(p):
 
 
 def definitivo():
-    from scipy.ndimage import binary_dilation, gaussian_filter
     import animatore
     from common import OUT_IMG, set_lightgroup
     # due serie: con la nebbia (ATMOSFERA=1, i nomi di sempre) e senza (nomi con _senza): nel gioco la nebbia si toglie
@@ -266,7 +294,8 @@ def definitivo():
             fl.data.energy *= 0.3
     sp = spots()
     before = set(bpy.data.objects)
-    animatore.build('riposo')
+    # il costume da lontano: fradicio e marcio, blu scuro e spento, grigiastro (la faccia resta pallida)
+    animatore.build('riposo', plush_name='PlushBino', plush_base=(0.065, 0.090, 0.150), soak=1.5)
     fig = [o for o in bpy.data.objects if o not in before and o.type == 'MESH']
     for o in fig:
         set_lightgroup(o, 'ambient')
@@ -276,9 +305,8 @@ def definitivo():
     if lc:
         for o in fig:
             lc.objects.link(o)
-    # il riempimento azzurro del relitto (binocolo.wreck_fill) non lo tocca: lo faceva blu saturo
-    if fill:
-        exclude_from(fill, fig)
+    # prende solo le luci del posto (la luna dei luoghi, il riempimento del relitto), come la torre e la tuga
+
     bpy.context.view_layer.update()
     rest = {o.name: o.matrix_world.copy() for o in fig}
     bpy.context.view_layer.use_pass_object_index = True
@@ -311,37 +339,37 @@ def definitivo():
                 o.matrix_world = rest[o.name]
                 o.hide_render = False
             k = SCALA[(luogo, tag)] * float(os.environ.get('FOXY_K', '1'))     # FOXY_K: prove di grandezza
+            if pos.z < 0:
+                pos = Vector((pos.x, pos.y, pos.z * k))       # in acqua fino alla vita anche ingrandito
             transform(fig, tuple(pos), yaw_deg=facing(tuple(pos)) + dyaw, scale=k)
-            # un filo di luce fredda da dietro e dall'alto, solo su di lui: la sagoma si stacca dal fondo
-            to_eye = (Vector(EYE) - pos)
-            to_eye.z = 0
-            to_eye.normalize()
-            side = Vector((-to_eye.y, to_eye.x, 0))
-            rim = light_only(f'FoxyRim_{luogo}_{tag}', fig, pos + (-to_eye * 3.0 + side * 1.6 + Vector((0, 0, 3.4))) * k, pos + Vector((0, 0, 1.2 * k)),
-                             RIM[tag] * RIM_LUOGO[luogo] * k * k * float(os.environ.get('FOXY_RIM', '1')), (0.70, 0.80, 1.0), 1.2 * k)
-            key = None
-            if KEY[(luogo, tag)] > 0:
-                key = light_only(f'FoxyKey_{luogo}_{tag}', fig, pos + (to_eye * 4.0 - side * 1.5 + Vector((0, 0, 3.5))) * k, pos + Vector((0, 0, 1.1 * k)),
-                                 KEY[(luogo, tag)] * k * k, (0.72, 0.80, 1.0), 2.5 * k)
-            x0, y0, x1, y1 = screen_rect(cam, fig, W, H)
+            extra = []
+            if pos.z < 0:
+                # in acqua: l'anello d'increspature e la schiuma attorno alla vita (l'acqua che smuove)
+                extra = water_ring(pos, k)
+            # nessuna luce sua: prende quelle del posto. Si incolla tutto il riquadro reso con lui (la sua ombra, la luce
+            # che copre, l'acqua), sfumato ai bordi; il riquadro si rende con gli stessi campioni del vuoto, così il rumore
+            # combacia. Lui cambia stadio solo quando non lo guardi: le minime differenze al bordo non si vedono
+            x0, y0, x1, y1 = screen_rect(cam, fig + extra, W, H, pad=PAD)
             exr = os.path.join(out_dir, f'{luogo}_{tag}{serie}.exr')
             t = time.time()
-            render(exr, samples * 2, (W, H), region=(x0, y0, x1, y1), data_passes=('Depth', 'Object Index'))
+            render(exr, samples, (W, H), region=(x0, y0, x1, y1), data_passes=('Depth',))
             q = post.read_exr(exr)
             h_, w_ = y1 - y0, x1 - x0
             lin_r = post.rgb(q['ambient'])[:h_, :w_]
             mist_r = mist_of(q)[:h_, :w_]
-            m = binary_dilation(np.abs(q['index'][:h_, :w_] - IDX_FOXY) < 0.5, iterations=2)
-            m = np.clip(gaussian_filter(m.astype(np.float32), 1.0) * 1.4, 0, 1)
-            # il render ha l'origine in basso? read_exr dà le righe dall'alto come l'immagine intera
+            yy, xx = np.mgrid[0:h_, 0:w_].astype(np.float32)
+            big = np.full_like(xx, 1e9)
+            # distanza dai lati del riquadro (i lati sul bordo dell'immagine non si sfumano)
+            edge = np.minimum.reduce([xx + 1 if x0 > 0 else big, w_ - xx if x1 < W else big,
+                                      yy + 1 if y0 > 0 else big, h_ - yy if y1 < H else big])
+            m = np.clip((edge - 2) / FEATHER, 0, 1)
             lin = base.copy()
             mi = bmist.copy()
             lin[y0:y1, x0:x1] = lin[y0:y1, x0:x1] * (1 - m[..., None]) + lin_r * m[..., None]
             mi[y0:y1, x0:x1] = mi[y0:y1, x0:x1] * (1 - m) + mist_r * m
             outs['_' + tag] = (lin, mi)
-            rim.hide_render = True
-            if key:
-                key.hide_render = True
+            for o in extra:
+                bpy.data.objects.remove(o, do_unlink=True)
             print('ok', luogo, tag, round(time.time() - t), 's', (x0, y0, x1, y1), flush=True)
         for suf0, (lin, mi) in outs.items():
             suf = suf0 + serie

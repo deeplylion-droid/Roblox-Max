@@ -718,7 +718,7 @@ def man_hand(wrist, fwd, n_curl, seed, spread=0.3, k=1.0, elbow=None, bony=False
 def build(P):
     """Costruisce la variante P. Restituisce (oggetti, punto della faccia, sistema della testa dell'uomo)."""
     obs = []
-    pl = plush('Plush', soak=P['soak'])
+    pl = plush(P.get('plush_name', 'Plush'), base=P.get('plush_base', (0.035, 0.11, 0.42)), soak=P['soak'])
     fm = foam()
     sl = skin.slime_material('Slime', tint=(0.70, 0.82, 0.55))
     thread_m = mat_simple('Thread', (0.02, 0.02, 0.025), rough=0.5)
