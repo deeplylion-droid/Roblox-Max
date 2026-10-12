@@ -375,6 +375,10 @@ export class Night {
   /** il suono dell'avvicinamento (12 s): si tronca se muori prima che finisca */
   private motherApproachV: Voice | null = null;
   private motherPrevT = 0;
+  /** secondi saltati all'inizio del suono dell'avviso (12 s), perché finisca quando comincia la passata: nella notte 6
+   *  l'avviso dura 10 s, nella 7 da 12 a 8 secondo il livello. Il mare che si calma, la luce che trema e la ninna nanna
+   *  seguono il suono, quindi si spostano con lui (revisione della notte 6, punto 3) */
+  private motherSkip = 0;
   /** la cinematica in corso (i finali): la sequenza, a che punto è, le voci da fermare se la si salta */
   private cine: { s: CinematicScript; t: number; voices: Voice[] } | null = null;
   /** le creature vive: il respiro, lo scatto quando le guardi, le gocce (vivi.ts) */
@@ -1319,7 +1323,8 @@ export class Night {
             cap(S.captions.motherCall);
             break;
           case 'approach':
-            this.motherApproachV = fx.motherApproach();
+            this.motherSkip = Math.max(0, this.d.audio.duration('madre_approach') - mo.approachTime);
+            this.motherApproachV = fx.motherApproach(this.motherSkip);
             cap(S.captions.motherApproach);
             break;
           case 'pass':
@@ -1696,7 +1701,9 @@ export class Night {
     const t0 = this.motherPrevT;
     const t = mo.stateTime;
     this.motherPrevT = t;
-    const crossed = (x: number) => mo.state === 'approaching' && t0 < x && t >= x && t - t0 < 1;
+    // i momenti dell'avviso, sul suono: il mare si calma a 3,5 s, la luce trema a 6 e 9 s, la ninna nanna a 8 s
+    const k = this.motherSkip;
+    const crossed = (x: number) => mo.state === 'approaching' && t0 < x - k && t >= x - k && t - t0 < 1;
     if (crossed(6) || crossed(9)) st.lampDip = Math.max(st.lampDip, this.d.options.reduceFlash ? 0.4 : 0.75);
     if (crossed(8) && !this.motherSong && !this.finished) {
       this.motherSong = this.d.sfx.motherLullaby();
@@ -1704,7 +1711,7 @@ export class Night {
       if (this.d.options.captions) this.hud.caption(this.S.captions.motherLullaby);
     }
     const calm =
-      (mo.state === 'approaching' && t >= 3.5) || mo.state === 'passing' || mo.state === 'leaving' || mo.state === 'attack';
+      (mo.state === 'approaching' && t >= 3.5 - k) || mo.state === 'passing' || mo.state === 'leaving' || mo.state === 'attack';
     v.mCalm = approach(v.mCalm, calm ? 1 : 0, calm ? 1.4 : 0.25, dt);
     // la barca sul suo dorso: su piano mentre passa, di colpo se ti prende
     const liftT = mo.state === 'passing' ? 1 : mo.state === 'attack' ? 3 : 0;
@@ -2988,7 +2995,7 @@ export class Night {
     let hint = '';
     if (!this.finished && !this.js) {
       const mo = sim.mother;
-      if (mo && (mo.state === 'passing' || (mo.state === 'approaching' && mo.stateTime > 3.5))) hint = this.hintText('mother');
+      if (mo && (mo.state === 'passing' || (mo.state === 'approaching' && mo.stateTime > 3.5 - this.motherSkip))) hint = this.hintText('mother');
       else if (sim.hide === 'in') hint = this.hintText('unhide');
       else if (sim.fangy?.listening) hint = this.hintText('fangy');
       else if (sim.hatch.state === 'counting') hint = this.hintText('hide');

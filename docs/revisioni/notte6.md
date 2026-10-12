@@ -45,6 +45,14 @@ Revisione del branch `claude/notte6` (bozza: `NIGHTS[6].bozza`), 11 ottobre. Le 
 
 ## Da guardare (in ordine di gravità)
 
+> **Stato al 12 ottobre sera: chiusi tutti.** 1: deciso così (alzare il binocolo durante la passata è un movimento,
+> approvato l'11 ottobre; è nelle regole di docs/NOTTI_E_MOSTRI.md). 2: corretto (all'inizio della passata il bordo
+> smette di girare lo sguardo finché il mouse non si muove). 3: corretto il 12 ottobre: il suono dell'avviso salta i
+> primi secondi (12 s meno la durata dell'avviso: 2 s nella notte 6, da 0 a 4 nella 7) e finisce quando comincia la
+> passata; il mare calmo, la luce che trema e la ninna nanna si spostano con lui (provato: 1,5 / 4 e 7 / 6 s, passata a
+> 10 s). 4: ci sono i fotogrammi del jumpscare (`jumpscares.madre`). 5: ci sono la notte 7 e i titoli di coda. 6:
+> corretto (la barra del mulinello guarda anche `finished`).
+
 1. **Alzare il binocolo mentre passa è la morte, ma le regole non lo dicono.** `src/app/night.ts:724`
    (`sim.setView(view.yaw, this.sonarOpen || this.bino > 0.5)`): per la simulazione il binocolo è il sonar, quindi
    alzarlo durante la passata (tasto destro) fa scattare il jumpscare anche se lo sguardo non gira. Le regole elencano

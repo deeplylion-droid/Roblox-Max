@@ -1006,6 +1006,11 @@ export class Mother {
     return this.state === 'passing';
   }
 
+  /** quanto dura l'avviso prima della passata (s) */
+  get approachTime(): number {
+    return this.cfg.approach;
+  }
+
   /** quanto dura la passata in corso (s) */
   get passTime(): number {
     return this.cfg.pass[Math.max(0, Math.min(this.cfg.pass.length - 1, this.pass))] ?? 10;

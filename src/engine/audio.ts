@@ -25,6 +25,8 @@ export interface PlayOpts {
   lowpass?: number;
   /** body: il corpo del pescatore (il cuore, il respiro), dentro la testa: non passa per l'ovattato del telone */
   bus?: 'music' | 'sfx' | 'amb' | 'ui' | 'voice' | 'body';
+  /** secondi da saltare all'inizio del file (il suono parte da lì) */
+  offset?: number;
 }
 
 export interface Voice {
@@ -190,6 +192,11 @@ export class AudioEngine {
     this.muffle.frequency.setTargetAtTime(f, this.ctx.currentTime, 0.08);
   }
 
+  /** Quanto dura un suono (s, dal manifest; 0 se non c'è). */
+  duration(id: string): number {
+    return this.manifest[id]?.duration ?? 0;
+  }
+
   play(id: string, o: PlayOpts = {}): Voice | null {
     const ctx = this.ctx;
     const buf = this.buffers.get(id);
@@ -229,7 +236,7 @@ export class AudioEngine {
     node.connect(g);
     const bus = o.bus ?? (info.category === 'mus' ? 'music' : info.category === 'amb' ? 'amb' : info.category === 'ui' ? 'ui' : info.category === 'voice' ? 'voice' : info.category === 'body' ? 'body' : 'sfx');
     g.connect(this.buses[bus]!);
-    src.start();
+    src.start(0, Math.max(0, o.offset ?? 0));
     let ended = false;
     src.onended = () => {
       ended = true;
