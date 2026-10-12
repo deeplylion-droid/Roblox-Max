@@ -92,7 +92,7 @@ async function boot(): Promise<void> {
   const keys = GAME_LAYERS.filter((k) => man.layers[k]);
   const audio = new AudioEngine();
   await audio.load();
-  // l'opzione «Nebbia» spenta: il mondo, la barca, il binocolo e il telone senza la nebbia resa
+  // l'opzione «Nebbia» spenta: gli strati, il binocolo, il telone e i jumpscare senza la nebbia resa (dove c'è la serie)
   const senza = !save.options.fog;
   for (const [i, k] of keys.entries()) {
     r.addLayer(await loadLayer(r.gl, man, k, senza));

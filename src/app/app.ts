@@ -3,7 +3,7 @@
  * (dalla prima alla quinta) si può scendere con le bombole (l'immersione, src/app/dive.ts) prima della notte dopo.
  * Tiene il salvataggio, le opzioni e lo sfondo animato dei menu (la scena dalla barca).
  */
-import { loadLayer } from '../engine/assets.ts';
+import { fogLayerKeys, loadLayer } from '../engine/assets.ts';
 import { DISEGNI_ALBA, disegnoAlba, disegniTrovati } from './disegni.ts';
 import type { AudioEngine, Voice } from '../engine/audio.ts';
 import { EXTRA_NIGHT, NIGHTS, extraEndingEarned, extraNight, type MonsterId, type NightConfig } from '../game/config.ts';
@@ -264,17 +264,24 @@ export class App {
   /** i cambi di serie dell'opzione «Nebbia», uno dopo l'altro (se si preme due volte di fila il secondo aspetta) */
   private fogSwap: Promise<void> = Promise.resolve();
 
-  /** L'opzione «Nebbia» cambiata: il mondo, la barca, il binocolo e il telone passano all'altra serie di immagini
-   *  (pochi megabyte, un attimo; anche a notte in corso). Mostri e jumpscare sono gli stessi nelle due serie. */
+  /** L'opzione «Nebbia» cambiata: gli strati che hanno la serie senza nebbia (il mondo, la barca, i mostri e le loro
+   *  toppe), il binocolo, il telone e i jumpscare passano all'altra serie di immagini (anche a notte in corso). Quello
+   *  che non ha la serie senza nebbia resta com'è. */
   private swapFog(on: boolean): void {
     this.fogSwap = this.fogSwap
       .then(async () => {
         const r = this.stage.renderer;
-        for (const k of ['world', 'boat']) {
-          if (!this.stage.man.layers[k]?.senza) continue;
-          const l = await loadLayer(r.gl, this.stage.man, k, !on);
-          r.removeLayer(k);
-          r.addLayer(l);
+        for (const k of fogLayerKeys(this.stage.man, r.layers.keys())) {
+          try {
+            const l = await loadLayer(r.gl, this.stage.man, k, !on);
+            const had = r.layers.has(k);
+            r.removeLayer(k);
+            r.addLayer(l);
+            // uno strato tolto nel frattempo (un'immersione che finisce) non torna
+            if (!had) r.removeLayer(k);
+          } catch (e) {
+            console.warn(e);
+          }
         }
         await swapFogAssets(r.gl, this.assets, !on);
       })
