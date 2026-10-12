@@ -24,7 +24,9 @@ linee tremolanti (la mano di un bambino di sette anni): sbavano, non chiudono, c
 cera respinge l'acqua: bagnato, il disegno resta vivo e si rovina solo la carta.
 
 Uso: tools/.venv/bin/python tools/render/pastelli.py <ricordo|piscina|tesoro|compleanno|sottacqua|marcopolo|tutti>
-     [--uscita cartella] [--anteprima]
+     [--uscita cartella] [--anteprima] [--lingua en] [--larghezza 1600]
+Con --lingua fa solo i disegni che hanno scritte da tradurre (SCRITTE), in pastelli_<nome>_<lingua>.webp; con
+--larghezza 1600 le immagini sono già della misura del gioco (public/assets/img/disegni).
 """
 from __future__ import annotations
 
@@ -56,6 +58,28 @@ PASTELLI = {
     'grigio': (0.55, 0.55, 0.58),
     'bianco': (0.95, 0.95, 0.92),
 }
+
+# Le scritte che il giocatore deve capire, lingua per lingua (prova dell'utente del 12 ottobre: «stai attento alle
+# immagini e ai testi nelle immagini»; e prima del lancio il gioco potrebbe uscire in altre lingue). `--lingua xx` rifà
+# i disegni che hanno scritte da tradurre, col resto del disegno identico a quello italiano; per una lingua nuova
+# bastano le sue righe qui (e le lettere che mancano in LETTERE). Restano uguali in tutte le lingue i nomi (SPLASHLAND,
+# NIGHT SPLASH, SNACK), le date in cifre, AH AH AH e MARCO!/POLO! (il gioco si chiama così anche in inglese).
+# L'elenco di tutte le immagini con scritte è in docs/LOCALIZZAZIONE.md.
+SCRITTE = {
+    'en': {
+        'TROVAMI!': 'FIND ME!',
+        'GUARDAMI!': 'LOOK AT ME!',
+        'HO FAME!': "I'M HUNGRY!",
+        'AGOSTO 97': 'AUGUST 97',
+        'IL MIO TESORO': 'MY TREASURE',
+        'TANTI AUGURI': 'HAPPY BIRTHDAY',
+        'AIUTO!': 'HELP!',
+    },
+}
+LINGUA = 'it'
+# vero mentre una scritta si disegna a secco (vedi _come_in_italiano); le scritte tradotte nel disegno in corso
+_SECCO = False
+_TRADOTTE: list[str] = []
 
 
 # ───────────────────────── il foglio ─────────────────────────
@@ -104,7 +128,15 @@ class Strato:
         self.p = np.zeros((H, W), np.float32)
 
 
+class _StratoFinto:
+    """Lo strato di una scritta disegnata a secco: i tratti non ci lasciano niente (vedi _come_in_italiano)."""
+
+    p = None
+
+
 def strato(colore):
+    if _SECCO:
+        return _StratoFinto()
     s = Strato(colore)
     F.strati.append(s)
     return s
@@ -157,6 +189,8 @@ def tratto(st: Strato, pts, larg=18.0, press=1.0, trema=1.0, rastremato=True):
         k = np.minimum(1.0, np.minimum(np.arange(n), np.arange(n)[::-1]) / max(2.0, n * 0.12))
         pr = pr * (0.45 + 0.55 * k)
     lw = larg * (0.9 + 0.2 * gaussian_filter(rng.random(n), 4.0))
+    if _SECCO:
+        return
     for i in range(n - 1):
         v = int(np.clip(pr[i] * 180, 0, 255))
         w = max(2, int(lw[i]))
@@ -311,7 +345,68 @@ LETTERE = {
 STRETTE = set("I1!'-")
 
 
-def scrivi(colore, testo, x, y, alt, larg=14.0, press=1.1, spazio=0.32, specchia=(), salti=0.12, cresce=0.0):
+def _da_tradurre(testo):
+    return LINGUA != 'it' and not _SECCO and testo in SCRITTE.get(LINGUA, {})
+
+
+def _come_in_italiano(disegna, testo):
+    """La scritta nella lingua scelta, col resto del disegno identico a quello italiano: prima la scritta italiana a
+    secco, disegna(True) (consuma i numeri a caso come se disegnasse, senza lasciare segni), poi quella tradotta,
+    disegna(False), coi numeri di prima; alla fine il generatore riparte da dove l'avrebbe lasciato l'italiano."""
+    global _SECCO
+    bg = F.rng.bit_generator
+    prima = bg.state
+    _SECCO = True
+    try:
+        disegna(True)
+    finally:
+        _SECCO = False
+    dopo = bg.state
+    bg.state = prima
+    fine = disegna(False)
+    bg.state = dopo
+    _TRADOTTE.append(testo)
+    return fine
+
+
+def _larghezza(testo, alt, spazio=0.32):
+    """Quanto è larga una scritta di _scrivi, senza le variazioni a caso."""
+    return sum(alt * 0.6 if ch == ' ' else alt * (0.62 if ch not in 'MW' else 0.9) * (0.3 if ch in STRETTE else 1.0) + alt * spazio
+               for ch in testo)
+
+
+def _al_posto(it, tr, x, alt, spazio=0.32, pieno=1.0):
+    """Dove e quanto grande va la scritta tradotta al posto di quella italiana: se è più lunga, più piccola fino a
+    starci (non deve finire sopra il resto del disegno); se è più corta, nel mezzo dello spazio dell'italiana.
+    `pieno`: quanto di quello spazio può prendere (nelle nuvolette un po' meno, che l'ultima lettera non tocchi il
+    bordo)."""
+    w_it, w_tr = _larghezza(it, alt, spazio), _larghezza(tr, alt, spazio)
+    k = min(1.0, pieno * w_it / w_tr)
+    return x + (w_it - w_tr * k) / 2, alt * k
+
+
+def scrivi(colore, testo, x, y, alt, *a, **k):
+    """Scrive in stampatello (vedi _scrivi), nella lingua scelta se la scritta è fra quelle da tradurre."""
+    if not _da_tradurre(testo):
+        return _scrivi(colore, testo, x, y, alt, *a, **k)
+    tr = SCRITTE[LINGUA][testo]
+    x2, alt2 = _al_posto(testo, tr, x, alt, k.get('spazio', 0.32))
+    return _come_in_italiano(lambda it: _scrivi(colore, testo, x, y, alt, *a, **k) if it else _scrivi(colore, tr, x2, y, alt2, *a, **k),
+                             testo)
+
+
+def fumetto(testo, x, y, alt, *a, **k):
+    """Una nuvoletta con la scritta (vedi _fumetto), nella lingua scelta se la scritta è fra quelle da tradurre: la
+    nuvoletta resta quella dell'italiano, la scritta tradotta ci sta dentro."""
+    if not _da_tradurre(testo):
+        return _fumetto(testo, x, y, alt, *a, **k)
+    tr = SCRITTE[LINGUA][testo]
+    x2, alt2 = _al_posto(testo, tr, x, alt, pieno=0.92)
+    return _come_in_italiano(lambda it: _fumetto(testo, x, y, alt, *a, **k) if it else _fumetto(testo, x, y, alt, *a, scritta=(tr, x2, alt2), **k),
+                             testo)
+
+
+def _scrivi(colore, testo, x, y, alt, larg=14.0, press=1.1, spazio=0.32, specchia=(), salti=0.12, cresce=0.0):
     """Scrive in stampatello: lettere di misura un po' diversa, storte, che salgono o scendono; `specchia` sono gli
     indici delle lettere scritte al contrario (la S girata dei bambini). Restituisce dove finisce la scritta."""
     rng = rnd()
@@ -339,8 +434,9 @@ def scrivi(colore, testo, x, y, alt, larg=14.0, press=1.1, spazio=0.32, specchia
     return cx
 
 
-def fumetto(testo, x, y, alt, colore='nero', verso=(-1, 1), bordo='nero'):
-    """Una nuvoletta coi bordi a onda attorno alla scritta, con la punta verso chi parla (verso: da che parte)."""
+def _fumetto(testo, x, y, alt, colore='nero', verso=(-1, 1), bordo='nero', scritta=None):
+    """Una nuvoletta coi bordi a onda attorno alla scritta, con la punta verso chi parla (verso: da che parte).
+    `scritta` (testo, x, altezza): dentro c'è un'altra scritta, la traduzione di `testo` (vedi fumetto)."""
     rng = rnd()
     larg_t = sum(alt * (0.6 if c == ' ' else 0.62 * (0.3 if c in STRETTE else 1.0) + 0.32 * alt / alt) for c in testo)
     larg_t = len(testo) * alt * 0.86
@@ -358,7 +454,8 @@ def fumetto(testo, x, y, alt, colore='nero', verso=(-1, 1), bordo='nero'):
     px = cx + verso[0] * bw * 0.25
     py = cy + verso[1] * bh * 0.45
     tratto(strato(bordo), [(px - 20, py), (px + verso[0] * 70, py + verso[1] * 80), (px + 25, py + 4)], 10, 1.0)
-    scrivi(colore, testo, x, y, alt, larg=max(9, alt * 0.17), press=1.25)
+    st, sx, sa = scritta or (testo, x, alt)
+    _scrivi(colore, st, sx, y, sa, larg=max(9, alt * 0.17), press=1.25)
     return (px + verso[0] * 70, py + verso[1] * 80)
 
 
@@ -1159,25 +1256,46 @@ def invecchia(img, pieghe=(True, True), strappo=False, angolo=False, macchie=0):
 
 
 def main():
-    nomi = [a for a in sys.argv[1:] if not a.startswith('--')]
-    uscita = sys.argv[sys.argv.index('--uscita') + 1] if '--uscita' in sys.argv else '.'
-    if uscita in nomi:
-        nomi.remove(uscita)
+    global LINGUA
+    argomenti = sys.argv[1:]
+
+    def opzione(nome, base):
+        if nome not in argomenti:
+            return base
+        i = argomenti.index(nome)
+        valore = argomenti[i + 1]
+        del argomenti[i:i + 2]
+        return valore
+
+    uscita = opzione('--uscita', '.')
+    LINGUA = opzione('--lingua', 'it')
+    # le immagini del gioco (public/assets/img/disegni) sono larghe 1600 px
+    larghezza = int(opzione('--larghezza', str(W)))
+    nomi = [a for a in argomenti if not a.startswith('--')]
     if not nomi or nomi == ['tutti']:
         nomi = list(DISEGNI)
+    if LINGUA != 'it' and LINGUA not in SCRITTE:
+        sys.exit(f'nessuna scritta per la lingua {LINGUA!r}: aggiungila in SCRITTE')
     os.makedirs(uscita, exist_ok=True)
     for nome in nomi:
+        _TRADOTTE.clear()
         DISEGNI[nome]()
+        if LINGUA != 'it' and not _TRADOTTE:
+            print('disegno', nome, f'senza scritte da tradurre in {LINGUA!r}: vale quello italiano', flush=True)
+            continue
         img, alfa = invecchia(componi(), **CARTA[nome])
         rgba = np.dstack([img, alfa])
         im = Image.fromarray((rgba * 255 + 0.5).astype(np.uint8), 'RGBA')
-        out = os.path.join(uscita, f'pastelli_{nome}.webp')
+        if larghezza != W:
+            im = im.resize((larghezza, round(H * larghezza / W)), Image.LANCZOS)
+        suff = '' if LINGUA == 'it' else f'_{LINGUA}'
+        out = os.path.join(uscita, f'pastelli_{nome}{suff}.webp')
         im.save(out, quality=92, method=6)
         if '--anteprima' in sys.argv:
             prev = Image.new('RGB', (W // 2, H // 2), (24, 22, 26))
             small = im.resize((W // 2, H // 2), Image.LANCZOS)
             prev.paste(small, (0, 0), small)
-            prev.save(os.path.join(uscita, f'pastelli_{nome}_anteprima.jpg'), quality=88)
+            prev.save(os.path.join(uscita, f'pastelli_{nome}{suff}_anteprima.jpg'), quality=88)
         print('disegno', nome, out, flush=True)
 
 

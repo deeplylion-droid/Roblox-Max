@@ -110,6 +110,10 @@ html, body {
 .title h1 { font-size: clamp(36px, 7vw, 92px); margin-bottom: 4vh; }
 .title .build { position: absolute; right: 14px; bottom: 10px; font-size: 11px; letter-spacing: .04em; opacity: .4; pointer-events: none; }
 .intro { background: rgba(5,8,13,.92); }
+/* l'annuncio dopo «Nuova partita»: il volantino a tutto schermo, che si avvicina piano */
+.screen.annuncio { background: #000; cursor: pointer; overflow: hidden; }
+.annuncio .foglio { position: absolute; inset: 0; }
+.annuncio img { display: block; width: 100%; height: 100%; object-fit: cover; will-change: transform; }
 .intro .intro-time { font-family: 'Limelight', serif; font-size: 44px; color: var(--amber); margin: 8px 0 18px; }
 .pause { background: rgba(5,8,13,.78); }
 

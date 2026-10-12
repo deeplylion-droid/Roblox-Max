@@ -7,7 +7,7 @@ import { loadLayer } from '../engine/assets.ts';
 import { DISEGNI_ALBA, disegnoAlba, disegniTrovati } from './disegni.ts';
 import type { AudioEngine, Voice } from '../engine/audio.ts';
 import { EXTRA_NIGHT, NIGHTS, extraEndingEarned, extraNight, type MonsterId, type NightConfig } from '../game/config.ts';
-import { STRINGS, type Lang } from '../i18n.ts';
+import { STRINGS, localizedImage, type Lang } from '../i18n.ts';
 import { Dive, loadDiveData, type DiveResult } from './dive.ts';
 import { Night, type NightAssets, type NightEnd } from './night.ts';
 import { swapFogAssets } from './overlays.ts';
@@ -18,7 +18,23 @@ import { Screens, setUiSound } from './screens.ts';
 import type { Sfx } from './sfx.ts';
 import type { Stage } from './stage.ts';
 
-type Mode = 'warning' | 'title' | 'intro' | 'night' | 'paused' | 'static' | 'end' | 'dive';
+type Mode = 'warning' | 'title' | 'annuncio' | 'intro' | 'night' | 'paused' | 'static' | 'end' | 'dive';
+
+/**
+ * L'annuncio dopo «Nuova partita», come l'«Help Wanted» di FNAF (richiesta dell'utente del 12 ottobre; scelto il
+ * volantino del parco, da approvare): 3-4 s con una zoomata lenta, si salta col clic. Lo fa tools/render/annuncio.py.
+ */
+const ANNUNCIO = {
+  src: 'assets/img/annuncio/volantino.webp',
+  /** le lingue che hanno la loro versione (vedi localizedImage) */
+  langs: ['en'],
+  /** dove va la zoomata, in frazioni dell'immagine */
+  fx: 0.5,
+  fy: 0.45,
+  /** quanto dura, e l'ultimo pezzo, in cui si spegne nel buio */
+  seconds: 3.8,
+  fadeOut: 0.45,
+};
 
 /** Le immersioni all'alba si fanno dopo le notti dalla prima alla quinta (docs/IMMERSIONI.md). */
 const LAST_DIVE_NIGHT = 5;
@@ -157,6 +173,8 @@ export class App {
       };
       addEventListener('keydown', this.nightKeys);
     }
+    // l'annuncio di «Nuova partita» pronto in memoria, che compaia subito
+    new Image().src = localizedImage(ANNUNCIO.src, this.lang, ANNUNCIO.langs);
     this.screens.title({
       canContinue: reached >= 2,
       onNew: () => {
@@ -164,7 +182,10 @@ export class App {
         // nuova partita: niente pesci, mostri sfamati e tane della partita di prima
         newGame(this.save);
         writeSave(this.save);
-        this.intro(forced >= 1 && forced <= lastNight() ? forced : 1);
+        const n = forced >= 1 && forced <= lastNight() ? forced : 1;
+        // dalla prima notte, prima l'annuncio con cui il pescatore ha trovato il lavoro
+        if (n === 1) this.annuncio(() => this.intro(1));
+        else this.intro(n);
       },
       // se il gioco era stato chiuso sullo schermo dell'alba, si riprende da lì (si può ancora scendere)
       onContinue: () => (canDive(reached - 1) && pendingDawn(this.save, reached) ? this.dawnAgain(reached) : this.intro(reached)),
@@ -272,6 +293,23 @@ export class App {
     // «Riduci lampi e scosse» spegne anche le vibrazioni del controller
     pad.rumbleOn = !o.reduceFlash;
     document.documentElement.style.setProperty('--ts', String(o.textSize || 1));
+  }
+
+  /** L'annuncio (vedi ANNUNCIO), poi `next`. Sotto continua la ninna nanna del titolo. */
+  private annuncio(next: () => void): void {
+    this.mode = 'annuncio';
+    // il conto va col tempo vero, come la zoomata (Web Animations): finiscono insieme anche coi fotogrammi lenti
+    this.annuncioEnd = performance.now() + ANNUNCIO.seconds * 1000;
+    this.afterAnnuncio = next;
+    this.screens.annuncio({
+      src: localizedImage(ANNUNCIO.src, this.lang, ANNUNCIO.langs),
+      fx: ANNUNCIO.fx,
+      fy: ANNUNCIO.fy,
+      seconds: ANNUNCIO.seconds,
+      onSkip: () => {
+        if (this.mode === 'annuncio') this.annuncioEnd = Math.min(this.annuncioEnd, performance.now() + ANNUNCIO.fadeOut * 1000);
+      },
+    });
   }
 
   private intro(n = this.nightNo): void {
@@ -512,6 +550,9 @@ export class App {
   }
 
   private afterStatic: (() => void) | null = null;
+  private afterAnnuncio: (() => void) | null = null;
+  /** quando finisce l'annuncio (performance.now) */
+  private annuncioEnd = 0;
   private music: Voice | null = null;
 
   // ───────────────────────── ciclo ─────────────────────────
@@ -547,6 +588,20 @@ export class App {
         else if (this.mode === 'dive') st.frame({ layers: [], fade: 0 });
         else this.tick(0);
         return;
+      case 'annuncio': {
+        const left = (this.annuncioEnd - performance.now()) / 1000;
+        // l'ultimo pezzo: il volantino si spegne nel buio
+        if (left <= ANNUNCIO.fadeOut) this.screens.annuncioOut(ANNUNCIO.fadeOut);
+        if (left <= 0) {
+          const next = this.afterAnnuncio;
+          this.afterAnnuncio = null;
+          next?.();
+          return;
+        }
+        // il controller lo salta (padnav); la scena dietro non si vede, non serve disegnarla
+        this.nav.update(this.ui, dt);
+        return;
+      }
       case 'intro':
         this.timer -= dt;
         if (this.timer <= 0) {

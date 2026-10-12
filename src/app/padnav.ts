@@ -107,8 +107,8 @@ export class PadNav {
       pad.nav(dt);
       return false;
     }
-    // l'avvertenza: qualunque tasto va avanti
-    if (scope.classList.contains('warning')) {
+    // l'avvertenza e l'annuncio: qualunque tasto va avanti
+    if (scope.classList.contains('warning') || scope.classList.contains('annuncio')) {
       pad.nav(dt);
       if (pad.anyPressed()) scope.dispatchEvent(new Event('pointerdown'));
       return true;

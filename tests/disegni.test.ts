@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DISEGNI_ALBA, disegnoAlba, disegnoSrc, disegniTrovati } from '../src/app/disegni.ts';
+import { localizedImage } from '../src/i18n.ts';
 
 describe('I disegni a pastelli dell’alba', () => {
   it('uno per notte, dalla prima alla quinta; la sesta e la notte extra non ne lasciano', () => {
@@ -18,5 +19,21 @@ describe('I disegni a pastelli dell’alba', () => {
 
   it('i file stanno in assets/img/disegni', () => {
     expect(disegnoSrc('piscina')).toBe('assets/img/disegni/pastelli_piscina.webp');
+  });
+
+  it('in inglese, i disegni con le scritte tradotte; Marco Polo vale per tutte le lingue', () => {
+    expect(disegnoSrc('piscina', 'en')).toBe('assets/img/disegni/pastelli_piscina_en.webp');
+    expect(disegnoSrc('compleanno', 'en')).toBe('assets/img/disegni/pastelli_compleanno_en.webp');
+    expect(disegnoSrc('marcopolo', 'en')).toBe('assets/img/disegni/pastelli_marcopolo.webp');
+    expect(disegnoSrc('piscina', 'it')).toBe('assets/img/disegni/pastelli_piscina.webp');
+  });
+});
+
+describe('Le immagini con scritte nelle lingue del gioco', () => {
+  it('la versione della lingua; se manca, quella inglese; se manca anche quella, l’originale', () => {
+    expect(localizedImage('a/b.webp', 'it', ['en', 'de'])).toBe('a/b.webp');
+    expect(localizedImage('a/b.webp', 'de', ['en', 'de'])).toBe('a/b_de.webp');
+    expect(localizedImage('a/b.webp', 'fr', ['en'])).toBe('a/b_en.webp');
+    expect(localizedImage('a/b.webp', 'fr', [])).toBe('a/b.webp');
   });
 });

@@ -5,6 +5,8 @@
  * stessa mano del disegno di «Il ricordo», il finale B).
  */
 
+import { localizedImage } from '../i18n.ts';
+
 /** Il disegno dell'alba di ogni notte. */
 export const DISEGNI_ALBA: Record<number, string> = {
   1: 'piscina',
@@ -14,7 +16,16 @@ export const DISEGNI_ALBA: Record<number, string> = {
   5: 'marcopolo',
 };
 
-export const disegnoSrc = (id: string): string => `assets/img/disegni/pastelli_${id}.webp`;
+/** I disegni con scritte da tradurre e le lingue che hanno la loro versione (tools/render/pastelli.py --lingua); gli
+ *  altri hanno solo nomi e numeri (Marco Polo: «MARCO!», «POLO!») e valgono in tutte le lingue. */
+const TRADOTTI: Record<string, readonly string[]> = {
+  piscina: ['en'],
+  tesoro: ['en'],
+  compleanno: ['en'],
+  sottacqua: ['en'],
+};
+
+export const disegnoSrc = (id: string, lang = 'it'): string => localizedImage(`assets/img/disegni/pastelli_${id}.webp`, lang, TRADOTTI[id] ?? []);
 
 /** Il disegno trovato all'alba della notte `night` (null: quella notte non ne lascia). */
 export function disegnoAlba(night: number): string | null {
