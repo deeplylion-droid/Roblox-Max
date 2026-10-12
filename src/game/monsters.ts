@@ -996,7 +996,8 @@ export class Foxy {
 
   constructor(
     private cfg: FoxyConfig,
-    readonly places: { yaw: number; pitch: number }[],
+    /** i posti (FOXY_PLACES): id è la chiave del posto del binocolo */
+    readonly places: { id?: string; yaw: number; pitch: number }[],
   ) {
     this.timer = cfg.firstAt;
   }

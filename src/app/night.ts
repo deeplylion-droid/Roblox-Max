@@ -35,7 +35,8 @@ export interface NightAssets {
   /** ritratti dei pesci del Catalogo già renderizzati: id → URL dell'immagine */
   fish: Record<string, string>;
   /** i luoghi dell'orizzonte per il binocolo, e dove sta la luce rossa della videocamera */
-  binocular: { places: { key: string; yaw: number; pitch: number; hfov: number; place: BinoPlace }[]; rec: Vec3 | null };
+  /** i posti del binocolo; foxy: le viste dello stesso posto col Foxy fermo e più vicino (se ci sono i render) */
+  binocular: { places: { key: string; yaw: number; pitch: number; hfov: number; place: BinoPlace; foxy?: BinoPlace[] }[]; rec: Vec3 | null };
 }
 
 export interface NightStats {
@@ -2262,8 +2263,14 @@ export class Night {
     let layers = this.layerDraws();
     if (binoOn) layers = layers.filter((d) => man.layers[typeof d === 'string' ? d : d.key]?.space === 'world');
     const B = this.d.assets.binocular;
+    // il Foxy nel suo posto: la vista del posto con lui (fermo o più vicino) al posto di quella vuota
+    const fx = this.sim.foxy;
+    const fxStage = fx?.stage ?? null;
+    const fxAt = fx && fxStage !== null ? fx.places[fx.place]!.id : undefined;
     const places = this.bino > 0
-      ? B.places.filter((p) => Math.abs(((p.yaw - st.view.yaw + 540) % 360) - 180) < p.hfov / 2 + st.view.hfov * 0.75 + 2).map((p) => p.place)
+      ? B.places
+        .filter((p) => Math.abs(((p.yaw - st.view.yaw + 540) % 360) - 180) < p.hfov / 2 + st.view.hfov * 0.75 + 2)
+        .map((p) => (p.key === fxAt && fxStage !== null && p.foxy?.[fxStage] ? p.foxy[fxStage]! : p.place))
       : [];
     // gli aloni delle luci lontane sono pensati per la vista normale: col binocolo si stringono
     let glows = st.landscapeGlows(eyes.world);
@@ -2271,10 +2278,9 @@ export class Night {
       const k = 1 - be * (1 - Math.min(1, (st.view.hfov / 90) * 1.6));
       glows = glows.map((g) => ({ ...g, radius: g.radius * k, color: [g.color[0] * (1 - 0.35 * be), g.color[1] * (1 - 0.35 * be), g.color[2] * (1 - 0.35 * be)] }));
     }
-    // il Foxy nel suo posto (provvisorio, finché non c'è il render): due occhi rossi che ti guardano; sporto, più grandi
-    // e più bassi; col posto vuoto niente
-    const fx = this.sim.foxy;
-    if (this.bino > 0 && fx && fx.stage !== null) {
+    // il Foxy nel suo posto, finché non ci sono le sue viste renderizzate: due occhi rossi che ti guardano; più vicino,
+    // più grandi e più bassi; col posto vuoto niente
+    if (this.bino > 0 && fx && fx.stage !== null && !B.places.find((p) => p.key === fxAt)?.foxy) {
       const p = fx.places[fx.place]!;
       const lean = fx.stage === 1;
       for (const s of [-1, 1]) {
