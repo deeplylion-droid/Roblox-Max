@@ -461,6 +461,13 @@ def run():
         o.hide_render = True
     luce_sottacqua()
     obs, base, wave = build_madre()
+    # il punto luce illumina (e si riflette) solo sull'occhio: sulla pelle bagnata faceva una macchia bianca
+    cl = bpy.data.objects.get('QuotaCatchLight')
+    eye = bpy.data.objects.get('MadreEye0')
+    if cl and eye:
+        rc = bpy.data.collections.new('QuotaCatchReceivers')
+        rc.objects.link(eye)
+        cl.light_linking.receiver_collection = rc
     ps = poses()
     apex1 = ps[-1][4]
     pulviscolo(apex1)
