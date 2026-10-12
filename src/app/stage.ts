@@ -19,6 +19,9 @@ interface GlowDef {
   /** solo nel binocolo: le luci messe per i posti visti da vicino (quelle attorno a Soggy), che a occhio nudo non si
    *  vedono; il raggio è già pensato per l'inquadratura stretta (night.ts lo stringe come gli altri) */
   bino?: boolean;
+  /** dove sta, dall'occhio, se non è fra le luci del manifest (quelle che esistono solo nelle viste del binocolo: il
+   *  render del mondo riscrive le sue luci e le perderebbe) */
+  pos?: Vec3;
 }
 
 /** Luci del paesaggio che vivono anche nel motore (sfarfallii, lampeggi). */
@@ -33,14 +36,14 @@ const GLOWS: GlowDef[] = [
   { key: 'wheelBulb', color: [1.0, 0.75, 0.4], radius: 0.002, anim: (t) => (Math.sin(t * 4.1) > 0.7 ? 0.0 : 0.8) },
   { key: 'hotelWindow', color: [1.0, 0.7, 0.35], radius: 0.002, anim: (t) => (Math.floor(t / 7) % 5 === 3 ? 0.0 : 0.5) },
   { key: 'marina', color: [0.5, 0.9, 0.8], radius: 0.03, anim: () => 0.04 },
-  // le luci attorno a Soggy (sessione del Foxy, 12 ottobre; da approvare): il lampione vecchio, verdastro, che ogni tanto
-  // perde un colpo; la lanterna del relitto che trema come una fiamma; il festone sopra gli scivoli, due lampadine che
-  // si spengono e si riaccendono ognuna per conto suo
-  { key: 'soggyLamp', color: [0.8, 1.0, 0.45], radius: 0.004, anim: (t) => (Math.sin(t * 0.7) * Math.sin(t * 2.9) > 0.9 ? 0.12 : 0.7), bino: true },
-  { key: 'soggyLantern', color: [1.0, 0.5, 0.18], radius: 0.004, anim: (t) => 0.55 + 0.2 * Math.sin(t * 11) * Math.sin(t * 6.7), bino: true },
-  { key: 'soggyGarland', color: [1.0, 0.62, 0.3], radius: 0.008, anim: () => 0.35, bino: true },
-  { key: 'soggyBulb1', color: [1.0, 0.62, 0.3], radius: 0.003, anim: (t) => (Math.sin(t * 5.3) * Math.sin(t * 1.3) > 0.55 ? 0.03 : 0.6), bino: true },
-  { key: 'soggyBulb2', color: [1.0, 0.62, 0.3], radius: 0.003, anim: (t) => (Math.sin(t * 3.1 + 2) * Math.sin(t * 0.9) > 0.6 ? 0.03 : 0.6), bino: true },
+  // le luci attorno a Soggy (render della sessione del Foxy, tools/render/foxy_binocolo.py; da approvare): il lampione
+  // alla base degli scivoli, che ogni tanto perde un colpo; le due lampadine che pendono dal tetto della torre vicino a
+  // lui, che si spengono e si riaccendono ognuna per conto suo; la lanterna del relitto, che trema come una fiamma.
+  // Il lampione e la lanterna dalle posizioni della scena, le lampadine dalle viste (conta solo la direzione)
+  { key: 'soggyLamp', pos: [-95.79, -426.21, 5.95], color: [0.9, 1.0, 0.75], radius: 0.004, anim: (t) => (Math.sin(t * 0.7) * Math.sin(t * 2.9) > 0.9 ? 0.12 : 0.7), bino: true },
+  { key: 'soggyBulb1', pos: [-99.13, -427.85, 26.87], color: [1.0, 0.85, 0.6], radius: 0.003, anim: (t) => (Math.sin(t * 5.3) * Math.sin(t * 1.3) > 0.55 ? 0.03 : 0.45), bino: true },
+  { key: 'soggyBulb2', pos: [-101.59, -427.27, 26.87], color: [1.0, 0.85, 0.6], radius: 0.003, anim: (t) => (Math.sin(t * 3.1 + 2) * Math.sin(t * 0.9) > 0.6 ? 0.03 : 0.45), bino: true },
+  { key: 'soggyLantern', pos: [40.71, 162.8, 2.59], color: [1.0, 0.85, 0.6], radius: 0.004, anim: (t) => 0.55 + 0.2 * Math.sin(t * 11) * Math.sin(t * 6.7), bino: true },
 ];
 
 export class Stage {
@@ -92,7 +95,7 @@ export class Stage {
     const atm = this.fog ? this.man.atmosfera?.glows : undefined;
     const out: LightGlow[] = [];
     for (const g of GLOWS) {
-      const p = lights[g.key];
+      const p = g.pos ?? lights[g.key];
       if (!p || atm?.off?.includes(g.key) || (g.bino && bino <= 0)) continue;
       const dir = norm(p);
       if (bino > 0 && !this.onScreen(dir, 0.5)) continue;

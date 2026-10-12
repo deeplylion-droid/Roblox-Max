@@ -3,15 +3,15 @@ import type { Manifest } from '../src/engine/assets.ts';
 import type { Renderer } from '../src/engine/renderer.ts';
 import { Stage } from '../src/app/stage.ts';
 
-// tre luci: la candela dell'edicola (a sinistra, yaw −74°), il neon (dietro, yaw 167°) e il lampione vicino agli
-// scivoli (dietro, yaw −167°), che si vede solo col binocolo
+// due luci del manifest: la candela dell'edicola (a sinistra, yaw −74°) e il neon (dietro, yaw 167°); in più quelle
+// attorno a Soggy, scritte nel codice: il lampione e le lampadine agli scivoli (yaw −167°), la lanterna al relitto
+// (yaw 14°), che si vedono solo col binocolo
 const man = {
   pano: { width: 4096, height: 1024, latMin: -40, latMax: 50 },
   layers: {},
   lights: {
     candle: [-88.44, 25.91, 2.65],
     neon: [104.98, -454.17, 26.32],
-    soggyLamp: [-95.8, -426.8, 7.2],
   },
 } as unknown as Manifest;
 
@@ -34,9 +34,11 @@ describe('Le luci del paesaggio', () => {
     expect(g.map((x) => hue(x.dir)).sort((a, b) => a - b)).toEqual([-74, 167]);
   });
 
-  it('col binocolo sugli scivoli: il lampione sì, le luci lontane dall’inquadratura no', () => {
+  it('col binocolo sugli scivoli: il lampione e le due lampadine sì, le luci lontane dall’inquadratura no', () => {
     const g = stage(-167, 1.8, 7.5).landscapeGlows([], 1);
-    expect(g.map((x) => hue(x.dir))).toEqual([-167]);
+    expect(g.map((x) => hue(x.dir))).toEqual([-167, -167, -167]);
+    // al relitto c'è la lanterna
+    expect(stage(14, 0.4, 11).landscapeGlows([], 1).map((x) => hue(x.dir))).toEqual([14]);
   });
 
   it('il lampione si accende col binocolo, non tutto d’un colpo', () => {

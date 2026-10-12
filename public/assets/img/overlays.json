@@ -69,6 +69,20 @@
     "key": "relitto",
     "pitch": 0.42,
     "scale": 0.25,
+    "senza": {
+     "file": "bino_relitto_senza.webp",
+     "foxy": [
+      {
+       "file": "bino_relitto_foxy0_senza.webp",
+       "scale": 0.25
+      },
+      {
+       "file": "bino_relitto_foxy1_senza.webp",
+       "scale": 0.25
+      }
+     ],
+     "scale": 0.25
+    },
     "yaw": 13.955
    },
    {
@@ -103,6 +117,20 @@
     "key": "scivoli",
     "pitch": 1.789,
     "scale": 0.25,
+    "senza": {
+     "file": "bino_scivoli_senza.webp",
+     "foxy": [
+      {
+       "file": "bino_scivoli_foxy0_senza.webp",
+       "scale": 0.34
+      },
+      {
+       "file": "bino_scivoli_foxy1_senza.webp",
+       "scale": 0.34
+      }
+     ],
+     "scale": 0.34
+    },
     "yaw": -166.985
    },
    {
