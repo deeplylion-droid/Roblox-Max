@@ -585,6 +585,16 @@
   "glow": {
    "file": "tarp_glow.webp",
    "scale": 0.25
+  },
+  "senza": {
+   "base": {
+    "file": "tarp_base_senza.webp",
+    "scale": 0.25
+   },
+   "glow": {
+    "file": "tarp_glow_senza.webp",
+    "scale": 0.25
+   }
   }
  }
 }
