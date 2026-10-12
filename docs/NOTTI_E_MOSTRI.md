@@ -757,7 +757,7 @@ approvare), e il finale B col disegno a pastelli (sotto, la cinematica da approv
     sorge il sole e lì (14,6 s) si dissolve nel disegno, poi va piano verso i quattro bambini; «Il quarto eri tu.
     L'unico che è tornato a casa.» / «The fourth one was you. The only one who made it home.» Poi i risultati (con la
     stessa frase), senza titoli di coda. Il segnaposto `Screens.extraEnding` non c'è più. In sviluppo `?finale=B` lo
-    forza alla notte extra.
+    forza alla notte extra. La clip: `docs/concept/clip/finale_ricordo.mp4` (solo il canvas: le scritte non ci sono).
 
 ### Le ultime inquadrature dei due finali segreti
 
