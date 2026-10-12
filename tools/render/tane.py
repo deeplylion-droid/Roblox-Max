@@ -935,14 +935,24 @@ def tana_archie():
     fondo = strisce_material('TAStriscione', (0.62, 0.60, 0.55), (0.62, 0.60, 0.55), passo=1.0)
     st = pannello('Striscione', (float(np.linalg.norm(pb - pa)) * 0.9, 0.6), fondo, seed=8, onde=0.06)
     su_parete(st, 0, 2.9, stacco=0.25)
-    # «HAPPY BIRTHDAY», uguale in italiano e in inglese (deciso il 12 ottobre sera): 14 lettere invece delle 12 di
-    # «TANTI AUGURI», più piccole perché stiano nello striscione
-    scritta('Auguri', 'HAPPY BIRTHDAY', 0.38 * 12 / 14, tuple(np.array(st.location) + np.array((0, -0.03, 0))), (math.radians(90), 0, 0),
-            grotte.plastica('TAScritta', (0.45, 0.06, 0.08), melma=0.2), extrude=0.008)
-    for k, (y0, y1, z) in enumerate(((-100, -30, 3.0), (-30, 40, 3.2), (40, 110, 3.0), (-120, -60, 2.2), (60, 120, 2.2))):
+    # «HAPPY BIRTHDAY», uguale in italiano e in inglese (deciso il 12 ottobre sera): la scritta orientata come lo
+    # striscione (la parete in fondo non è dritta davanti), staccata quanto basta a non entrare nelle onde del telo, e
+    # rimpicciolita finché sta nell'85% della sua larghezza (14 lettere invece delle 12 di «TANTI AUGURI»)
+    _, n_st = parete(0, 2.9)
+    sc = scritta('Auguri', 'HAPPY BIRTHDAY', 0.38, tuple(np.array(st.location) + n_st * 0.09), (0, 0, 0),
+                 grotte.plastica('TAScritta', (0.45, 0.06, 0.08), melma=0.2), extrude=0.008)
+    sc.rotation_mode = 'QUATERNION'
+    sc.rotation_quaternion = st.rotation_quaternion
+    bpy.context.view_layer.update()
+    larga = float(np.linalg.norm(pb - pa)) * 0.9 * 0.85
+    if sc.dimensions.x > larga:
+        sc.data.size *= larga / sc.dimensions.x
+    # le lucine passano sopra lo striscione, non davanti alla scritta
+    for k, (y0, y1, z, sag) in enumerate(((-100, -30, 3.0, 0.45), (-30, 40, 3.75, 0.2), (40, 110, 3.0, 0.45),
+                                          (-120, -60, 2.2, 0.45), (60, 120, 2.2, 0.45))):
         a_, _ = parete(y0, z)
         b_, _ = parete(y1, z)
-        lucine(f'Lucine{k}', a_ + np.array((0, 0, 0)), b_, n=24, sag=0.45, seed=k)
+        lucine(f'Lucine{k}', a_ + np.array((0, 0, 0)), b_, n=24, sag=sag, seed=k)
     manifesto_su_parete('festa', [('FESTA', 90, (200, 40, 60), 'Limelight-Regular'), ('MAGGIO 1999', 60, (40, 40, 120), 'Limelight-Regular')],
                         ((235, 220, 170), (200, 40, 60)), 70, 1.6, size=(0.6, 0.45))
     trov = (c[0] - 0.55, c[1] - 0.6, 0.85)
