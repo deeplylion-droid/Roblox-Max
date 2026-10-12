@@ -111,14 +111,15 @@ def place_world(objs):
             o.matrix_world = M @ o.matrix_world
 
 
-def dawn_sky():
+def dawn_sky(sun_dir=None):
     """Cielo della prima luce: verso il sole arancio e rosa, dalla parte opposta lilla, in alto azzurro spento;
     qualche striscia di nuvole accesa di rosa da sotto."""
+    sun_dir = (sun_dir or SUN_DIR).normalized()
     w, g = world('DawnSky')
     w.lightgroup = 'ambient'
     d = g.texcoord('Generated')
     dx, dy, dz = g.sep(d)
-    sd = tuple(SUN_DIR)
+    sd = tuple(sun_dir)
     cs = g.vmath('DOT_PRODUCT', d, sd)
     c0 = g.math('MAXIMUM', cs, 0.0)
     up = g.clamp01(dz)
@@ -159,7 +160,7 @@ def dawn_sky():
     ob = bpy.data.objects.new('DawnSun', sun)
     collection(COL).objects.link(ob)
     ob.rotation_mode = 'QUATERNION'
-    ob.rotation_quaternion = (-SUN_DIR).to_track_quat('-Z', 'Y')
+    ob.rotation_quaternion = (-sun_dir).to_track_quat('-Z', 'Y')
     set_lightgroup(ob, 'ambient')
     return w
 
@@ -747,9 +748,408 @@ def scena_edicola():
     return {'ev': 0.0, 'haze': (0.62, 0.64, 0.68), 'haze_amt': 0.5, 'groups': ('ambient',)}
 
 
+# ═════════════════════════ il ricordo (il finale B della notte extra) ═════════════════════════
+
+# la foto del 1997: quattro bambini davanti all'ingresso di Splashland la sera della Night Splash, col flash di una
+# macchinetta usa e getta. Tre hanno il volto mangiato dal chimico (bianco carta, come le foto dell'edicola): sono i tre
+# che non sono tornati. Il quarto, l'unico intatto, girato verso l'obiettivo col berretto e la canna giocattolo: sei tu
+
+
+def _bambini_1997():
+    from bambini import Bambino, Posa, Vestiti
+    return [
+        # la bambina con la coda, il braccio sulla spalla dell'amico
+        ('A', -0.88, 0.0, Bambino(
+            Posa(altezza=1.24, gomito_l=(-0.17, 0.01, 0.80), mano_l=(-0.19, -0.03, 0.63), gomito_r=(0.27, 0.02, 0.95),
+                 mano_r=(0.41, 0.03, 1.07), testa_yaw=12.0, testa_tilt=-6.0, piede_l=(-0.08, 0.0), piede_r=(0.06, -0.03)),
+            Vestiti(maglia=(0.90, 0.42, 0.55), maglia_b=(0.95, 0.92, 0.85), calzoncini=(0.25, 0.36, 0.58), jeans=True,
+                    capelli=(0.22, 0.12, 0.05), taglio='coda'))),
+        # il ragazzino più alto, girato verso di lei
+        ('B', -0.33, -18.0, Bambino(
+            Posa(altezza=1.33, gomito_l=(-0.16, -0.03, 0.80), mano_l=(-0.12, -0.10, 0.64), gomito_r=(0.18, 0.0, 0.80),
+                 mano_r=(0.20, -0.03, 0.62), testa_yaw=10.0, piede_l=(-0.09, 0.02), piede_r=(0.08, -0.02)),
+            Vestiti(maglia=(0.95, 0.80, 0.20), maglia_b=(0.18, 0.52, 0.36), calzoncini=(0.52, 0.47, 0.34),
+                    capelli=(0.08, 0.05, 0.03)))),
+        # quello col caschetto che saluta
+        ('C', 0.30, 6.0, Bambino(
+            Posa(altezza=1.19, gomito_l=(-0.17, 0.0, 0.80), mano_l=(-0.18, -0.02, 0.63), gomito_r=(0.27, -0.03, 1.02),
+                 mano_r=(0.25, -0.06, 1.30), aperta_r=True, testa_tilt=4.0, piede_l=(-0.07, -0.04), piede_r=(0.08, 0.02)),
+            Vestiti(maglia=(0.12, 0.16, 0.38), maglia_b=(0.93, 0.92, 0.88), righe=True, calzoncini=(0.75, 0.12, 0.10),
+                    capelli=(0.30, 0.18, 0.07), taglio='caschetto'))),
+        # tu: girato verso l'obiettivo, col berretto e la canna giocattolo
+        ('D', 0.95, 0.0, Bambino(
+            Posa(altezza=1.27, gomito_l=(-0.17, 0.0, 0.80), mano_l=(-0.19, -0.03, 0.63), gomito_r=(0.20, -0.08, 0.80),
+                 mano_r=(0.16, -0.22, 0.79), piede_l=(-0.07, 0.0), piede_r=(0.08, -0.01)),
+            Vestiti(maglia=(0.12, 0.48, 0.52), calzoncini=(0.60, 0.52, 0.36), capelli=(0.20, 0.12, 0.06),
+                    berretto=(0.85, 0.66, 0.12), occhi=(0.30, 0.20, 0.10)))),
+    ]
+
+
+def _terra(x, y):
+    """La quota del terreno nel punto (x, y), dalla costa di env."""
+    yaw = math.degrees(math.atan2(x, y))
+    s_ = math.hypot(x, y) - float(env.shore_radius(np.array([yaw]))[0])
+    return float(env.terrain_z(np.array([yaw]), np.array([s_]))[0])
+
+
+def foto_1997(path):
+    """La foto della Night Splash, sera del 1997: render vero dell'ingresso di Splashland con le luci accese, le lucine
+    e lo striscione, e dei quattro bambini in posa col flash della macchinetta usa e getta; poi resa come una stampa di
+    allora (pellicola virata, flash duro che cala in fretta, grana, vignettatura), coi volti dei tre scomparsi mangiati
+    dal chimico, il mosso della posa lunga e la data arancione stampata nell'angolo. Il flash quasi non è partito: i
+    bambini stanno in controluce davanti all'ingresso illuminato, quasi sagome."""
+    import binocolo
+    import bambini as BB
+    import jobs
+    from bpy_extras.object_utils import world_to_camera_view
+    jobs.build_scene(fish=0, rod=False)
+    binocolo.lore_banner()
+    for o in jobs.coll_objects('boat'):
+        o.hide_render = True
+    (gx, gy, gz), rz = binocolo._gate()
+    fwd = np.array((math.sin(rz), -math.cos(rz), 0.0))
+    right = np.array((math.cos(rz), math.sin(rz), 0.0))
+    gate = np.array((gx, gy, gz))
+    # le lucine tese fra i due piloni (il parco era aperto) e il piazzale davanti all'ingresso
+    bulbs = emissive_bulbs(gate, right, rz)
+    kp = gate + fwd * 32.4
+    kz = _terra(kp[0], kp[1])
+    # il piazzale sale piano dai piedi dei bambini fino alla soglia dell'ingresso (il terreno lì è più alto)
+    pc = gate + fwd * 20.0
+    tilt = math.atan2(gz - kz, 32.4)
+    plaza = rbox('Piazzale', (64.0, 50.0, 0.4), (float(pc[0]), float(pc[1]), kz + 12.4 * math.tan(tilt) - 0.19), rot=(tilt, 0, rz), bevel=0.0, col=COL)
+    pm, pg = material('Piazzale')
+    pco = pg.texcoord('Object')
+    tiles = pg.voronoi(g_scale(pg, pco, 1.4), scale=1.0, feature='DISTANCE_TO_EDGE')
+    tn = pg.noise(pco, scale=3.0, detail=5.0)
+    pcol = pg.mix(pg.smoothstep(0.03, 0.0, tiles), pg.mix(tn.fac, (0.30, 0.28, 0.25), (0.42, 0.40, 0.36)), (0.16, 0.15, 0.14))
+    pg.output_material(pg.principled(color=pcol, rough=0.85, normal=pg.bump(tn.fac, strength=0.2, distance=0.01)))
+    plaza.data.materials.append(pm)
+    set_lightgroup(plaza, 'ambient')
+    # i bambini, girati verso la macchinetta
+    cam_p = gate + fwd * 35.0
+    cam_p[2] = kz + 1.18
+    heads, eyes_d = [], []
+    for key, lx, yaw_extra, b in _bambini_1997():
+        base = kp + right * lx
+        to_cam = cam_p - base
+        to_cam[2] = 0
+        to_cam /= np.linalg.norm(to_cam)
+        a = math.atan2(to_cam[0], -to_cam[1]) + math.radians(yaw_extra)
+        M = Matrix.Translation((float(base[0]), float(base[1]), kz)) @ Matrix.Rotation(a, 4, 'Z')
+        obs, pts = BB.build(f'Kid{key}', b, M, col=COL)
+        heads.append((key, pts))
+        if key == 'D':
+            # la canna giocattolo: un bastoncino giallo col mulinello rosso, il filo e il pesciolino di plastica
+            hand = BB.mano_mondo(b, 'r', M)
+            d = unit3(to_cam * 0.5 + right * 0.55 + np.array((0, 0, 0.9)))
+            tip = hand + d * 0.75
+            rod = tube('KidRod', [tuple(hand - d * 0.18), tuple(tip)], 0.0075, n=10, col=COL)
+            rod.data.materials.append(_mat('ToyRod', (0.95, 0.75, 0.10), rough=0.4))
+            reel = sphere('KidReel', 0.026, tuple(hand + d * 0.02 - np.array((0, 0, 0.03))), segs=14, rings=8, col=COL)
+            reel.data.materials.append(_mat('ToyReel', (0.85, 0.08, 0.06), rough=0.35))
+            bob = tip + np.array((0, 0, -0.62))
+            line = tube('KidLine', [tuple(tip), tuple(bob)], 0.0012, n=4, col=COL)
+            line.data.materials.append(_mat('ToyLine', (0.9, 0.9, 0.9), rough=0.5))
+            fish = sphere('KidFish', 0.045, tuple(bob + np.array((0, 0, -0.03))), segs=16, rings=10, col=COL, scale=(1.0, 0.35, 0.6))
+            fish.data.materials.append(_mat('ToyFish', (0.95, 0.45, 0.10), rough=0.35))
+            for o in (rod, reel, line, fish):
+                set_lightgroup(o, 'ambient')
+    # i bambini sono il soggetto (fino alle ginocchia), l'ingresso con l'insegna dietro di loro
+    target = cam_p - fwd * 3.0 + np.array((0.0, 0.0, 0.32))
+    cam = perspective_camera(tuple(cam_p), tuple(target), lens=24.0, name='Usaegetta')
+    cam.data.dof.use_dof = True
+    cam.data.dof.focus_distance = 3.1
+    cam.data.dof.aperture_fstop = 4.0
+    # il flash: piccolo, forte, appena sopra e a sinistra dell'obiettivo (le ombre nette dietro ai bambini)
+    fl = bpy.data.lights.new('Flash', 'SPOT')
+    fl.energy = 22.0
+    fl.spot_size = math.radians(85)
+    fl.spot_blend = 0.5
+    fl.shadow_soft_size = 0.01
+    fo = bpy.data.objects.new('Flash', fl)
+    collection(COL).objects.link(fo)
+    fo.location = tuple(cam_p - right * 0.05 + np.array((0, 0, 0.04)))
+    fo.rotation_mode = 'QUATERNION'
+    fo.rotation_quaternion = cam.rotation_quaternion.copy()
+    set_lightgroup(fo, 'ambient')
+    # il flash quasi non è partito: la luce è quella dell'ingresso alle loro spalle (le lucine, l'insegna, i lampioni
+    # del piazzale), e i bambini stanno in controluce, con un filo di luce sui bordi
+    for k, (lx, h, e) in enumerate(((-2.2, 2.2, 900.0), (1.8, 2.0, 850.0), (0.0, 3.2, 1200.0))):
+        ld = bpy.data.lights.new(f'Controluce{k}', 'AREA')
+        ld.shape = 'DISK'
+        ld.size = 2.5
+        ld.energy = e
+        ld.color = (1.0, 0.72, 0.42)
+        lo = bpy.data.objects.new(f'Controluce{k}', ld)
+        collection(COL).objects.link(lo)
+        lp_ = kp - fwd * 4.5 + right * lx
+        lp_[2] = kz + h
+        lo.location = tuple(lp_)
+        lo.rotation_mode = 'QUATERNION'
+        lo.rotation_quaternion = (Vector(tuple(cam_p - fwd * 1.0)) - Vector(tuple(lp_))).to_track_quat('-Z', 'Y')
+        lo.visible_camera = False
+        set_lightgroup(lo, 'ambient')
+    # il piazzale illuminato davanti all'ingresso (i bambini ci si stagliano davanti)
+    ld = bpy.data.lights.new('LuceIngresso', 'AREA')
+    ld.shape = 'RECTANGLE'
+    ld.size, ld.size_y = 30.0, 6.0
+    ld.energy = 8000.0
+    ld.color = (1.0, 0.66, 0.38)
+    lo = bpy.data.objects.new('LuceIngresso', ld)
+    collection(COL).objects.link(lo)
+    lo.location = tuple(gate + fwd * 6.0 + np.array((0, 0, 14.0)))
+    lo.rotation_mode = 'QUATERNION'
+    lo.rotation_quaternion = (Vector(tuple(gate + fwd * 14.0)) - Vector(lo.location)).to_track_quat('-Z', 'Y')
+    lo.visible_camera = False
+    set_lightgroup(lo, 'ambient')
+    W, H = (1500, 1000) if not FINALE else (2400, 1600)
+    exr = os.path.join(TEX, 'foto_1997.exr')
+    render(exr, 32 if not FINALE else 128, (W, H), data_passes=())
+    p = post.read_exr(exr)
+    lin = sum(post.rgb(p[k]) for k in ('ambient', 'lamp', 'lantern') if k in p)
+    img = post.tonemap(lin, exposure_ev=-0.2, contrast=1.15)
+    # la pellicola di allora: neri slavati verdognoli, alte luci calde, colori stanchi, vignettatura forte
+    l = (img * np.array([0.2126, 0.7152, 0.0722])).sum(-1, keepdims=True)
+    img = l + (img - l) * 0.9
+    img = 0.02 + img * 0.96
+    img = img + np.array([-0.008, 0.012, 0.004]) * (1 - l) ** 2 + np.array([0.04, 0.01, -0.03]) * l ** 2
+    yy, xx = np.mgrid[0:H, 0:W]
+    rr = np.hypot((xx - W / 2) / (W / 2), (yy - H / 2) / (H / 2))
+    img = img * (1 - 0.42 * np.clip(rr - 0.35, 0, 1) ** 1.3)[..., None]
+    sc = bpy.context.scene
+
+    def px(pw):
+        q = world_to_camera_view(sc, cam, Vector(tuple(float(x) for x in pw)))
+        return q.x * W, (1 - q.y) * H, q.z
+    # la posa lunga a mano libera: un po' di mosso (le lucine strisciano)
+    ang = math.radians(24.0)
+    steps = 11
+    acc = np.zeros_like(img)
+    for t_ in np.linspace(-1, 1, steps):
+        dx, dy = int(round(t_ * 2.5 * math.cos(ang))), int(round(t_ * 2.5 * math.sin(ang)))
+        acc += np.roll(np.roll(img, dy, axis=0), dx, axis=1)
+    img = acc / steps
+    img = img + np.random.default_rng(97).normal(0, 0.022, img.shape) * (0.6 + 0.4 * (1 - l))
+    im = Image.fromarray((np.clip(img, 0, 1) * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(0.8))
+    a = np.asarray(im).astype(np.float32)
+    # i volti dei tre che non sono tornati: gli ovali bianco carta dell'edicola, la stampa mangiata coi bordi appena irregolari e un alone
+    # giallastro dove il chimico si è fermato (niente luce: è carta)
+    rng = np.random.default_rng(1997)
+    for key, pts in heads:
+        if key == 'D':
+            continue
+        cx, cy, dist = px(pts['head'])
+        tx, ty, _ = px(pts['top'])
+        # solo il viso (un po' sotto il centro della testa), il bordo mangiato in modo irregolare: rumore a più scale
+        rad = max(5.0, abs(cy - ty) * 0.78)
+        cy = cy + rad * 0.25
+        def fbm(scale):
+            n = rng.random((int(H / scale) + 2, int(W / scale) + 2)).astype(np.float32)
+            return np.asarray(Image.fromarray((n * 255).astype(np.uint8)).resize((W, H), Image.BICUBIC), np.float32) / 255.0 - 0.5
+        noise = 0.55 * fbm(rad * 0.45) + 0.3 * fbm(rad * 0.18) + 0.15 * fbm(3.0)
+        rho = np.hypot((xx - cx) / 0.85, yy - cy) / rad + noise * 0.3
+        eaten = np.clip((1.0 - rho) * 7.0, 0, 1)
+        ring = np.clip(1.0 - np.abs(rho - 1.06) * 12.0, 0, 1) * (1 - eaten)
+        paper = np.array([236, 231, 216], np.float32)
+        a = a * (1 - eaten[..., None]) + paper * eaten[..., None]
+        a = a * (1 - 0.35 * ring[..., None]) + np.array([170, 140, 95], np.float32) * 0.35 * ring[..., None]
+    im = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
+    # la data stampata dalla macchinetta, arancione, in basso a destra
+    from PIL import ImageFont
+    fnt = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf', int(H * 0.042))
+    txt = "'97 7 26"
+    d = ImageDraw.Draw(im)
+    tw = d.textlength(txt, font=fnt)
+    pos = (W - tw - W * 0.05, H * 0.885)
+    glow = Image.new('L', im.size, 0)
+    ImageDraw.Draw(glow).text(pos, txt, font=fnt, fill=255)
+    glow = glow.filter(ImageFilter.GaussianBlur(3.0))
+    a = np.asarray(im).astype(np.float32)
+    gl_ = np.asarray(glow).astype(np.float32)[..., None] / 255.0
+    a = a * (1 - 0.3 * gl_) + np.array([255, 110, 25]) * 0.3 * gl_
+    im = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
+    ImageDraw.Draw(im).text(pos, txt, font=fnt, fill=(255, 140, 50))
+    im = im.filter(ImageFilter.GaussianBlur(0.45))
+    im.save(path)
+    return path
+
+
+def unit3(v):
+    v = np.asarray(v, float)
+    return v / max(1e-9, float(np.linalg.norm(v)))
+
+
+def g_scale(g, co, k):
+    return g.mapping(co, scale=(k, k, k))
+
+
+def emissive_bulbs(gate, right, rz):
+    """Le lucine tese fra i due piloni dell'ingresso: due festoni di lampadine calde."""
+    m = bpy.data.materials.get('Lucine')
+    if m is None:
+        m, g = material('Lucine')
+        g.output_material(g.emission((1.0, 0.72, 0.38), 40.0))
+    obs = []
+    for h0, sag, n in ((11.5, 2.2, 34), (8.5, 1.6, 28)):
+        for i in range(n):
+            t = (i + 0.5) / n
+            p = gate + right * (-19.5 + 39.0 * t)
+            p = p + np.array((0, 0, h0 - sag * 4 * t * (1 - t)))
+            o = sphere('Lucina', 0.16, tuple(p), segs=8, rings=6, col=COL)
+            o.data.materials.append(m)
+            set_lightgroup(o, 'ambient')
+            obs.append(o)
+    return obs
+
+
+DISEGNO = os.path.join(ROOT, 'docs', 'concept', 'ricordo_disegno.webp')
+
+
+def maschera_cera(path_out):
+    """Dove c'è la cera (i tratti colorati e neri) e dove la carta nuda: la cera respinge l'acqua. Restituisce la maschera
+    come array 0..1 (righe dall'alto) e la salva in png per lo shader."""
+    im = np.asarray(Image.open(DISEGNO).convert('RGB')).astype(np.float32)
+    paper = np.median(im[::7, ::7].reshape(-1, 3), axis=0)
+    d = np.linalg.norm(im - paper, axis=2)
+    m = np.clip((d - 38.0) / 40.0, 0, 1)
+    mi = Image.fromarray((m * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(1.5))
+    mi.save(path_out)
+    return np.asarray(mi).astype(np.float32) / 255.0
+
+
+def foglio_mesh(name, c, rot, Wp, Hp, nx=121, ny=86, seed=4):
+    """Il foglio A4 bagnato: la carta che si gonfia a onde, le pieghe in croce (il disegno era piegato in quattro), gli
+    angoli che si alzano. UV 0..1 come l'immagine (v dal basso)."""
+    rng = np.random.default_rng(seed)
+    us, vs = np.linspace(0, 1, nx), np.linspace(0, 1, ny)
+    U, Vv = np.meshgrid(us, vs, indexing='ij')
+    X, Y = (U - 0.5) * Wp, (Vv - 0.5) * Hp
+    ph = rng.uniform(0, 6.3, 6)
+    Z = 0.0018 * np.sin(X * 46 + ph[0]) * np.sin(Y * 39 + ph[1]) + 0.0012 * np.sin(X * 83 + Y * 21 + ph[2])
+    Z += 0.0009 * np.sin(X * 140 + ph[3]) * np.cos(Y * 120 + ph[4])
+    # le pieghe: quella verticale in rilievo, quella orizzontale a valle
+    Z += 0.0016 * np.exp(-(X / 0.004) ** 2) - 0.0011 * np.exp(-(Y / 0.004) ** 2)
+    # gli angoli e i bordi che si alzano asciugando
+    edge = np.maximum(np.abs(U - 0.5), np.abs(Vv - 0.5)) * 2
+    Z += 0.006 * np.clip(edge - 0.82, 0, 1) ** 2 / 0.0324 * np.where((U > 0.5) & (Vv > 0.5), 1.4, 0.6)
+    Z = Z - Z.min() + 0.0006
+    cr, sr = math.cos(rot), math.sin(rot)
+    verts = np.stack([c[0] + X * cr - Y * sr, c[1] + X * sr + Y * cr, c[2] + Z], axis=-1).reshape(-1, 3)
+    faces = []
+    for a in range(nx - 1):
+        for b in range(ny - 1):
+            faces.append((a * ny + b, (a + 1) * ny + b, (a + 1) * ny + b + 1, a * ny + b + 1))
+    ob = mesh_from_arrays(name, verts, faces, smooth=True, col=COL)
+    uvl = ob.data.uv_layers.new(name='UVMap')
+    uvs = np.stack([U.ravel(), Vv.ravel()], axis=1)
+    for poly in ob.data.polygons:
+        for li in poly.loop_indices:
+            uvl.data[li].uv = tuple(uvs[ob.data.loops[li].vertex_index])
+    sol = ob.modifiers.new('S', 'SOLIDIFY')
+    sol.thickness = 0.0003
+    set_lightgroup(ob, 'ambient')
+    return ob, (lambda u, v: (c[0] + (u - 0.5) * Wp * cr - (v - 0.5) * Hp * sr, c[1] + (u - 0.5) * Wp * sr + (v - 0.5) * Hp * cr))
+
+
+def foglio_material(cera_png):
+    """La carta da disegno bagnata: dove è nuda beve l'acqua (più scura, un velo lucido), dove c'è la cera resta
+    asciutta e cerosa (un riflesso morbido)."""
+    m, g = material('Disegno')
+    uv = g.texcoord('UV')
+    col, _ = g.image(DISEGNO, uv, extension='CLIP')
+    cera, _ = g.image(cera_png, uv, extension='CLIP', colorspace='Non-Color')
+    wax = g.bw(cera)
+    co = g.texcoord('Object')
+    blot = g.noise(co, scale=14.0, detail=4.0, rough=0.55)
+    wet = g.mul(g.smoothstep(0.42, 0.6, blot.fac), g.sub(1.0, wax))
+    col = g.mix(g.mul(wet, 0.55), col, g.mix(1.0, col, (0.62, 0.60, 0.56), blend='MULTIPLY'))
+    rough = g.mixf(wax, g.mixf(wet, 0.85, 0.3), 0.42)
+    grain = g.noise(co, scale=900.0, detail=2.0)
+    g.output_material(g.principled(color=col, rough=rough, coat=g.add(g.mul(wet, 0.55), g.mul(wax, 0.2)), coat_rough=g.mixf(wax, 0.06, 0.25),
+                                   sss=0.04, sss_radius=(1.0, 0.9, 0.8), sss_scale=0.002,
+                                   normal=g.bump(grain.fac, strength=0.15, distance=0.0004)))
+    return m
+
+
+def scena_ricordo():
+    """Il finale B: sul banco di prua, all'alba, il disegno a pastelli a cera lasciato dalla Madre (approvato il 12
+    ottobre, docs/concept/ricordo_disegno.webp): il foglio bagnato e ondulato, la cera che respinge l'acqua in
+    goccioline, la carta nuda che l'ha bevuta; accanto il secchio vuoto. La lampara è spenta."""
+    import boat
+    import jobs
+    os.makedirs(TEX, exist_ok=True)
+    jobs.build_scene(fish=0, rod=True)
+    for n in ('Moon',):
+        o = bpy.data.objects.get(n)
+        if o:
+            bpy.data.objects.remove(o)
+    # l'alba bassa da poppa a sinistra: la luce corre lungo la barca fino al banco
+    dawn_sky(Vector((-0.35, -0.86, 0.22)))
+    Wp, Hp = 0.297, 0.297 * 1697 / 2400
+    c = (0.16, 0.975, boat.BENCH_TOP + 0.0004)
+    # la borraccia si sposta a sinistra, fuori dal quadro: il foglio sta tra lei e il secchio
+    for o in bpy.data.objects:
+        if o.name.startswith('Flask'):
+            o.location.x -= 0.30
+    rot = math.radians(-6.0)
+    cera_png = os.path.join(TEX, 'ricordo_cera.png')
+    mask = maschera_cera(cera_png)
+    sheet, at = foglio_mesh('Disegno', c, rot, Wp, Hp)
+    sheet.data.materials.append(foglio_material(cera_png))
+    # le gocce: perline tonde sulla cera (la respinge), poche e piatte sulla carta; e qualche goccia sul banco
+    water = _mat('GocciaRicordo', (1.0, 1.0, 1.0), rough=0.0, ior=1.33, transmission=1.0)
+    rng = np.random.default_rng(26)
+    Hm, Wm = mask.shape
+    bpy.context.view_layer.update()
+    inv = sheet.matrix_world.inverted()
+
+    def surf(x, y):
+        o = inv @ Vector((x, y, c[2] + 0.05))
+        hit, loc, *_ = sheet.ray_cast(o, inv.to_3x3() @ Vector((0, 0, -1)))
+        return (sheet.matrix_world @ loc).z if hit else c[2] + 0.002
+
+    pts, rads, flat = [], [], []
+    tries = 0
+    while len(pts) < 150 and tries < 20000:
+        tries += 1
+        u, v = rng.uniform(0.02, 0.98), rng.uniform(0.02, 0.98)
+        mv = mask[int((1 - v) * (Hm - 1)), int(u * (Wm - 1))]
+        if rng.random() > (0.9 * mv + 0.06):
+            continue
+        x, y = at(u, v)
+        r = rng.uniform(0.0012, 0.0032) if mv > 0.5 else rng.uniform(0.002, 0.005)
+        # la goccia poggia sulla carta ondulata: metà sotto la superficie, così resta una calotta
+        pts.append((x, y, surf(x, y)))
+        rads.append(r)
+        flat.append(0.55 if mv > 0.5 else 0.2)
+    for k in range(18):
+        x = rng.uniform(-0.05, 0.38)
+        y = rng.uniform(0.86, 1.08)
+        if abs(x - c[0]) < 0.17 and abs(y - c[1]) < 0.12:
+            continue
+        r = rng.uniform(0.003, 0.009)
+        pts.append((x, y, boat.BENCH_TOP + 0.001))
+        rads.append(r)
+        flat.append(0.25)
+    for k, (p, r, fz) in enumerate(zip(pts, rads, flat)):
+        o = sphere('GocciaR', r, p, segs=14, rings=8, col=COL, scale=(1, 1, fz))
+        o.data.materials.append(water)
+        # senza caustiche la carta sotto la goccia resterebbe al buio: la goccia non fa ombra
+        o.visible_shadow = False
+        set_lightgroup(o, 'ambient')
+    eye = Vector((c[0] - 0.02, c[1] - 0.36, c[2] + 0.42))
+    tgt = Vector((c[0] + 0.05, c[1] + 0.01, c[2]))
+    cam = perspective_camera(tuple(eye), tuple(tgt), lens=38.0, name='RicordoCam')
+    cam.data.dof.use_dof = True
+    cam.data.dof.focus_distance = (tgt - eye).length
+    cam.data.dof.aperture_fstop = 5.6
+    return {'ev': 0.3, 'haze': (0.30, 0.22, 0.24), 'haze_amt': 0.0, 'groups': ('ambient',)}
+
+
 # ═════════════════════════ render ═════════════════════════
 
-SCENES = {'molo': scena_molo, 'edicola': scena_edicola}
+SCENES = {'molo': scena_molo, 'edicola': scena_edicola, 'ricordo': scena_ricordo}
 
 
 def run(key):

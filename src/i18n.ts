@@ -63,6 +63,22 @@ const IT = {
   quotaMet: 'Quota raggiunta',
   // il finale A della notte 6 (approvato l'11 ottobre): la scritta sotto i risultati
   finaleA: 'Ce l’hai fatta. Per quest’anno.',
+  // i finali segreti della notte 6 (le frasi sono quelle approvate l'11 ottobre in docs/NOTTI_E_MOSTRI.md, «I finali»;
+  // l'inglese è DA APPROVARE): la scritta alla fine della cinematica e sotto i risultati
+  finaleTuoi: 'Non sei tornato da solo.',
+  finaleNessuno: 'Non hai mai dato niente ai suoi piccoli. Adesso sei uno di loro.',
+  // i titoli di coda dopo i finali della notte 6 (DA APPROVARE; i nomi sono un segnaposto)
+  creditsTitle: 'SPLASHLAND IS CLOSED!',
+  credits: [
+    ['Un gioco di', '(nome da decidere)'],
+    ['Storia e mostri', '(nome da decidere)'],
+    ['Programmazione', '(nome da decidere)'],
+    ['Grafica e render', '(nome da decidere)'],
+    ['Suoni e musica', '(nome da decidere)'],
+    ['Si ringraziano', '(nomi da decidere)'],
+  ] as [string, string][],
+  creditsEnd: 'Grazie per aver giocato.',
+  creditsSkip: 'Esc per saltare',
   quotaMissed: 'Quota mancata',
   deathTitle: 'Game over',
   deaths: {
@@ -95,9 +111,6 @@ const IT = {
   // la regola di Soggy (il Foxy) nella notte extra: DA APPROVARE (12 ottobre)
   extraRules: { gulpy: 'sfamalo', molly: 'guardala', hatch: 'nasconditi', robin: 'luce in faccia', archie: 'spegni la luce', lampy: 'non ferrare', fangy: 'stai zitto', mother: 'non muoverti', foxy: 'non perderlo di vista' },
   extraMother: 'La Madre',
-  // il finale speciale della notte extra: SEGNAPOSTO, il testo vero è da scrivere
-  extraEndingTitle: 'Il finale della notte extra',
-  extraEndingText: '(Segnaposto: qui andrà il finale speciale, che si vede solo vincendo con tutti almeno a 10.)',
   extraLevelNames: ['non viene', 'calmo', 'come la sua notte', 'svelto', 'feroce'],
   retry: 'Riprova',
   nextNight: 'Notte successiva',
@@ -154,6 +167,13 @@ const IT = {
   journalTitle: 'Diario',
   journalEmpty: 'Non hai ancora ripescato niente. Il mare restituisce le cose solo a chi pesca.',
   journalLocked: '???',
+  // i disegni a pastelli dell'alba (approvati il 12 ottobre)
+  drawings: {
+    found: 'Sul banco, bagnato, c’è un disegno.',
+    title: 'Disegni',
+    locked: 'Non l’hai ancora trovato.',
+    names: { piscina: 'La piscina', tesoro: 'Il mio tesoro', compleanno: 'Tanti auguri', sottacqua: 'Sott’acqua', marcopolo: 'Marco Polo' } as Record<string, string>,
+  },
   catalogTitle: 'Catalogo',
   catalogHint: 'Le specie che non hai ancora preso restano sagome.',
   bookIndex: 'Indice',
@@ -211,6 +231,8 @@ const IT = {
     bowEat: 'Gulpy mastica',
     bowLeave: 'tonfo in acqua a prua',
     knock: 'toc toc sullo scafo',
+    // il falso allarme (più paura, 12 ottobre): DA APPROVARE
+    falseSplash: 'un tonfo in acqua, dietro di te',
     peek: 'Molly si affaccia',
     giggle: 'risatina',
     whine: 'Molly piagnucola',
@@ -263,6 +285,27 @@ const IT = {
   hatchReady: 'Chi c’è c’è, chi non c’è non c’è!',
   hatchName: 'Hatch',
   kg: 'kg',
+  // i comandi col controller (12 ottobre, DA APPROVARE: tutti i testi qui sotto). {A}, {RT}… diventano i tasti del
+  // controller in uso (A o ✕, RT o R2…: src/app/pad.ts)
+  pad: {
+    pressAny: 'Premi un tasto',
+    hints: {
+      cast: '{RT} per lanciare',
+      hook: 'Ha abboccato! {RT}',
+      reel: 'Tieni premuto {RT} per recuperare, molla quando strattona',
+      throw: '{X}: lancia un pesce',
+      hide: '{A}: nasconditi sotto il telone',
+      unhide: '{A} per uscire dal telone',
+      robin: 'Robin: luce al massimo ({RB})',
+      archie: 'Archie prende fiato: spegni la luce ({LB})',
+      foxy: 'Col binocolo ({LT}): non perderlo di vista',
+    } as Partial<Record<string, string>>,
+    look: 'Stick destro per guardarti intorno, croce per voltarti di scatto',
+    sonarClose: '{Y} o {B} per chiudere',
+    bookTurn: '{LB} {RB} per sfogliare',
+    diveHint: 'Guardati attorno con lo stick. {A} su un passaggio per nuotarci.',
+    select: 'Scegli',
+  },
 };
 
 const EN: typeof IT = {
@@ -317,6 +360,19 @@ const EN: typeof IT = {
   survived: 'Night survived',
   quotaMet: 'Quota met',
   finaleA: 'You made it. For this year.',
+  finaleTuoi: "You didn't come back alone.",
+  finaleNessuno: 'You never gave her little ones anything. Now you are one of them.',
+  creditsTitle: 'SPLASHLAND IS CLOSED!',
+  credits: [
+    ['A game by', '(name to be decided)'],
+    ['Story and monsters', '(name to be decided)'],
+    ['Programming', '(name to be decided)'],
+    ['Art and renders', '(name to be decided)'],
+    ['Sound and music', '(name to be decided)'],
+    ['Thanks to', '(names to be decided)'],
+  ] as [string, string][],
+  creditsEnd: 'Thank you for playing.',
+  creditsSkip: 'Esc to skip',
   quotaMissed: 'Quota missed',
   deathTitle: 'Game over',
   deaths: {
@@ -340,8 +396,6 @@ const EN: typeof IT = {
   extraPresets: { all0: 'All at 0', all5: 'All at 5', all10: 'All at 10', all20: 'All at 20', first3: 'The first three' },
   extraRules: { gulpy: 'feed him', molly: 'watch her', hatch: 'hide', robin: 'light in his face', archie: 'light off', lampy: "don't strike", fangy: 'stay quiet', mother: "don't move", foxy: "don't lose sight of him" },
   extraMother: 'The Mother',
-  extraEndingTitle: 'The end of the extra night',
-  extraEndingText: '(Placeholder: the special ending goes here; you only see it by winning with everyone at 10 or more.)',
   extraLevelNames: ['stays away', 'calm', 'like their first night', 'quick', 'ferocious'],
   retry: 'Try again',
   nextNight: 'Next night',
@@ -397,6 +451,12 @@ const EN: typeof IT = {
   journalTitle: 'Journal',
   journalEmpty: 'You haven’t fished anything up yet. The sea only gives things back to those who fish.',
   journalLocked: '???',
+  drawings: {
+    found: 'On the bench, soaking wet, there’s a drawing.',
+    title: 'Drawings',
+    locked: 'You haven’t found it yet.',
+    names: { piscina: 'The pool', tesoro: 'My treasure', compleanno: 'Happy birthday', sottacqua: 'Underwater', marcopolo: 'Marco Polo' } as Record<string, string>,
+  },
   catalogTitle: 'Catalogue',
   catalogHint: 'Species you haven’t caught yet stay silhouettes.',
   bookIndex: 'Contents',
@@ -454,6 +514,7 @@ const EN: typeof IT = {
     bowEat: 'Gulpy chews',
     bowLeave: 'splash at the bow',
     knock: 'knock knock on the hull',
+    falseSplash: 'a splash in the water, behind you',
     peek: 'Molly peeks in',
     giggle: 'giggle',
     whine: 'Molly whimpers',
@@ -500,6 +561,25 @@ const EN: typeof IT = {
   hatchReady: 'Ready or not, here I come!',
   hatchName: 'Hatch',
   kg: 'kg',
+  pad: {
+    pressAny: 'Press any button',
+    hints: {
+      cast: '{RT} to cast',
+      hook: 'Bite! {RT}',
+      reel: 'Hold {RT} to reel in, let go when it jerks',
+      throw: '{X}: throw a fish',
+      hide: '{A}: hide under the tarp',
+      unhide: '{A} to leave the tarp',
+      robin: 'Robin: light on full ({RB})',
+      archie: 'Archie is drawing breath: light off ({LB})',
+      foxy: 'With the binoculars ({LT}): don’t lose sight of him',
+    },
+    look: 'Right stick to look around, D-pad to snap around',
+    sonarClose: '{Y} or {B} to close',
+    bookTurn: '{LB} {RB} to turn the page',
+    diveHint: 'Look around with the stick. {A} on a passage to swim through it.',
+    select: 'Select',
+  },
 };
 
 /** Specie dei pesci (nomi provvisori finché non c'è il Catalogo completo). */

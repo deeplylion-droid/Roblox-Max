@@ -258,13 +258,37 @@ def drowned():
     mr = nt.nodes.new('ShaderNodeMapRange')
     mr.inputs['From Min'].default_value = 0.022
     mr.inputs['From Max'].default_value = 0.0
-    mr.inputs['To Max'].default_value = 0.35
+    mr.inputs['To Max'].default_value = 0.55
     nt.links.new(vor.outputs['Distance'], mr.inputs['Value'])
     mix = nt.nodes.new('ShaderNodeMix')
     mix.data_type = 'RGBA'
     mix.inputs['B'].default_value = (0.20, 0.10, 0.22, 1)
     nt.links.new(mr.outputs['Result'], mix.inputs['Factor'])
     nt.links.new(src, mix.inputs['A'])
+    # chiazze grigio-viola larghe (il sangue che ristagna) e le labbra livide (attributo 'livido')
+    nz2 = nt.nodes.new('ShaderNodeTexNoise')
+    nz2.inputs['Scale'].default_value = 14.0
+    nz2.inputs['Detail'].default_value = 6.0
+    nz2.inputs['Distortion'].default_value = 0.8
+    nt.links.new(tc.outputs['Object'], nz2.inputs['Vector'])
+    mr2 = nt.nodes.new('ShaderNodeMapRange')
+    mr2.inputs['From Min'].default_value = 0.50
+    mr2.inputs['From Max'].default_value = 0.68
+    mr2.inputs['To Max'].default_value = 0.65
+    nt.links.new(nz2.outputs['Fac'], mr2.inputs['Value'])
+    chiazze = nt.nodes.new('ShaderNodeMix')
+    chiazze.data_type = 'RGBA'
+    chiazze.inputs['B'].default_value = (0.20, 0.15, 0.24, 1)
+    nt.links.new(mr2.outputs['Result'], chiazze.inputs['Factor'])
+    nt.links.new(mix.outputs['Result'], chiazze.inputs['A'])
+    liv = nt.nodes.new('ShaderNodeAttribute')
+    liv.attribute_name = 'livido'
+    labbra = nt.nodes.new('ShaderNodeMix')
+    labbra.data_type = 'RGBA'
+    labbra.inputs['B'].default_value = (0.14, 0.08, 0.20, 1)
+    nt.links.new(liv.outputs['Fac'], labbra.inputs['Factor'])
+    nt.links.new(chiazze.outputs['Result'], labbra.inputs['A'])
+    mix = labbra
     # 'buio': dove l'uomo sparisce dentro il costume (il collo) la pelle va al nero
     att = nt.nodes.new('ShaderNodeAttribute')
     att.attribute_name = 'buio'
@@ -474,6 +498,11 @@ def man_head_field(P):
     f = sdf.union(cran, face, k=0.035)
     f = sdf.union(f, brow, zyg, k=0.018)
     f = sdf.union(f, muzzle, k=0.014)
+    if P.get('labbra_gonfie'):
+        # le labbra gonfie d'acqua: un cercine sopra e uno sotto (quello sotto scende con la mascella)
+        lab_u = sdf.ellipsoid((0, -0.097, -0.045), (0.030 + b * 0.4, 0.012, 0.0085))
+        lab_l = sdf.rotate(sdf.ellipsoid((0, -0.093, -0.066), (0.029 + b * 0.4, 0.013, 0.0095)), jaw_rot(P), center=HINGE)
+        f = sdf.union(f, lab_u, lab_l, k=0.006)
     f = sdf.union(f, nose, k=0.008)
     f = sdf.union(f, jaw, k=0.022)
     f = sdf.union(f, neck, k=0.035)
@@ -495,7 +524,10 @@ def man_head_field(P):
     f = sdf.subtract(f, sdf.union(*[sdf.ellipsoid((s * 0.007, -0.113, -0.018), (0.005, 0.010, 0.006)) for s in (-1, 1)]), k=0.002)
     # la bocca: dalle labbra ritirate fino in gola
     f = sdf.subtract(f, mouth_hole(P), k=0.004)
-    f = sdf.displace(f, skin.wrinkles(P['seed'] + 11, 0.010, 1.0), 0.0010)
+    f = sdf.displace(f, skin.wrinkles(P['seed'] + 11, 0.010, 1.0), 0.0010 * P.get('macera', 1.0))
+    if P.get('macera', 1.0) > 1.0:
+        # la pelle macerata dell'annegato (le mani da lavandaia, ma su tutta la faccia): grinze fitte e corte
+        f = sdf.displace(f, skin.wrinkles(P['seed'] + 13, 0.0045, 1.0), 0.0007 * P['macera'])
     f = sdf.displace(f, skin.bumps(P['seed'] + 12, 0.025, 1.0), 0.0015 + b * 0.1)
     return f
 
@@ -585,7 +617,17 @@ def man_head(P, fr, cut=None):
         q = fr.local(p)
         return (np.clip((-0.135 - q[:, 2]) / 0.03, 0, 1) * 0.97).astype(F)
 
-    attrs = {'mouth': lambda p: mouth(fr.local(p)), 'buio': buio, 'scar': lambda p: np.zeros(len(p), F),
+    Rj = jaw_rot(P)
+    lab = [V(0, -0.097, -0.045), Rj @ (V(0, -0.093, -0.066) - HINGE) + HINGE]
+
+    def livido(p):
+        q = fr.local(p)
+        o = np.zeros(len(p), F)
+        for c in lab:
+            o = np.maximum(o, np.exp(-np.sum(((q - c) / V(0.034, 0.02, 0.014)) ** 2, axis=1)))
+        return np.clip(o * 1.4, 0, 1).astype(F)
+
+    attrs = {'mouth': lambda p: mouth(fr.local(p)), 'buio': buio, 'livido': livido, 'scar': lambda p: np.zeros(len(p), F),
              'blush': sockets,
              'slime': lambda p: (np.clip(1.0 - np.abs(fr.local(p)[:, 2] + 0.06) / 0.05, 0, 1) * (fr.local(p)[:, 1] < -0.07)).astype(F)}
     obs = [mesh('ManHead', f, fr.pos - 0.2, fr.pos + 0.2, drowned(), res=FINE, attrs=attrs)]

@@ -43,7 +43,23 @@ export interface SaveData {
   fed: { night: number; who: MonsterId } | null;
   /** le tane viste nelle immersioni (anche quelle vuote) */
   dens: MonsterId[];
+  /** alba per alba (la chiave è la notte appena vinta, 1..5): se sei sceso e se hai lasciato il pesce a qualcuno.
+   *  Decide il finale della sesta notte (chooseEnding). Rigiocando una notte, la sua alba si riscrive */
+  dawns: Record<string, DawnRecord>;
 }
+
+export interface DawnRecord {
+  dove: boolean;
+  fed: boolean;
+}
+
+/** I finali della sesta notte (docs/NOTTI_E_MOSTRI.md, «I finali»). */
+export type Ending = 'tuoi' | 'nessuno' | 'A';
+
+/** Le albe che contano per il finale: dalla prima alla quinta. */
+export const ENDING_DAWNS = [1, 2, 3, 4, 5] as const;
+/** «Nessuno»: almeno tante discese senza lasciare mai un pesce. */
+export const NESSUNO_DIVES = 3;
 
 const isMonster = (x: unknown): x is MonsterId => typeof x === 'string' && Object.hasOwn(ARRIVAL, x);
 
@@ -54,7 +70,7 @@ export function defaultOptions(): Options {
 }
 
 function fresh(): SaveData {
-  return { version: 1, lang: null, night: 1, extra: extraLevels(5), lore: [], catalog: {}, options: defaultOptions(), dawn: null, fed: null, dens: [] };
+  return { version: 1, lang: null, night: 1, extra: extraLevels(5), lore: [], catalog: {}, options: defaultOptions(), dawn: null, fed: null, dens: [], dawns: {} };
 }
 
 export function loadSave(): SaveData {
@@ -74,6 +90,7 @@ export function loadSave(): SaveData {
       dawn: d.dawn && typeof d.dawn.night === 'number' && typeof d.dawn.spare === 'number' ? { night: d.dawn.night, spare: d.dawn.spare } : null,
       fed: d.fed && typeof d.fed.night === 'number' && isMonster(d.fed.who) ? { night: d.fed.night, who: d.fed.who } : null,
       dens: Array.isArray(d.dens) ? d.dens.filter(isMonster) : [],
+      dawns: cleanDawns(d.dawns),
     };
   } catch {
     return fresh();
@@ -82,11 +99,22 @@ export function loadSave(): SaveData {
 
 // ───────── le immersioni all'alba nel salvataggio (funzioni pure: l'App le chiama, i test le provano) ─────────
 
-/** Nuova partita: si riparte senza pesci da portare giù, senza mostri sfamati e senza tane viste. */
+function cleanDawns(x: unknown): Record<string, DawnRecord> {
+  const out: Record<string, DawnRecord> = {};
+  if (!x || typeof x !== 'object') return out;
+  for (const [k, v] of Object.entries(x as Record<string, unknown>)) {
+    const r = v as Partial<DawnRecord> | null;
+    if (/^\d+$/.test(k) && r && typeof r.dove === 'boolean' && typeof r.fed === 'boolean') out[k] = { dove: r.dove, fed: r.fed && r.dove };
+  }
+  return out;
+}
+
+/** Nuova partita: si riparte senza pesci da portare giù, senza mostri sfamati, senza tane viste e senza albe. */
 export function newGame(d: SaveData): void {
   d.dawn = null;
   d.fed = null;
   d.dens = [];
+  d.dawns = {};
 }
 
 /** Notte vinta: il mostro sfamato ha dormito (o era di un'altra partita): non vale più. Si apre l'alba, con i pesci
@@ -107,16 +135,32 @@ export function pendingDawn(d: SaveData, next: number): { night: number; spare: 
   return d.dawn && d.dawn.night + 1 === next ? d.dawn : null;
 }
 
-/** Si passa alla notte dopo senza scendere: il pesce resta alla Madre, l'alba è chiusa. */
+/** Si passa alla notte dopo senza scendere: il pesce resta alla Madre, l'alba è chiusa (e conta come un'alba senza
+ *  discesa). */
 export function skipDawn(d: SaveData): void {
+  if (d.dawn) d.dawns[String(d.dawn.night)] = { dove: false, fed: false };
   d.dawn = null;
 }
 
 /** Risaliti: chi è stato sfamato dorme la notte `next`; le tane viste restano; l'alba è chiusa. */
 export function afterDive(d: SaveData, next: number, r: { fed: MonsterId | null; dens: MonsterId[] }): void {
+  d.dawns[String(next - 1)] = { dove: true, fed: !!r.fed };
   d.fed = r.fed ? { night: next, who: r.fed } : null;
   for (const m of r.dens) if (!d.dens.includes(m)) d.dens.push(m);
   d.dawn = null;
+}
+
+/**
+ * Il finale della sesta notte (approvato l'11 ottobre): «I tuoi» se hai lasciato un pesce a qualcuno a ogni alba, dalla
+ * prima alla quinta; «Nessuno» se sei sceso almeno tre volte e non hai mai lasciato un pesce; il finale A negli altri
+ * casi (anche se non sei mai sceso).
+ */
+export function chooseEnding(d: Pick<SaveData, 'dawns'>): Ending {
+  const ds = ENDING_DAWNS.map((n) => d.dawns[String(n)]);
+  if (ds.every((x) => x?.dove && x.fed)) return 'tuoi';
+  const dives = ds.filter((x) => x?.dove).length;
+  if (dives >= NESSUNO_DIVES && !ds.some((x) => x?.fed)) return 'nessuno';
+  return 'A';
 }
 
 export function writeSave(d: SaveData): void {

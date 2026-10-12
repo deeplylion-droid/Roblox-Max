@@ -7,6 +7,7 @@ import { ASSET_BASE } from '../engine/assets.ts';
 import { textureFromCanvas, textureFromImage, type GL } from '../engine/gl.ts';
 import { mul, rotX, rotZ, transpose } from '../engine/view.ts';
 import type { MonsterId } from '../game/config.ts';
+import type { EndingStill } from './cinematic.ts';
 import type { NightAssets, OverlayTex } from './night.ts';
 
 interface PassFile {
@@ -38,6 +39,8 @@ interface OverlayManifest {
   jumpscares?: Partial<Record<MonsterId | 'mother' | 'quota', { frames: PassFile[]; fps: number; aspect: number }>>;
   /** i posti del binocolo; dove sta il Foxy anche le sue due viste (fermo, più vicino), con la stessa inquadratura */
   binocular?: { places: PlaceFile[]; rec?: [number, number, number] };
+  /** le ultime inquadrature dei finali segreti (tools/render/finali.py): l'esposizione in EV da dare al tono */
+  endings?: Partial<Record<EndingStill, PassFile & { aspect: number; exposure?: number }>>;
 }
 
 type Place = NightAssets['binocular']['places'][number];
@@ -139,7 +142,7 @@ export async function loadNightAssets(gl: GL, senza = false): Promise<NightAsset
     // niente overlay renderizzati: si usano i segnaposto
   }
   overlayMan = man;
-  const out: NightAssets = { tarp: null, jumpscares: {}, fish: {}, binocular: { places: [], rec: null } };
+  const out: NightAssets = { tarp: null, jumpscares: {}, fish: {}, binocular: { places: [], rec: null }, endings: {} };
   for (const pl of man.binocular?.places ?? []) {
     try {
       out.binocular.places.push(await loadPlace(gl, pl, senza));
@@ -171,6 +174,14 @@ export async function loadNightAssets(gl: GL, senza = false): Promise<NightAsset
       out.jumpscares[(k === 'madre' ? 'mother' : k) as MonsterId | 'mother' | 'quota'] = { frames, fps: js.fps, aspect: js.aspect };
     } catch (e) {
       console.warn(e);
+    }
+  }
+  for (const [k, e] of Object.entries(man.endings ?? {})) {
+    if (!e) continue;
+    try {
+      out.endings[k as EndingStill] = { ...(await tex(gl, e)), aspect: e.aspect, exposure: e.exposure ?? 0 };
+    } catch (err) {
+      console.warn(err);
     }
   }
   return out;

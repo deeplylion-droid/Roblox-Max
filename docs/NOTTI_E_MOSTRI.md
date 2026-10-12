@@ -41,10 +41,73 @@ del questionario:
   c'è il jumpscare immediato. Il binocolo diventa uno strumento vero (finora era un easter egg). Prima la tavola
   con le varianti, i nomi e i posti, da approvare.
 
+### Più paura nel gioco (12 ottobre, ramo `claude/paura`; le idee sono approvate, i dettagli da approvare)
+
+Dal questionario del 12 ottobre l'utente ha scelto tutte e quattro le idee. Sono solo nel presentatore: la
+simulazione, le regole e il bilanciamento non cambiano.
+
+- **Le creature vive** (`src/app/vivi.ts`): mentre aspettano in posa **respirano** (lo strato si allunga e si accorcia
+  attorno alla base, dallo 0,4 all'1,1% dell'altezza, da 0,18 a 0,36 respiri al secondo; la Madre più piano). Quando
+  ne guardi una che è tutta fuori da almeno 1,2 s, ogni tanto **la testa scatta**: una rotazione di 3-4° sopra il
+  collo in 70 ms, ferma un quarto di secondo con un tremito, poi torna piano; una ogni 6-13 s, con lo schiocco della
+  cartilagine bagnata (`vivo_scatto_*`). Chi è appena uscito dall'acqua **gocciola** (`goccia_*`, una ogni 0,8-2,5 s).
+  Robin e la Madre non scattano. Nel renderer gli strati hanno `uWarp` e `uNeck` (le toppe seguono la loro posa; il
+  bordo del riquadro si sfuma di 14 px mentre si deforma).
+- **Il cuore del pescatore** (`src/app/paura.ts`): un solo numero, **il pericolo** (0..1, dagli stati dei mostri in
+  `dangerNow()` di `night.ts`; per esempio Gulpy che pretende 0,55-0,9, Molly nei capricci 0,8-0,92, Hatch che cerca
+  0,95, Soggy che corre verso la barca 0,96, la Madre che passa sotto 1; a batteria morta fino a 0,9), che sale in
+  fretta e scende piano. Dallo 0,15 in su il **battito**, da 66 a 132 al minuto e sempre più forte; il **respiro** si
+  fa corto; quando devi stare immobile (la Madre che passa sotto, Hatch che cerca) **trattieni il fiato**, e quando
+  finisce lo butti fuori. Sono suoni «dentro la testa» (bus `body`): sotto il telone non si ovattano, anzi il cuore si
+  sente di più. Sostituisce il vecchio battito.
+- **La tensione nella musica**: due fondi in loop (`tensione_bassa`, 24 s; `tensione_alta`, 16 s) che entrano col
+  pericolo medio e con quello forte; **sopra 0,92, un attimo prima del peggio, la musica sparisce di colpo** e resta
+  solo il cuore.
+- **I falsi allarmi** (dalla notte 2): una o due volte per notte, solo se è tutto calmo da almeno 20 s e sei fuori
+  dal telone, senza sonar né binocolo: **i colpi di Molly sullo scafo**, da un lato, senza nessuno (6 volte su 10), o
+  **un tonfo in acqua dietro di te** (sottotitolo «un tonfo in acqua, dietro di te» / «a splash in the water, behind
+  you»). Il cuore sussulta e torna giù piano. Il primo fra la prima ora e le due passate, il secondo almeno 1,2 ore
+  dopo.
+- Le anteprime (la scena col suono e Gulpy vivo) le ho mandate in chat il 12 ottobre. **Da fare**: la sagoma nella
+  nebbia (serve un render, dopo l'atmosfera).
+
+### I disegni a pastelli (12 ottobre, ramo `claude/ricordo-disegno`)
+
+L'utente ha proposto di sostituire la foto del 1997 di «Il ricordo» con un disegno a pastelli a cera «molto bambino e
+stilizzato», e l'ha approvato. Poi ha chiesto di metterne altri 4 o 5 nel gioco, lasciando a me la scelta di dove,
+«per non incasinare nulla». Li genera tutti `tools/render/pastelli.py`, con la stessa mano: la grana della carta, la
+cera che si posa solo sulle sporgenze, i tratti tremolanti, il colore a zig-zag fuori dai bordi, le scritte in
+stampatello con la S girata.
+
+- **«Il ricordo»** (il finale B della notte extra, **approvato**): la sera della Night Splash, davanti all'ingresso di
+  Splashland, quattro bambini per mano. Tre hanno la faccia cancellata da uno scarabocchio nero (sotto si intravede
+  ancora il sorriso), e a ognuno ho lasciato una sola cosa che dice chi era: i braccioli a Molly, il salvagente a
+  paperella a Gulpy, il giocattolo luminoso a Hatch. Il quarto, intatto, col berretto e la canna col pesciolino, sei tu.
+  Nel lago c'è la cosa con un occhio solo. La data è quella del braccialetto, «14-8-97»; nella prima versione
+  approvata c'era per sbaglio il 26 luglio. La scena sul banco all'alba la fa la sessione dei finali.
+- **I disegni dell'alba** (**approvati dall'utente il 12 ottobre**): all'alba di ogni notte vinta, dalla prima alla quinta, sul banco c'è un
+  disegno bagnato dei bambini di quella notte, com'erano prima della Madre. Si vede nella schermata delle sei, accanto
+  ai risultati (anche quando l'alba si riprende da «Continua»), e poi resta nel **Diario**: in cima, la pagina
+  «Disegni», con i posti vuoti per quelli che mancano. «Il ricordo», l'ultimo, è il disegno in cui ci sei anche tu.
+  1. «La piscina» (notte 1): Gulpy allo Snack Shack col panino gigante, «HO FAME!»; Molly sul trampolino coi
+     braccioli, «GUARDAMI!»; gli occhi di Hatch nel tunnel dello scivolo, col suo giocattolo che brilla, «TROVAMI!».
+  2. «Il mio tesoro» (notte 2): Robin sotto gli scivoli, col mucchio delle cose prese agli altri bambini e i biglietti
+     della sala giochi attorno alle braccia; la torcia di un grande lo becca in faccia.
+  3. «Tanti auguri» (notte 3): la torta con le candeline, la festeggiata che piange, e Archie con la trombetta che le
+     spegne tutte.
+  4. «Sott'acqua» (notte 4): la piscina vista di lato; sopra, un bambino che si sbraccia, «AIUTO!»; sotto, con la
+     cuffia a fiori, la bambina che gli tira le gambe ridendo, «AH AH AH» (Lampy).
+  5. «Marco Polo» (notte 5): in mezzo alla piscina lui con gli occhialini dipinti di nero, a braccia aperte,
+     «MARCO!»; attorno gli altri, «POLO!» (Fangy).
+- **Dove stanno**:
+  - i disegni: `public/assets/img/disegni/pastelli_<nome>.webp`, 1600 px, con la trasparenza dei bordi strappati;
+  - il codice: `src/app/disegni.ts` (quale notte, quale disegno), `Screens.results`, `Screens.dawn` e `Screens.journal`.
+  Le regole, la pesca e i frammenti non cambiano: i disegni non si pescano e non contano.
+
 ### Il Foxy nel gioco (logica, notte fra l'11 e il 12 ottobre; branch `claude/foxy-gioco`)
 
-> **Provvisorio finché non arrivano i render** (il modello, le viste del binocolo, il jumpscare) e il nome: per ora nel
-> binocolo si vedono **due occhi rossi** nel suo posto, il jumpscare è un buio con la scossa. **I suoni** (12 ottobre, da
+> **I render sono arrivati** (12 ottobre: il modello, le viste del binocolo di scivoli e relitto, il jumpscare, sotto);
+> dove manca una vista col Foxy restano i **due occhi rossi** nel suo posto. **I suoni** (12 ottobre, da
 > approvare; `docs/AUDIO.md`, «L'animatore») sono i file `foxy_near` (si sporge), `foxy_leave` (lascia il posto e corre
 > verso la barca, finisce sul salto) e `js_foxy` (l'abbraccio); senza i file restano i ripieghi. **Da approvare**: i testi (sotto) e i numeri.
 >
@@ -71,6 +134,15 @@ del questionario:
 > da 2,2 MB a mezzo MB l'una): lui cambia stadio solo quando non lo guardi, quindi le minime differenze della
 > compressione non si vedono. Siccome la nebbia nuova è già nel render, in `overlays.json` questi due posti hanno
 > `fog: 0`: il motore non ci aggiunge la sua (le altre viste la prendono ancora, finché non si rifanno con l'atmosfera).
+>
+> **Il jumpscare definitivo** (12 ottobre, sessione del Foxy, ramo `claude/foxy`, commit 9549a04; tavola
+> `docs/concept/jumpscare/js_foxy_finale_fotogrammi.jpg`): otto fotogrammi a 1920×1080 (`js_foxy_00..07.webp`,
+> `overlays.json` → `jumpscares.foxy`), con le correzioni chieste sull'anteprima: la camera guarda il bordo a prua sulla
+> dritta e lui sale da sotto il capodibanda contro la foschia (fotogrammi 0-3), poi ti viene addosso con la faccia al
+> centro, luce calda solo sulla faccia, l'occhio da cartone che dondola di lato e le mani ossute che salgono dagli angoli
+> in basso (4-7). La faccia da annegato: pelle macerata, chiazze grigio-viola, labbra gonfie e livide.
+> **Più vicino** (richiesta dell'utente del 12 ottobre, «così che ti arriva proprio in faccia, alla FNAF»): nel gioco i
+> fotogrammi si ingrandiscono del 20% attorno al centro, senza rifare il render (`JS_ZOOM` in `src/app/night.ts`).
 
 - **Dove sta**: in uno di due posti del binocolo, la **torre degli scivoli** alle spalle (−167°, 460 m) e il
   **relitto** davanti alla prua (14°, 170 m), da dove salta in acqua e arriva alla barca. Li ha proposti la sessione
@@ -507,8 +579,9 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
 
 > **Deciso l'11 ottobre**: la notte coi livelli da scegliere (come la notte personalizzata di FNAF), con anche **la
 > Madre come ottavo livello** (quanto spesso passa sotto la barca). Ha un suo finale, il **finale B «Il ricordo»**:
-> come il finale A, ma prima di andarsene la Madre ti lascia sul banco una foto dell'edicola, e sei tu da bambino, a
-> Splashland nel 1997 (c'eri anche tu, e sei l'unico che è tornato a casa). Si vede **solo vincendo la notte 7 con
+> come il finale A, ma prima di andarsene la Madre ti lascia sul banco un disegno a pastelli bagnato, da bambino: voi
+> quattro a Splashland nel 1997, e il quarto sei tu (c'eri anche tu, e sei l'unico che è tornato a casa; prima era una
+> foto dell'edicola, il disegno è un'idea dell'utente approvata il 12 ottobre). Si vede **solo vincendo la notte 7 con
 > impostazioni difficili** (tutti, Madre compresa, almeno a 10); con impostazioni più facili un'alba normale.
 > **Tutti a 20** (questionario dell'11 ottobre): **difficilissima ma possibile**, il traguardo da raccontare (come il
 > 20/20/20/20 di FNAF): un giocatore bravissimo deve poterla vincere.
@@ -597,9 +670,8 @@ Lampy, il terzo rumore di Fangy): cambiano solo **quando arriva, quanto spesso t
   le regole sotto i nomi «sfamalo, guardala, nasconditi, luce in faccia, spegni la luce, non ferrare, stai zitto» /
   «feed him, watch her, hide, light in his face, light off, don't strike, stay quiet»; per la Madre «La Madre, non
   muoverti» / «The Mother, don't move»; per Soggy «non perderlo di vista» / «don't lose sight of him» (12 ottobre, da
-  approvare); «Salpa» / «Cast off». Il finale segnaposto: «Il finale
-  della notte extra» / «The end of the extra night» (con una riga che dice che è un segnaposto; il finale B vero si fa
-  quando la Madre sarà renderizzata).
+  approvare); «Salpa» / «Cast off». Il finale B «Il ricordo»: sotto, «I finali
+  segreti nel gioco» (il segnaposto di prima non c'è più).
   La radio, corta: «Notte extra. Dieci pesci. / Stanotte vengono quelli che hai chiamato tu. / Buona pesca.» /
   «Extra night. Ten fish. / Tonight the ones you called are coming. / Good fishing.»
 - **Giocatori simulati, con la Madre** (`npm run sim -- 7 300 <livelli>`, dopo l'unione dei rami claude/lampara e claude/notte6:
@@ -666,9 +738,60 @@ immersioni all'alba (`docs/IMMERSIONI.md`; durante le notti Gulpy va sfamato per
 è **approvata** (11 ottobre), con le impronte più scure e bagnate perché si leggano anche fuori dal riflesso del sole.
 
 La **notte 7** ha il suo finale, **B «Il ricordo»** (con impostazioni difficili; sopra), anche lui come cinematica
-breve. **Da fare**: il «regista» delle cinematiche nel motore; i render del molo all'alba e dell'edicola da vicino con
-la tua foto; le immagini della Madre; i suoni dei due finali segreti e un taglio più corto del finale all'alba
-(`madre_dawn` oggi dura 24 s). Si fanno dopo la notte 6 e le immersioni, da cui dipendono.
+breve. Fatti: il «regista» delle cinematiche, i render del molo e dell'edicola, i suoni dei due finali segreti e il
+taglio più corto del finale all'alba (`madre_dawn_breve`), le due cinematiche segrete, i titoli di coda e il finale B
+col disegno a pastelli (sotto; i tre finali approvati il 12 ottobre).
+
+### I finali segreti nel gioco
+
+> **Approvati il 12 ottobre** i tre finali, «I tuoi», «Nessuno» e «Il ricordo» (ramo `claude/finali-gioco`), per la
+> build di quella sera. La frase del finale B è stata tolta per scelta dell'utente. I titoli di coda restano coi nomi
+> segnaposto.
+> Le clip col suono per l'approvazione stanno in `docs/concept/clip/`.
+
+- **Quale finale** (`chooseEnding` in `src/app/save.ts`, provato in `tests/save.test.ts`): il salvataggio ricorda,
+  alba per alba (`dawns`, la chiave è la notte appena vinta, 1-5), se sei sceso e se hai lasciato il pesce a
+  qualcuno. «I tuoi» se un pesce l'hai lasciato **a ogni alba dalla prima alla quinta**; «Nessuno» se sei sceso
+  **almeno tre volte** e **non hai mai lasciato un pesce**; il finale A in tutti gli altri casi (anche mai sceso).
+  Rigiocando una notte la sua alba si riscrive; «Nuova partita» le azzera; un'immersione che non parte (dati mancanti)
+  conta come un'alba senza discesa. In sviluppo `?finale=tuoi|nessuno|A` lo forza (prove e registrazioni).
+- **Le cinematiche** (`src/app/cinematic.ts`, `FINALE_TUOI` e `FINALE_NESSUNO`, provate in `tests/cinematic.test.ts`),
+  sui tempi dei loro suoni (`docs/AUDIO.md`):
+  - **«I tuoi»** (21 s): la Madre sale a sinistra e chiama (0-3 s); i figli affiorano attorno alla barca e non la
+    seguono, mentre lei richiama più forte (3-6 s); lei torna giù da sola (6-10 s); i figli restano, poi scendono
+    sotto la barca mentre sorge il sole (10-13 s); un attimo di buio e, quando la barca tocca il molo (14,6 s),
+    l'ultima inquadratura del molo con le impronte, che si avvicina piano alle impronte mentre si sentono i passetti;
+    «Non sei tornato da solo.»
+  - **«Nessuno»** (21,6 s): la Madre sale e ti guarda (0-3 s); i figli affiorano uno dopo l'altro e restano fermi a
+    fissarti (3-8 s); di nuovo lei, poi la vista scende verso l'acqua e la lampara muore (8-10 s); il buio con la ninna
+    nanna (10-15 s); a 15 s il taglio netto sull'edicola, dove il mare e i rumori della barca si spengono, e la vista
+    si avvicina piano alla Polaroid; «Non hai mai dato niente ai suoi piccoli. Adesso sei uno di loro.»
+- **Il regista** ha due cose nuove: l'**ultima inquadratura** (`still`: l'immagine renderizzata a tutto schermo, la
+  dissolvenza, lo zoom e il punto al centro nel tempo; si disegna con l'esposizione del suo render al posto di quella
+  della notte, più la sola luminosità delle opzioni) e l'evento **`quiet`** (il taglio su un altro posto spegne il
+  mare, il vento e gli scricchiolii).
+- **I titoli di coda** (`Screens.credits`, DA APPROVARE, i nomi sono un segnaposto in `src/i18n.ts`: «(nome da
+  decidere)» / «(name to be decided)»): dopo ognuno dei
+  tre finali della notte 6, su un fondo nero salgono il titolo, i ruoli coi nomi e «Grazie per aver giocato.», con la
+  ninna nanna del titolo; Esc, Invio o un clic li saltano. Poi i risultati, con l'avviso della notte extra.
+- **Il finale B «Il ricordo»** (la notte 7; approvato il 12 ottobre, senza frase): al posto della foto del 1997 (provata
+  coi bambini renderizzati, `tools/render/bambini.py` e `finali.foto_1997`, restano nel ramo ma non si usano) un
+  **disegno a pastelli: idea dell'utente e approvato il 12 ottobre** (`docs/concept/ricordo_disegno.webp`, disegnato
+  da `tools/render/pastelli.py`): i quattro bambini davanti all'ingresso di Splashland la sera della Night
+  Splash (14-8-97, la data del braccialetto), tre con la faccia scarabocchiata di nero e una cosa a testa (i braccioli
+  di Molly, il salvagente a paperella di Gulpy, il giocattolo luminoso di Hatch), il quarto col berretto e la canna
+  col pesce.
+  - **La scena** (`finali.scena_ricordo`, `public/assets/img/fin_ricordo.webp`; anteprima
+    `docs/concept/finali_ricordo_anteprima.jpg`): il foglio sul banco di prua all'alba, bagnato e ondulato (le pieghe,
+    gli orli che si alzano), la carta scurita dove ha bevuto l'acqua e la cera che la respinge in goccioline tonde
+    (la maschera della cera si ricava dal disegno), qualche goccia sul banco, accanto il secchio vuoto; la borraccia
+    spostata fuori dal quadro.
+  - **La cinematica** (`FINALE_B`, 22 s, sul suono del finale A `madre_dawn_breve`): uguale al finale A fino al
+    secchio che si svuota e ai figli che tornano giù (0-12 s); niente radio: la vista scende sul banco di prua mentre
+    sorge il sole e lì (14,6 s) si dissolve nel disegno, poi va piano verso i quattro bambini e infine il nero.
+    **Niente frase** (c'era «Il quarto eri tu. L'unico che è tornato a casa.», tolta per scelta dell'utente il 12
+    ottobre): solo il disegno che si avvicina. Poi i risultati («Quota raggiunta»), senza titoli di coda. Il segnaposto `Screens.extraEnding` non c'è più. In sviluppo `?finale=B` lo
+    forza alla notte extra. La clip: `docs/concept/clip/finale_ricordo.mp4` (solo il canvas: le scritte non ci sono).
 
 ### Le ultime inquadrature dei due finali segreti
 

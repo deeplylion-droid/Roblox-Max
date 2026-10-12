@@ -10,10 +10,11 @@ Lampy (notte 4) arriva dalla lenza con la ventosa spalancata, e da un fotogramma
 Fangy (notte 5) si lancia dalla fiancata con le zanne avanti e tutte le lucine accese.
 La Madre (notte 6, da approvare) viene da sotto: la barca è sbalzata e inclinata, e dal mare sale la bocca spalancata
 attorno alla barca, coi fanoni come le sbarre di un lettino; la camera si inclina con la barca (CAMERE).
+L'animatore (dalla notte 2) sale dall'acqua a prua e ti abbraccia; l'occhio che penzola dondola (SPIN).
 
 Uso: tools/.venv/bin/python tools/render/jobs.py jumpscare --quality preview   (JUMPSCARES=gulpy,molly,hatch,robin;
-JS_ANTEPRIMA=1 per lasciare i fotogrammi in cache senza toccare il gioco; Archie, Lampy, Fangy e la Madre si chiedono a
-parte: JUMPSCARES=archie, JUMPSCARES=lampy, JUMPSCARES=fangy, JUMPSCARES=madre)
+JS_ANTEPRIMA=1 per lasciare i fotogrammi in cache senza toccare il gioco; Archie, Lampy, Fangy, la Madre e l'animatore si
+chiedono a parte: JUMPSCARES=archie, JUMPSCARES=lampy, JUMPSCARES=fangy, JUMPSCARES=madre, JUMPSCARES=foxy)
 """
 from __future__ import annotations
 
@@ -280,12 +281,141 @@ def madre_attack():
 MADRE_JS = {'su': 0.9, 'rollio': -14.0, 'beccheggio': 5.0, 'yaw': -62.0, 'pitch': -6.0, 'dist': 2.0, 'bocca': 5.5,
             'muso_su': 0.0, 'indietro': 11.0, 'giu': 3.2, 'lente': 20.0}
 
-ATTACKS = {'gulpy': gulpy_attack, 'molly': molly_attack, 'hatch': hatch_attack, 'robin': robin_attack,
-           'archie': archie_attack, 'lampy': lampy_attack, 'fangy': fangy_attack, 'madre': madre_attack}
-
 # Le camere fatte dall'attacco (la Madre: la camera si inclina con la barca sbalzata); per gli altri la camera guarda la
 # creatura dall'occhio, come sempre
 CAMERE = {}
+
+def foxy_attack():
+    import animatore as an
+    # l'animatore (dalla notte 2): l'hai trascurato e dal relitto è venuto fino alla barca. La camera guarda il bordo a
+    # prua sulla dritta, appena in basso, col mare e la foschia chiara dietro: lui sale da sotto il capodibanda (la
+    # sagoma si stacca contro la foschia), poi ti viene addosso e ti abbraccia. Alla fine la sua faccia, fuori dalla
+    # bocca del costume, riempie il quadro a mezzo metro; le mani ossute entrano dai lati e dal basso con le dita aperte
+    # vicine all'obiettivo; l'occhio da cartone dondola di lato. «Lo spettacolo finiva sempre con un abbraccio.»
+    before = set(bpy.data.objects)
+    _, face = an.build('abbraccio', occhio=0.0)
+    obs = [o for o in bpy.data.objects if o not in before]
+    bpy.context.view_layer.update()
+    J = FOXY_JS
+    eye = Vector(EYE)
+    a = math.radians(J['yaw'])
+    hor = Vector((math.sin(a), math.cos(a), 0.0))
+    pos = eye + hor * J['parte']
+    pos.z = J['z']
+    t = eye - pos
+    M0 = Matrix.Translation(pos) @ Matrix.Rotation(math.atan2(t.x, -t.y), 4, 'Z')
+    # la camera: verso il bordo, appena in basso
+    aim = eye + hor * J['mira_dist']
+    aim.z = J['mira_z']
+    d = cam_dir(aim)
+    face_l = Vector(tuple(map(float, face)))
+    # a metà: è salito sul bordo, dove stava (la faccia sopra il capodibanda)
+    Mmid = Matrix.Translation((0.0, 0.0, J['sale'])) @ Matrix.Translation(-hor * J['avanza']) @ M0
+    # alla fine: la faccia sulla linea della camera, a J['dist'] metri, girata verso di te e un po' all'indietro
+    yaw1 = math.atan2(-d.x, d.y)
+    R1 = Matrix.Rotation(yaw1, 4, 'Z') @ Matrix.Rotation(math.radians(J['indietro']), 4, 'X')
+    M1 = Matrix.Translation(eye + d * J['dist']) @ R1 @ Matrix.Translation(-face_l)
+
+    def path(u):
+        u = J['parte_da'] + (1 - J['parte_da']) * u
+        k = J['meta']
+        if u < k:
+            return _lerp_matrix(M0, Mmid, (u / k) ** 0.9)
+        w = (u - k) / (1 - k)
+        return _lerp_matrix(Mmid, M1, w * w * (3 - 2 * w) * 0.35 + w ** 1.6 * 0.65)
+    PATH['foxy'] = path
+    # l'occhio che dondola, di lato: si ruotano i vertici dell'occhio, del brandello e dei suoi fili attorno al punto in
+    # cui il brandello esce dall'orbita (nelle coordinate della creatura, prima di metterla in scena)
+    swing = [o for o in obs if o.name.startswith(('ToonEyeHang', 'EyeStrip'))]
+    threads = sorted((o for o in obs if o.name.startswith('Threads')), key=lambda o: o.name)
+    if threads:
+        swing.append(threads[-1])
+    strip = next(o for o in obs if o.name.startswith('EyeStrip'))
+    top = max((strip.matrix_world @ v.co for v in strip.data.vertices), key=lambda v: v.z)
+    local = {o.name: (o.matrix_world.copy(), [v.co.copy() for v in o.data.vertices]) for o in swing}
+    # le mani (nei fotogrammi finali si alzano e si chiudono verso la camera): ogni avambraccio ruota attorno al punto
+    # più indietro, dove esce dalla manica, così resta attaccato
+    mani = [o for o in obs if o.type == 'MESH' and o.name.startswith(('ManHands', 'ManNails'))]
+    mani_l = {o.name: (o.matrix_world.copy(), [v.co.copy() for v in o.data.vertices]) for o in mani}
+    perno = {}
+    for o in mani:
+        if o.name.startswith('ManHands'):
+            Mw = o.matrix_world
+            for sd in (1, -1):
+                vs = [Mw @ v.co for v in o.data.vertices if sd * (Mw @ v.co).x > 0.1]
+                perno[sd] = max(vs, key=lambda v: v.y) if vs else Vector((0.4 * sd, -0.7, 1.0))
+    # la luce calda dalla parte della lanterna, solo sulla faccia dell'uomo (gli occhi lattiginosi e i denti bagnati
+    # brillano, il costume resta scuro): si muove con lui, quindi lo illumina uguale in ogni fotogramma
+    faccia = [o for o in obs if o.type == 'MESH' and o.name.startswith(('ManHead', 'ManEye', 'ManTeeth', 'ManDrool', 'ManHair'))]
+    col = bpy.data.collections.new('FoxyFacciaLuce')
+    for o in faccia:
+        col.objects.link(o)
+    to_eye = Vector((0.0, -1.0, 0.25)).normalized()       # la creatura guarda −Y
+    ld = bpy.data.lights.new('FoxyFaccia', 'AREA')
+    ld.energy, ld.color, ld.size = J['luce'], (1.0, 0.62, 0.30), 0.18
+    lo = bpy.data.objects.new('FoxyFaccia', ld)
+    bpy.context.scene.collection.objects.link(lo)
+    # nel sistema della creatura: davanti alla faccia, verso chi guarda e un po' dalla parte della lanterna (che a
+    # metà percorso, girata la creatura, è a sinistra della camera)
+    lp = face_l + to_eye * 0.40 + Vector((-0.22, 0.0, 0.10))
+    lo.location = lp
+    lo.rotation_mode = 'QUATERNION'
+    lo.rotation_quaternion = (face_l - lp).to_track_quat('-Z', 'Y')
+    lo.light_linking.receiver_collection = col
+    lo.lightgroup = 'lantern'
+    obs.append(lo)
+    bpy.context.view_layer.update()
+    for o in obs:
+        o.matrix_world = M0 @ o.matrix_world
+
+    def mani_su(i):
+        k = J['mani'][i]
+        for o in mani:
+            Mw, cos = mani_l[o.name]
+            Minv = Mw.inverted()
+            for v, c in zip(o.data.vertices, cos):
+                w = Mw @ c
+                sd = 1 if w.x > 0 else -1
+                p = perno[sd]
+                Rw = Matrix.Rotation(math.radians(-J['mani_su'] * k), 4, 'X') @ Matrix.Rotation(math.radians(-sd * J['mani_dentro'] * k), 4, 'Z')
+                v.co = Minv @ (p + (Rw @ (w - p).to_4d()).to_3d())
+            o.data.update()
+
+    def dondola(i):
+        mani_su(i)
+        side, fwd = J['occhio_lato'][i], J['occhio_avanti'][i]
+        Rw = Matrix.Translation(top) @ (Matrix.Rotation(math.radians(-fwd), 4, 'X') @ Matrix.Rotation(math.radians(-side), 4, 'Y')) \
+            @ Matrix.Translation(-top)
+        for o in swing:
+            Mw, cos = local[o.name]
+            k = Mw.inverted() @ Rw @ Mw
+            for v, c in zip(o.data.vertices, cos):
+                v.co = k @ c
+            o.data.update()
+    SPIN['foxy'] = dondola
+    return obs, M0, M1, aim
+
+
+# L'animatore. yaw/parte/z: da dove parte (gradi dall'occhio, metri, quota dei piedi: sotto il capodibanda);
+# mira_dist/mira_z: il punto del bordo che guarda la camera; sale/avanza: a metà corsa è salito sul bordo; dist: a quanti
+# metri arriva la sua faccia (sulla linea della camera); indietro: gradi di cui si piega all'indietro alla fine (la
+# faccia, che nel costume pende in giù, ti guarda); parte_da: al fotogramma 0 è già partito; meta: a che punto della
+# corsa è sul bordo; luce: watt della luce sulla faccia; l'occhio dondola di lato (gradi, + in fuori) e un po' avanti
+FOXY_JS = {'yaw': 45.0, 'parte': 2.25, 'z': -1.05, 'mira_dist': 2.6, 'mira_z': 0.95,
+           'sale': 0.80, 'avanza': 0.20, 'dist': 0.46, 'indietro': -14.0, 'parte_da': 0.06, 'meta': 0.42, 'luce': 6.0,
+           'occhio_lato': [25.0, 32.0, 40.0, 46.0, 52.0, 44.0, 30.0, 22.0],
+           'occhio_avanti': [0.0, -6.0, -12.0, -8.0, 4.0, 10.0, 6.0, -4.0],
+           # le mani attorno alla faccia (posa 'abbraccio' di animatore.py) salgono dal basso negli ultimi fotogrammi
+           # ed entrano dagli angoli in basso: la rotazione di ogni fotogramma (moltiplicatore) di mani_su gradi (in su,
+           # qui in giù) e mani_dentro (verso il centro, qui appena in fuori); scelte proiettando le mani nel quadro
+           # finale (fuori dalla faccia)
+           'mani': [2.0, 2.0, 2.0, 2.0, 2.0, 1.8, 1.4, 1.0], 'mani_su': -20.0, 'mani_dentro': -4.0}
+if os.environ.get('FOXY_MANI'):          # prove: FOXY_MANI=su,dentro
+    FOXY_JS['mani_su'], FOXY_JS['mani_dentro'] = map(float, os.environ['FOXY_MANI'].split(','))
+
+ATTACKS = {'gulpy': gulpy_attack, 'molly': molly_attack, 'hatch': hatch_attack, 'robin': robin_attack,
+           'archie': archie_attack, 'lampy': lampy_attack, 'fangy': fangy_attack, 'madre': madre_attack,
+           'foxy': foxy_attack}
 
 # I pezzi che cambiano da un fotogramma all'altro (oltre a muoversi): funzione del numero del fotogramma, preparata
 # dall'attacco (i denti di Lampy che girano)
@@ -303,7 +433,11 @@ FILL = {'robin': {'energy': 3.0, 'dist': 0.35},
         # sue lucine
         'fangy': {'energy': 3.0, 'dist': 0.35},
         # la Madre: dentro la bocca la lampara arriva poco; questa luce, più forte perché la bocca è grande, la fa leggere
-        'madre': {'energy': 90.0, 'dist': 0.35}}
+        'madre': {'energy': 90.0, 'dist': 0.35},
+        # l'animatore sale dall'acqua a prua, con la luce di lato: la sua faccia esce dal buio della bocca del costume
+        # (la luce della barca gli sta alle spalle; la faccia la illumina una luce sua, vedi foxy_attack: il costume
+        # resta scuro)
+        'foxy': {'energy': 4.0, 'dist': 0.45}}
 
 
 def _fill_light(cfg):
@@ -322,6 +456,18 @@ def _fill_light(cfg):
 
 
 # ───────────────────────── render ─────────────────────────
+
+def cam_dir(aim):
+    """La direzione della camera del jumpscare verso il punto mirato (non più su di 22°, e un filo più in basso)."""
+    d = (aim - Vector(EYE)).normalized()
+    hor = math.hypot(d.x, d.y)
+    max_up = math.tan(math.radians(22.0)) * hor
+    return Vector((d.x, d.y, min(d.z, max_up) - 0.06)).normalized()
+
+
+# Percorsi su misura (al posto della corsa dritta da M0 a M1 con ease): funzione di u = i/(FRAMES-1) → matrice,
+# preparata dall'attacco (l'animatore prima sale sul bordo, poi ti viene addosso)
+PATH = {}
 
 def _set_creature(obs, base, M0inv, M):
     for o in obs:
@@ -343,10 +489,7 @@ def run(q, who, post_mod, overlays_path, build_scene, coll_objects, renderable):
         CAMERE[who]()
     else:
         # la camera guarda la creatura, un po' sotto la testa (come quando alzi gli occhi di scatto)
-        d = (aim - Vector(EYE)).normalized()
-        hor = math.hypot(d.x, d.y)
-        max_up = math.tan(math.radians(22.0)) * hor
-        d = Vector((d.x, d.y, min(d.z, max_up) - 0.06)).normalized()
+        d = cam_dir(aim)
         cam_target = tuple(Vector(EYE) + d * 2.0)
         perspective_camera(EYE, cam_target, lens=22.0, name='JumpCam')
     # la versione da approvare basta più piccola e con meno campioni (ci sono scosse e grana sopra)
@@ -356,10 +499,11 @@ def run(q, who, post_mod, overlays_path, build_scene, coll_objects, renderable):
     # la grana del nastro sopra; col denoise 64 bastano e il render dura la metà)
     if os.environ.get('JS_SAMPLES'):
         samples = int(os.environ['JS_SAMPLES'])
-    out_dir = os.path.join(CACHE, q.name, 'jumpscare')
+    # JS_TAG: una cartella a parte (più prove insieme)
+    out_dir = os.path.join(CACHE, q.name, 'jumpscare' + os.environ.get('JS_TAG', ''))
     os.makedirs(out_dir, exist_ok=True)
     # JS_ANTEPRIMA=1: i fotogrammi restano in cache (da approvare), senza toccare il gioco
-    anteprima = bool(os.environ.get('JS_ANTEPRIMA'))
+    anteprima = bool(os.environ.get('JS_ANTEPRIMA')) or bool(os.environ.get('JS_FOTOGRAMMI'))
     out_img = os.path.join(out_dir, 'anteprima') if anteprima else OUT_IMG
     os.makedirs(out_img, exist_ok=True)
 
@@ -370,7 +514,8 @@ def run(q, who, post_mod, overlays_path, build_scene, coll_objects, renderable):
     # JS_RIPRENDI=1: riprende un render interrotto, riusando lo sfondo e i fotogrammi già in cache
     riprendi = bool(os.environ.get('JS_RIPRENDI'))
     t = time.time()
-    if not (riprendi and os.path.exists(bg_exr)):
+    # JS_RIUSA_SFONDO=1: lo sfondo già reso si riusa (cambia solo la creatura)
+    if not ((riprendi or os.environ.get('JS_RIUSA_SFONDO')) and os.path.exists(bg_exr)):
         render(bg_exr, samples, (W, H), data_passes=())
     log(f'jumpscare {who} sfondo', round(time.time() - t), 's')
     for o in meshes:
@@ -382,16 +527,28 @@ def run(q, who, post_mod, overlays_path, build_scene, coll_objects, renderable):
     scene_objs = renderable(coll_objects('boat')) + renderable(coll_objects('env'))
     keep = set(o.name for o in meshes)
     for o in scene_objs:
+        if o.name == 'Nebbia':
+            # la nebbia dell'atmosfera è già nello sfondo: davanti a una creatura a mezzo metro non conta, e nei
+            # fotogrammi costerebbe il triplo (in holdout, poi, bucherebbe la creatura)
+            o.hide_render = True
+            continue
         if o.name not in keep and o.visible_camera:
             o.is_holdout = True
     bg = post_mod.read_exr(bg_exr)
     bg_lin = sum(bg[g][..., :3] for g in ('ambient', 'lamp', 'lantern') if g in bg)
     frames = []
+    # JS_FOTOGRAMMI=7 (o 6,7): solo quei fotogrammi, per le prove (implica l'anteprima)
+    solo = [int(x) for x in os.environ.get('JS_FOTOGRAMMI', '').split(',') if x]
     for i in range(FRAMES):
-        u = ease(i / (FRAMES - 1))
+        if solo and i not in solo:
+            continue
         if who in SPIN:
             SPIN[who](i)
-        _set_creature(creature, base, M0inv, _lerp_matrix(M0, M1, u))
+        if who in PATH:
+            M = PATH[who](i / (FRAMES - 1))
+        else:
+            M = _lerp_matrix(M0, M1, ease(i / (FRAMES - 1)))
+        _set_creature(creature, base, M0inv, M)
         exr = os.path.join(out_dir, f'{who}_{i:02d}.exr')
         t = time.time()
         if not (riprendi and os.path.exists(exr)):

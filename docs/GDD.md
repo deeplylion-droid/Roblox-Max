@@ -32,6 +32,8 @@ Horror in prima persona a inquadratura fissa (alla *Five Nights at Freddy's*): s
 | Pausa | | `Esc` |
 | Binocolo (easter egg) | tieni premuto il tasto destro | `B`; rotella: zoom |
 
+Col controller (e sullo Steam Deck) si gioca tutto: la tabella è in «Controller e Steam Deck» (§14).
+
 - **Binocolo — easter egg** (fatto, da approvare): lo alzi con `B` o tenendo premuto il tasto destro; la vista si stringe nei due cerchi e zooma forte (rotella: due livelli di zoom) sui luoghi dell'orizzonte, renderizzati a parte ad alta risoluzione (`tools/render/binocolo.py`: ingresso di Splashland, statua di Mama Marina, ruota panoramica, scivoli, albergo Miramare, edicola votiva, relitto, faro, paese). Le mani tremano appena, ma compensano buona parte del dondolio della barca (così a zoom massimo il dettaglio resta nel cerchio). Mentre guardi nel binocolo non vedi la barca, e **Molly non si sente guardata**. Non si può alzare sotto il telone, col sonar aperto o con un pesce in canna. Non serve a superare la notte: è un easter egg. Alcuni dettagli di lore si vedono solo così, e restano **criptici al massimo** (proposta in `LORE.md`, «Il binocolo»).
 
 ## 4. Struttura della notte
@@ -156,6 +158,51 @@ TypeScript + WebGL2 (renderer proprio), interfaccia in HTML/CSS, Web Audio. Desk
 
 **La demo per Steam** (Next Fest di febbraio 2027): **1 o 2 notti** (nota dell'utente del 12 ottobre; prima era solo la
 prima notte). Il piano dei passi è nella pagina «Splashland su Steam». Tutti gli asset sono generati da script nel repository (`tools/`).
+
+### Controller e Steam Deck
+
+(12 ottobre, da approvare.) Tutto il gioco si gioca col controller, senza mai toccare mouse o tastiera: la notte, le
+immersioni all'alba, la pausa, le cinematiche e tutti i menu. Gamepad API del browser con la **mappatura standard**:
+controller Xbox, PlayStation e lo **Steam Deck** (tramite Steam Input, che lo presenta come un controller Xbox). Il
+controller si legge una volta per fotogramma (`src/app/pad.ts`); tastiera e mouse restano come sono, e il controller non
+ha bisogno del puntatore (niente pointer lock: il gioco non lo usa).
+
+**La notte**
+
+| Azione | Controller (Xbox · PlayStation · Steam Deck) | Tastiera e mouse |
+|---|---|---|
+| Ruotare lo sguardo | stick destro (o sinistro), morbido, con la sensibilità delle opzioni | bordi dello schermo, `←` `→` |
+| Voltarsi di scatto verso prua / sinistra / poppa / destra | croce `↑` `←` `↓` `→` | `W` `A` `S` `D` |
+| Voltarsi indietro (180°) | `R3` (premere lo stick destro) | `↓`, barra in basso |
+| Lanciare / ferrare / recuperare (tenuto) | `RT` · `R2` · `R2` | `Spazio`, clic sulla canna |
+| Lanciare un pesce a Gulpy | `X` · `□` · `X` | `F`, clic sul secchio |
+| Nascondersi sotto il telone / uscire | `A` · `✕` · `A` | `C` / `Ctrl`, clic sul telone |
+| Luce giù / su | `LB` / `RB` · `L1` / `R1` · `L1` / `R1` | `Q` / `E`, rotella |
+| Sonar (apri / chiudi) | `Y` · `△` · `Y` (chiude anche `B`) | `Tab` |
+| Binocolo | `LT` tenuto · `L2` · `L2`, oppure `B` · `○` · `B` | tasto destro tenuto, `B` |
+| Binocolo: guardare / zoom | stick (o croce) / `LB` `RB` | bordi, `W` `A` `S` `D` / rotella |
+| Pausa | `Start` (Menu · Options) | `Esc` |
+| Saltare la cinematica del finale | `A`, `B` o `Start` | `Esc`, `Invio`, `Spazio` |
+
+**Le immersioni all'alba**: lo stick (o la croce) per guardarsi attorno; al centro dello schermo c'è un **mirino**, e
+`A` nuota verso il passaggio (o lascia il pesce al mostro che dorme) che ci sta sotto; `B` è il tasto «torna alla
+grotta», `Y` risale. Nella domanda «Lasci il pesce?» si sceglie come nei menu.
+
+**I menu** (avvertenza, titolo, opzioni coi cursori, extra, diario, catalogo a libro, livelli della notte extra, pausa,
+risultati, morte, alba): croce o stick sinistro per spostare la selezione (ben visibile: una cornice ambra), `A` per
+confermare, `B` per tornare indietro; sui cursori delle opzioni `←` `→` cambiano il valore; nel catalogo `LB` `RB`
+girano le pagine; lo stick destro scorre il diario. In basso a destra la legenda «A Scegli · B Indietro».
+
+**Gli aiuti a schermo** seguono l'ultimo comando: se è venuto dal controller i suggerimenti dicono i suoi tasti («RT per
+lanciare», «A per uscire dal telone»), scritti come sono stampati sul controller (✕ ○ □ △ L1 R1 L2 R2 per PlayStation,
+L1 R1 L2 R2 sullo Steam Deck); se è venuto da tastiera o mouse, quelli di prima. I testi nuovi sono in `src/i18n.ts`
+(`pad`), da approvare.
+
+**La vibrazione** (dove il controller ce l'ha): breve all'abboccata, forte ai jumpscare; si spegne con «Riduci lampi e
+scosse».
+
+**Steam Deck**: tutte le schermate sono provate a 1280×800, col testo normale e grande (`node scripts/pad.mjs`, che gioca
+col controller finto senza toccare mouse o tastiera).
 
 ## 15. Oltre la Notte 1 (roadmap)
 

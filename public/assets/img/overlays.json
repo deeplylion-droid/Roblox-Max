@@ -123,6 +123,12 @@
    "exposure": 0.2,
    "file": "fin_molo.webp",
    "scale": 6.0
+  },
+  "ricordo": {
+   "aspect": 1.7778,
+   "exposure": 0.3,
+   "file": "fin_ricordo.webp",
+   "scale": 0.45
   }
  },
  "jumpscares": {
@@ -199,6 +205,44 @@
     {
      "file": "js_fangy_07.webp",
      "scale": 0.41000000000000003
+    }
+   ]
+  },
+  "foxy": {
+   "aspect": 1.7778,
+   "fps": 10,
+   "frames": [
+    {
+     "file": "js_foxy_00.webp",
+     "scale": 0.54
+    },
+    {
+     "file": "js_foxy_01.webp",
+     "scale": 0.54
+    },
+    {
+     "file": "js_foxy_02.webp",
+     "scale": 0.61
+    },
+    {
+     "file": "js_foxy_03.webp",
+     "scale": 0.62
+    },
+    {
+     "file": "js_foxy_04.webp",
+     "scale": 0.62
+    },
+    {
+     "file": "js_foxy_05.webp",
+     "scale": 0.65
+    },
+    {
+     "file": "js_foxy_06.webp",
+     "scale": 0.63
+    },
+    {
+     "file": "js_foxy_07.webp",
+     "scale": 0.6900000000000001
     }
    ]
   },
