@@ -1,0 +1,4 @@
+Font per tools/render/annuncio.py, scaricati da Google Fonts (fonts.google.com).
+Tutti sotto SIL Open Font License 1.1 (https://openfontlicense.org), tranne Luckiest Guy (Apache License 2.0).
+UnifrakturMaguntia, Old Standard TT, PT Serif, Oswald, Playfair Display, Luckiest Guy, Baloo 2, Fredoka,
+Pacifico, Lilita One.
