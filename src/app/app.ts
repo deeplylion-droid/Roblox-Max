@@ -28,9 +28,10 @@ const ANNUNCIO = {
   src: 'assets/img/annuncio/volantino.webp',
   /** le lingue che hanno la loro versione (vedi localizedImage) */
   langs: ['en'],
-  /** dove va la zoomata, in frazioni dell'immagine */
-  fx: 0.5,
-  fy: 0.45,
+  /** dove va la zoomata, in frazioni dell'immagine: il centro del volantino, un po' verso il fumetto (a fine zoomata
+   *  si leggono ancora le condizioni in fondo; escono solo le linguette) */
+  fx: 0.52,
+  fy: 0.46,
   /** quanto dura, e l'ultimo pezzo, in cui si spegne nel buio */
   seconds: 3.8,
   fadeOut: 0.45,
