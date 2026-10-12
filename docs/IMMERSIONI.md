@@ -182,13 +182,13 @@ strato sopra, con la toppa del respiro che si dissolve.
 
 | Tana | Cosa c'è (proposta) | Come dorme (proposta) | La cosa da trovare (diario) |
 |---|---|---|---|
-| **Gulpy** | Lo Snack Shack rimontato a sinistra (bancone rosso, tenda a strisce, l'insegna, lo scaffale delle merendine), carte di merendine dappertutto, i cestini del pranzo, una pila di salvagenti a paperella. | Accasciato sulla pila di salvagenti, la schiena all'indietro, la mascella che pende aperta. | Un **disegno a pastelli**: lui con la bocca enorme davanti allo Snack Shack e un panino più grande di lui. |
+| **Gulpy** | Lo Snack Shack rimontato a sinistra (bancone rosso, tenda a strisce, l'insegna, lo scaffale delle merendine), carte di merendine dappertutto, i cestini del pranzo, una pila di salvagenti a paperella. | Accasciato sulla pila di salvagenti, la schiena all'indietro, la mascella che pende aperta. | **Il menù dello Snack Shack** a pastelli, coi prezzi e i disegnini, tutto cerchiato in rosso: «TUTTO!». |
 | **Molly** | Il trampolino con la scaletta, gli specchi ossidati appoggiati alle pareti, le medaglie appese, la corsia galleggiante della piscina tirata da parete a parete, braccioli ed elastici rosa sulla sabbia. | Su un fianco sulla sabbia, abbracciata ai braccioli; un occhio chiuso, quello che scivola via socchiuso. | Una **foto**: lei in cima al trampolino con i braccioli, le braccia alzate («GUARDAMI! – giugno 1997»). |
 | **Hatch** | Tre armadi con le ante spalancate, una capanna di asciugamani tra due sedie, i numeri della conta scritti col gesso sulle pareti. | In piedi, curvo, chiuso dentro l'armadio grande in fondo, la bocca chiusa, il pesciolino luminoso acceso. | **Il foglio della conta**: i numeri da 1 a 10 scritti e riscritti, e in mezzo «…DIECI! CHI C'È C'È». |
-| **Robin** | Un mucchio di cose rubate (scarpe, palline, giocattoli, secchielli) avvolto nelle strisce dei biglietti. | Disteso sul mucchio come un granchio sul bottino, gli occhi chiusi. | **La lista**: una pagina di quaderno con le cose prese, tutte con la crocetta; l'ultima riga dice «ANCORA». |
-| **Archie** | La festa: il tavolo tondo con la tovaglia, tre torte con le candeline spente, i cappellini sparsi, i palloncini che galleggiano legati al tavolo, lo striscione «TANTI AUGURI». | Avvolto in spire attorno al tavolo, la testa appoggiata sul bordo; a ogni respiro la trombetta si srotola un poco. | **Un biglietto d'auguri**: sette candeline disegnate, una spenta; «per il compleanno di tutti». |
+| **Robin** | Un mucchio di cose rubate (scarpe, palline, giocattoli, secchielli) avvolto nelle strisce dei biglietti. | Disteso sul mucchio come un granchio sul bottino, gli occhi chiusi. | **I premi della sala giochi** a pastelli: l'orso da 5000 biglietti, la palla, la macchinina; lui davanti: «VOGLIO TUTTO». |
+| **Archie** | La festa: il tavolo tondo con la tovaglia, tre torte con le candeline spente, i cappellini sparsi, i palloncini che galleggiano legati al tavolo, lo striscione «TANTI AUGURI». | Avvolto in spire attorno al tavolo, la testa appoggiata sul bordo; a ogni respiro la trombetta si srotola un poco. | **Tutti i compleanni** del 1999: dodici torte, una per mese, con le fiammelle cancellate col nero. |
 | **Lampy** | La culla con la copertina, la giostrina di pesciolini appesa alla volta, la vaschetta da bagno, le cuffie a fiori appese alla parete. | Attaccata con la ventosa al soffitto sopra la culla, a testa in giù; dorme a occhi aperti. | **Il braccialetto dell'ospedale** da neonata («KG 3,1»), con scritto «non lasciarla mai andare». |
-| **Fangy** | Il letto con il lenzuolo, decine di conchiglie appese ai fili tutt'attorno, le bende per terra, gli occhialini dipinti di nero sullo sgabello, il cartello «MARCO? POLO!» e i tubi galleggianti. | Raggomitolato sul fianco sul letto, gli occhialini neri, le lucine del ventre quasi spente. | **Un disegno fatto a occhi bendati**: scarabocchi che non si toccano, e in mezzo «MARCO?». |
+| **Fangy** | Il letto con il lenzuolo, decine di conchiglie appese ai fili tutt'attorno, le bende per terra, gli occhialini dipinti di nero sullo sgabello, il cartello «MARCO? POLO!» e i tubi galleggianti. | Raggomitolato sul fianco sul letto, gli occhialini neri, le lucine del ventre quasi spente. | **«IO»**: lui disegnato con gli occhialini ripassati col nero finché la cera luccica. |
 
 **Deciso dall'utente (12 ottobre)**, guardate le due tavole: l'idea va avanti. Le camerette dei mostri arrivati
 dopo il 1997 sono **del loro anno**, come nei ritagli: Archie 1999, Lampy 2003, Fangy 2008 (Molly, Gulpy e Hatch
@@ -201,7 +201,8 @@ asciugamani e braccioli, con fuori solo la testa e le mani; niente più scatole 
 maniglie e il legno gonfio, lo sgabello, il letto col materasso e le lenzuola, il trampolino vero); ogni cameretta si
 riconosce dall'ingresso anche dalle pareti (le piastrelle della piscina di Molly, la carta da parati a fiori strappata
 di Lampy, le lucine della festa di Archie...); la macchia della torcia sulla sabbia più morbida; i disegni a pastelli
-delle cose da trovare fatti con la stessa mano del disegno di «Il ricordo» (`tools/render/disegno_ricordo.py`).
+delle cose da trovare fatti con la stessa mano del disegno di «Il ricordo» e dei disegni dell'alba
+(`tools/render/pastelli.py`), su soggetti diversi da quelli dell'alba.
 
 **Ancora da approvare**: le sette cose da trovare e i loro testi (in italiano e inglese, nel gioco).
 
@@ -217,7 +218,8 @@ sfumata. Le pose: Gulpy disteso sul fianco sulla pila di paperelle, gli occhi ch
 bulbo) e la mascella appena aperta, un salvagente grande dove finisce il modello; Molly sotto una coperta di
 asciugamani a strisce tirata fino al mento, le mani che ne stringono l'orlo; Hatch rannicchiato in fondo
 all'armadio, le ginocchia al petto e le braccia attorno alle gambe (`tane.corpo_rannicchiato`). I disegni a pastelli
-(Gulpy, Hatch, Robin, Archie, Fangy) li fa `tools/render/disegni_tane.py` con le funzioni di `disegno_ricordo.py`.
+(Gulpy, Hatch, Robin, Archie, Fangy) li fa `tools/render/disegni_tane.py` con `pastelli.py`; i soggetti non ripetono
+quelli dei cinque disegni dell'alba (la piscina, il tesoro, la festa, sott'acqua, Marco Polo).
 
 **Nel motore.** Ogni tana è un posto di `public/assets/img/immersioni.json` (il job `tane` lo aggiorna):
 

@@ -273,9 +273,9 @@ def disegno(nome):
     from PIL import Image, ImageDraw, ImageFilter
     import disegni_tane
     if nome in disegni_tane.DISEGNI:
-        # i disegni dei bambini: a pastelli, con la mano di «Il ricordo» (disegni_tane.py)
+        # i disegni dei bambini: a pastelli, con pastelli.py, la mano dei disegni dell'alba (disegni_tane.py)
         p = os.path.join(CACHE, 'tane', f'pastello_{nome}.png')
-        return p if os.path.exists(p) else disegni_tane.DISEGNI[nome]()
+        return p if os.path.exists(p) else disegni_tane.fai(nome)
     path = os.path.join(CACHE, 'tane', f'trovato_{nome}.png')
     os.makedirs(os.path.dirname(path), exist_ok=True)
     rr = np.random.default_rng(len(nome) * 17)

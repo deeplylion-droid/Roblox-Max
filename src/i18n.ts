@@ -604,8 +604,8 @@ export const LORE_TEXT: Record<Lang, Record<string, { title: string; body: strin
     },
     // le cose da trovare nelle tane delle immersioni (12 ottobre): DA APPROVARE
     den_gulpy: {
-      title: 'Disegno a pastelli',
-      body: 'Un bambino con una bocca più grande della faccia, davanti allo Snack Shack, e un panino più grande di lui. In alto, a lettere storte: «IO E IL PANINO». Estate 1997.',
+      title: 'Il menù dello Snack Shack',
+      body: 'Disegnato a pastelli su un foglio a quadretti: hot dog 3000, patatine 2000, gelato 1500, panino 4000, ognuno col suo disegnino. Poi un cerchio rosso attorno a tutto, ripassato due volte, e la freccia: «TUTTO!». Estate 1997.',
     },
     den_molly: {
       title: 'Foto del trampolino',
@@ -616,20 +616,20 @@ export const LORE_TEXT: Record<Lang, Record<string, { title: string; body: strin
       body: 'I numeri da uno a dieci, scritti e riscritti a pastello finché non c’è più posto. In mezzo, calcato in rosso: «DIECI! CHI C’È C’È».',
     },
     den_robin: {
-      title: 'La lista',
-      body: 'Una pagina a righe: una scarpa, una macchinina, un paio di occhiali, un cappellino, un pallone, un braccialetto, i biglietti. Tutti con la crocetta. L’ultima riga dice solo «ANCORA».',
+      title: 'I premi della sala giochi',
+      body: 'Gli scaffali dei premi disegnati a pastelli: l’orso enorme (5000 biglietti), la palla, la macchinina, la scatola rosa. Davanti, piccolo, un bambino con le strisce dei biglietti attorno alle braccia. Nella nuvoletta: «VOGLIO TUTTO».',
     },
     den_archie: {
-      title: 'Biglietto d’auguri',
-      body: '«TANTI AUGURI», e una torta con sette candeline: una è spenta, col filo di fumo. Maggio 1999. Non c’è scritto di chi era il compleanno.',
+      title: 'Tutti i compleanni',
+      body: 'In alto «1999». Dodici torte in fila, una per mese, ognuna con le sue candeline. Tutte le fiammelle sono cancellate col pastello nero, calcato.',
     },
     den_lampy: {
       title: 'Braccialetto dell’ospedale',
       body: 'Rosa, da neonata: «KG 3,1 – luglio 2003». Sul cartoncino, a penna, qualcuno ha aggiunto: «non lasciarla mai andare».',
     },
     den_fangy: {
-      title: 'Disegno a occhi bendati',
-      body: 'Scarabocchi che non si toccano mai, un pesce senza occhi, fatti senza guardare. In mezzo, calcato in rosso: «MARCO?». Nessuno ha scritto «POLO».',
+      title: 'Io',
+      body: 'Un bambino in mezzo al foglio, e sotto «IO». Gli occhialini da piscina sono ripassati col nero tante volte che la cera luccica. Agosto 2008.',
     },
   },
   en: {
@@ -671,8 +671,8 @@ export const LORE_TEXT: Record<Lang, Record<string, { title: string; body: strin
     },
     // the things to find in the dens of the dives (12 October): TO APPROVE
     den_gulpy: {
-      title: 'Crayon drawing',
-      body: 'A boy with a mouth bigger than his face, in front of the Snack Shack, and a sandwich bigger than he is. Across the top, in crooked letters: "ME AND THE SANDWICH". Summer 1997.',
+      title: 'The Snack Shack menu',
+      body: 'Drawn in crayon on squared paper: hot dog 3000, fries 2000, ice cream 1500, sandwich 4000, each with its little drawing. Then a red circle around everything, gone over twice, and the arrow: "ALL OF IT!". Summer 1997.',
     },
     den_molly: {
       title: 'Diving board photo',
@@ -683,20 +683,20 @@ export const LORE_TEXT: Record<Lang, Record<string, { title: string; body: strin
       body: 'The numbers one to ten, written over and over in crayon until there’s no room left. In the middle, pressed hard in red: "TEN! READY OR NOT".',
     },
     den_robin: {
-      title: 'The list',
-      body: 'A lined page: a shoe, a toy car, a pair of glasses, a cap, a ball, a bracelet, the tickets. Every one ticked off. The last line just says "MORE".',
+      title: 'The arcade prizes',
+      body: 'The prize shelves drawn in crayon: the giant bear (5000 tickets), the ball, the toy car, the pink box. In front, small, a boy with strips of tickets wrapped round his arms. In the speech bubble: "I WANT IT ALL".',
     },
     den_archie: {
-      title: 'Birthday card',
-      body: '"HAPPY BIRTHDAY", and a cake with seven candles: one is out, with a thread of smoke. May 1999. It doesn’t say whose birthday it was.',
+      title: 'All the birthdays',
+      body: '"1999" across the top. Twelve cakes in a row, one for each month, each with its candles. Every flame has been scribbled out in black crayon, pressed hard.',
     },
     den_lampy: {
       title: 'Hospital bracelet',
       body: 'Pink, a newborn’s: "3.1 KG – July 2003". On the card, in pen, someone added: "never let her go".',
     },
     den_fangy: {
-      title: 'Blindfold drawing',
-      body: 'Scribbles that never meet, a fish with no eyes, drawn without looking. In the middle, pressed hard in red: "MARCO?". Nobody wrote "POLO".',
+      title: 'Me',
+      body: 'A boy in the middle of the page, and underneath "ME". The swimming goggles have been gone over in black so many times the wax shines. August 2008.',
     },
   },
 };
