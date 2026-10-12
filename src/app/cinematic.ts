@@ -148,10 +148,11 @@ export const FINALE_A: CinematicScript = {
 };
 
 /**
- * Il finale B «Il ricordo» della notte extra (da approvare), sui tempi del suono `madre_dawn_breve` come il finale A: lei
+ * Il finale B «Il ricordo» della notte extra (approvato il 12 ottobre), sui tempi del suono `madre_dawn_breve` come il finale A: lei
  * sale, i figli affiorano, il secchio si svuota e tornano giù tutti; niente radio: la vista scende sul banco di prua
  * mentre sorge il sole, e lì si dissolve nel disegno a pastelli bagnato che lei ha lasciato (il disegno: idea
- * dell'utente, approvato il 12 ottobre); la camera va piano verso i quattro bambini, e il quarto sei tu.
+ * dell'utente, approvato il 12 ottobre); la camera va piano verso i quattro bambini, e il quarto sei tu. Niente
+ * frase: solo il disegno che si avvicina e poi il nero (scelta dell'utente, 12 ottobre).
  */
 export const FINALE_B: CinematicScript = {
   length: 22,
@@ -184,7 +185,6 @@ export const FINALE_B: CinematicScript = {
     { t: 0.01, id: 'madre_dawn_breve' },
     { t: 13, id: 'amb_dawn', loop: true, fadeIn: 3, gain: 0.8 },
   ],
-  text: [{ t: 17.2, dur: 4.4, it: STRINGS.it.finaleRicordo, en: STRINGS.en.finaleRicordo }],
   events: FINALE_A.events!.filter((e) => e.e !== 'radio'),
 };
 

@@ -706,13 +706,14 @@ immersioni all'alba (`docs/IMMERSIONI.md`; durante le notti Gulpy va sfamato per
 
 La **notte 7** ha il suo finale, **B «Il ricordo»** (con impostazioni difficili; sopra), anche lui come cinematica
 breve. Fatti: il «regista» delle cinematiche, i render del molo e dell'edicola, i suoni dei due finali segreti e il
-taglio più corto del finale all'alba (`madre_dawn_breve`), le due cinematiche segrete e i titoli di coda (sotto, da
-approvare), e il finale B col disegno a pastelli (sotto, la cinematica da approvare).
+taglio più corto del finale all'alba (`madre_dawn_breve`), le due cinematiche segrete, i titoli di coda e il finale B
+col disegno a pastelli (sotto; i tre finali approvati il 12 ottobre).
 
 ### I finali segreti nel gioco
 
-> **Da approvare** (12 ottobre, ramo `claude/finali-gioco`): le due cinematiche, il finale B, i titoli di coda e i loro
-> testi.
+> **Approvati il 12 ottobre** i tre finali, «I tuoi», «Nessuno» e «Il ricordo» (ramo `claude/finali-gioco`), per la
+> build di quella sera. La frase del finale B è stata tolta per scelta dell'utente. I titoli di coda restano coi nomi
+> segnaposto.
 > Le clip col suono per l'approvazione stanno in `docs/concept/clip/`.
 
 - **Quale finale** (`chooseEnding` in `src/app/save.ts`, provato in `tests/save.test.ts`): il salvataggio ricorda,
@@ -740,7 +741,7 @@ approvare), e il finale B col disegno a pastelli (sotto, la cinematica da approv
   decidere)» / «(name to be decided)»): dopo ognuno dei
   tre finali della notte 6, su un fondo nero salgono il titolo, i ruoli coi nomi e «Grazie per aver giocato.», con la
   ninna nanna del titolo; Esc, Invio o un clic li saltano. Poi i risultati, con l'avviso della notte extra.
-- **Il finale B «Il ricordo»** (la notte 7; cinematica e frase DA APPROVARE): al posto della foto del 1997 (provata
+- **Il finale B «Il ricordo»** (la notte 7; approvato il 12 ottobre, senza frase): al posto della foto del 1997 (provata
   coi bambini renderizzati, `tools/render/bambini.py` e `finali.foto_1997`, restano nel ramo ma non si usano) un
   **disegno a pastelli: idea dell'utente e approvato il 12 ottobre** (`docs/concept/ricordo_disegno.webp`, disegnato
   da `tools/render/pastelli.py`): i quattro bambini davanti all'ingresso di Splashland la sera della Night
@@ -754,9 +755,9 @@ approvare), e il finale B col disegno a pastelli (sotto, la cinematica da approv
     spostata fuori dal quadro.
   - **La cinematica** (`FINALE_B`, 22 s, sul suono del finale A `madre_dawn_breve`): uguale al finale A fino al
     secchio che si svuota e ai figli che tornano giù (0-12 s); niente radio: la vista scende sul banco di prua mentre
-    sorge il sole e lì (14,6 s) si dissolve nel disegno, poi va piano verso i quattro bambini; «Il quarto eri tu.
-    L'unico che è tornato a casa.» / «The fourth one was you. The only one who made it home.» Poi i risultati (con la
-    stessa frase), senza titoli di coda. Il segnaposto `Screens.extraEnding` non c'è più. In sviluppo `?finale=B` lo
+    sorge il sole e lì (14,6 s) si dissolve nel disegno, poi va piano verso i quattro bambini e infine il nero.
+    **Niente frase** (c'era «Il quarto eri tu. L'unico che è tornato a casa.», tolta per scelta dell'utente il 12
+    ottobre): solo il disegno che si avvicina. Poi i risultati («Quota raggiunta»), senza titoli di coda. Il segnaposto `Screens.extraEnding` non c'è più. In sviluppo `?finale=B` lo
     forza alla notte extra. La clip: `docs/concept/clip/finale_ricordo.mp4` (solo il canvas: le scritte non ci sono).
 
 ### Le ultime inquadrature dei due finali segreti

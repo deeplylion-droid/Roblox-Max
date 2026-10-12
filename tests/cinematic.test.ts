@@ -21,7 +21,7 @@ describe('Le cinematiche dei finali', () => {
     });
   }
 
-  it('i finali segreti e il finale B finiscono sull’ultima inquadratura renderizzata, con la frase', () => {
+  it('i finali segreti e il finale B finiscono sull’ultima inquadratura renderizzata (i segreti con la frase)', () => {
     for (const [s, key] of [[FINALE_TUOI, 'molo'], [FINALE_NESSUNO, 'edicola'], [FINALE_B, 'ricordo']] as const) {
       expect(overlays.endings?.[key], key).toBeDefined();
       expect(stillFrame(s, s.still!.t - 0.01)).toBeNull();
@@ -32,6 +32,11 @@ describe('Le cinematiche dei finali', () => {
       // un po' di più, fino ai quattro bambini)
       expect(end.zoom).toBeGreaterThan(1);
       expect(end.zoom).toBeLessThanOrEqual(key === 'ricordo' ? 1.6 : 1.35);
+      // il finale B non ha frase (scelta dell'utente, 12 ottobre): solo il disegno e il nero
+      if (key === 'ricordo') {
+        expect(s.text ?? []).toHaveLength(0);
+        continue;
+      }
       const line = s.text![0]!;
       expect(line.t).toBeGreaterThan(s.still!.t);
       expect(textAt(s, line.t + 0.1, 'it')).toBe(line.it);

@@ -67,9 +67,6 @@ const IT = {
   // l'inglese è DA APPROVARE): la scritta alla fine della cinematica e sotto i risultati
   finaleTuoi: 'Non sei tornato da solo.',
   finaleNessuno: 'Non hai mai dato niente ai suoi piccoli. Adesso sei uno di loro.',
-  // il finale B «Il ricordo» della notte extra (DA APPROVARE): sul disegno a pastelli il quarto bambino, col berretto e
-  // la canna, sei tu
-  finaleRicordo: 'Il quarto eri tu. L’unico che è tornato a casa.',
   // i titoli di coda dopo i finali della notte 6 (DA APPROVARE; i nomi sono un segnaposto)
   creditsTitle: 'SPLASHLAND IS CLOSED!',
   credits: [
@@ -357,7 +354,6 @@ const EN: typeof IT = {
   finaleA: 'You made it. For this year.',
   finaleTuoi: "You didn't come back alone.",
   finaleNessuno: 'You never gave her little ones anything. Now you are one of them.',
-  finaleRicordo: 'The fourth one was you. The only one who made it home.',
   creditsTitle: 'SPLASHLAND IS CLOSED!',
   credits: [
     ['A game by', '(name to be decided)'],

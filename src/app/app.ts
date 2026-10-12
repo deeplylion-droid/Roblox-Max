@@ -373,9 +373,7 @@ export class App {
                 : r.ending === 'nessuno'
                   ? S.finaleNessuno
                   : S.finaleA
-              : r.ending === 'B'
-                ? S.finaleRicordo
-                : S.quotaMet
+              : S.quotaMet
             : r.cause === 'lullaby'
               ? S.deaths.lullaby
               : r.cause === 'moved'
