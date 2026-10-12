@@ -26,6 +26,9 @@ export interface LayerInfo {
    *  sul riquadro (la prima sul bordo sinistro, l'ultima sul destro). Quando emerge o si rituffa lo strato scende
    *  tutto insieme e sotto questa linea non si disegna (tools/render/jobs.py, pelo_dell_acqua) */
   pelo?: number[];
+  /** creatura grande nel mondo: la riga del panorama (dello strato) della cima della sagoma, a colonne come il pelo
+   *  (null dove la colonna è vuota). Le luci lontane che ha dietro non si vedono (tools/render/cima.py) */
+  cima?: (number | null)[];
   /** lucine della creatura (dall'occhio del pescatore), in ordine, ognuna con la sua fila (Fangy: il motore le
    *  accende in fila, come un respiro) */
   luci?: { p: Vec3[]; fila: string[] };

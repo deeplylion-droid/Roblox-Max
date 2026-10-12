@@ -385,8 +385,10 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
     6,8 m dall'occhio del pescatore e 1 m sopra il mare (la calotta a circa 3,4 m dal bordo), e guarda il pescatore;
     il muso va verso prua, sott'acqua, e il corpo scende verso poppa. Fuori escono la fronte (fino a 5,7 m sul mare) e
     l'occhio. Vista dall'occhio come le altre pose, di notte con la lampara e all'alba (l'alba dell'anteprima è
-    provvisoria: cielo caldo dietro a sinistra, il sole basso). La posa **non è ancora fra le pose del gioco**
-    (`POSES`): ci va quando è approvata, coi render finali.
+    provvisoria: cielo caldo dietro a sinistra, il sole basso). **Render finale fatto** (notte fra l'11 e il 12
+    ottobre: l'utente ha dato a me il via per scegliere): è fra le pose del gioco (`POSES`), con la cima della sagoma
+    nel manifest (`tools/render/cima.py`) perché le luci lontane che ha dietro, come la candela dell'edicola, non si
+    vedano attraverso di lei.
   - **Il jumpscare dal basso** (anteprima, otto fotogrammi a pochi campioni,
     `docs/concept/jumpscare/js_madre_fotogrammi.jpg`, **da approvare**; `jumpscare.py`, `ATTACKS['madre']`): la barca
     è sbalzata (sollevata di 90 cm, inclinata a sinistra, la prua su) e la vista si inclina con lei; da sinistra,
@@ -395,7 +397,8 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
     come le sbarre di un lettino, col corrimano. (Venendo dritta da sotto, il palato passava davanti agli occhi: per
     questo arriva da un lato.) Gli altri jumpscare non cambiano: in `jumpscare.py` si aggiungono solo la voce `madre` e
     la sua camera, che si inclina con la barca.
-  - **Niente render finali** finché le anteprime non sono approvate.
+  - **Render finali** (notte fra l'11 e il 12 ottobre, scelti da me col via libera dell'utente): la posa e il
+    jumpscare (otto fotogrammi a 10 al secondo). L'utente li vede domattina e può ancora cambiarli.
 - **Come si gioca**: tornano tutti e sette i mostri e la regia ne manda di più insieme (è la notte più dura). Quota 10
   (proposta 12; con 12 l'esperto simulato vinceva 5 notti su 100; **approvato 10** l'11 ottobre),
   la batteria come sempre. In più c'è lei: sul sonar un'**ombra enorme** gira attorno alla barca, lontana, per tutta
@@ -414,8 +417,9 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
 - **Il finale A «La quota»** (scelto l'11 ottobre): all'alba la Madre sale accanto alla barca (l'unica volta che la
   vedi davvero) e attorno a lei emergono tutti i suoi figli; prende il secchio e torna giù con loro. Sorge il sole;
   la radio: «Ce l'hai fatta. Per quest'anno.» I titoli di coda, e si sblocca la notte 7. La **cinematica di 17 s**
-  (`src/app/cinematic.ts`, `FINALE_A`, sul suono `madre_dawn_breve`) è **approvata** (11 ottobre): manca solo la Madre
-  renderizzata.
+  (`src/app/cinematic.ts`, `FINALE_A`, sul suono `madre_dawn_breve`) è **approvata** (11 ottobre). Da stanotte c'è
+  anche lei: la posa `madre_sale` sale piano a sinistra da 0,3 a 3 s, insieme al mare che si gonfia, mentre lo sguardo
+  si gira sul suo occhio; resta finché il secchio si svuota e torna giù per prima (10-12,2 s).
 
 ### Notte 7 · La notte extra
 

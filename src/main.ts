@@ -26,7 +26,9 @@ const GAME_LAYERS = ['world', 'boat', 'rod0', 'rod1', 'rod2', 'fish2', 'fish5', 
   // notte 4: Lampy sulla lenza e le toppe della ventosa (chiusa e spalancata coi denti girati)
   'lampy_lenza', 'lampy_bocca_chiusa', 'lampy_bocca_aperta',
   // notte 5: Fangy in ascolto e le toppe della testa girata verso prua e verso poppa
-  'fangy_ascolta', 'fangy_testa_prua', 'fangy_testa_poppa'];
+  'fangy_ascolta', 'fangy_testa_prua', 'fangy_testa_poppa',
+  // notte 6: la Madre che sale accanto alla barca (il finale A)
+  'madre_sale'];
 
 /** ?speed=N accelera il tempo di gioco (per le prove automatiche nel browser senza GPU). */
 const SPEED = Math.max(0.1, Number(new URLSearchParams(location.search).get('speed') ?? 1) || 1);
