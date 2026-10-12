@@ -117,6 +117,12 @@ Il mondo e la barca stanno in una notte. Il resto in un'altra.
 | Soggy al binocolo (scivoli, relitto), tutte e due le serie | sessione del Foxy, `claude/foxy` 1079fdf e 737f944 | con lampione, festone e lanterna |
 | Telone (vista da sotto) | catena di questa macchina | |
 
+**Ripulitura dopo il render** (`tools/render/liscia_nebbia.py`, 12 ottobre sera, segnalazione dell'utente: «sul lato
+sinistro della barca la nebbia sembra pixellare la luce»): la diffusione nella nebbia della lanterna (e in parte della
+lampara) usciva da Cycles a chiazze, che sull'acqua scura sembravano pixel. I passi `lamp` e `lantern` del mondo
+prendono la media del loro intorno (mezzo grado vicino, un grado oltre i 15-60 m), tranne i riflessi veri, molto più
+chiari dell'intorno e più grandi di un pixel. Va rifatta su ogni mondo nuovo con la nebbia.
+
 Controllato nel gioco: sei direzioni con la luce alta e spenta, tutti i posti del binocolo, Soggy fermo, più
 vicino e via, l'opzione accesa e spenta a notte in corso. La grana che si vede sulla foschia chiara è quella della pellicola
 di sempre (`uGrain`), non del render.
