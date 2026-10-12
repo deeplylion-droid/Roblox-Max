@@ -15,7 +15,7 @@ if [ ! -d "$OUT" ]; then mkdir -p "$OUT" && cp -a "$PUB"/. "$OUT"/; fi
 for j in "${jobs[@]}"; do
   if [ -e "$OUT/.fatto_$j" ]; then echo "== $j già fatto"; continue; fi
   echo "== $(date +%H:%M) $j"
-  ATMOSFERA=1 CAMPIONI=${CAMPIONI:-256} SOGLIA=${SOGLIA:-0.01} STRISCE=${STRISCE:-12} RENDER_OUT=$OUT nice -n 15 \
+  ATMOSFERA=1 CAMPIONI=${CAMPIONI:-256} SOGLIA=${SOGLIA:-0.01} STRISCE=${STRISCE:-16} RENDER_OUT=$OUT nice -n 15 \
     "$ROOT/tools/.venv/bin/python" -u "$ROOT/tools/render/jobs.py" "$j" --quality final
   e=$?
   echo "EXIT $j $e"
