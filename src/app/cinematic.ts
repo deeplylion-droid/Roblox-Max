@@ -19,7 +19,7 @@ export interface Key<T> {
 export type CineEvent = 'emptyBucket' | 'shake' | 'radio' | 'lampOff' | 'dip' | 'quiet';
 
 /** Le ultime inquadrature dei finali segreti, renderizzate (tools/render/finali.py → overlays.json, endings). */
-export type EndingStill = 'molo' | 'edicola';
+export type EndingStill = 'molo' | 'edicola' | 'ricordo';
 
 export interface CinematicScript {
   /** durata (s): finita, si passa ai risultati */
@@ -145,6 +145,47 @@ export const FINALE_A: CinematicScript = {
     { t: 8.6, e: 'emptyBucket' },
     { t: 12.6, e: 'radio' },
   ],
+};
+
+/**
+ * Il finale B «Il ricordo» della notte extra (da approvare), sui tempi del suono `madre_dawn_breve` come il finale A: lei
+ * sale, i figli affiorano, il secchio si svuota e tornano giù tutti; niente radio: la vista scende sul banco di prua
+ * mentre sorge il sole, e lì si dissolve nel disegno a pastelli bagnato che lei ha lasciato (il disegno: idea
+ * dell'utente, approvato il 12 ottobre); la camera va piano verso i quattro bambini, e il quarto sei tu.
+ */
+export const FINALE_B: CinematicScript = {
+  length: 22,
+  view: [
+    ...FINALE_A.view.slice(0, 6),
+    // tornati giù tutti, la vista va al banco di prua, dove stava il secchio
+    { t: 12.6, v: [6, -12, 66], ease: 'smooth' },
+    { t: 14.6, v: [14, -21, 44], ease: 'smooth' },
+    { t: 16.0, v: [15, -22, 42] },
+  ],
+  dawn: [
+    { t: 0, v: 0.1 },
+    { t: 11, v: 0.3, ease: 'in' },
+    { t: 15.5, v: 1, ease: 'smooth' },
+  ],
+  creatures: FINALE_A.creatures,
+  tilt: FINALE_A.tilt,
+  black: [{ t: 0, v: 0 }, { t: 21.2, v: 0 }, { t: 22, v: 1, ease: 'in' }],
+  still: {
+    t: 14.6,
+    key: 'ricordo',
+    fade: 1.2,
+    // dal foglio intero verso i quattro bambini, piano: alla fine riempiono il quadro (più dei due segreti)
+    move: [
+      { t: 14.6, v: [1.0, 0.5, 0.5] },
+      { t: 22, v: [1.55, 0.44, 0.58], ease: 'smooth' },
+    ],
+  },
+  sounds: [
+    { t: 0.01, id: 'madre_dawn_breve' },
+    { t: 13, id: 'amb_dawn', loop: true, fadeIn: 3, gain: 0.8 },
+  ],
+  text: [{ t: 17.2, dur: 4.4, it: STRINGS.it.finaleRicordo, en: STRINGS.en.finaleRicordo }],
+  events: FINALE_A.events!.filter((e) => e.e !== 'radio'),
 };
 
 /**

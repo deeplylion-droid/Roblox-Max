@@ -1003,58 +1003,147 @@ def emissive_bulbs(gate, right, rz):
     return obs
 
 
+DISEGNO = os.path.join(ROOT, 'docs', 'concept', 'ricordo_disegno.webp')
+
+
+def maschera_cera(path_out):
+    """Dove c'è la cera (i tratti colorati e neri) e dove la carta nuda: la cera respinge l'acqua. Restituisce la maschera
+    come array 0..1 (righe dall'alto) e la salva in png per lo shader."""
+    im = np.asarray(Image.open(DISEGNO).convert('RGB')).astype(np.float32)
+    paper = np.median(im[::7, ::7].reshape(-1, 3), axis=0)
+    d = np.linalg.norm(im - paper, axis=2)
+    m = np.clip((d - 38.0) / 40.0, 0, 1)
+    mi = Image.fromarray((m * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(1.5))
+    mi.save(path_out)
+    return np.asarray(mi).astype(np.float32) / 255.0
+
+
+def foglio_mesh(name, c, rot, Wp, Hp, nx=121, ny=86, seed=4):
+    """Il foglio A4 bagnato: la carta che si gonfia a onde, le pieghe in croce (il disegno era piegato in quattro), gli
+    angoli che si alzano. UV 0..1 come l'immagine (v dal basso)."""
+    rng = np.random.default_rng(seed)
+    us, vs = np.linspace(0, 1, nx), np.linspace(0, 1, ny)
+    U, Vv = np.meshgrid(us, vs, indexing='ij')
+    X, Y = (U - 0.5) * Wp, (Vv - 0.5) * Hp
+    ph = rng.uniform(0, 6.3, 6)
+    Z = 0.0018 * np.sin(X * 46 + ph[0]) * np.sin(Y * 39 + ph[1]) + 0.0012 * np.sin(X * 83 + Y * 21 + ph[2])
+    Z += 0.0009 * np.sin(X * 140 + ph[3]) * np.cos(Y * 120 + ph[4])
+    # le pieghe: quella verticale in rilievo, quella orizzontale a valle
+    Z += 0.0016 * np.exp(-(X / 0.004) ** 2) - 0.0011 * np.exp(-(Y / 0.004) ** 2)
+    # gli angoli e i bordi che si alzano asciugando
+    edge = np.maximum(np.abs(U - 0.5), np.abs(Vv - 0.5)) * 2
+    Z += 0.006 * np.clip(edge - 0.82, 0, 1) ** 2 / 0.0324 * np.where((U > 0.5) & (Vv > 0.5), 1.4, 0.6)
+    Z = Z - Z.min() + 0.0006
+    cr, sr = math.cos(rot), math.sin(rot)
+    verts = np.stack([c[0] + X * cr - Y * sr, c[1] + X * sr + Y * cr, c[2] + Z], axis=-1).reshape(-1, 3)
+    faces = []
+    for a in range(nx - 1):
+        for b in range(ny - 1):
+            faces.append((a * ny + b, (a + 1) * ny + b, (a + 1) * ny + b + 1, a * ny + b + 1))
+    ob = mesh_from_arrays(name, verts, faces, smooth=True, col=COL)
+    uvl = ob.data.uv_layers.new(name='UVMap')
+    uvs = np.stack([U.ravel(), Vv.ravel()], axis=1)
+    for poly in ob.data.polygons:
+        for li in poly.loop_indices:
+            uvl.data[li].uv = tuple(uvs[ob.data.loops[li].vertex_index])
+    sol = ob.modifiers.new('S', 'SOLIDIFY')
+    sol.thickness = 0.0003
+    set_lightgroup(ob, 'ambient')
+    return ob, (lambda u, v: (c[0] + (u - 0.5) * Wp * cr - (v - 0.5) * Hp * sr, c[1] + (u - 0.5) * Wp * sr + (v - 0.5) * Hp * cr))
+
+
+def foglio_material(cera_png):
+    """La carta da disegno bagnata: dove è nuda beve l'acqua (più scura, un velo lucido), dove c'è la cera resta
+    asciutta e cerosa (un riflesso morbido)."""
+    m, g = material('Disegno')
+    uv = g.texcoord('UV')
+    col, _ = g.image(DISEGNO, uv, extension='CLIP')
+    cera, _ = g.image(cera_png, uv, extension='CLIP', colorspace='Non-Color')
+    wax = g.bw(cera)
+    co = g.texcoord('Object')
+    blot = g.noise(co, scale=14.0, detail=4.0, rough=0.55)
+    wet = g.mul(g.smoothstep(0.42, 0.6, blot.fac), g.sub(1.0, wax))
+    col = g.mix(g.mul(wet, 0.55), col, g.mix(1.0, col, (0.62, 0.60, 0.56), blend='MULTIPLY'))
+    rough = g.mixf(wax, g.mixf(wet, 0.85, 0.3), 0.42)
+    grain = g.noise(co, scale=900.0, detail=2.0)
+    g.output_material(g.principled(color=col, rough=rough, coat=g.add(g.mul(wet, 0.55), g.mul(wax, 0.2)), coat_rough=g.mixf(wax, 0.06, 0.25),
+                                   sss=0.04, sss_radius=(1.0, 0.9, 0.8), sss_scale=0.002,
+                                   normal=g.bump(grain.fac, strength=0.15, distance=0.0004)))
+    return m
+
+
 def scena_ricordo():
-    """Sul banco di prua, all'alba: la foto del 1997 lasciata dalla Madre, bagnata, accanto al secchio vuoto; dove l'ha
-    posata, una pozza d'acqua e un filo della sua melma."""
-    os.makedirs(TEX, exist_ok=True)
-    foto = os.path.join(TEX, 'foto_1997.png')
-    if not (os.environ.get('FINALI_RIUSA_FOTO') and os.path.exists(foto)):
-        foto_1997(foto)
+    """Il finale B: sul banco di prua, all'alba, il disegno a pastelli a cera lasciato dalla Madre (approvato il 12
+    ottobre, docs/concept/ricordo_disegno.webp): il foglio bagnato e ondulato, la cera che respinge l'acqua in
+    goccioline, la carta nuda che l'ha bevuta; accanto il secchio vuoto. La lampara è spenta."""
     import boat
     import jobs
+    os.makedirs(TEX, exist_ok=True)
     jobs.build_scene(fish=0, rod=True)
     for n in ('Moon',):
         o = bpy.data.objects.get(n)
         if o:
             bpy.data.objects.remove(o)
-    dawn_sky(Vector((-0.55, -0.80, 0.16)))
-    z = boat.BENCH_TOP + 0.002
-    c = Vector((0.10, 0.93, z))
-    # la stampa 15×10, un poco storta, appena incurvata dall'acqua
-    rot = math.radians(-14)
-    r = Vector((math.cos(rot), math.sin(rot), 0.0))
-    u = Vector((-math.sin(rot), math.cos(rot), 0.0))
-    m, g = material('Foto1997')
-    col, _ = g.image(foto, g.texcoord('UV'), extension='CLIP')
-    co = g.texcoord('Object')
-    wet = g.smoothstep(0.45, 0.7, g.noise(co, scale=6.0, detail=3.0).fac)
-    g.output_material(g.principled(color=col, rough=g.mixf(wet, 0.25, 0.05), coat=g.add(0.4, g.mul(wet, 0.6)), coat_rough=0.02))
-    import binocolo
-    ph = binocolo.quad('Foto1997', tuple(c), tuple(r), tuple(u), 0.15, 0.10, m, sag=-0.003, segs=16)
-    for o in (ph,):
+    # l'alba bassa da poppa a sinistra: la luce corre lungo la barca fino al banco
+    dawn_sky(Vector((-0.35, -0.86, 0.22)))
+    Wp, Hp = 0.297, 0.297 * 1697 / 2400
+    c = (0.16, 0.975, boat.BENCH_TOP + 0.0004)
+    # la borraccia si sposta a sinistra, fuori dal quadro: il foglio sta tra lei e il secchio
+    for o in bpy.data.objects:
+        if o.name.startswith('Flask'):
+            o.location.x -= 0.30
+    rot = math.radians(-6.0)
+    cera_png = os.path.join(TEX, 'ricordo_cera.png')
+    mask = maschera_cera(cera_png)
+    sheet, at = foglio_mesh('Disegno', c, rot, Wp, Hp)
+    sheet.data.materials.append(foglio_material(cera_png))
+    # le gocce: perline tonde sulla cera (la respinge), poche e piatte sulla carta; e qualche goccia sul banco
+    water = _mat('GocciaRicordo', (1.0, 1.0, 1.0), rough=0.0, ior=1.33, transmission=1.0)
+    rng = np.random.default_rng(26)
+    Hm, Wm = mask.shape
+    bpy.context.view_layer.update()
+    inv = sheet.matrix_world.inverted()
+
+    def surf(x, y):
+        o = inv @ Vector((x, y, c[2] + 0.05))
+        hit, loc, *_ = sheet.ray_cast(o, inv.to_3x3() @ Vector((0, 0, -1)))
+        return (sheet.matrix_world @ loc).z if hit else c[2] + 0.002
+
+    pts, rads, flat = [], [], []
+    tries = 0
+    while len(pts) < 150 and tries < 20000:
+        tries += 1
+        u, v = rng.uniform(0.02, 0.98), rng.uniform(0.02, 0.98)
+        mv = mask[int((1 - v) * (Hm - 1)), int(u * (Wm - 1))]
+        if rng.random() > (0.9 * mv + 0.06):
+            continue
+        x, y = at(u, v)
+        r = rng.uniform(0.0012, 0.0032) if mv > 0.5 else rng.uniform(0.002, 0.005)
+        # la goccia poggia sulla carta ondulata: metà sotto la superficie, così resta una calotta
+        pts.append((x, y, surf(x, y)))
+        rads.append(r)
+        flat.append(0.55 if mv > 0.5 else 0.2)
+    for k in range(18):
+        x = rng.uniform(-0.05, 0.38)
+        y = rng.uniform(0.86, 1.08)
+        if abs(x - c[0]) < 0.17 and abs(y - c[1]) < 0.12:
+            continue
+        r = rng.uniform(0.003, 0.009)
+        pts.append((x, y, boat.BENCH_TOP + 0.001))
+        rads.append(r)
+        flat.append(0.25)
+    for k, (p, r, fz) in enumerate(zip(pts, rads, flat)):
+        o = sphere('GocciaR', r, p, segs=14, rings=8, col=COL, scale=(1, 1, fz))
+        o.data.materials.append(water)
+        # senza caustiche la carta sotto la goccia resterebbe al buio: la goccia non fa ombra
+        o.visible_shadow = False
         set_lightgroup(o, 'ambient')
-    # la pozza d'acqua sotto e attorno, lucida, e qualche goccia sulla foto
-    pm, pg = material('Pozza')
-    pco = pg.texcoord('Object')
-    edge = pg.smoothstep(0.42, 0.55, pg.noise(pco, scale=5.0, detail=4.0).fac)
-    pg.output_material(pg.principled(color=(0.05, 0.06, 0.06), rough=0.03, alpha=edge, transmission=0.0))
-    pool = binocolo.quad('Pozza', tuple(c + Vector((0.02, -0.02, -0.0015))), tuple(r), tuple(u), 0.32, 0.22, pm, segs=8)
-    set_lightgroup(pool, 'ambient')
-    rng = np.random.default_rng(14)
-    drops = []
-    for k in range(9):
-        p = c + r * rng.uniform(-0.07, 0.07) + u * rng.uniform(-0.045, 0.045) + Vector((0, 0, 0.002))
-        o = sphere('Goccia', rng.uniform(0.003, 0.007), tuple(p), segs=12, rings=8, col=COL, scale=(1, 1, 0.45))
-        drops.append(o)
-    dm = _mat('Goccia', (1.0, 1.0, 1.0), rough=0.0, ior=1.33, transmission=1.0)
-    for o in drops:
-        o.data.materials.append(dm)
-        set_lightgroup(o, 'ambient')
-    eye = Vector((0.02, 0.05, 1.02))
-    cam = perspective_camera(tuple(eye), tuple(c + Vector((0.02, 0.0, 0.0))), lens=58.0, name='RicordoCam')
+    eye = Vector((c[0] - 0.02, c[1] - 0.36, c[2] + 0.42))
+    tgt = Vector((c[0] + 0.05, c[1] + 0.01, c[2]))
+    cam = perspective_camera(tuple(eye), tuple(tgt), lens=38.0, name='RicordoCam')
     cam.data.dof.use_dof = True
-    cam.data.dof.focus_distance = (c - eye).length
-    cam.data.dof.aperture_fstop = 3.2
+    cam.data.dof.focus_distance = (tgt - eye).length
+    cam.data.dof.aperture_fstop = 5.6
     return {'ev': 0.3, 'haze': (0.30, 0.22, 0.24), 'haze_amt': 0.0, 'groups': ('ambient',)}
 
 

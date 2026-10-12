@@ -289,15 +289,6 @@ export class Screens {
     this.show(el);
   }
 
-  /**
-   * Il finale speciale della notte extra (vinta con tutti, Madre compresa, almeno a 10): per ora un SEGNAPOSTO, il
-   * finale vero è da fare (deciso dall'utente l'11 ottobre che ci sarà, diverso da quello della notte 6).
-   */
-  extraEnding(onDone: () => void): void {
-    const S = this.S;
-    this.show(h('div', { class: 'screen dawn extra-ending fade-in' }, h('h2', {}, S.extraEndingTitle), h('p', {}, S.extraEndingText), h('div', { class: 'menu' }, button(S.resume, onDone, 'start'))));
-  }
-
   journal(found: string[], onBack: () => void): void {
     const S = this.S;
     const list = h('div', { class: 'journal' });

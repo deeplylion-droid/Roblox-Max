@@ -29,11 +29,12 @@ const STEAM_URL: string | null = null;
 /** Fino a che notte arriva questa build: VITE_ULTIMA_NOTTE=1 per la demo della sola prima notte. */
 const NIGHT_LIMIT = Number(import.meta.env.VITE_ULTIMA_NOTTE) || Infinity;
 
-/** ?finale=tuoi|nessuno|A nell'indirizzo: forza il finale della sesta notte (prove e registrazioni; mai nelle build). */
-const FORCE_ENDING = ((): Ending | null => {
+/** ?finale=tuoi|nessuno|A nell'indirizzo: forza il finale della sesta notte; ?finale=B quello della notte extra (prove e
+ *  registrazioni; mai nelle build). */
+const FORCE_ENDING = ((): Ending | 'B' | null => {
   if (!import.meta.env.DEV) return null;
   const f = new URLSearchParams(location.search).get('finale');
-  return f === 'tuoi' || f === 'nessuno' || f === 'A' ? f : null;
+  return f === 'tuoi' || f === 'nessuno' || f === 'A' || f === 'B' ? f : null;
 })();
 
 /** ?bozze nell'indirizzo: si possono giocare anche le notti in bozza (prove; mai nelle build). */
@@ -275,7 +276,14 @@ export class App {
       // il mostro sfamato all'alba dorme stanotte
       fed: fedFor(this.save, this.nightNo),
       // il finale della sesta notte: dai pesci lasciati nelle tane, alba per alba
-      ending: this.nightNo === 6 ? (FORCE_ENDING ?? chooseEnding(this.save)) : undefined,
+      ending:
+        this.nightNo === 6
+          ? FORCE_ENDING && FORCE_ENDING !== 'B'
+            ? FORCE_ENDING
+            : chooseEnding(this.save)
+          : this.nightNo === EXTRA_NIGHT && (FORCE_ENDING === 'B' || extraEndingEarned(this.save.extra))
+            ? 'B'
+            : undefined,
       seed: (Date.now() & 0x7fffffff) >>> 0,
       onEnd: (r) => this.endNight(r),
       onPause: () => this.pause(),
@@ -365,7 +373,9 @@ export class App {
                 : r.ending === 'nessuno'
                   ? S.finaleNessuno
                   : S.finaleA
-              : S.quotaMet
+              : r.ending === 'B'
+                ? S.finaleRicordo
+                : S.quotaMet
             : r.cause === 'lullaby'
               ? S.deaths.lullaby
               : r.cause === 'moved'
@@ -379,7 +389,7 @@ export class App {
         // i pesci avanzati servono solo se all'alba si può scendere
         spare: diveOk ? spare : undefined,
         onDive: diveOk ? () => this.dive(next) : null,
-        // finita l'ultima notte (la sesta), si apre la notte extra (i titoli di coda non ci sono ancora)
+        // finita l'ultima notte (la sesta), si apre la notte extra
         onExtra: r.kind === 'won' && !extra && this.nightNo >= lastNight() && NIGHT_LIMIT === Infinity ? () => this.extraNight() : null,
         onWishlist: STEAM_URL ? () => window.open(STEAM_URL, '_blank') : null,
         onRetry: () => this.intro(),
@@ -406,13 +416,6 @@ export class App {
         this.titleMusic(false);
         show();
       });
-    } else if (extra && r.kind === 'won' && extraEndingEarned(this.save.extra)) {
-      // la notte extra vinta con tutti, Madre compresa, almeno a 10: prima il finale speciale (per ora un segnaposto,
-      // Screens.extraEnding), poi i risultati. Con impostazioni più facili, l'alba normale
-      this.mode = 'end';
-      this.night?.destroy();
-      this.night = null;
-      this.screens.extraEnding(show);
     } else show();
   }
 

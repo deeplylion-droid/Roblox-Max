@@ -18,11 +18,11 @@ import { Hud } from './hud.ts';
 import { dualText, pad } from './pad.ts';
 import type { Options } from './save.ts';
 import type { Sfx } from './sfx.ts';
-import { FINALE_A, FINALE_NESSUNO, FINALE_TUOI, between, sample, stillFrame, textAt, type CinematicScript, type EndingStill } from './cinematic.ts';
+import { FINALE_A, FINALE_B, FINALE_NESSUNO, FINALE_TUOI, between, sample, stillFrame, textAt, type CinematicScript, type EndingStill } from './cinematic.ts';
 import type { Ending } from './save.ts';
 
 /** Le cinematiche dei tre finali della notte 6. */
-const ENDING_CINE: Record<Ending, CinematicScript> = { A: FINALE_A, tuoi: FINALE_TUOI, nessuno: FINALE_NESSUNO };
+const ENDING_CINE: Record<Ending | 'B', CinematicScript> = { A: FINALE_A, tuoi: FINALE_TUOI, nessuno: FINALE_NESSUNO, B: FINALE_B };
 import { Sonar } from './sonar.ts';
 import { VIVO_DI, Vivi } from './vivi.ts';
 import { Paura } from './paura.ts';
@@ -60,7 +60,7 @@ export interface NightStats {
 }
 
 export type NightEnd =
-  | { kind: 'won'; stats: NightStats; /** il finale della sesta notte che si è visto */ ending?: Ending }
+  | { kind: 'won'; stats: NightStats; /** il finale che si è visto (notte 6; alla notte extra il finale B) */ ending?: Ending | 'B' }
   | { kind: 'dead'; killer: MonsterId | 'mother'; cause?: MotherCause; stats: NightStats; /** c'è stato un jumpscare (anche quello della quota) */ js?: boolean };
 
 export interface NightDeps {
@@ -79,8 +79,9 @@ export interface NightDeps {
   config?: NightConfig;
   /** il mostro sfamato all'alba (immersione): stanotte dorme (NightOptions.fed) */
   fed?: MonsterId | null;
-  /** il finale della sesta notte (save.chooseEnding: dipende dai pesci lasciati nelle tane); senza, il finale A */
-  ending?: Ending;
+  /** il finale della sesta notte (save.chooseEnding: dipende dai pesci lasciati nelle tane); senza, il finale A. Alla
+   *  notte extra 'B': il finale «Il ricordo» (senza, l'alba normale) */
+  ending?: Ending | 'B';
   seed: number;
   onEnd: (r: NightEnd) => void;
   onPause: () => void;
@@ -1410,19 +1411,21 @@ export class Night {
         this.lullabyV = null;
         this.motherSong?.stop(3);
         this.motherSong = null;
-        this.endResult = { kind: 'won', stats: this.stats(), ...(this.nightNo === 6 ? { ending: this.d.ending ?? 'A' } : {}) };
+        // il finale con la cinematica: alla notte 6 sempre (A o uno dei segreti), alla notte extra il finale B se
+        // l'App l'ha deciso (vinta con tutti, Madre compresa, almeno a 10)
+        const ending = this.nightNo === 6 ? (this.d.ending ?? 'A') : this.d.ending === 'B' ? 'B' : undefined;
+        this.endResult = { kind: 'won', stats: this.stats(), ...(ending ? { ending } : {}) };
         this.endTimer = 7;
         a.play('bell_dawn', { pos: dirPos(BELL_YAW, 5, 4), gain: 0.8, lowpass: 3000 });
         this.loops.drone?.stop(3);
         this.loops.drone = null;
         this.hud.toast(S.sixAm, `${S.survived} · ${S.quotaMet}`, 6);
-        // solo la notte 6: la notte extra, anche con la Madre, ha l'alba normale (o il finale B, per ora un segnaposto
-        // nell'App: Screens.extraEnding)
-        if (this.nightNo === 6) {
+        // le altre notti, e la notte extra vinta con impostazioni più facili, hanno l'alba normale
+        if (ending) {
           // il finale della notte 6, la cinematica: il finale A (la Madre sale accanto alla barca, si prende il secchio e
           // torna giù coi figli; poi sorge il sole e la radio) o uno dei due segreti, «I tuoi» e «Nessuno», secondo i
-          // pesci lasciati nelle tane (save.chooseEnding)
-          const cine = ENDING_CINE[this.d.ending ?? 'A'];
+          // pesci lasciati nelle tane (save.chooseEnding); alla notte extra il finale B «Il ricordo»
+          const cine = ENDING_CINE[ending];
           this.startCinematic(cine);
           this.endTimer = cine.length + 0.2;
         } else {

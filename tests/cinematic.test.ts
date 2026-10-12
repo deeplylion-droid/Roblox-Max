@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { FINALE_A, FINALE_NESSUNO, FINALE_TUOI, stillFrame, textAt, type CinematicScript } from '../src/app/cinematic.ts';
+import { FINALE_A, FINALE_B, FINALE_NESSUNO, FINALE_TUOI, stillFrame, textAt, type CinematicScript } from '../src/app/cinematic.ts';
 
 const audio = JSON.parse(readFileSync('public/assets/audio/manifest.json', 'utf8')) as Record<string, { duration: number }>;
 const overlays = JSON.parse(readFileSync('public/assets/img/overlays.json', 'utf8')) as { endings?: Record<string, unknown> };
-const SCRIPTS: Record<string, CinematicScript> = { A: FINALE_A, tuoi: FINALE_TUOI, nessuno: FINALE_NESSUNO };
+const SCRIPTS: Record<string, CinematicScript> = { A: FINALE_A, tuoi: FINALE_TUOI, nessuno: FINALE_NESSUNO, B: FINALE_B };
 
 describe('Le cinematiche dei finali', () => {
   for (const [name, s] of Object.entries(SCRIPTS)) {
@@ -21,16 +21,17 @@ describe('Le cinematiche dei finali', () => {
     });
   }
 
-  it('i finali segreti finiscono sull’ultima inquadratura renderizzata, con la frase', () => {
-    for (const [s, key] of [[FINALE_TUOI, 'molo'], [FINALE_NESSUNO, 'edicola']] as const) {
+  it('i finali segreti e il finale B finiscono sull’ultima inquadratura renderizzata, con la frase', () => {
+    for (const [s, key] of [[FINALE_TUOI, 'molo'], [FINALE_NESSUNO, 'edicola'], [FINALE_B, 'ricordo']] as const) {
       expect(overlays.endings?.[key], key).toBeDefined();
       expect(stillFrame(s, s.still!.t - 0.01)).toBeNull();
       const end = stillFrame(s, s.length)!;
       expect(end.key).toBe(key);
       expect(end.alpha).toBe(1);
-      // il movimento di camera è lento: al più un terzo di zoom in tutta l'inquadratura
+      // il movimento di camera è lento: al più un terzo di zoom in tutta l'inquadratura (il disegno del finale B
+      // un po' di più, fino ai quattro bambini)
       expect(end.zoom).toBeGreaterThan(1);
-      expect(end.zoom).toBeLessThanOrEqual(1.35);
+      expect(end.zoom).toBeLessThanOrEqual(key === 'ricordo' ? 1.6 : 1.35);
       const line = s.text![0]!;
       expect(line.t).toBeGreaterThan(s.still!.t);
       expect(textAt(s, line.t + 0.1, 'it')).toBe(line.it);
@@ -43,5 +44,14 @@ describe('Le cinematiche dei finali', () => {
     expect(s.still!.t).toBe(15);
     expect(s.still!.fade).toBe(0);
     expect(s.events?.some((e) => e.e === 'quiet' && e.t === 15)).toBe(true);
+  });
+
+  it('il finale B: come il finale A fino al secchio vuoto, senza la radio, e il disegno arriva in dissolvenza', () => {
+    const s = FINALE_B;
+    expect(s.view.slice(0, 6)).toEqual(FINALE_A.view.slice(0, 6));
+    expect(s.events?.some((e) => e.e === 'emptyBucket')).toBe(true);
+    expect(s.events?.some((e) => e.e === 'radio')).toBe(false);
+    expect(s.still!.fade).toBeGreaterThan(0);
+    expect(stillFrame(s, s.still!.t + s.still!.fade / 2)!.alpha).toBeLessThan(1);
   });
 });

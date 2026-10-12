@@ -546,8 +546,9 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
 
 > **Deciso l'11 ottobre**: la notte coi livelli da scegliere (come la notte personalizzata di FNAF), con anche **la
 > Madre come ottavo livello** (quanto spesso passa sotto la barca). Ha un suo finale, il **finale B «Il ricordo»**:
-> come il finale A, ma prima di andarsene la Madre ti lascia sul banco una foto dell'edicola, e sei tu da bambino, a
-> Splashland nel 1997 (c'eri anche tu, e sei l'unico che è tornato a casa). Si vede **solo vincendo la notte 7 con
+> come il finale A, ma prima di andarsene la Madre ti lascia sul banco un disegno a pastelli bagnato, da bambino: voi
+> quattro a Splashland nel 1997, e il quarto sei tu (c'eri anche tu, e sei l'unico che è tornato a casa; prima era una
+> foto dell'edicola, il disegno è un'idea dell'utente approvata il 12 ottobre). Si vede **solo vincendo la notte 7 con
 > impostazioni difficili** (tutti, Madre compresa, almeno a 10); con impostazioni più facili un'alba normale.
 > **Tutti a 20** (questionario dell'11 ottobre): **difficilissima ma possibile**, il traguardo da raccontare (come il
 > 20/20/20/20 di FNAF): un giocatore bravissimo deve poterla vincere.
@@ -636,9 +637,8 @@ Lampy, il terzo rumore di Fangy): cambiano solo **quando arriva, quanto spesso t
   le regole sotto i nomi «sfamalo, guardala, nasconditi, luce in faccia, spegni la luce, non ferrare, stai zitto» /
   «feed him, watch her, hide, light in his face, light off, don't strike, stay quiet»; per la Madre «La Madre, non
   muoverti» / «The Mother, don't move»; per Soggy «non perderlo di vista» / «don't lose sight of him» (12 ottobre, da
-  approvare); «Salpa» / «Cast off». Il finale segnaposto: «Il finale
-  della notte extra» / «The end of the extra night» (con una riga che dice che è un segnaposto; il finale B vero si fa
-  quando la Madre sarà renderizzata).
+  approvare); «Salpa» / «Cast off». Il finale B «Il ricordo»: sotto, «I finali
+  segreti nel gioco» (il segnaposto di prima non c'è più).
   La radio, corta: «Notte extra. Dieci pesci. / Stanotte vengono quelli che hai chiamato tu. / Buona pesca.» /
   «Extra night. Ten fish. / Tonight the ones you called are coming. / Good fishing.»
 - **Giocatori simulati, con la Madre** (`npm run sim -- 7 300 <livelli>`, dopo l'unione dei rami claude/lampara e claude/notte6:
@@ -707,11 +707,12 @@ immersioni all'alba (`docs/IMMERSIONI.md`; durante le notti Gulpy va sfamato per
 La **notte 7** ha il suo finale, **B «Il ricordo»** (con impostazioni difficili; sopra), anche lui come cinematica
 breve. Fatti: il «regista» delle cinematiche, i render del molo e dell'edicola, i suoni dei due finali segreti e il
 taglio più corto del finale all'alba (`madre_dawn_breve`), le due cinematiche segrete e i titoli di coda (sotto, da
-approvare). **Da fare**: il finale B (la foto da approvare, sotto).
+approvare), e il finale B col disegno a pastelli (sotto, la cinematica da approvare).
 
 ### I finali segreti nel gioco
 
-> **Da approvare** (12 ottobre, ramo `claude/finali-gioco`): le due cinematiche, i titoli di coda e i loro testi.
+> **Da approvare** (12 ottobre, ramo `claude/finali-gioco`): le due cinematiche, il finale B, i titoli di coda e i loro
+> testi.
 > Le clip col suono per l'approvazione stanno in `docs/concept/clip/`.
 
 - **Quale finale** (`chooseEnding` in `src/app/save.ts`, provato in `tests/save.test.ts`): il salvataggio ricorda,
@@ -735,16 +736,26 @@ approvare). **Da fare**: il finale B (la foto da approvare, sotto).
   dissolvenza, lo zoom e il punto al centro nel tempo; si disegna con l'esposizione del suo render al posto di quella
   della notte, più la sola luminosità delle opzioni) e l'evento **`quiet`** (il taglio su un altro posto spegne il
   mare, il vento e gli scricchiolii).
-- **I titoli di coda** (`Screens.credits`, DA APPROVARE, i nomi sono un segnaposto in `src/i18n.ts`): dopo ognuno dei
+- **I titoli di coda** (`Screens.credits`, DA APPROVARE, i nomi sono un segnaposto in `src/i18n.ts`: «(nome da
+  decidere)» / «(name to be decided)»): dopo ognuno dei
   tre finali della notte 6, su un fondo nero salgono il titolo, i ruoli coi nomi e «Grazie per aver giocato.», con la
   ninna nanna del titolo; Esc, Invio o un clic li saltano. Poi i risultati, con l'avviso della notte extra.
-- **Il finale B «Il ricordo»** (la notte 7): al posto della foto del 1997 (provata coi bambini renderizzati,
-  `tools/render/bambini.py` e `finali.foto_1997`, restano nel ramo ma non si usano) l'utente ha proposto il 12 ottobre
-  un **disegno a pastelli a cera**, da bambino: i quattro bambini davanti all'ingresso di Splashland la sera della
-  Night Splash, tre con la faccia scarabocchiata di nero, il quarto col berretto e la canna col pesce (lo disegna la
-  sessione principale, `tools/render/disegno_ricordo.py`). Dopo l'approvazione: la scena sul banco di prua all'alba
-  (il foglio bagnato e ondulato, la cera che respinge l'acqua, le gocce, il secchio vuoto) e la cinematica, come il
-  finale A col disegno sul banco. Oggi è ancora il segnaposto `Screens.extraEnding`.
+- **Il finale B «Il ricordo»** (la notte 7; cinematica e frase DA APPROVARE): al posto della foto del 1997 (provata
+  coi bambini renderizzati, `tools/render/bambini.py` e `finali.foto_1997`, restano nel ramo ma non si usano) un
+  **disegno a pastelli: idea dell'utente e approvato il 12 ottobre** (`docs/concept/ricordo_disegno.webp`, disegnato
+  da `tools/render/disegno_ricordo.py`): i quattro bambini davanti all'ingresso di Splashland la sera della Night
+  Splash, tre con la faccia scarabocchiata di nero, il quarto col berretto e la canna col pesce.
+  - **La scena** (`finali.scena_ricordo`, `public/assets/img/fin_ricordo.webp`; anteprima
+    `docs/concept/finali_ricordo_anteprima.jpg`): il foglio sul banco di prua all'alba, bagnato e ondulato (le pieghe,
+    gli orli che si alzano), la carta scurita dove ha bevuto l'acqua e la cera che la respinge in goccioline tonde
+    (la maschera della cera si ricava dal disegno), qualche goccia sul banco, accanto il secchio vuoto; la borraccia
+    spostata fuori dal quadro.
+  - **La cinematica** (`FINALE_B`, 22 s, sul suono del finale A `madre_dawn_breve`): uguale al finale A fino al
+    secchio che si svuota e ai figli che tornano giù (0-12 s); niente radio: la vista scende sul banco di prua mentre
+    sorge il sole e lì (14,6 s) si dissolve nel disegno, poi va piano verso i quattro bambini; «Il quarto eri tu.
+    L'unico che è tornato a casa.» / «The fourth one was you. The only one who made it home.» Poi i risultati (con la
+    stessa frase), senza titoli di coda. Il segnaposto `Screens.extraEnding` non c'è più. In sviluppo `?finale=B` lo
+    forza alla notte extra.
 
 ### Le ultime inquadrature dei due finali segreti
 
