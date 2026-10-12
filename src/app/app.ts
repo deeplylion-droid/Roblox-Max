@@ -340,7 +340,8 @@ export class App {
         lore: r.stats.lore.length,
         demoEnd: r.kind === 'won' && !extra && this.nightNo >= lastNight(),
         onNext: r.kind === 'won' && !extra && this.nightNo < lastNight() ? () => this.skipToNight(next) : null,
-        spare: r.kind === 'won' && !extra ? spare : undefined,
+        // i pesci avanzati servono solo se all'alba si può scendere
+        spare: diveOk ? spare : undefined,
         onDive: diveOk ? () => this.dive(next) : null,
         // finita l'ultima notte (la sesta), si apre la notte extra (i titoli di coda non ci sono ancora)
         onExtra: r.kind === 'won' && !extra && this.nightNo >= lastNight() && NIGHT_LIMIT === Infinity ? () => this.extraNight() : null,
