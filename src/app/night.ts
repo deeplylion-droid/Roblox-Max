@@ -371,6 +371,8 @@ export class Night {
   /** il secchio svuotato dalla cinematica (i pesci non si disegnano) e il buio della cinematica (0..1) */
   private cineEmptyBucket = false;
   private cineBlack = 0;
+  /** l'esposizione in più della scena (l'alba, il buio), quella del fotogramma in corso */
+  private sceneEv = 0;
 
   constructor(private d: NightDeps) {
     this.S = STRINGS[d.lang];
@@ -2369,7 +2371,10 @@ export class Night {
       const lim = 0.5 - 0.5 / Math.max(1, still.zoom);
       const ox = Math.max(-lim, Math.min(lim, still.cx - 0.5));
       const oy = Math.max(-lim, Math.min(lim, 0.5 - still.cy));
-      return { base: img.tex, baseScale: img.scale, wBase: 2 ** img.exposure, aspect: img.aspect, alpha: still.alpha, zoom: still.zoom, offset: [ox, oy] };
+      // l'esposizione del render, al posto di quella della notte (la luminosità di base, 1, e l'alba): resta solo la
+      // luminosità scelta nelle opzioni
+      const ev = img.exposure - 1 - this.sceneEv;
+      return { base: img.tex, baseScale: img.scale, wBase: 2 ** ev, aspect: img.aspect, alpha: still.alpha, zoom: still.zoom, offset: [ox, oy] };
     }
     if (js) {
       const seq = A.jumpscares[js.killer];
@@ -2546,6 +2551,7 @@ export class Night {
       flashColor = [0.95, 0.62, 0.42];
     }
     const dawnExposure = v.dawn * 0.9 - v.dark * 4;
+    this.sceneEv = dawnExposure * 0.5;
     // jumpscare: nastro VHS rovinato, più forte all'impatto e a strappi
     let glitch = 0;
     if (js) {
