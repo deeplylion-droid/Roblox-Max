@@ -1,4 +1,18 @@
 {
+ "atmosfera": {
+  "fog": {
+   "color": [
+    0.003,
+    0.004,
+    0.006
+   ],
+   "density": 2e-05
+  },
+  "glows": {
+   "gain": 0.6,
+   "radius": 2.0
+  }
+ },
  "layers": {
   "archie_fiato": {
    "base": "archie_soffia",
@@ -243,7 +257,7 @@
     "lantern": {
      "file": "boat_lantern.webp",
      "res": 0.5,
-     "scale": 0.78
+     "scale": 0.86
     }
    },
    "rect": [
@@ -252,6 +266,25 @@
     8192,
     2139
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "boat_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "boat_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 1.2000000000000002
+     },
+     "lantern": {
+      "file": "boat_lantern_senza.webp",
+      "res": 0.5,
+      "scale": 0.78
+     }
+    }
+   },
    "space": "boat",
    "yaw": 0.0
   },
