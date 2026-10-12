@@ -31,10 +31,15 @@
    {
     "aspect": 1.7778,
     "file": "bino_ingresso.webp",
+    "fog": 0,
     "hfov": 6.0,
     "key": "ingresso",
     "pitch": 2.373,
     "scale": 6.0,
+    "senza": {
+     "file": "bino_ingresso_senza.webp",
+     "scale": 6.0
+    },
     "yaw": 166.985
    },
    {
@@ -69,10 +74,15 @@
    {
     "aspect": 1.0,
     "file": "bino_ruota.webp",
+    "fog": 0,
     "hfov": 6.4,
     "key": "ruota",
     "pitch": 3.505,
     "scale": 0.25,
+    "senza": {
+     "file": "bino_ruota_senza.webp",
+     "scale": 0.25
+    },
     "yaw": -158.53
    },
    {
@@ -98,10 +108,15 @@
    {
     "aspect": 1.0,
     "file": "bino_statua.webp",
+    "fog": 0,
     "hfov": 4.2,
     "key": "statua",
     "pitch": 2.198,
     "scale": 5.300000000000001,
+    "senza": {
+     "file": "bino_statua_senza.webp",
+     "scale": 5.300000000000001
+    },
     "yaw": 180.0
    }
   ],
