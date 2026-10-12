@@ -240,6 +240,12 @@ Regole e salvataggio: `DiveRun.findHere()` e `take()` (le voci già nel Diario n
 `afterDive` le aggiunge al Diario. Test in `tests/dive.test.ts`, `tests/save.test.ts`, `tests/sim.test.ts`. Il suono
 della cosa trovata per ora è quello delle bolle dell'erogatore, più piano (un suono suo è da fare).
 
+**Problemi aperti delle tane (12 ottobre).** Il braccio lungo di Robin è ancora nella posa della barca (teso in
+avanti), non raccolto nel sonno; il cabinato dei biglietti rovesciato si legge poco; le strisce della coperta di Molly
+non si vedono (sembra un telo rosa); Lampy ha un'inquadratura diversa dalle altre (da −45° a +35°, sguardo a −5°) e va
+guardata nel gioco; il suono della cosa trovata è provvisorio. Le tane di Hatch (le ante dell'armadio aperte verso
+fuori) e di Archie (la tovaglia tonda che ricade dal tavolo) sono state rifatte dopo il primo giro di finali.
+
 ## Il pesce e i finali
 
 Il pesce lasciato nelle tane decide anche **il finale della sesta notte** (approvato l'11 ottobre, vedi
