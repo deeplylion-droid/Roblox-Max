@@ -793,6 +793,62 @@ def sedia(name, pos, ang, mat):
     return obs
 
 
+def cabinato(pos):
+    """Il cabinato della sala giochi che dava i biglietti, caduto sul fianco contro la parete di destra ma con la faccia
+    verso chi entra, così si riconosce: il cartellone in alto acceso a metà («TICKETS»), lo schermo che manda ancora
+    un chiarore verde, la plancia inclinata con la leva e i due pulsanti, lo sportello delle monete con le fessure
+    arancioni, e dalla bocca dei biglietti una striscia lunghissima che scende e si arrotola sulla sabbia."""
+    cab = grotte.plastica('TRCabinato', (0.10, 0.08, 0.25), rough=0.4, melma=0.4)
+    nero = grotte.semplice('THBuio', (0.01, 0.01, 0.01), rough=0.9)
+    obs = [scatola('Cabinato', (0.7, 0.62, 1.15), (0, 0.04, 0.575), mat=cab, bevel=0.03),
+           scatola('CabinatoTesta', (0.7, 0.5, 0.62), (0, 0.10, 1.46), mat=cab, bevel=0.03),
+           # la plancia inclinata che sporge davanti, con la leva e i pulsanti
+           scatola('Plancia', (0.66, 0.30, 0.07), (0, -0.33, 1.02), mat=grotte.plastica('TRPlancia', (0.05, 0.05, 0.07), melma=0.3), bevel=0.01),
+           cilindro('Leva', 0.012, 0.13, (-0.17, -0.36, 1.12), mat=grotte.semplice('TMCromo', (0.6, 0.6, 0.6), rough=0.25, metal=1.0), verts=8),
+           palla('Pomello', 0.035, (-0.17, -0.36, 1.19), mat=grotte.plastica('TRPomello', (0.55, 0.04, 0.04), rough=0.2, melma=0.1)),
+           cilindro('Pulsante', 0.032, 0.03, (0.08, -0.36, 1.07), mat=grotte.plastica('TRPuls1', (0.6, 0.45, 0.02), rough=0.2, melma=0.1), verts=16),
+           cilindro('Pulsante', 0.032, 0.03, (0.19, -0.33, 1.07), mat=grotte.plastica('TRPuls2', (0.05, 0.25, 0.6), rough=0.2, melma=0.1), verts=16),
+           # lo schermo nella testa, ancora un chiarore
+           scatola('Schermo', (0.52, 0.02, 0.36), (0, -0.155, 1.40),
+                   mat=grotte.semplice('TRSchermo', (0.02, 0.05, 0.04), rough=0.1, emission=(0.10, 0.45, 0.25), strength=1.6)),
+           # il cartellone acceso a metà
+           scatola('Cartellone', (0.70, 0.08, 0.20), (0, -0.12, 1.86),
+                   mat=grotte.semplice('TRCartellone', (0.5, 0.35, 0.05), rough=0.4, emission=(0.9, 0.6, 0.15), strength=0.9)),
+           # lo sportello delle monete e la bocca dei biglietti
+           scatola('Sportello', (0.36, 0.02, 0.30), (0, -0.27, 0.55), mat=grotte.plastica('TRSportello', (0.25, 0.25, 0.27), melma=0.5)),
+           scatola('Fessura', (0.25, 0.02, 0.04), (0, -0.30, 0.82), mat=nero)]
+    for x in (-0.08, 0.08):
+        obs.append(scatola('Moneta', (0.025, 0.02, 0.06), (x, -0.285, 0.60),
+                           mat=grotte.semplice('TRMoneta', (0.6, 0.3, 0.05), rough=0.4, emission=(1.0, 0.45, 0.1), strength=0.8)))
+    obs.append(scritta('Marquee', 'TICKETS', 0.15, (0, -0.165, 1.86), (math.radians(90), 0, 0),
+                       grotte.plastica('TRMarquee', (0.35, 0.03, 0.03), melma=0.1), extrude=0.01))
+    # girato con la faccia verso l'occhio, poi caduto sul fianco (attorno all'asse avanti-dietro: la faccia resta
+    # verso chi entra) e appoggiato alla parete
+    yaw = math.degrees(math.atan2(OCCHIO_T[0] - pos[0], pos[1] - OCCHIO_T[1]))
+    M = Matrix.Translation((pos[0], pos[1], 0.0)) @ Matrix.Rotation(math.radians(yaw), 4, 'Z') @ Matrix.Rotation(math.radians(62), 4, 'Y')
+    bpy.context.view_layer.update()
+    for o in obs:
+        o.matrix_world = M @ o.matrix_world
+    bpy.context.view_layer.update()
+    giu = min((o.matrix_world @ Vector(c)).z for o in obs if o.type == 'MESH' for c in o.bound_box)
+    for o in obs:
+        o.location.z -= giu
+    bpy.context.view_layer.update()
+    # la striscia di biglietti dalla bocca, che scende e si arrotola sulla sabbia davanti
+    bocca = M @ Vector((0, -0.31, 0.82))
+    bocca.z -= giu
+    rr = np.random.default_rng(5)
+    pts = [(bocca.x, bocca.y, bocca.z), (bocca.x - 0.15, bocca.y - 0.25, bocca.z * 0.5)]
+    for k in range(18):
+        a_ = k * 0.7
+        r_ = 0.35 - 0.012 * k
+        pts.append((bocca.x - 0.35 + r_ * math.cos(a_), bocca.y - 0.75 + r_ * math.sin(a_) * 0.7, 0.03 + 0.004 * k + rr.uniform(0, 0.01)))
+    ob = sweep('BigliettiCabinato', pts, rect_profile(0.065, 0.002), col=COL, cap=False, up=(0, 0, 1))
+    ob.data.materials.append(grotte.plastica('TRBiglietti', (0.80, 0.24, 0.02), melma=0.3))
+    _lg(ob)
+    return obs
+
+
 def tana_robin():
     """Un mucchio di cose rubate agli altri bambini (scarpe, giocattoli, oggetti smarriti) avvolto nei biglietti; un
     cabinato della sala giochi rovesciato, il cartello degli oggetti smarriti."""
@@ -831,15 +887,7 @@ def tana_robin():
         ob = sweep('Biglietti', pts, rect_profile(0.065, 0.002), col=COL, cap=False, up=(0, 0, 1))
         ob.data.materials.append(grotte.plastica('TRBiglietti', (0.80, 0.24, 0.02), melma=0.3))
         _lg(ob)
-    # il cabinato della sala giochi (il distributore dei biglietti), rovesciato contro la parete di destra
-    cab = grotte.plastica('TRCabinato', (0.10, 0.08, 0.25), rough=0.4, melma=0.4)
-    obs = [scatola('Cabinato', (0.7, 0.65, 1.7), (0, 0, 0.85), mat=cab, bevel=0.03),
-           scatola('Schermo', (0.55, 0.02, 0.45), (0, -0.33, 1.25), mat=grotte.semplice('TRSchermo', (0.02, 0.05, 0.04), rough=0.1, emission=(0.05, 0.25, 0.15), strength=0.6)),
-           scatola('Fessura', (0.25, 0.02, 0.04), (0, -0.33, 0.7), mat=grotte.semplice('THBuio', (0.01, 0.01, 0.01), rough=0.9))]
-    obs.append(scritta('Marquee', 'TICKETS', 0.16, (0, -0.34, 1.6), (math.radians(90), 0, 0), grotte.plastica('TRMarquee', (0.85, 0.55, 0.05), melma=0.2), extrude=0.01))
-    M = Matrix.Translation((3.0, 1.6, 0.35)) @ Matrix.Rotation(math.radians(-55), 4, 'Z') @ Matrix.Rotation(math.radians(70), 4, 'Y')
-    for o in obs:
-        o.matrix_world = M @ o.matrix_world
+    cabinato((3.0, 1.6))
     manifesto_su_parete('smarriti', [('LOST &', 80, (30, 30, 30), 'Limelight-Regular'), ('FOUND', 80, (30, 30, 30), 'Limelight-Regular'),
                                      ('SPLASHLAND', 50, (150, 30, 60), 'Limelight-Regular')], ((210, 200, 170), (60, 40, 30)), -40, 2.0, size=(0.8, 0.6))
     trov = (1.6, 0.4, 0.04)
@@ -1227,11 +1275,14 @@ def dorme_hatch(info, fiato=0.0):
 
 
 def dorme_robin(info, fiato=0.0):
-    """Disteso sul mucchio come un granchio sul bottino, gli occhi chiusi."""
+    """Disteso sul mucchio come un granchio sul bottino, gli occhi chiusi. Il braccio lungo non è più teso verso il
+    secchio della barca: nel sonno è raccolto, il gomito alto ripiegato come la zampa di un insetto e il pugno chiuso
+    contro il petto, sotto il mento; il capo libero dei biglietti gli pende davanti, sul mucchio."""
     import robin as ro
     o = (CENTRO[0], CENTRO[1] - 0.2, 0.25)
     M = M_tana(o, yaw=_verso_occhio(o) + 20.0, scale=1.25 * (1.0 + 0.02 * fiato))
-    obs = ro.build(viewer=_loc(M, OCCHIO_T), fish=False, palpebre=1.0)
+    obs = ro.build(viewer=_loc(M, OCCHIO_T), fish=False, palpebre=1.0,
+                   reach=(0.24, -0.52, 0.80), bucket=(0.30, -0.62, 0.45))
     return _metti(obs, M)
 
 
