@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { EXTRA_NIGHT, FOXY_PLACES, HOUR_SECONDS, LORE, MONSTERS, NIGHTS, YAW, canFeed, extraEndingEarned, extraLevels, extraMother, extraNight, type MonsterId, type NightConfig } from '../src/game/config.ts';
+import { EXTRA_NIGHT, FOXY_PLACES, HOUR_SECONDS, LORE, MONSTERS, NIGHTS, YAW, canFeed, extraEndingEarned, extraLevels, extraMother, extraNight, debutNight, type MonsterId, type NightConfig } from '../src/game/config.ts';
 import { FOXY_FIRST_GRACE } from '../src/game/monsters.ts';
 import { LORE_TEXT } from '../src/i18n.ts';
 import type { GameEvent } from '../src/game/events.ts';
@@ -1204,5 +1204,12 @@ describe('Le cose delle tane', () => {
         for (const id of sim.loreThisNight) expect(LORE.find((l) => l.id === id)!.den, `notte ${n}: ${id}`).toBeUndefined();
       }
     }
+  });
+});
+
+describe('La notte in cui arriva ogni mostro (i suggerimenti sulle sue regole si vedono solo allora)', () => {
+  it('Gulpy, Molly e Hatch la prima; Robin e Soggy la seconda; poi uno per notte fino alla Madre', () => {
+    const got = (['gulpy', 'molly', 'hatch', 'robin', 'foxy', 'archie', 'lampy', 'fangy', 'mother'] as const).map((m) => debutNight(m));
+    expect(got).toEqual([1, 1, 1, 2, 2, 3, 4, 5, 6]);
   });
 });

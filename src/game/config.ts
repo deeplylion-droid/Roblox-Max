@@ -500,6 +500,13 @@ export const NIGHTS: Record<number, NightConfig> = {
   },
 };
 
+/** La notte in cui arriva un mostro (la prima che lo ha). I suggerimenti sulle sue regole si vedono solo quella notte
+ *  (scelta dell'utente del 12 ottobre sera), o sempre con «Tutorial sempre attivo»; nella notte extra no. */
+export function debutNight(who: MonsterId | 'mother'): number {
+  for (let n = 1; NIGHTS[n]; n++) if (NIGHTS[n]![who]) return n;
+  return Infinity;
+}
+
 // ───────────────────────── Notte 7: la notte extra ─────────────────────────
 // Come la «custom night» di FNAF: per ognuno dei sette mostri si sceglie un livello da 0 (non viene) a 20
 // (feroce). La config non sta in NIGHTS: si costruisce dai livelli con extraNight(). Da approvare con la notte

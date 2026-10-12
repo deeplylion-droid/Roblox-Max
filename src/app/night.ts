@@ -8,7 +8,7 @@ import type { LayerInfo, Vec3 } from '../engine/assets.ts';
 import { dirPos, type AudioEngine, type Voice } from '../engine/audio.ts';
 import type { BinoPlace, LayerDraw, LightGlow, Overlay, Stroke, TubeDraw } from '../engine/renderer.ts';
 import { CHILD, RADIO_VOICE, speak, type Utterance } from '../engine/voice.ts';
-import { FISHING, HOUR_SECONDS, NIGHTS, VIEW, YAW, angleDiff, type LampLevel, type MonsterId, type NightConfig } from '../game/config.ts';
+import { FISHING, HOUR_SECONDS, NIGHTS, VIEW, YAW, angleDiff, debutNight, type LampLevel, type MonsterId, type NightConfig } from '../game/config.ts';
 import type { GameEvent } from '../game/events.ts';
 import { LAMPY_FIRST_BEAT } from '../game/monsters.ts';
 import { NightSim, type MotherCause } from '../game/sim.ts';
@@ -2201,13 +2201,13 @@ export class Night {
   }
 
   /** Il suggerimento durante un'abboccata: nelle notti di Lampy si aspetta il secondo colpo del campanellino, poi si
-   *  dice di ferrare se è un pesce e di non ferrare se è lei (quello che sente chi ascolta il ritmo). */
-  /** Il suggerimento dell'abboccata: «ferra» solo col tutorial (`tut`); la regola di Lampy (tre colpi uguali) sempre. */
-  private biteHint(tut: boolean): string {
+   *  dice di ferrare se è un pesce e di non ferrare se è lei (quello che sente chi ascolta il ritmo). «Ferra» solo col
+   *  tutorial (`tut`); la regola di Lampy (tre colpi uguali) solo nella sua prima notte (`lampyRule`). */
+  private biteHint(tut: boolean, lampyRule: boolean): string {
     const sim = this.sim;
     const l = sim.cfg.lampy;
     if (!l) return tut ? this.hintText('hook') : '';
-    if (sim.fishing.fake) return sim.lampy?.holding && sim.lampy.beats >= 2 ? this.hintText('lampy') : '';
+    if (sim.fishing.fake) return lampyRule && sim.lampy?.holding && sim.lampy.beats >= 2 ? this.hintText('lampy') : '';
     return tut && sim.time - this.biteAt >= LAMPY_FIRST_BEAT + l.beat ? this.hintText('hook') : '';
   }
 
@@ -2996,20 +2996,23 @@ export class Night {
     // attorno, il pesce a Gulpy, il telone) sono il tutorial: solo nella notte 1, o sempre con l'opzione «Tutorial
     // sempre attivo» (prova dell'utente del 12 ottobre). Le regole dei mostri delle notti dopo restano
     const tut = this.nightNo === 1 || this.d.options.tutorial;
+    // le regole dei mostri: solo la notte in cui arriva ognuno, come il tutorial della pesca (scelta dell'utente del
+    // 12 ottobre sera), o sempre col tutorial attivo
+    const rule = (who: MonsterId | 'mother') => this.d.options.tutorial || this.nightNo === debutNight(who);
     let hint = '';
     if (!this.finished && !this.js) {
       const mo = sim.mother;
-      if (mo && (mo.state === 'passing' || (mo.state === 'approaching' && mo.stateTime > 3.5 - this.motherSkip))) hint = this.hintText('mother');
+      if (mo && (mo.state === 'passing' || (mo.state === 'approaching' && mo.stateTime > 3.5 - this.motherSkip))) hint = rule('mother') ? this.hintText('mother') : '';
       else if (sim.hide === 'in') hint = tut ? this.hintText('unhide') : '';
-      else if (sim.fangy?.listening) hint = this.hintText('fangy');
+      else if (sim.fangy?.listening) hint = rule('fangy') ? this.hintText('fangy') : '';
       else if (sim.hatch.state === 'counting') hint = tut ? this.hintText('hide') : '';
       else if (sim.gulpy.canBeFed && sim.fish > 0) hint = tut && sim.facing(YAW.bow, VIEW.bowHalfAngle) ? this.hintText('throw') : '';
-      else if (sim.robin?.present && !sim.blackout) hint = this.hintText('robin');
-      else if (sim.archie?.state === 'inhaling' && sim.lamp > 0) hint = this.hintText('archie');
-      else if (sim.archie?.state === 'waiting') hint = this.hintText('archieWait');
-      else if (sim.foxy?.state === 'gone' && this.bino > 0.5) hint = this.hintText('foxyGone');
-      else if (sim.foxy && sim.foxy.stage !== null && !sim.foxy.everSeen) hint = this.hintText('foxy');
-      else if (f.phase === 'bite') hint = this.biteHint(tut);
+      else if (sim.robin?.present && !sim.blackout) hint = rule('robin') ? this.hintText('robin') : '';
+      else if (sim.archie?.state === 'inhaling' && sim.lamp > 0) hint = rule('archie') ? this.hintText('archie') : '';
+      else if (sim.archie?.state === 'waiting') hint = rule('archie') ? this.hintText('archieWait') : '';
+      else if (sim.foxy?.state === 'gone' && this.bino > 0.5) hint = rule('foxy') ? this.hintText('foxyGone') : '';
+      else if (sim.foxy && sim.foxy.stage !== null && !sim.foxy.everSeen) hint = rule('foxy') ? this.hintText('foxy') : '';
+      else if (f.phase === 'bite') hint = this.biteHint(tut, rule('lampy'));
       else if (f.phase === 'reeling') hint = tut ? this.hintText('reel') : '';
       else if (sim.molly.present || sim.gulpy.present) hint = '';
       else if (tut && f.phase === 'idle' && sim.facing(YAW.rod, VIEW.rodHalfAngle) && sim.landedCount < 2) hint = this.hintText('cast');

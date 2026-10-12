@@ -67,16 +67,9 @@ const IT = {
   // l'inglese è DA APPROVARE): la scritta alla fine della cinematica e sotto i risultati
   finaleTuoi: 'Non sei tornato da solo.',
   finaleNessuno: 'Non hai mai dato niente ai suoi piccoli. Adesso sei uno di loro.',
-  // i titoli di coda dopo i finali della notte 6 (DA APPROVARE; i nomi sono un segnaposto)
+  // i titoli di coda dopo i finali della notte 6: una riga sola (scelta dell'utente del 12 ottobre sera)
   creditsTitle: 'SPLASHLAND IS CLOSED!',
-  credits: [
-    ['Un gioco di', '(nome da decidere)'],
-    ['Storia e mostri', '(nome da decidere)'],
-    ['Programmazione', '(nome da decidere)'],
-    ['Grafica e render', '(nome da decidere)'],
-    ['Suoni e musica', '(nome da decidere)'],
-    ['Si ringraziano', '(nomi da decidere)'],
-  ] as [string, string][],
+  credits: [['Un gioco di', 'Ettore']] as [string, string][],
   creditsEnd: 'Grazie per aver giocato.',
   creditsSkip: 'Esc per saltare',
   quotaMissed: 'Quota mancata',
@@ -368,14 +361,7 @@ const EN: typeof IT = {
   finaleTuoi: "You didn't come back alone.",
   finaleNessuno: 'You never gave her little ones anything. Now you are one of them.',
   creditsTitle: 'SPLASHLAND IS CLOSED!',
-  credits: [
-    ['A game by', '(name to be decided)'],
-    ['Story and monsters', '(name to be decided)'],
-    ['Programming', '(name to be decided)'],
-    ['Art and renders', '(name to be decided)'],
-    ['Sound and music', '(name to be decided)'],
-    ['Thanks to', '(names to be decided)'],
-  ] as [string, string][],
+  credits: [['A game by', 'Ettore']] as [string, string][],
   creditsEnd: 'Thank you for playing.',
   creditsSkip: 'Esc to skip',
   quotaMissed: 'Quota missed',
