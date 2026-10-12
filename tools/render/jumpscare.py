@@ -225,7 +225,7 @@ FANGY_JS = {'dist': 0.55, 'pitch': 6.0}
 def foxy_attack():
     import animatore as an
     # l'animatore (dalla notte 2): l'hai trascurato e dal relitto è venuto fino alla barca. Sale dall'acqua sul bordo
-    # di prua a dritta, dalla parte del relitto, e ti abbraccia: le braccia avanti, le mani ossute aperte che ti
+    # di prua a dritta (fuori dallo scafo: a un metro avanti la barca è larga 0,9), dalla parte del relitto, e ti abbraccia: le braccia avanti, le mani ossute aperte che ti
     # arrivano ai lati della faccia, la sua faccia fuori dalla bocca del costume, l'occhio da cartone che dondola.
     # «Lo spettacolo finiva sempre con un abbraccio.»
     before = set(bpy.data.objects)
@@ -271,7 +271,7 @@ def foxy_attack():
 # L'animatore: da dove parte (gradi di yaw dall'occhio, metri, quota dei piedi: è in acqua fin quasi al petto), a
 # quanti metri dall'occhio arriva la sua faccia (le mani gli stanno davanti di 30-40 cm: più vicino escono dal quadro),
 # quanto si china, e di quanti gradi dondola l'occhio che penzola a ogni fotogramma (avanti +, indietro −)
-FOXY_JS = {'yaw': 28.0, 'parte': 2.4, 'z': -0.80, 'dist': 0.78, 'pitch': -6.0,
+FOXY_JS = {'yaw': 45.0, 'parte': 2.25, 'z': -0.50, 'dist': 0.78, 'pitch': -6.0,
            'occhio': [0.0, 10.0, 24.0, 32.0, 20.0, -6.0, -28.0, -38.0]}
 
 ATTACKS = {'gulpy': gulpy_attack, 'molly': molly_attack, 'hatch': hatch_attack, 'robin': robin_attack,
@@ -293,7 +293,8 @@ FILL = {'robin': {'energy': 3.0, 'dist': 0.35},
         # sue lucine
         'fangy': {'energy': 3.0, 'dist': 0.35},
         # l'animatore sale dall'acqua a prua, con la luce di lato: la sua faccia esce dal buio della bocca del costume
-        'foxy': {'energy': 3.0, 'dist': 0.35}}
+        # (la luce della barca gli sta alle spalle: senza questa resta una massa nera)
+        'foxy': {'energy': 10.0, 'dist': 0.45}}
 
 
 def _fill_light(cfg):
