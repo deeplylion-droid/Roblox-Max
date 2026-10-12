@@ -738,13 +738,13 @@ approvare). **Da fare**: il finale B (la foto da approvare, sotto).
 - **I titoli di coda** (`Screens.credits`, DA APPROVARE, i nomi sono un segnaposto in `src/i18n.ts`): dopo ognuno dei
   tre finali della notte 6, su un fondo nero salgono il titolo, i ruoli coi nomi e «Grazie per aver giocato.», con la
   ninna nanna del titolo; Esc, Invio o un clic li saltano. Poi i risultati, con l'avviso della notte extra.
-- **Il finale B «Il ricordo»** (la notte 7): **proposta della foto da approvare**
-  (`docs/concept/finali_ricordo_foto_anteprima.jpg`, `finali.foto_1997`): una stampa del 1997 della sera della Night
-  Splash, davanti all'ingresso di Splashland con lo striscione; quattro bambini col flash, tre coi volti sbiaditi fino
-  al bianco come le foto dell'edicola, il quarto nitido col berretto e una canna da pesca giocattolo (sei tu); la data
-  arancione della macchinetta. La Madre la lascia bagnata sul banco di prua, all'alba: la cinematica (come il finale
-  A, con la foto sul banco) e l'ultima inquadratura si fanno dopo l'approvazione della foto. Oggi è ancora il
-  segnaposto `Screens.extraEnding`.
+- **Il finale B «Il ricordo»** (la notte 7): al posto della foto del 1997 (provata coi bambini renderizzati,
+  `tools/render/bambini.py` e `finali.foto_1997`, restano nel ramo ma non si usano) l'utente ha proposto il 12 ottobre
+  un **disegno a pastelli a cera**, da bambino: i quattro bambini davanti all'ingresso di Splashland la sera della
+  Night Splash, tre con la faccia scarabocchiata di nero, il quarto col berretto e la canna col pesce (lo disegna la
+  sessione principale, `tools/render/disegno_ricordo.py`). Dopo l'approvazione: la scena sul banco di prua all'alba
+  (il foglio bagnato e ondulato, la cera che respinge l'acqua, le gocce, il secchio vuoto) e la cinematica, come il
+  finale A col disegno sul banco. Oggi è ancora il segnaposto `Screens.extraEnding`.
 
 ### Le ultime inquadrature dei due finali segreti
 
