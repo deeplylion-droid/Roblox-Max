@@ -24,9 +24,13 @@ del questionario:
 - **La luce si regola anche da sotto il telone** (Q, E e rotella). *Fatto l'11 ottobre sera.*
 - **«Lampara» diventa «luce»** in tutti i testi del gioco («light» in inglese). Nei documenti e nel codice il nome
   resta. *Fatto l'11 ottobre sera.*
-- **Jumpscare della quota mancata**: alle sei senza la quota, la **Madre vista solo in parte** (la mano enorme che
-  afferra la barca, oppure l'occhio che sale da sotto: due anteprime da far scegliere). La Madre intera resta per la
-  notte 6. Il testo c'è già: «Alle sei il secchio non era pieno. Stanotte la Madre si prenderà un altro bambino.»
+- **Jumpscare della quota mancata**: alle sei senza la quota, la **Madre vista solo in parte**. Scelto **l'occhio**
+  che sale da sotto la barca e ti guarda attraverso l'acqua (11 ottobre sera; l'altra proposta era la mano enorme che
+  afferra la barca). La Madre intera resta per la notte 6. **Fotogrammi finali fatti** (12 ottobre): otto
+  fotogrammi 1920×1080 a 10 al secondo, 96 campioni (`tools/render/quota.py`, voce `jumpscares.quota` in
+  `overlays.json`, tavola `docs/concept/jumpscare/js_quota_finale_fotogrammi.jpg`). Il motore lo fa partire alle sei
+  quando manca la quota, al posto delle campane e della Madre che si sveglia (che restano se i fotogrammi mancano).
+  Il testo c'è già: «Alle sei il secchio non era pieno. Stanotte la Madre si prenderà un altro bambino.»
 - **Atmosfera più buia, con foschia e nebbia «ma ben fatte»**: nebbia volumetrica renderizzata in Blender e
   illuminata dalla luce della barca (un alone attorno alla barca, oltre il buio), la scena più buia, la foschia
   bassa sull'acqua; devono restare leggibili le facce dei mostri e i posti del binocolo. Prima le immagini di prova.
@@ -634,4 +638,56 @@ La **notte 7** ha il suo finale, **B «Il ricordo»** (con impostazioni difficil
 breve. **Da fare**: il «regista» delle cinematiche nel motore; i render del molo all'alba e dell'edicola da vicino con
 la tua foto; le immagini della Madre; i suoni dei due finali segreti e un taglio più corto del finale all'alba
 (`madre_dawn` oggi dura 24 s). Si fanno dopo la notte 6 e le immersioni, da cui dipendono.
+
+### Le ultime inquadrature dei due finali segreti
+
+> **Da approvare** (11 ottobre): solo le anteprime, a pochi campioni (1600×900, 24 campioni); i render finali si
+> fanno dopo l'approvazione. Script: `tools/render/finali.py` (`tools/.venv/bin/python tools/render/finali.py
+> [molo|edicola] [--fast]`).
+
+Due immagini fisse, 16:9, che il motore mostra alla fine della cinematica con un lento movimento di camera. Nel
+finale saranno 2560×1440, codificate come i jumpscare (`post.encode_light_pass` con la sua scala, webp) in
+`public/assets/img/fin_molo.webp` e `fin_edicola.webp`, con la voce `endings.<scena>` in `overlays.json` (file,
+scala, proporzioni ed esposizione); il comando è lo stesso con `--finale`.
+
+- **«I tuoi» — il molo all'alba** (`docs/concept/finali_molo_anteprima.jpg`). **Approvato l'11 ottobre** (seconda
+  anteprima); **render finale fatto**: `public/assets/img/fin_molo.webp` (2560×1440, 256 campioni), voce
+  `endings.molo` in `overlays.json` (scala 6, esposizione +0,2 EV da dare al tonemap del motore). Un molo di legno nuovo sotto il
+  paese, a sinistra del campanile: la costa, il paese, il faro, i faraglioni e il parco sono quelli della baia
+  (`env.py`, `landmarks.py`), spostati e girati in modo che il gozzo del gioco (`boat.py`, senza il pescatore,
+  lampara spenta, secchio vuoto) sia ormeggiato al molo con due cime e i parabordi. La camera sta in cima al molo,
+  dalla parte della riva, e guarda verso il largo: il sole appena sorto sopra le colline del parco, il mare rosa,
+  la ruota panoramica lontana. Sulle assi umide di rugiada, le **sette file di impronte bagnate** salgono dalla
+  scaletta in fondo al molo e vengono verso la camera, cioè verso il paese che sta alle sue spalle: col sole
+  davanti, quelle nella sua scia brillano, le altre sono scure sul legno chiaro. Le impronte, come proposte:
+  - **Gulpy**: palmate, tre dita lunghe a ventaglio con la membrana a festoni;
+  - **Molly**: piedini nudi da bambina, cinque ditini;
+  - **Hatch**: scarpette da bambino col battistrada, piccole ma col passo lunghissimo (lui è altissimo);
+  - **Robin**: tante zampette a puntini, a ventaglio, e la coda che striscia in mezzo;
+  - **Lampy**: gli anelli della ventosa coi denti da latte dentro, distanziati, come una sanguisuga che cammina;
+  - **Fangy**: graffi sottili e lunghi degli artigli, con le nocche;
+  - **Archie**: una scia che serpeggia, continua.
+
+  Attorno a dove sono saliti, gocce. Le impronte sono una maschera dipinta (4 mm per pixel) sotto il materiale delle
+  assi, un po' più grandi del vero (×1,3) per leggersi da in piedi: dove è bagnato il legno è quasi nero e lucido, e
+  riflette come l'acqua. Così si leggono tutte e sette, anche fuori dalla scia del sole (seconda anteprima, 11
+  ottobre).
+- **«Nessuno» — l'edicola da vicino** (`docs/concept/finali_edicola_anteprima.jpg`). **Approvata l'11 ottobre**;
+  **render finale fatto**: `public/assets/img/fin_edicola.webp` (2560×1440, 256 campioni; la foto nella Polaroid
+  rifatta a 900 px), voce `endings.edicola` in `overlays.json` (scala 0,43, esposizione 0); decodificata:
+  `docs/concept/finali_edicola_finale_decodificata.jpg`. L'edicola votiva dello scoglio
+  (la stessa del binocolo: `landmarks.build_chapel` e `binocolo.lore_photos`) nella luce grigia di un mattino coperto.
+  **La tua foto** (proposta): una **Polaroid nuova**, l'unica non sbiadita, appesa con una molletta di legno a uno
+  spago teso fra le due pareti, sul davanti dell'edicola. L'inquadratura è stretta su di lei (un medio tele a un metro
+  e un quarto, f/1,4): la Polaroid è a fuoco e occupa circa un quarto dell'altezza del quadro; dietro, più di un metro
+  più in là, le foto dei bambini del 1997 e i teschi sono macchie di colore sbiadito nelle cornici (le foto pensate per
+  il binocolo, da vicino, sembravano grezze; così non si rifanno). I lumini restano fuori dall'inquadratura. Dentro la
+  Polaroid, la barca di notte con la lampara accesa e la sagoma del pescatore col berretto, vista da sotto, dal pelo
+  dell'acqua, a sinistra di poppa, come da qualcuno che nuotava lì accanto: è un render vero della scena del gioco
+  (il pescatore, che nel gioco proietta solo l'ombra, qui si vede), passato in colori da Polaroid (neri slavati,
+  grana, vignetta). La Polaroid è grande come una vera (8,8×10,7 cm).
+
+**Da decidere**: le impronte una per mostro come sopra; la Polaroid (cosa c'è nella foto, e lo spago con la molletta
+davanti all'edicola). Nell'anteprima del molo il paese non si vede (è alle spalle della camera): le impronte vanno
+verso di lui.
 
