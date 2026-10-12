@@ -48,8 +48,13 @@ del questionario:
 > `docs/concept/foxy_varianti.jpg` sul ramo `claude/foxy`): la **B «Fradicio»**, il costume gonfio d'acqua che cede,
 > curvo, la testa crollata di lato, dalle pinne sfondate le sue mani, la faccia gonfia spinta fuori dalla bocca e un
 > occhio da cartone che penzola. Le altre erano la A «Pupazzo» (il costume intero, lui in fondo al sorriso) e la C
-> «Sventrato» (la testa spaccata, lui scheletrico che esce fino al petto). **Il nome** lo sceglie l'utente: la sessione
-> propone Soggy («fradicio»), Grinny (il sorriso del costume) e Marty (il nome sul cartellino dell'animatore).
+> «Sventrato» (la testa spaccata, lui scheletrico che esce fino al petto). **Il nome è Soggy** («fradicio»), scelto
+> dall'utente il 12 ottobre fra le tre proposte (le altre erano Grinny, il sorriso del costume, e Marty, il nome sul
+> cartellino dell'animatore). Nel codice e nei file resta `foxy`.
+>
+> **Approvato dall'utente il 12 ottobre** (questionario del mattino): la variante B, le regole e i numeri, i testi, i
+> suoni e l'anteprima del jumpscare; **c'è anche nella notte extra**. **Da cambiare**: nel binocolo lo vuole **più
+> grande ed evidente, a discapito del realismo della distanza** (le viste si rifanno con l'animatore ingrandito).
 >
 > **Le viste del binocolo** col Foxy: per ogni posto due immagini con la stessa inquadratura di quella vuota (lui fermo,
 > lui più vicino), in `overlays.json` → `binocular.places[].foxy` (`bino_<posto>_foxy0.webp`, `_foxy1.webp`). Il motore
