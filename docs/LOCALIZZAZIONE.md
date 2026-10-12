@@ -100,7 +100,12 @@ testi tradotti, che si fanno con l'ok dell'utente (e un madrelingua che li contr
   come SS) e J, Q, X; cinese, giapponese e coreano li prende dallo scheletro di Noto Sans e li ripassa a pastello con lo
   stesso tremolio. Le prove in tutte le sette lingue sono in `docs/concept/lingue/pastelli_<lingua>_prova.jpg`, coi testi
   di `tools/render/pastelli_prova_lingue.py` (PROVE, da far controllare: non vanno nel gioco).
-- **Il volantino**: i font di ogni lingua e le prove sono della sessione del volantino (`docs/concept/annuncio.md`).
+- **Il volantino**: testi di prova per tutte e sette (`prova=True` in `TESTI_V`: i render lo scrivono in rosso), coi
+  render in `docs/concept/lingue/annuncio_volantino_<lingua>.jpg`. I font: Luckiest Guy, Baloo 2 e Lilita One per le
+  lingue latine; per cinese, giapponese e coreano altri font per lingua (chiave `font`), salvati come sottoinsiemi coi
+  soli caratteri dei testi (`docs/concept/annuncio.md`). Gocce e colature stanno fuori dalle scritte, in ogni lingua.
+  Per altre scritture (cirillico, greco) servirebbero altri font.
+- **Il portoghese** è quello del Brasile (i testi di prova lo sono, e `detectLang` porta pt-BR e pt-PT a `pt`).
 
 **I passi per una lingua (per esempio lo spagnolo, `es`)**
 1. I testi: `es` nel tipo `Lang` e i suoi testi in `STRINGS`, `LORE_TEXT` e nelle `RADIO_NIGHT…` di `src/i18n.ts`
@@ -108,7 +113,9 @@ testi tradotti, che si fanno con l'ok dell'utente (e un madrelingua che li contr
 2. I disegni dell'alba: le sue righe in `SCRITTE` di `tools/render/pastelli.py`, poi
    `pastelli.py --lingua es --larghezza 1600 --uscita public/assets/img/disegni piscina tesoro compleanno sottacqua`
    e `es` in `TRADOTTI` di `src/app/disegni.ts`.
-3. Il volantino: le sue righe in `TESTI_V` di `tools/render/annuncio.py`, poi
+3. Il volantino: le sue righe in `TESTI_V` di `tools/render/annuncio.py` (togliendo `prova=True` quando un madrelingua
+   le ha controllate), `annuncio.py --controlla` (nessun carattere mancante; per cinese, giapponese e coreano, se i
+   testi cambiano, prima `annuncio.py --sottoinsiemi <cartella coi font interi>`), poi
    `annuncio.py volantino --lingua es --scala 1.5 --webp --uscita public/assets/img/annuncio` (una lingua per volta:
    servono circa 6 GB) e `es` in `ANNUNCIO.langs` di `src/app/app.ts`.
 4. Solo per cinese, giapponese e coreano: `tools/.venv/bin/python tools/fonts/sottoinsieme_cjk.py zh` (da rifare quando

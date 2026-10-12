@@ -2,3 +2,7 @@ Font per tools/render/annuncio.py, scaricati da Google Fonts (fonts.google.com).
 Tutti sotto SIL Open Font License 1.1 (https://openfontlicense.org), tranne Luckiest Guy (Apache License 2.0).
 UnifrakturMaguntia, Old Standard TT, PT Serif, Oswald, Playfair Display, Luckiest Guy, Baloo 2, Fredoka,
 Pacifico, Lilita One.
+
+cjk/: sottoinsiemi (solo i caratteri dei testi del volantino) di ZCOOL KuaiLe, Noto Sans SC ExtraBold,
+ZCOOL QingKe HuangYou, Mochiy Pop One, M PLUS Rounded 1c ExtraBold, Dela Gothic One, Black Han Sans, Jua, Do Hyeon:
+tutti SIL Open Font License 1.1, da Google Fonts. Si rifanno con `annuncio.py --sottoinsiemi <cartella coi font interi>`.
