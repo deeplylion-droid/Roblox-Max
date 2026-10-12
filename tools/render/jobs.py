@@ -254,16 +254,29 @@ def render_a_strisce(exr, samples, size, **kw):
         part = exr.replace('.exr', f'_s{i}.exr')
         if os.path.exists(part):
             log(f'striscia {i + 1}/{n} già fatta')
+            pezzi = [(a, b, x0, x1, part)]
         else:
-            t = time.time()
-            render(part, samples, size, region=(x0, 0, x1, H), **kw)
-            log(f'striscia {i + 1}/{n} in', round(time.time() - t), 's')
-        p = post.read_exr(part)
-        for k, v in p.items():
-            v = v[:H, :x1 - x0]
-            if k not in full:
-                full[k] = np.zeros((H, W) + v.shape[2:], np.float32)
-            full[k][:, a:b] = v[:, a - x0:b - x0]
+            # le strisce ancora da fare si rendono in due metà, salvate ognuna: se la macchina si ferma si perde
+            # al più mezza striscia
+            m = (a + b) // 2
+            pezzi = []
+            for j, (pa, pb) in enumerate(((a, m), (m, b))):
+                px0, px1 = max(pa - M, 0), min(pb + M, W)
+                pp = exr.replace('.exr', f'_s{i}{"ab"[j]}.exr')
+                if os.path.exists(pp):
+                    log(f'striscia {i + 1}/{n}, metà {j + 1}: già fatta')
+                else:
+                    t = time.time()
+                    render(pp, samples, size, region=(px0, 0, px1, H), **kw)
+                    log(f'striscia {i + 1}/{n}, metà {j + 1} in', round(time.time() - t), 's')
+                pezzi.append((pa, pb, px0, px1, pp))
+        for pa, pb, px0, px1, path in pezzi:
+            p = post.read_exr(path)
+            for k, v in p.items():
+                v = v[:H, :px1 - px0]
+                if k not in full:
+                    full[k] = np.zeros((H, W) + v.shape[2:], np.float32)
+                full[k][:, pa:pb] = v[:, pa - px0:pb - px0]
     return full
 
 
