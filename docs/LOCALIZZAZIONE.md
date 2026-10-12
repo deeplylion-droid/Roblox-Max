@@ -87,7 +87,7 @@ ogni lingua.
   controllate), `annuncio.py --controlla` (nessun carattere mancante), poi
   `annuncio.py volantino --lingua xx --scala 1.5 --webp --uscita public/assets/img/annuncio` (una lingua per volta:
   servono circa 6 GB) e la lingua in `ANNUNCIO.langs` di `src/app/app.ts`. Ci sono già testi **di prova, da far
-  controllare a un madrelingua**, per es, fr, de, pt-BR, zh, ja e ko, coi render in `docs/concept/lingue/`.
+  controllare a un madrelingua**, per es, fr, de, pt (del Brasile), zh, ja e ko, coi render in `docs/concept/lingue/`.
   I font: Luckiest Guy, Baloo 2 e Lilita One per le lingue latine (accenti dell'Europa occidentale, ß, ñ; Lilita One
   solo in parte polacco e turco); per cinese, giapponese e coreano altri font per lingua (chiave `font`), salvati come
   sottoinsiemi coi soli caratteri dei testi: se i testi cambiano si rifanno con `annuncio.py --sottoinsiemi <font interi>`

@@ -998,7 +998,8 @@ TESTI_V = {
                nastro='NACHTSCHICHT · ANGELN VOM BOOT',
                righe=[('Boot, Licht und Köder gestellt', '0 bis 6 Uhr'), ('Bar bezahlt im Morgengrauen', 'Keine Erfahrung nötig!')],
                invito='Wir warten am alten Steg, bei Sonnenuntergang!', linguetta=('ALTER STEG', 'BEI DÄMMERUNG')),
-    'pt-BR': dict(prova=True, titolo='PROCURAMOS VOCÊ!', fumetto=('Nossos', 'pequenos estão', 'com fome!'),
+    # portoghese del Brasile: nel gioco la lingua è 'pt' (detectLang porta pt-BR → pt)
+    'pt': dict(prova=True, titolo='PROCURAMOS VOCÊ!', fumetto=('Nossos', 'pequenos estão', 'com fome!'),
                   nastro='TURNO DA NOITE · PESCA NO BARCO',
                   righe=[('Barco, luz e isca inclusos', 'Da meia-noite às 6h'), ('Pagamento em dinheiro', 'Sem experiência!')],
                   invito='Te esperamos no píer velho, ao pôr do sol!', linguetta=('PÍER VELHO', 'AO PÔR DO SOL')),
@@ -1125,6 +1126,8 @@ def impagina_volantino(lingua='it'):
     d = ImageDraw.Draw(lay)
     for _ in range(70):
         bx, by, r = rng.uniform(0, VW), rng.uniform(900, 2900), rng.uniform(10, 46)
+        if in_zona_testo(bx, by, r + 10):
+            continue
         d.ellipse((bx - r, by - r, bx + r, by + r), outline=(255, 255, 255, 200), width=max(3, int(r / 6)))
         d.ellipse((bx - r * 0.5, by - r * 0.6, bx - r * 0.1, by - r * 0.2), fill=(255, 255, 255, 220))
     T.incolla(lay, 0, 0)
@@ -1238,6 +1241,25 @@ def impagina_volantino(lingua='it'):
     T.incolla(lay, 0, 0)
     return np.clip(T.a, 0, 1)
 
+# le zone del foglio con le scritte che il giocatore deve leggere (fumetto, nastro, condizioni e invito, slogan, linguette):
+# lì non vanno gocce, bolle, colature, ruggine né muffa (richiesta della sessione principale: «all'alba» si leggeva
+# «all'a ba» sotto una goccia). Il bagnato resta, più leggero; la striscia di luce resta.
+ZONE_TESTO = ((1480, 1060, 2420, 1660), (140, 2180, 2340, 2380), (160, 2440, 2320, 2850), (0, 2880, 2480, 3508))
+
+
+def maschera_testo(h, w, margine=30):
+    """1 nelle zone con le scritte (più un margine che sfuma), 0 altrove; in pixel del foglio intero."""
+    m = np.zeros((h, w), np.float32)
+    sx, sy = w / VW, h / VH
+    for (x0, y0, x1, y1) in ZONE_TESTO:
+        m[int(max(0, (y0 - margine) * sy)):int((y1 + margine) * sy), int(max(0, (x0 - margine) * sx)):int((x1 + margine) * sx)] = 1
+    return gaussian_filter(m, margine * 0.4 * sx)
+
+
+def in_zona_testo(x, y, r=0.0):
+    return any(x0 - r <= x <= x1 + r and y0 - r <= y <= y1 + r for (x0, y0, x1, y1) in ZONE_TESTO)
+
+
 LINGUETTE_STRAPPATE = (0, 1, 3, 4, 6, 7)       # le linguette già prese: ne restano tre
 CHIODI_V = ((120, 130), (VW - 118, 120), (130, 2990), (VW - 140, 3000))
 
@@ -1263,7 +1285,8 @@ def invecchia_volantino(rng, col):
     bag = np.maximum(bag, np.clip(1 - yy / 260 + 0.3 * rumore(rng, (h, w), 40), 0, 1) * 0.8)   # il bordo in alto
     bag = gaussian_filter(bag, 4)
     # i colori colano verso il basso dove c'è acqua che scende
-    cola = np.clip(strisce - 0.25, 0, 1) * 0.85
+    zt = maschera_testo(h, w)
+    cola = np.clip(strisce - 0.25, 0, 1) * 0.85 * (1 - zt)
     e = col.copy()
     for y in range(1, h):
         e[y] = 0.988 * e[y - 1] + 0.012 * col[y]
@@ -1272,18 +1295,21 @@ def invecchia_volantino(rng, col):
     # l'alone della linea dove l'acqua si è fermata
     bordo_b = np.exp(-((bag - 0.5) / 0.06) ** 2) * (gaussian_filter(bag, 12) > 0.2)
     col = col * (1 - 0.10 * bordo_b[..., None] * np.array([0.3, 0.6, 1.0]))
+    bag_c = bag * (1 - 0.5 * zt)          # sulle scritte il bagnato scurisce meno
     gr = col.mean(-1, keepdims=True)
-    col = gr + (col - gr) * (1 + 0.25 * bag[..., None])
-    col = col * (1 - 0.22 * bag[..., None])
+    col = gr + (col - gr) * (1 + 0.25 * bag_c[..., None])
+    col = col * (1 - 0.22 * bag_c[..., None])
     # sporco della pioggia e muffa
     sporco = gaussian_filter(rng.standard_normal((h, w)).astype(np.float32), (30, 1.5))
     sporco = np.clip(sporco / sporco.std() - 0.8, 0, 2) * np.clip(1.1 - yy / h, 0, 1)
-    col = col * (1 - 0.10 * sporco[..., None])
+    col = col * (1 - 0.10 * (sporco * (1 - zt))[..., None])
     for _ in range(120):
         fx, fy = rng.uniform(0, w), rng.uniform(0, h)
         if rng.uniform() < 0.6:
             fx = rng.choice([rng.uniform(0, 200), rng.uniform(w - 200, w)])
         r = rng.uniform(2, 9)
+        if in_zona_testo(fx, fy, 4 * r):
+            continue
         x0, x1, y0, y1 = int(max(0, fx - 4 * r)), int(min(w, fx + 4 * r)), int(max(0, fy - 4 * r)), int(min(h, fy + 4 * r))
         m = np.exp(-(((xx[y0:y1, x0:x1] - fx) ** 2 + (yy[y0:y1, x0:x1] - fy) ** 2) / (2 * r * r)))
         col[y0:y1, x0:x1] *= 1 - 0.35 * m[..., None] * np.array([0.55, 0.5, 0.6])
@@ -1295,7 +1321,7 @@ def invecchia_volantino(rng, col):
         off = 10 * np.sin((yy - ny) / 70 + nx)
         m = np.exp(-((xx - nx - off) / (larg * (1 - 0.7 * t) + 1)) ** 2) * (yy > ny - 10) * (1 - t) ** 1.5
         m += np.exp(-(((xx - nx) ** 2 + (yy - ny) ** 2) / (2 * 34 ** 2))) * 1.2
-        m = np.clip(m * (0.7 + 0.5 * rumore(rng, (h, w), 3)), 0, 1)
+        m = np.clip(m * (0.7 + 0.5 * rumore(rng, (h, w), 3)), 0, 1) * (1 - zt)
         rug = np.array([0.42, 0.20, 0.07], np.float32)
         col = col * (1 - 0.75 * m[..., None]) + rug * col * 1.3 * 0.75 * m[..., None]
 
@@ -1419,6 +1445,7 @@ def volantino(uscita, lingua='it'):
     col = np.asarray(Image.fromarray((col * 255).astype(np.uint8)).resize((w2, h2), Image.LANCZOS), np.float32) / 255
     rid = lambda a: np.array(Image.fromarray(a.astype(np.float32)).resize((w2, h2), Image.BILINEAR))
     alfa, alt, bag = rid(alfa), rid(alt) * (0.82 * SH / VH), rid(bag)
+    zt = maschera_testo(h2, w2, margine=10)
 
     sw = (SH, SW)
     yy, xx = np.mgrid[:SH, :SW].astype(np.float32)
@@ -1443,6 +1470,7 @@ def volantino(uscita, lingua='it'):
     C = np.dstack([samp(col[..., c]) for c in range(3)])
     Hp = samp(alt)
     Bg = samp(bag)
+    Zs = samp(zt)
 
     def foglio_a_scena(uf, vf):
         uf, vf = uf / rf - w2 / 2, vf / rf - h2 / 2
@@ -1512,6 +1540,8 @@ def volantino(uscita, lingua='it'):
         x0, x1, y0, y1 = int(x_ - r_ - 2), int(x_ + r_ + 3), int(y_ - r_ * 1.3 - 2), int(y_ + r_ * 1.3 + 3)
         if x0 < 0 or y0 < 0 or x1 >= SW or y1 >= SH:
             continue
+        if Zs[y0:y1, x0:x1].max() > 0.02:
+            continue                   # niente gocce sulle scritte
         ly, lx = np.mgrid[y0:y1, x0:x1].astype(np.float32)
         dd = ((lx - x_) / r_) ** 2 + ((ly - y_) / (r_ * 1.15)) ** 2
         hgt = np.sqrt(np.clip(1 - dd, 0, 1)) * r_ * 0.7
@@ -1521,6 +1551,8 @@ def volantino(uscita, lingua='it'):
             lung = int(rng.uniform(60, 420) * K)
             ys = np.arange(max(0, int(y_) - lung), int(y_))
             xs = x_ + np.cumsum(rng.normal(0, 0.6, len(ys)))[::-1] * 0.6
+            if len(ys) and Zs[ys, np.clip(xs.astype(int), 0, SW - 1)].max() > 0.02:
+                continue                   # nemmeno i rigoli
             for yk, xk in zip(ys, xs):
                 rw = r_ * 0.35
                 rig[yk, int(xk - rw):int(xk + rw) + 1] = 1

@@ -133,19 +133,21 @@ Per il cirillico o il greco servono altri font: una lingua li indica con la chia
 
 ### Le lingue di prova (notte del 12 ottobre)
 
-> ⚠️ **PROVA, DA FAR CONTROLLARE A UN MADRELINGUA.** I testi di es, fr, de, pt-BR, zh, ja e ko in `TESTI_V` li ho
+> ⚠️ **PROVA, DA FAR CONTROLLARE A UN MADRELINGUA.** I testi di es, fr, de, pt, zh, ja e ko in `TESTI_V` li ho
 > scritti io, per provare impaginazione e font: hanno `prova=True` e non vanno nel gioco così come sono. Anche i render
 > lo dicono, con una scritta rossa in alto a sinistra.
 
 Render di prova a 1920×1080, come li vede il giocatore: `docs/concept/lingue/annuncio_volantino_<lingua>.jpg`.
 Comando (una lingua dopo l'altra, ~2 minuti l'una):
-`tools/.venv/bin/python tools/render/annuncio.py volantino --lingua es,fr,de,pt-BR,zh,ja,ko --uscita docs/concept/lingue`.
+`tools/.venv/bin/python tools/render/annuncio.py volantino --lingua es,fr,de,pt,zh,ja,ko --uscita docs/concept/lingue`.
+Il portoghese ha la chiave `pt`, come nel gioco (`LANGS` in `src/i18n.ts`, e `detectLang` porta pt-BR → pt), ma i
+testi sono quelli del **Brasile** (você, «inclusos», «píer»).
 Prima di rifare un render, `annuncio.py --controlla` dice se a qualche font manca un carattere dei testi (finirebbe come
 un quadratino): adesso non ne manca nessuno.
 
 | Lingua | Titolo | Fumetto, condizioni, invito | Nastro, linguette |
 |---|---|---|---|
-| it, en, es, fr, de, pt-BR | Luckiest Guy | Baloo 2 ExtraBold | Lilita One |
+| it, en, es, fr, de, pt | Luckiest Guy | Baloo 2 ExtraBold | Lilita One |
 | zh (semplificato) | ZCOOL KuaiLe | Noto Sans SC ExtraBold | ZCOOL QingKe HuangYou |
 | ja | Mochiy Pop One | M PLUS Rounded 1c ExtraBold | Dela Gothic One |
 | ko | Black Han Sans | Jua | Do Hyeon |
@@ -170,3 +172,9 @@ Cosa ho trovato e corretto guardandole:
 - il getto dello zampillo toccava il titolo in tutte le lingue, anche in italiano: il titolo è salito di 65 px sul
   foglio. Per questo anche i render finali it ed en sono stati rifatti.
 - in francese gli spazi prima di «!» sono spazi non divisibili (non vanno a capo da soli).
+- (13 ottobre, dalla revisione della sessione principale) **gocce, rigoli e colature coprivano lettere** delle scritte
+  piccole: in italiano «all'alba» si leggeva «all'a ba» e «molo vecchio» era mezzo coperto, in inglese «the old pier».
+  Ora le zone con le scritte (`ZONE_TESTO`: fumetto, nastro, condizioni e invito, slogan, linguette) restano libere da
+  gocce, rigoli, bollicine stampate, colature di colore, ruggine e muffa, in tutte le lingue; il bagnato c'è ancora ma
+  scurisce la metà, e la striscia di luce resta. Rifatti i render finali it ed en e le prove; righe controllate in
+  ritagli a piena risoluzione.
