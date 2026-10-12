@@ -106,9 +106,20 @@ def build_vita(v, n, sab, seed=3):
     for k, i in enumerate(rr.choice(ok, 60, replace=False)):
         grotte.istanza('Anemone', modelli[k % 2], tuple(v[i] - n[i] * 0.01), tuple(n[i]), rr.uniform(0, 6.28),
                        rr.uniform(1.0, 2.2), an, [(0.55, 0.36, 0.34), (0.58, 0.55, 0.48), (0.40, 0.30, 0.40)][k % 3])
+    # ciottoli, conchiglie rotte e qualche masso sul pavimento, anche davanti al sub (se no la sabbia è vuota)
+    sa_mat = grotte.per_oggetto('GrottaCiottolo', rough=0.5, sss=0.0)
+    sassi = [grotte.sasso_mesh('TCiottolo%d' % k, 190 + k) for k in range(4)]
+    for k in range(170):
+        x, y = rr.uniform(-4.2, 4.2), rr.uniform(-2.2, 4.5)
+        if stanza(np.array([[x, y, 0.25]], F))[0] > -0.1:
+            continue
+        sc = rr.uniform(0.03, 0.12) if rr.random() < 0.9 else rr.uniform(0.2, 0.45)
+        g_ = rr.uniform(0.05, 0.16)
+        grotte.istanza('Ciottolo', sassi[k % 4], (x, y, sc * 0.2), (rr.normal(0, 0.2), rr.normal(0, 0.2), 1),
+                       rr.uniform(0, 6.28), sc, sa_mat, (g_, g_ * 0.95, g_ * 0.85))
     alga = grotte.alga_material()
-    piedi = np.nonzero((sab > 0.6) & (np.abs(v[:, 0]) > 3.0) & (v[:, 1] > -2.0))[0]
-    for c in rr.choice(piedi, 8, replace=False):
+    piedi = np.nonzero((sab > 0.6) & (np.abs(v[:, 0]) > 2.6) & (v[:, 1] > -2.0))[0]
+    for c in rr.choice(piedi, 14, replace=False):
         for j in range(rr.integers(3, 7)):
             p0 = v[c] + np.array((*rr.normal(0, 0.2, 2), -0.05))
             L = rr.uniform(0.4, 1.6)
@@ -688,12 +699,12 @@ def _loc(M, p):
 
 
 def dorme_gulpy(info, fiato=0.0):
-    """Raggomitolato sul fianco sul materasso di salvagenti, la mascella che pende aperta."""
+    """Accasciato sulla pila di salvagenti, la schiena all'indietro e la mascella che pende aperta (sdraiato su un
+    fianco non si leggeva: il corpo spariva dietro la pila)."""
     import gulpy
-    o = (CENTRO[0] - 0.4, CENTRO[1] + 0.5, 0.75)
-    M = M_tana(o, yaw=_verso_occhio(o) - 50.0, roll=-78.0, scale=1.05 * (1.0 + 0.03 * fiato))
-    obs = gulpy.build(viewer=_loc(M, (o[0], o[1] - 2.0, -1.0)), mascella=12.0 + 4.0 * fiato,
-                      lo=np.array((-0.7, -1.1, -0.02), F), hi=np.array((0.7, 0.5, 2.75), F))
+    o = (CENTRO[0] + 0.1, CENTRO[1] + 0.5, -0.35)
+    M = M_tana(o, yaw=_verso_occhio(o) + 18.0, pitch=-16.0, scale=1.0 * (1.0 + 0.03 * fiato))
+    obs = gulpy.build(viewer=_loc(M, (o[0], o[1] - 2.0, 0.0)), mascella=12.0 + 4.0 * fiato)
     return _metti(obs, M)
 
 
@@ -772,7 +783,7 @@ def dorme_fangy(info, fiato=0.0):
     """Raggomitolato sul letto, gli occhialini neri, le lucine del ventre quasi spente che respirano lentissime."""
     import fangy as fa
     c = info['letto']
-    o = (c[0] + 0.1, c[1], 0.95)
+    o = (c[0] + 0.1, c[1], 0.78)
     M = M_tana(o, yaw=_verso_occhio(o) - 70.0, roll=80.0, scale=1.25 * (1.0 + 0.02 * fiato))
     obs = fa.build(viewer=tuple(_loc(M, OCCHIO_T)), testa=-15.0, luci=0.12 + 0.1 * fiato)
     # gli anelli sull'acqua della posa in mare non servono

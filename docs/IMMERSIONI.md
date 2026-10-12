@@ -169,6 +169,32 @@ addormentata, con una piccola animazione (il respiro, le bolle).
 | **Lampy** | Una culla con la giostrina di pesciolini, una vaschetta da bagno, cuffie a fiori appese. | Attaccata con la ventosa al soffitto sopra la culla; non ha palpebre e dorme a occhi aperti. |
 | **Fangy** | Bende per gli occhi, occhialini dipinti di nero, il gioco del Marco Polo; attorno al letto conchiglie appese che tintinnano quando ti avvicini (le sente anche nel sonno, ma dorme). | Raggomitolato, gli occhialini neri, le lucine del ventre quasi spente che respirano lentissime. |
 
+### Le tane disegnate (12 ottobre, anteprime **da approvare**)
+
+Scena in `tools/render/tane.py`, anteprime col job `tane_anteprime`: `docs/concept/tane_camerette.jpg` (le sette
+camerette vuote come le vede il sub entrando, con la torcia) e `docs/concept/tane_pose.jpg` (i sette mostri
+addormentati da vicino). Sono bozze: mostri a risoluzione ridotta, pochi campioni.
+
+Ogni tana è una grotta laterale di circa 9 × 8 m, alta 4-5 m, con la stessa roccia, sabbia, ciottoli, alghe e acqua
+della grotta grande; il sub entra dal tunnel e guarda la stanza da un punto solo (inquadratura fissa, ±30°). La
+cameretta senza il mostro è anche **la tana vuota** del mostro nuovo della notte dopo; il mostro addormentato è uno
+strato sopra, con la toppa del respiro che si dissolve.
+
+| Tana | Cosa c'è (proposta) | Come dorme (proposta) | La cosa da trovare (diario) |
+|---|---|---|---|
+| **Gulpy** | Lo Snack Shack rimontato a sinistra (bancone rosso, tenda a strisce, l'insegna, lo scaffale delle merendine), carte di merendine dappertutto, i cestini del pranzo, una pila di salvagenti a paperella. | Accasciato sulla pila di salvagenti, la schiena all'indietro, la mascella che pende aperta. | Un **disegno a pastelli**: lui con la bocca enorme davanti allo Snack Shack e un panino più grande di lui. |
+| **Molly** | Il trampolino con la scaletta, gli specchi ossidati appoggiati alle pareti, le medaglie appese, la corsia galleggiante della piscina tirata da parete a parete, braccioli ed elastici rosa sulla sabbia. | Su un fianco sulla sabbia, abbracciata ai braccioli; un occhio chiuso, quello che scivola via socchiuso. | Una **foto**: lei in cima al trampolino con i braccioli, le braccia alzate («GUARDAMI! – giugno 1997»). |
+| **Hatch** | Tre armadi con le ante spalancate, una capanna di asciugamani tra due sedie, i numeri della conta scritti col gesso sulle pareti. | In piedi, curvo, chiuso dentro l'armadio grande in fondo, la bocca chiusa, il pesciolino luminoso acceso. | **Il foglio della conta**: i numeri da 1 a 10 scritti e riscritti, e in mezzo «…DIECI! CHI C'È C'È». |
+| **Robin** | Un mucchio di cose rubate (scarpe, palline, giocattoli, secchielli) avvolto nelle strisce dei biglietti. | Disteso sul mucchio come un granchio sul bottino, gli occhi chiusi. | **La lista**: una pagina di quaderno con le cose prese, tutte con la crocetta; l'ultima riga dice «ANCORA». |
+| **Archie** | La festa: il tavolo tondo con la tovaglia, tre torte con le candeline spente, i cappellini sparsi, i palloncini che galleggiano legati al tavolo, lo striscione «TANTI AUGURI». | Avvolto in spire attorno al tavolo, la testa appoggiata sul bordo; a ogni respiro la trombetta si srotola un poco. | **Un biglietto d'auguri**: sette candeline disegnate, una spenta; «per il compleanno di tutti». |
+| **Lampy** | La culla con la copertina, la giostrina di pesciolini appesa alla volta, la vaschetta da bagno, le cuffie a fiori appese alla parete. | Attaccata con la ventosa al soffitto sopra la culla, a testa in giù; dorme a occhi aperti. | **Il braccialetto dell'ospedale** da neonata («KG 3,1»), con scritto «non lasciarla mai andare». |
+| **Fangy** | Il letto con il lenzuolo, decine di conchiglie appese ai fili tutt'attorno, le bende per terra, gli occhialini dipinti di nero sullo sgabello, il cartello «MARCO? POLO!» e i tubi galleggianti. | Raggomitolato sul fianco sul letto, gli occhialini neri, le lucine del ventre quasi spente. | **Un disegno fatto a occhi bendati**: scarabocchi che non si toccano, e in mezzo «MARCO?». |
+
+**Da approvare**: l'aspetto delle camerette, gli arredi, le pose, le sette cose da trovare e i loro testi. Gli anni:
+le camerette di Molly, Gulpy e Hatch sono del 1997 (la Night Splash); per gli altri ho seguito i ritagli di giornale
+già approvati (Archie 1999, Lampy 2003, Fangy 2008), quindi le loro cose non sono del 1997; Robin non ha una data
+(nella sua cameretta non ce n'è nessuna): **da confermare**.
+
 ## Il pesce e i finali
 
 Il pesce lasciato nelle tane decide anche **il finale della sesta notte** (approvato l'11 ottobre, vedi

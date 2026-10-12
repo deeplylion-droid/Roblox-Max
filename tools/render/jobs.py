@@ -967,7 +967,7 @@ def job_sotto(q):
     post.save_png(pv, os.path.join(CACHE, q.name, 'sotto_barca_pano.png'))
 
 
-def tavola(nomi_file, size, out, cols=4, titoli=None):
+def tavola(nomi_file, size, out, cols=4, titoli=None, cancella=True):
     """Mette insieme le immagini in una tavola (cols per riga) col titolo di ognuna; cancella le immagini."""
     from PIL import Image, ImageDraw, ImageFont
     W, H = size
@@ -981,7 +981,8 @@ def tavola(nomi_file, size, out, cols=4, titoli=None):
         sheet.paste(im, (x, y))
         if titoli:
             dr.text((x + 12, y + 8), titoli[k], fill=(230, 220, 200), font=font)
-        os.remove(path)
+        if cancella:
+            os.remove(path)
     sheet.save(out, quality=88)
     log('tavola', out)
 
@@ -991,6 +992,23 @@ def job_tane_anteprime(q):
     dall'ingresso, con la torcia) e docs/concept/tane_pose.jpg (i sette mostri addormentati da vicino). TANE=gulpy,molly
     per farne solo alcune (le tavole si fanno quando ci sono tutte e sette)."""
     import tane
+    global CONCEPT
+    concept, CONCEPT = CONCEPT, os.path.join(CACHE, 'tane_tessere')    # le singole viste restano in cache
+    try:
+        _tane_anteprime(q, tane)
+    finally:
+        CONCEPT = concept
+    fatte = [os.path.join(CACHE, 'tane_tessere', f'tane_cameretta_{c}.jpg') for c in tane.ORDINE]
+    if all(os.path.exists(f) for f in fatte):
+        tit = [c.capitalize() for c in tane.ORDINE]
+        s = q.persp_scale
+        size = (round(960 * s), round(540 * s))
+        tavola(fatte, size, os.path.join(CONCEPT, 'tane_camerette.jpg'), titoli=tit, cancella=False)
+        tavola([os.path.join(CACHE, 'tane_tessere', f'tane_posa_{c}.jpg') for c in tane.ORDINE], size,
+               os.path.join(CONCEPT, 'tane_pose.jpg'), titoli=tit, cancella=False)
+
+
+def _tane_anteprime(q, tane):
     chi_tutti = [c for c in os.environ.get('TANE', ','.join(tane.ORDINE)).split(',') if c]
     s = q.persp_scale
     size = (round(960 * s), round(540 * s))
@@ -998,22 +1016,20 @@ def job_tane_anteprime(q):
         reset_scene()
         info = tane.build_tana(chi)
         tgt = (tane.OCCHIO_T[0], tane.OCCHIO_T[1] + 10.0, tane.OCCHIO_T[2] + 10.0 * math.tan(math.radians(tane.PITCH_T)))
-        grotte_vista(q, f'tane_cameretta_{chi}', tane.OCCHIO_T, tgt, 15.0, size, torcia=True, esposizione=0.5, cono=70.0)
+        grotte_vista(q, f'tane_cameretta_{chi}', tane.OCCHIO_T, tgt, 15.0, size, torcia=True, esposizione=0.5, cono=45.0,
+                    pesi={'ambient': 1.0, 'lantern': 0.6})
         obs = tane.mostro(chi, info)
         P = world_bbox([o for o in obs if o.type == 'MESH'])
         c = (P.min(0) + P.max(0)) / 2
         r = float(np.linalg.norm(P.max(0) - P.min(0))) / 2
+        # la camera della posa: dalla parte del sub, alla sua quota (mai dentro il soffitto), a una distanza che lo
+        # contiene tutto
         d = np.array(tane.OCCHIO_T) - c
-        d[2] = max(d[2], 0.3)
+        d[2] = 0.0
         d /= np.linalg.norm(d)
-        pos = c + d * max(2.2, r * 2.0)
-        grotte_vista(q, f'tane_posa_{chi}', tuple(pos), tuple(c), 24.0, size, torcia=True, esposizione=0.5, cono=60.0)
-    fatte = [os.path.join(CONCEPT, f'tane_cameretta_{c}.jpg') for c in tane.ORDINE]
-    if all(os.path.exists(f) for f in fatte):
-        tit = [c.capitalize() for c in tane.ORDINE]
-        tavola(fatte, size, os.path.join(CONCEPT, 'tane_camerette.jpg'), titoli=tit)
-        tavola([os.path.join(CONCEPT, f'tane_posa_{c}.jpg') for c in tane.ORDINE], size,
-               os.path.join(CONCEPT, 'tane_pose.jpg'), titoli=tit)
+        pos = c + d * max(2.4, r * 2.2)
+        pos[2] = min(max(pos[2], 0.8), 2.6)
+        grotte_vista(q, f'tane_posa_{chi}', tuple(pos), tuple(c), 24.0, size, torcia=True, esposizione=0.5, cono=50.0)
 
 
 def job_grotte(q):
