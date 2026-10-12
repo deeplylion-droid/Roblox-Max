@@ -8,17 +8,20 @@ import type { LayerInfo, Vec3 } from '../engine/assets.ts';
 import { dirPos, type AudioEngine, type Voice } from '../engine/audio.ts';
 import type { BinoPlace, LayerDraw, LightGlow, Overlay, Stroke, TubeDraw } from '../engine/renderer.ts';
 import { CHILD, RADIO_VOICE, speak, type Utterance } from '../engine/voice.ts';
-import { FISHING, HOUR_SECONDS, NIGHTS, VIEW, YAW, type LampLevel, type MonsterId, type NightConfig } from '../game/config.ts';
+import { FISHING, HOUR_SECONDS, NIGHTS, VIEW, YAW, angleDiff, type LampLevel, type MonsterId, type NightConfig } from '../game/config.ts';
 import type { GameEvent } from '../game/events.ts';
 import { LAMPY_FIRST_BEAT } from '../game/monsters.ts';
 import { NightSim, type MotherCause } from '../game/sim.ts';
 import { FISH_BY_ID } from '../game/catalog.ts';
 import { LORE_TEXT, RADIO, RADIO_FINALE, STRINGS, type Lang, type RadioLine } from '../i18n.ts';
 import { Hud } from './hud.ts';
+import { dualText, pad } from './pad.ts';
 import type { Options } from './save.ts';
 import type { Sfx } from './sfx.ts';
 import { FINALE_A, between, sample, textAt, type CinematicScript } from './cinematic.ts';
 import { Sonar } from './sonar.ts';
+import { VIVO_DI, Vivi } from './vivi.ts';
+import { Paura } from './paura.ts';
 import { Rod } from './rod.ts';
 import { ROD_COLORS } from './rod_colori.ts';
 import type { Stage } from './stage.ts';
@@ -240,6 +243,10 @@ function noise1(x: number, seed: number): number {
   return a + (b - a) * u;
 }
 
+/** Zoom in più sui fotogrammi del jumpscare di qualcuno, senza rifare il render: Soggy ti arriva proprio in faccia, alla
+ *  FNAF (richiesta dell'utente del 12 ottobre: +20%). */
+const JS_ZOOM: Partial<Record<MonsterId | 'mother' | 'quota', number>> = { foxy: 1.2 };
+
 /** Camera a mano del jumpscare, in post: sobbalzo all'impatto, tremito rapido, rollio, un colpo di zoom a
  *  ogni fotogramma nuovo e una lenta spinta in avanti. Lo zoom copre sempre lo schermo, anche con lo
  *  spostamento e il rollio più grandi possibili in quell'istante. calm < 1 attenua tutto. */
@@ -299,6 +306,8 @@ export class Night {
   private binoPitch = 2.5;
   private turnArmed = true;
   private reelByMouse = false;
+  /** il recupero tenuto col grilletto destro del controller */
+  private reelByPad = false;
   private hoverTarget: Target = null;
   // stato visivo (morbido)
   private v = { gSale: 0, gRise: 0, gPret: 0, mR: 0, mL: 0, hRise: 0, robin: 0, robinFear: 0, robinBlink: 0,
@@ -333,7 +342,6 @@ export class Night {
   private bells: number[] = [];
   private creakTimer = 9;
   private lastHourShown = -1;
-  private heart = 0;
   private listeners: [EventTarget, string, EventListener][] = [];
   /** dove si sente Gulpy: lontano mentre sale, aggrappato alla prua quando pretende (dai render) */
   private gulpyFar: Vec3;
@@ -358,6 +366,15 @@ export class Night {
   private motherPrevT = 0;
   /** la cinematica in corso (i finali): la sequenza, a che punto è, le voci da fermare se la si salta */
   private cine: { s: CinematicScript; t: number; voices: Voice[] } | null = null;
+  /** le creature vive: il respiro, lo scatto quando le guardi, le gocce (vivi.ts) */
+  private vivi = new Vivi();
+  /** dove si vede ogni creatura viva (yaw in gradi, dall'ultimo fotogramma disegnato) */
+  private viviYaw: Record<string, number> = {};
+  /** il cuore, il respiro e la tensione (paura.ts) */
+  private paura: Paura;
+  /** i falsi allarmi: il prossimo (tempo della notte), quanti ne restano, il sussulto del cuore; da quanto è calmo */
+  private falso = { next: 0, left: 0, boost: 0 };
+  private calm = 0;
   /** il secchio svuotato dalla cinematica (i pesci non si disegnano) e il buio della cinematica (0..1) */
   private cineEmptyBucket = false;
   private cineBlack = 0;
@@ -367,12 +384,15 @@ export class Night {
     this.nightNo = d.config ? d.config.night : NIGHTS[d.night ?? 1] ? (d.night ?? 1) : 1;
     this.sim = new NightSim(d.config ?? NIGHTS[this.nightNo]!, d.seed, d.foundLore, { fed: d.fed ?? null });
     this.hud = new Hud(d.ui, d.lang);
+    this.paura = new Paura(d.audio);
+    // i falsi allarmi (più paura): dalla notte 2, uno o due per notte, il primo fra l'una e le tre circa
+    if (this.nightNo >= 2) this.falso = { next: HOUR_SECONDS * (1 + 1.2 * Math.random()), left: Math.random() < 0.6 ? 2 : 1, boost: 0 };
     this.sonarEl = document.createElement('div');
     this.sonarEl.className = 'sonar-full';
     this.sonarEl.appendChild(this.sonar.canvas);
     const close = document.createElement('div');
     close.className = 'sonar-close';
-    close.textContent = this.S.sonarClose;
+    dualText(close, this.S.sonarClose, this.S.pad.sonarClose);
     this.sonarEl.appendChild(close);
     d.ui.appendChild(this.sonarEl);
     this.sonar.onPing = () => d.audio.play('sonar_ping', { pos: [0.3, -1.42, -0.5], gain: 0.25 });
@@ -411,6 +431,7 @@ export class Night {
   }
 
   destroy(): void {
+    this.paura.stop(0.3);
     for (const [t, ev, fn] of this.listeners) t.removeEventListener(ev, fn);
     this.listeners = [];
     for (const v of Object.values(this.loops)) v?.stop(0.4);
@@ -446,10 +467,16 @@ export class Night {
     this.paused = p;
     this.held.clear();
     this.mouse.down = false;
+    this.reelByPad = false;
     this.sim.setReelHeld(false);
   }
 
   // ───────────────────────── input ─────────────────────────
+
+  /** Il recupero è tenuto: Spazio, il clic sulla canna o il grilletto destro. */
+  private reelHeld(): boolean {
+    return this.held.has(' ') || (this.mouse.down && this.reelByMouse) || this.reelByPad;
+  }
 
   private on(t: EventTarget, ev: string, fn: (e: Event) => void): void {
     t.addEventListener(ev, fn as EventListener);
@@ -462,11 +489,12 @@ export class Night {
     this.on(window, 'keyup', (e) => {
       const k = (e as KeyboardEvent).key.toLowerCase();
       this.held.delete(k);
-      if (k === ' ') this.sim.setReelHeld(this.mouse.down && this.reelByMouse);
+      if (k === ' ') this.sim.setReelHeld(this.reelHeld());
     });
     this.on(window, 'blur', () => {
       this.held.clear();
       this.mouse.down = false;
+      this.reelByPad = false;
       this.sim.setReelHeld(false);
     });
     this.on(c, 'mousemove', (e) => {
@@ -490,7 +518,7 @@ export class Night {
       this.mouse.down = false;
       if (this.reelByMouse) {
         this.reelByMouse = false;
-        this.sim.setReelHeld(this.held.has(' '));
+        this.sim.setReelHeld(this.reelHeld());
       }
     });
     this.on(c, 'wheel', (e) => {
@@ -576,6 +604,83 @@ export class Night {
         this.raiseBino(!this.binoUp);
         break;
     }
+  }
+
+  /**
+   * Il controller (src/app/pad.ts), un fotogramma: gli stessi comandi della tastiera e del mouse. Torna di quanto
+   * girare e inclinare lo sguardo (stick, −1..1; con la croce col binocolo alzato).
+   *   RT lancia, ferra e (tenuto) recupera · LT (tenuto) o B il binocolo · LB e RB la luce (col binocolo lo zoom)
+   *   A il telone · X il pesce · Y il sonar · croce: voltarsi di scatto · R3 voltarsi indietro · Start la pausa
+   */
+  private padControls(): [number, number] {
+    const p = pad;
+    if (this.cine) {
+      // la cinematica di un finale: A, B o Start la saltano
+      if (p.pressed('A') || p.pressed('B') || p.pressed('Start')) this.skipCinematic();
+      return [0, 0];
+    }
+    if (p.pressed('Start')) {
+      // lo stesso Start non deve anche riprendere dalla pausa appena aperta
+      p.consume();
+      if (!this.finished) this.d.onPause();
+      return [0, 0];
+    }
+    // il grilletto lasciato smette di recuperare anche a notte finita
+    if (this.reelByPad && !p.down('RT')) {
+      this.reelByPad = false;
+      this.sim.setReelHeld(this.reelHeld());
+    }
+    if (p.released('LT')) this.binoUp = false;
+    if (this.finished || this.js) return [0, 0];
+    // col controller in mano il mouse rimasto fermo sul bordo dello schermo non gira più lo sguardo
+    if (p.active) this.edgeArmed = false;
+    const bino = this.bino > 0.5;
+    if (p.pressed('RT')) {
+      if (this.sonarOpen) this.toggleSonar(false);
+      this.sim.pressRod();
+      this.reelByPad = true;
+      this.sim.setReelHeld(true);
+    }
+    if (p.pressed('X')) this.sim.throwFish();
+    if (p.pressed('A')) this.hideToggle();
+    if (p.pressed('Y')) this.toggleSonar();
+    if (p.pressed('B')) {
+      if (this.sonarOpen) this.toggleSonar(false);
+      else this.raiseBino(!this.binoUp);
+    }
+    if (p.pressed('LT')) this.raiseBino(true);
+    // LB e RB come la rotella: la luce giù e su; col binocolo lo zoom
+    if (p.pressed('LB')) {
+      if (bino) this.binoFov = 9;
+      else this.setLamp(this.sim.lamp - 1);
+    }
+    if (p.pressed('RB')) {
+      if (bino) this.binoFov = 4.5;
+      else this.setLamp(this.sim.lamp + 1);
+    }
+    if (p.pressed('R3')) this.turn();
+    let [spin, tilt] = p.look();
+    tilt = -tilt;
+    if (bino) {
+      // col binocolo la croce gira e inclina piano, come W A S D
+      if (p.down('Left')) spin = -1;
+      if (p.down('Right')) spin = 1;
+      if (p.down('Up')) tilt = 1;
+      if (p.down('Down')) tilt = -1;
+    } else {
+      // la croce: voltarsi di scatto verso prua, a sinistra, verso poppa, a destra (come W A S D)
+      if (p.pressed('Up')) this.face(YAW.bow);
+      if (p.pressed('Left')) this.face(-90);
+      if (p.pressed('Down')) this.face(YAW.stern);
+      if (p.pressed('Right')) this.face(90);
+    }
+    return [spin, tilt];
+  }
+
+  /** Il suggerimento `k` coi tasti del controller, se è quello in uso (e se il testo ne parla). */
+  private hintText(k: keyof (typeof STRINGS)['it']['hints']): string {
+    const padText = pad.active ? this.S.pad.hints[k] : undefined;
+    return padText ? pad.glyphs(padText) : this.S.hints[k];
   }
 
   /** Alza o abbassa il binocolo; alzandolo vicino a un luogo lo sguardo si centra su di lui. */
@@ -699,6 +804,9 @@ export class Night {
     const view = st.view;
     if (this.paused) return;
     const sim = this.sim;
+    const [padSpin, padTilt] = this.padControls();
+    // (il controller può aver messo in pausa)
+    if (this.paused) return;
 
     // sguardo
     if (!this.js && sim.hide === 'out' && !this.sonarOpen && !this.finished) {
@@ -713,6 +821,8 @@ export class Night {
       // le frecce girano piano; A e D solo col binocolo (senza, voltano di scatto: keyDown)
       if ((this.bino > 0.5 && this.held.has('a')) || this.held.has('arrowleft')) spin = -1;
       if ((this.bino > 0.5 && this.held.has('d')) || this.held.has('arrowright')) spin = 1;
+      // lo stick del controller (morbido: pad.look); fermo, non toglie niente al mouse e alla tastiera
+      if (padSpin) spin = padSpin;
       // col binocolo si gira piano, in proporzione allo zoom; su e giù coi bordi alto e basso
       const zoomK = this.bino > 0 ? view.hfov / 90 : 1;
       view.targetYaw += spin * 150 * this.d.options.sensitivity * dt * zoomK;
@@ -725,6 +835,7 @@ export class Night {
         }
         if (this.held.has('w') || this.held.has('arrowup')) tilt = 1;
         if (this.held.has('s')) tilt = -1;
+        if (padTilt) tilt = padTilt;
         this.binoPitch = Math.max(-8, Math.min(12, this.binoPitch + tilt * 30 * zoomK * dt));
         // vicino a un luogo, quando smetti di girare lo sguardo ci scivola sopra da solo (centrarlo a mano è scomodo, e
         // fuori dal luogo si vede il panorama lontano, che da vicino è sgranato)
@@ -760,6 +871,8 @@ export class Night {
     for (const e of sim.drainEvents()) this.handle(e);
 
     this.updateVisuals(dt);
+    this.updateVivi(dt);
+    this.updateFear(dt);
     this.updateAudio(dt);
     this.updateRadio(dt);
     this.updateHud(dt);
@@ -812,6 +925,7 @@ export class Night {
         break;
       case 'bite':
         this.biteAt = this.sim.time;
+        pad.rumble('bite');
         a.play(Math.random() < 0.5 ? 'rod_bell_1' : 'rod_bell_2', { pos: this.d.stage.man.points.rodTip });
         this.ripple(0.6, 0);
         this.rod.kick(4);
@@ -1343,9 +1457,8 @@ export class Night {
     if (this.sonarOpen) this.toggleSonar(false);
     const reduce = this.d.options.reduceFlash;
     this.js = { killer, t: 0, yaw, scream: this.d.sfx.jumpscare(killer) };
+    pad.rumble('scare');
     this.d.stage.view.shake = reduce ? 0.6 : 3.2;
-    this.loops.heart?.stop(0.1);
-    this.loops.heart = null;
   }
 
   // ───────────────────────── grafica ─────────────────────────
@@ -1701,6 +1814,122 @@ export class Night {
     return (-50 + (100 * (volts - 10)) / 5) * D2R;
   }
 
+  /** Il cuore, il respiro e la tensione (paura.ts), e i falsi allarmi. */
+  private updateFear(dt: number): void {
+    const sim = this.sim;
+    const quiet = !!this.js || !!this.cine || this.finished;
+    const danger = this.dangerNow();
+    this.calm = danger > 0.05 ? 0 : this.calm + dt;
+    this.updateFalseAlarms(dt, quiet);
+    // trattieni il fiato quando devi stare immobile: la Madre che passa sotto, Hatch che cerca
+    const hold = sim.mother?.state === 'passing' || sim.hatch.state === 'searching';
+    this.paura.update(dt, Math.min(1, Math.max(danger, this.falso.boost)), { hold, hidden: sim.hide !== 'out', quiet });
+  }
+
+  /**
+   * Il pericolo di adesso (0..1) dagli stati dei mostri: quanto batte il cuore, quanto è corto il respiro, quanta
+   * tensione nella musica. Al massimo (sopra PEAK) la musica tace: la Madre che passa, Hatch che cerca, il Foxy che
+   * corre verso la barca. Numeri da approvare.
+   */
+  private dangerNow(): number {
+    const s = this.sim;
+    let d = 0;
+    const up = (x: number) => {
+      if (x > d) d = x;
+    };
+    const g = s.gulpy;
+    if (g.state === 'rising') up(0.25);
+    else if (g.state === 'climbing') up(0.4);
+    else if (g.state === 'demanding') up(0.55 + 0.35 * g.phase);
+    const mo = s.molly;
+    if (mo.state === 'knocking') up(0.35);
+    else if (mo.state === 'peeking') up(0.45 + 0.4 * mo.rocking);
+    else if (mo.state === 'tantrum') up(0.8 + 0.12 * mo.rocking);
+    const h = s.hatch;
+    // se sei già sotto il telone mentre conta, un po' meno
+    if (h.state === 'counting') up((0.45 + 0.45 * h.countProgress) * (s.hide === 'out' ? 1 : 0.8));
+    else if (h.state === 'boarding') up(0.9);
+    else if (h.state === 'searching') up(0.95);
+    else if (h.state === 'leaving') up(0.3);
+    const r = s.robin;
+    if (r?.state === 'climbing') up(0.35);
+    else if (r?.state === 'stealing') up(s.fish <= 1 ? 0.75 : 0.55);
+    const a = s.archie;
+    if (a?.state === 'rising') up(0.3);
+    else if (a?.state === 'inhaling') up(0.55);
+    else if (a?.state === 'waiting') up(0.65);
+    else if (a?.state === 'blowing') up(0.9);
+    const l = s.lampy;
+    if (l?.state === 'ringing') up(0.45);
+    else if (l?.state === 'surfacing') up(0.6);
+    else if (l?.state === 'staring') up(0.75);
+    else if (l?.state === 'climbing') up(0.9);
+    const f = s.fangy;
+    if (f?.state === 'approaching') up(0.4);
+    else if (f?.state === 'rising') up(0.55);
+    else if (f?.state === 'listening') up(0.72 + 0.08 * f.heard);
+    const m = s.mother;
+    if (m?.state === 'approaching') up(0.7);
+    else if (m?.state === 'passing') up(1);
+    else if (m?.state === 'leaving') up(0.4);
+    const fx = s.foxy;
+    if (fx?.state === 'leaning') up(0.3);
+    else if (fx?.state === 'gone') up(0.96);
+    // a batteria morta, mentre la ninna nanna va avanti
+    if (s.blackout) up(0.5 + 0.4 * (1 - s.lullaby / (s.cfg.battery?.lullaby ?? 60)));
+    return d;
+  }
+
+  /**
+   * I falsi allarmi (più paura, idea approvata il 12 ottobre; da approvare i dettagli): rari e innocui, solo quando
+   * è tutto calmo da almeno 20 s. I colpi sullo scafo di Molly, da un lato, senza nessuno; o un tonfo in acqua
+   * dietro di te. Il cuore sussulta (il pericolo sale per un momento e torna giù piano).
+   */
+  private updateFalseAlarms(dt: number, quiet: boolean): void {
+    const f = this.falso;
+    f.boost = Math.max(0, f.boost - dt * 0.1);
+    if (quiet || f.left <= 0 || this.sim.time < f.next) return;
+    if (this.calm < 20 || this.sim.hide !== 'out' || this.sonarOpen || this.bino > 0.1) {
+      f.next = this.sim.time + 6;
+      return;
+    }
+    const cap = (t: string) => this.d.options.captions && this.hud.caption(t);
+    if (Math.random() < 0.6) {
+      const right = Math.random() < 0.5;
+      this.d.sfx.knock(dirPos(right ? YAW.mollyRight : YAW.mollyLeft, 1.4, -30));
+      cap(this.S.captions.knock);
+    } else {
+      this.d.audio.play('splash_small', { pos: dirPos(180 + (Math.random() * 80 - 40), 7, -6), gain: 0.9 });
+      cap(this.S.captions.falseSplash);
+    }
+    f.boost = 0.45;
+    f.left--;
+    f.next = this.sim.time + HOUR_SECONDS * (1.2 + 1.3 * Math.random());
+  }
+
+  /** Le creature vive: quanto è fuori ognuna, se la stai guardando, lo scatto e le gocce (vivi.ts). */
+  private updateVivi(dt: number): void {
+    const v = this.v;
+    const presence: Record<string, number> = {
+      gulpy: Math.max(v.gSale > 0.002 ? v.gSale * ease(v.gRise) : 0, v.gPret),
+      mollyR: v.mR,
+      mollyL: v.mL,
+      hatch: ease(v.hRise),
+      robin: v.robin,
+      archie: ease(v.aRise),
+      lampy: ease(v.lRise),
+      fangy: ease(v.fRise),
+      madre: ease(v.mdRise),
+    };
+    const view = this.d.stage.view;
+    const looked = (id: string) => {
+      const y = this.viviYaw[id];
+      return y !== undefined && Math.abs(angleDiff(view.yaw, y)) < 18 && this.sim.hide === 'out' && this.bino < 0.5;
+    };
+    const at = (id: string, dist: number) => dirPos(this.viviYaw[id] ?? 0, dist, -12);
+    this.vivi.update(dt, presence, looked, !!this.js || !!this.cine || this.finished, (id) => this.d.sfx.twitch(at(id, 2.6)), (id) => this.d.sfx.drip(at(id, 2.4), 0.35 + 0.3 * Math.random()));
+  }
+
   private layerDraws(): (string | LayerDraw)[] {
     const v = this.v;
     const man = this.d.stage.man;
@@ -1813,6 +2042,16 @@ export class Night {
     const n = sim.fish;
     if (n > 0 && !this.cineEmptyBucket) layers.push(n <= 3 ? 'fish2' : n <= 6 ? 'fish5' : 'fish9');
     layers.push(...aboard);
+    // le creature vive: ogni posa e le sue toppe prendono il respiro e lo scatto della creatura
+    const pano = man.pano;
+    for (const d of layers) {
+      if (typeof d === 'string') continue;
+      const id = VIVO_DI[d.key];
+      const base = id ? this.baseOf(d.key) : undefined;
+      if (!id || !base) continue;
+      d.warp = this.vivi.warp(id, base);
+      this.viviYaw[id] = base.yaw + (((base.rect[0] + base.rect[2]) / 2 / pano.width) - 0.5) * 360;
+    }
     return layers;
   }
 
@@ -1934,9 +2173,9 @@ export class Night {
   private biteHint(): string {
     const sim = this.sim;
     const l = sim.cfg.lampy;
-    if (!l) return this.S.hints.hook;
-    if (sim.fishing.fake) return sim.lampy?.holding && sim.lampy.beats >= 2 ? this.S.hints.lampy : '';
-    return sim.time - this.biteAt >= LAMPY_FIRST_BEAT + l.beat ? this.S.hints.hook : '';
+    if (!l) return this.hintText('hook');
+    if (sim.fishing.fake) return sim.lampy?.holding && sim.lampy.beats >= 2 ? this.hintText('lampy') : '';
+    return sim.time - this.biteAt >= LAMPY_FIRST_BEAT + l.beat ? this.hintText('hook') : '';
   }
 
   /** Di quanto è sotto il pelo dell'acqua una creatura in mare (r = 1 tutta fuori): a r = 0 la cima è scesa fino
@@ -2349,6 +2588,7 @@ export class Night {
         // Molly è renderizzata a destra: dal lato sinistro l'immagine si specchia
         const flipX = js.killer === 'molly' && this.sim.molly.side === 'left';
         const cam = jumpscareCamera(js.t, seq.fps, seq.frames.length, seq.aspect, this.d.options.reduceFlash ? 0.35 : 1);
+        cam.zoom *= JS_ZOOM[js.killer] ?? 1;
         return { base: fr.tex, baseScale: fr.scale, wBase: 1, aspect: seq.aspect, alpha: Math.min(1, js.t * 12), flipX, ...cam };
       }
       return null;
@@ -2642,26 +2882,7 @@ export class Night {
       const left = sim.lullaby;
       this.lullabyV.setRate(left < 6 ? 0.55 + 0.45 * Math.max(0, left / 6) : 1);
     }
-    // battito del cuore quando qualcosa sta per prenderti
-    let danger = 0;
-    if (sim.gulpy.state === 'demanding') danger = Math.max(danger, 0.4 + 0.6 * sim.gulpy.phase);
-    if (sim.molly.state === 'tantrum') danger = Math.max(danger, 0.6 + 0.4 * (sim.molly.tantrum / sim.cfg.molly.tantrumMax));
-    if (sim.hatch.state === 'counting') danger = Math.max(danger, sim.hatch.countProgress * (sim.hide === 'out' ? 1 : 0.4));
-    if (sim.hatch.state === 'searching') danger = Math.max(danger, 0.7);
-    if (sim.robin?.state === 'stealing') danger = Math.max(danger, sim.fish <= 1 ? 0.8 : 0.45);
-    if (sim.blackout && sim.cfg.battery) danger = Math.max(danger, 0.3 + 0.6 * (1 - sim.lullaby / sim.cfg.battery.lullaby));
-    if (sim.fangy?.listening) danger = Math.max(danger, 0.45 + 0.25 * sim.fangy.heard);
-    if (this.js || this.finished) danger = 0;
-    this.heart = approach(this.heart, danger, 2, dt);
-    if (this.heart > 0.05 && !this.loops.heart) this.loops.heart = a.play('heartbeat', { loop: true, gain: 0 });
-    if (this.loops.heart) {
-      this.loops.heart.setGain(this.heart * 0.8, 0.1);
-      this.loops.heart.setRate(0.9 + this.heart * 0.5);
-      if (this.heart < 0.02) {
-        this.loops.heart.stop(0.3);
-        this.loops.heart = null;
-      }
-    }
+    // il battito del cuore ora è in paura.ts (updateFear), col respiro e la tensione
   }
 
   /** La chiamata alla radio dell'inizio della notte, con i sottotitoli. */
@@ -2715,34 +2936,34 @@ export class Night {
     hud.reel(f.phase === 'reeling' && sim.hide === 'out' && !this.finished, f.tension, f.progress, f.strain);
     // il nome di ciò che sta sotto il puntatore
     let target: Target = null;
-    if (sim.hide === 'out' && !this.sonarOpen && !this.js && this.mouse.inside) target = this.targetAt(this.mouse.x, this.mouse.y);
+    if (sim.hide === 'out' && !this.sonarOpen && !this.js && this.mouse.inside && !pad.active) target = this.targetAt(this.mouse.x, this.mouse.y);
     if (target !== this.hoverTarget) {
       this.hoverTarget = target;
       this.d.canvas.style.cursor = target ? 'pointer' : 'crosshair';
     }
     const label = target ? S.labels[target] : '';
     hud.hover(label, this.mouse.x * innerWidth, this.mouse.y * innerHeight);
-    hud.showTurn(sim.hide === 'out' && !this.js && !this.finished && this.mouse.inside && this.mouse.y > 0.88);
+    hud.showTurn(sim.hide === 'out' && !this.js && !this.finished && this.mouse.inside && !pad.active && this.mouse.y > 0.88);
     hud.setVisible(!this.js);
     // suggerimenti della prima notte
     let hint = '';
     if (!this.finished && !this.js) {
       const mo = sim.mother;
-      if (mo && (mo.state === 'passing' || (mo.state === 'approaching' && mo.stateTime > 3.5))) hint = S.hints.mother;
-      else if (sim.hide === 'in') hint = S.hints.unhide;
-      else if (sim.fangy?.listening) hint = S.hints.fangy;
-      else if (sim.hatch.state === 'counting') hint = S.hints.hide;
-      else if (sim.gulpy.canBeFed && sim.fish > 0) hint = sim.facing(YAW.bow, VIEW.bowHalfAngle) ? S.hints.throw : '';
-      else if (sim.robin?.present && !sim.blackout) hint = S.hints.robin;
-      else if (sim.archie?.state === 'inhaling' && sim.lamp > 0) hint = S.hints.archie;
-      else if (sim.archie?.state === 'waiting') hint = S.hints.archieWait;
-      else if (sim.foxy?.state === 'gone' && this.bino > 0.5) hint = S.hints.foxyGone;
-      else if (sim.foxy && sim.foxy.stage !== null && !sim.foxy.everSeen) hint = S.hints.foxy;
+      if (mo && (mo.state === 'passing' || (mo.state === 'approaching' && mo.stateTime > 3.5))) hint = this.hintText('mother');
+      else if (sim.hide === 'in') hint = this.hintText('unhide');
+      else if (sim.fangy?.listening) hint = this.hintText('fangy');
+      else if (sim.hatch.state === 'counting') hint = this.hintText('hide');
+      else if (sim.gulpy.canBeFed && sim.fish > 0) hint = sim.facing(YAW.bow, VIEW.bowHalfAngle) ? this.hintText('throw') : '';
+      else if (sim.robin?.present && !sim.blackout) hint = this.hintText('robin');
+      else if (sim.archie?.state === 'inhaling' && sim.lamp > 0) hint = this.hintText('archie');
+      else if (sim.archie?.state === 'waiting') hint = this.hintText('archieWait');
+      else if (sim.foxy?.state === 'gone' && this.bino > 0.5) hint = this.hintText('foxyGone');
+      else if (sim.foxy && sim.foxy.stage !== null && !sim.foxy.everSeen) hint = this.hintText('foxy');
       else if (f.phase === 'bite') hint = this.biteHint();
-      else if (f.phase === 'reeling') hint = S.hints.reel;
+      else if (f.phase === 'reeling') hint = this.hintText('reel');
       else if (sim.molly.present || sim.gulpy.present) hint = '';
-      else if (f.phase === 'idle' && sim.facing(YAW.rod, VIEW.rodHalfAngle) && sim.landedCount < 2) hint = S.hints.cast;
-      else if (sim.time < 25 && !sim.facing(YAW.rod, VIEW.rodHalfAngle)) hint = S.look;
+      else if (f.phase === 'idle' && sim.facing(YAW.rod, VIEW.rodHalfAngle) && sim.landedCount < 2) hint = this.hintText('cast');
+      else if (sim.time < 25 && !sim.facing(YAW.rod, VIEW.rodHalfAngle)) hint = pad.active ? pad.glyphs(S.pad.look) : S.look;
     }
     hud.hint(hint);
     // la radio: i sottotitoli spariscono da soli se non c'è chiamata in corso

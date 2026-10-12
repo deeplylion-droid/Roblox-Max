@@ -2,6 +2,8 @@
 import { FISH, FISH_BY_ID, type FishFamily, type FishSpecies } from '../game/catalog.ts';
 import { EXTRA_IDS, EXTRA_MAX, EXTRA_PRESETS, FOXY_NAME, LORE, clampLevel, type ExtraLevels } from '../game/config.ts';
 import { LORE_TEXT, STRINGS, type Lang } from '../i18n.ts';
+import { disegnoSrc } from './disegni.ts';
+import { badge, dualText, type PadButton } from './pad.ts';
 import type { CatalogEntry, Options } from './save.ts';
 
 /** Sagoma generica per le specie senza figura. */
@@ -18,6 +20,12 @@ export function h<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<s
   return e;
 }
 
+/** Un disegno a pastelli (disegni.ts): il foglio un po' storto con l'ombra, e la didascalia. */
+function drawingFigure(id: string, caption: string, cls = 'disegno'): HTMLElement {
+  const img = h('img', { src: disegnoSrc(id), alt: caption, draggable: 'false' });
+  return h('figure', { class: cls }, img, h('figcaption', {}, caption));
+}
+
 /** Suoni dell'interfaccia: li imposta l'App quando l'audio è pronto. */
 let uiSound: (id: string) => void = () => {};
 export function setUiSound(fn: (id: string) => void): void {
@@ -32,6 +40,21 @@ function button(label: string, onClick: () => void, kind: 'click' | 'back' | 'st
     uiSound(kind === 'back' ? 'ui_back' : kind === 'start' ? 'ui_start' : 'ui_click');
     onClick();
   });
+  return b;
+}
+
+/** B (col controller) preme questo pulsante: tornare indietro. Col controller in uso ci compare accanto il tasto. */
+function backKey<T extends HTMLElement>(b: T): T {
+  b.dataset.back = '';
+  b.append(badge('B'));
+  return b;
+}
+
+/** Un pulsante di pagina (LB, RB): col controller in uso ci compare accanto il tasto. */
+function pageKey<T extends HTMLElement>(b: T, key: Extract<PadButton, 'LB' | 'RB'>): T {
+  b.dataset[key === 'LB' ? 'padPrev' : 'padNext'] = '';
+  if (key === 'LB') b.prepend(badge(key));
+  else b.append(badge(key));
   return b;
 }
 
@@ -71,7 +94,7 @@ export class Screens {
   warning(onDone: () => void): void {
     const S = this.S;
     const el = this.show(
-      h('div', { class: 'screen warning fade-in' }, h('h2', {}, S.warningTitle), h('p', {}, S.warning), h('div', { class: 'muted blink' }, S.pressAny)),
+      h('div', { class: 'screen warning fade-in' }, h('h2', {}, S.warningTitle), h('p', {}, S.warning), dualText(h('div', { class: 'muted blink' }), S.pressAny, S.pad.pressAny)),
     );
     const go = () => {
       removeEventListener('keydown', go);
@@ -112,7 +135,7 @@ export class Screens {
         'div',
         { class: 'screen pause' },
         h('h2', {}, S.paused),
-        h('div', { class: 'menu' }, button(S.resume, o.onResume), button(S.restartNight, o.onRestart), button(S.options, o.onOptions), button(S.menu, o.onMenu, 'back')),
+        h('div', { class: 'menu' }, backKey(button(S.resume, o.onResume)), button(S.restartNight, o.onRestart), button(S.options, o.onOptions), button(S.menu, o.onMenu, 'back')),
       ),
     );
   }
@@ -165,7 +188,7 @@ export class Screens {
       const fs = o.fullscreen;
       rows.append(h('label', {}, h('span', {}, S.fullscreen), button('⛶', fs)));
     }
-    this.show(h('div', { class: 'screen opts fade-in' }, h('h2', {}, S.optionsTitle), rows, h('div', { class: 'menu' }, button(S.back, o.onBack, 'back'))));
+    this.show(h('div', { class: 'screen opts fade-in' }, h('h2', {}, S.optionsTitle), rows, h('div', { class: 'menu' }, backKey(button(S.back, o.onBack, 'back')))));
   }
 
   /**
@@ -235,7 +258,7 @@ export class Screens {
         h('p', {}, S.extraHelp),
         grid,
         presets,
-        h('div', { class: 'menu' }, button(S.extraStart, () => o.onStart({ ...lv }), 'start'), button(S.back, o.onBack, 'back')),
+        h('div', { class: 'menu' }, button(S.extraStart, () => o.onStart({ ...lv }), 'start'), backKey(button(S.back, o.onBack, 'back'))),
       ),
     );
   }
@@ -249,9 +272,18 @@ export class Screens {
     this.show(h('div', { class: 'screen dawn extra-ending fade-in' }, h('h2', {}, S.extraEndingTitle), h('p', {}, S.extraEndingText), h('div', { class: 'menu' }, button(S.resume, onDone, 'start'))));
   }
 
-  journal(found: string[], onBack: () => void): void {
+  journal(found: string[], onBack: () => void, drawings: { all: string[]; found: string[] } = { all: [], found: [] }): void {
     const S = this.S;
     const list = h('div', { class: 'journal' });
+    if (drawings.all.length) {
+      const grid = h('div', { class: 'disegni' });
+      for (const id of drawings.all) {
+        const name = S.drawings.names[id] ?? id;
+        if (drawings.found.includes(id)) grid.append(drawingFigure(id, name, 'disegno piccolo'));
+        else grid.append(h('figure', { class: 'disegno piccolo locked' }, h('div', { class: 'vuoto' }, '?'), h('figcaption', {}, S.drawings.locked)));
+      }
+      list.append(h('h3', { class: 'sezione' }, S.drawings.title), grid);
+    }
     const items = LORE.filter((l) => found.includes(l.id));
     if (items.length === 0) list.append(h('p', { class: 'empty' }, S.journalEmpty));
     for (const l of LORE) {
@@ -260,14 +292,14 @@ export class Screens {
       if (found.includes(l.id)) list.append(h('div', { class: 'entry' }, h('h3', {}, t.title), h('p', {}, t.body)));
       else list.append(h('div', { class: 'entry locked' }, h('h3', {}, S.journalLocked)));
     }
-    this.show(h('div', { class: 'screen journal-screen fade-in' }, h('h2', {}, S.journalTitle), list, h('div', { class: 'menu' }, button(S.back, onBack, 'back'))));
+    this.show(h('div', { class: 'screen journal-screen fade-in' }, h('h2', {}, S.journalTitle), list, h('div', { class: 'menu' }, backKey(button(S.back, onBack, 'back')))));
   }
 
   /** Extra: il Diario degli oggetti ripescati e il Catalogo dei pesci. */
   extras(o: { onJournal: () => void; onCatalog: () => void; onBack: () => void }): void {
     const S = this.S;
     this.show(
-      h('div', { class: 'screen title fade-in' }, h('h2', {}, S.extras), h('div', { class: 'menu' }, button(S.journalTitle, o.onJournal), button(S.catalogTitle, o.onCatalog), button(S.back, o.onBack, 'back'))),
+      h('div', { class: 'screen title fade-in' }, h('h2', {}, S.extras), h('div', { class: 'menu' }, button(S.journalTitle, o.onJournal), button(S.catalogTitle, o.onCatalog), backKey(button(S.back, o.onBack, 'back')))),
     );
   }
 
@@ -363,6 +395,9 @@ export class Screens {
         const el = snap(f);
         if (known(f)) {
           el.classList.add('can');
+          // col controller le foto si scelgono come i pulsanti
+          el.tabIndex = -1;
+          el.dataset.padFocus = '';
           if (sel[fam] === f.id) el.classList.add('on');
           el.addEventListener('click', () => {
             sel[fam] = f.id;
@@ -477,11 +512,11 @@ export class Screens {
     });
     prevCorner.addEventListener('click', () => turn(spread - 1));
     nextCorner.addEventListener('click', () => turn(spread + 1));
-    const prevBtn = button('‹', () => turn(spread - 1));
-    const nextBtn = button('›', () => turn(spread + 1));
+    const prevBtn = pageKey(button('‹', () => turn(spread - 1)), 'LB');
+    const nextBtn = pageKey(button('›', () => turn(spread + 1)), 'RB');
     prevBtn.classList.add('turnbtn');
     nextBtn.classList.add('turnbtn');
-    const nav = h('div', { class: 'book-nav' }, prevBtn, h('span', { class: 'hint' }, S.bookTurn), nextBtn, button(S.bookClose, o.onBack, 'back'));
+    const nav = h('div', { class: 'book-nav' }, prevBtn, dualText(h('span', { class: 'hint' }), S.bookTurn, S.pad.bookTurn), nextBtn, backKey(button(S.bookClose, o.onBack, 'back')));
 
     left.append(...renderLeft(0));
     right.append(...renderRight(0));
@@ -506,11 +541,20 @@ export class Screens {
   }
 
   /** L'alba ripresa da «Continua» (immersioni): le sei passate, i pesci avanzati, scendere o andare alla notte dopo. */
-  dawn(o: { spare: number; onDive: () => void; onNext: () => void; onMenu: () => void }): void {
+  dawn(o: { spare: number; drawing?: string | null; onDive: () => void; onNext: () => void; onMenu: () => void }): void {
     const S = this.S;
     const stats = h('div', { class: 'stats' }, h('div', {}, h('span', {}, S.results.spare), h('b', {}, String(o.spare))));
     const menu = h('div', { class: 'menu' }, button(S.dive.descend, o.onDive, 'start'), button(S.nextNight, o.onNext, 'start'), button(S.menu, o.onMenu, 'back'));
-    this.show(h('div', { class: 'screen dawn fade-in' }, h('h2', {}, `${S.sixAm} · ${S.survived}`), stats, menu));
+    const parts: Node[] = [h('h2', {}, `${S.sixAm} · ${S.survived}`), stats, menu];
+    this.show(this.withDrawing('screen dawn fade-in', parts, o.drawing));
+  }
+
+  /** La schermata con accanto il disegno dell'alba (se c'è): a sinistra il foglio, a destra il resto. */
+  private withDrawing(cls: string, parts: Node[], drawing?: string | null): HTMLElement {
+    if (!drawing) return h('div', { class: cls }, ...parts);
+    const S = this.S;
+    const name = S.drawings.names[drawing] ?? drawing;
+    return h('div', { class: `${cls} alba-disegno` }, drawingFigure(drawing, `${S.drawings.found} «${name}»`), h('div', { class: 'colonna' }, ...parts));
   }
 
   /** Statica tra il jumpscare e il game over. */
@@ -525,7 +569,9 @@ export class Screens {
     /** pesci avanzati oltre la quota (immersioni) */
     spare?: number;
     /** scendere con le bombole prima della notte dopo (l'immersione è facoltativa) */
-    onDive?: (() => void) | null }): void {
+    onDive?: (() => void) | null;
+    /** il disegno a pastelli trovato all'alba (disegni.ts) */
+    drawing?: string | null }): void {
     const S = this.S;
     const stats = h(
       'div',
@@ -542,9 +588,9 @@ export class Screens {
     if (o.won && o.onExtra) menu.append(button(S.extraNight, o.onExtra, 'start'));
     if (o.demoEnd && !o.onExtra && o.onWishlist) menu.append(button(S.wishlist, o.onWishlist, 'start'));
     menu.append(button(S.menu, o.onMenu, 'back'));
-    const el = h('div', { class: `screen ${o.won ? 'dawn' : 'death'} fade-in` }, h('h2', {}, o.won ? `${S.sixAm} · ${S.survived}` : S.deathTitle), h('p', {}, o.text), stats);
-    if (o.demoEnd) el.append(h('p', { class: 'muted' }, o.onExtra ? S.extraOpened : S.demoEnd));
-    el.append(menu);
-    this.show(el);
+    const parts: Node[] = [h('h2', {}, o.won ? `${S.sixAm} · ${S.survived}` : S.deathTitle), h('p', {}, o.text), stats];
+    if (o.demoEnd) parts.push(h('p', { class: 'muted' }, o.onExtra ? S.extraOpened : S.demoEnd));
+    parts.push(menu);
+    this.show(this.withDrawing(`screen ${o.won ? 'dawn' : 'death'} fade-in`, parts, o.won ? o.drawing : null));
   }
 }

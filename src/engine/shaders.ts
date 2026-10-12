@@ -54,6 +54,8 @@ uniform float uFogDensity;
 uniform float uShimmer;
 uniform float uOpacity;  // dissolvenza dello strato (le creature che compaiono e spariscono)
 uniform vec2 uShift;     // spostamento dello strato (pixel del panorama): la creatura che emerge
+uniform vec4 uWarp;      // la creatura viva: base x, y (pixel dello strato), allungamento in alto, rotazione della testa
+uniform vec2 uNeck;      // la riga del collo (pixel dello strato) e quanto sfuma: sopra ruota, sotto no
 uniform float uClipY;    // > 0: sotto questa riga del panorama non si disegna (il pelo dell'acqua)
 // il pelo dell'acqua colonna per colonna (una creatura che emerge): uPeloX = prima e ultima colonna, quanti campioni
 // (0: niente). Quello che lo spostamento porta sotto la linea non si disegna (se no la creatura scivolerebbe davanti
@@ -96,13 +98,31 @@ void main() {
     else if (p.y > row) discard;
   }
   p -= uShift;
+  if (uWarp.z > 0.0 && (uWarp.z != 1.0 || uWarp.w != 0.0)) {
+    // il respiro: si allunga in alto (metà in largo) attorno alla base
+    p = uWarp.xy + (p - uWarp.xy) / vec2(1.0 + (uWarp.z - 1.0) * 0.5, uWarp.z);
+    // lo scatto della testa: sopra il collo ruota attorno al collo, sotto resta ferma (in mezzo sfuma)
+    if (uWarp.w != 0.0) {
+      float a = uWarp.w * smoothstep(uNeck.x + uNeck.y, uNeck.x - uNeck.y, p.y);
+      vec2 c = vec2(uWarp.x, uNeck.x);
+      vec2 q = p - c;
+      float cs = cos(a), sn = sin(a);
+      p = c + vec2(cs * q.x + sn * q.y, -sn * q.x + cs * q.y);
+    }
+  }
   if (p.x < uRect.x || p.x > uRect.z || p.y < uRect.y || p.y > uRect.w) discard;
   float part = 1.0;
+  if (uWarp.z > 0.0 && (uWarp.z != 1.0 || uWarp.w != 0.0)) {
+    // la creatura viva si muove dentro il suo riquadro: i bordi in alto e ai lati sfumano, se no ruotando la testa
+    // si vedrebbe lo spigolo del riquadro (la foschia attorno alla creatura ha un filo di alfa)
+    float edge = min(min(p.x - uRect.x, uRect.z - p.x), p.y - uRect.y);
+    part = smoothstep(0.0, 14.0, edge);
+  }
   if (uPart > 0.5) {
     // il punto della posa da cui viene questo pixel: davanti alla barca o contro il mare? (lo strato è centrato
     // sul suo yaw, la barca su 0)
     float b = texture(uBoat, vec2(fract(p.x / uPano.x + uYaw / (2.0 * PI)), p.y / uPano.y)).a;
-    part = uPart < 1.5 ? 1.0 - b : b;
+    part *= uPart < 1.5 ? 1.0 - b : b;
     if (part < 0.004) discard;
   }
   part *= onWater * maskOf(uMask0, uMaskRect0, uMaskK.x, p) * maskOf(uMask1, uMaskRect1, uMaskK.y, p);
@@ -261,14 +281,23 @@ void main() {
   if (den > 1e-5) {
     float t = (bd * wd - dd * wb) / den;   // lungo il fascio
     float s = (bb * wd - bd * wb) / den;   // lungo il raggio di vista
-    if (t > 0.0 && s > 0.0) {
-      vec3 pa = uBeamPos + b * t;
-      vec3 pb = d * s;
-      float dist = length(pa - pb);
-      float r = 2.0 + t * 0.07;
-      float beam = exp(-pow(dist / r, 2.0)) * exp(-t / 2600.0);
-      c += uBeamColor * beam * 0.06;
+    // i punti più vicini fuori dal fascio (prima del faro) o dietro all'occhio: si prende il più vicino sul bordo
+    // (il faro, l'occhio). Prima si scartavano, e quando il fascio passava sulla barca lo schermo si tagliava con
+    // uno spigolo netto (l'occhio dentro il cono: metà dei raggi aveva il punto più vicino dietro di sé)
+    if (s < 0.0) {
+      s = 0.0;
+      t = -wb / bb;
     }
+    if (t < 0.0) {
+      t = 0.0;
+      s = max(wd / dd, 0.0);
+    }
+    vec3 pa = uBeamPos + b * t;
+    vec3 pb = d * s;
+    float dist = length(pa - pb);
+    float r = 2.0 + t * 0.07;
+    float beam = exp(-pow(dist / r, 2.0)) * exp(-t / 2600.0);
+    c += uBeamColor * beam * 0.06;
   }
   // lampo quando il fascio punta verso di noi
   vec3 toEye = normalize(-uBeamPos);

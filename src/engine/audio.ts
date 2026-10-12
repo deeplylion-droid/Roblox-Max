@@ -11,7 +11,7 @@ export interface SoundInfo {
   loop: boolean;
   channels: number;
   gain: number;
-  category: 'amb' | 'sfx' | 'mon' | 'mus' | 'ui' | 'voice';
+  category: 'amb' | 'sfx' | 'mon' | 'mus' | 'ui' | 'voice' | 'body';
 }
 
 export interface PlayOpts {
@@ -23,7 +23,8 @@ export interface PlayOpts {
   fadeIn?: number;
   /** filtro passa-basso (Hz), per suoni ovattati (sotto il telone) */
   lowpass?: number;
-  bus?: 'music' | 'sfx' | 'amb' | 'ui' | 'voice';
+  /** body: il corpo del pescatore (il cuore, il respiro), dentro la testa: non passa per l'ovattato del telone */
+  bus?: 'music' | 'sfx' | 'amb' | 'ui' | 'voice' | 'body';
 }
 
 export interface Voice {
@@ -43,7 +44,7 @@ export class AudioEngine {
   private master!: GainNode;
   private buses: Record<string, GainNode> = {};
   private muffle!: BiquadFilterNode;
-  volumes = { master: 0.9, music: 0.7, sfx: 0.9, amb: 0.8, voice: 0.9, ui: 0.6 };
+  volumes = { master: 0.9, music: 0.7, sfx: 0.9, amb: 0.8, voice: 0.9, ui: 0.6, body: 0.9 };
 
   async load(): Promise<void> {
     const r = await fetch(ASSET_BASE + 'audio/manifest.json');
@@ -89,6 +90,10 @@ export class AudioEngine {
       g.connect(this.master);
       this.buses[b] = g;
     }
+    // il corpo del pescatore entra dopo l'ovattato (il volume generale lo prende in applyVolumes)
+    const body = ctx.createGain();
+    body.connect(comp);
+    this.buses['body'] = body;
     this.applyVolumes();
     const l = ctx.listener;
     if (l.positionX) {
@@ -102,7 +107,7 @@ export class AudioEngine {
   applyVolumes(): void {
     if (!this.ctx) return;
     this.master.gain.value = this.volumes.master;
-    for (const [k, g] of Object.entries(this.buses)) g.gain.value = (this.volumes as Record<string, number>)[k] ?? 1;
+    for (const [k, g] of Object.entries(this.buses)) g.gain.value = ((this.volumes as Record<string, number>)[k] ?? 1) * (k === 'body' ? this.volumes.master : 1);
   }
 
   private decoding = new Map<string, Promise<AudioBuffer | null>>();
@@ -135,7 +140,7 @@ export class AudioEngine {
   }
 
   /** Ingresso di un bus (per i suoni sintetizzati al volo, come le voci). */
-  bus(name: 'music' | 'sfx' | 'amb' | 'ui' | 'voice'): AudioNode | null {
+  bus(name: 'music' | 'sfx' | 'amb' | 'ui' | 'voice' | 'body'): AudioNode | null {
     return this.ctx ? this.buses[name]! : null;
   }
 
@@ -222,7 +227,7 @@ export class AudioEngine {
       node = panner;
     }
     node.connect(g);
-    const bus = o.bus ?? (info.category === 'mus' ? 'music' : info.category === 'amb' ? 'amb' : info.category === 'ui' ? 'ui' : info.category === 'voice' ? 'voice' : 'sfx');
+    const bus = o.bus ?? (info.category === 'mus' ? 'music' : info.category === 'amb' ? 'amb' : info.category === 'ui' ? 'ui' : info.category === 'voice' ? 'voice' : info.category === 'body' ? 'body' : 'sfx');
     g.connect(this.buses[bus]!);
     src.start();
     let ended = false;
