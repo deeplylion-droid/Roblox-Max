@@ -13,7 +13,7 @@ Composizione 2D in Python (numpy, scipy, Pillow), senza Blender: la stampa si co
 rilievo, bagnato, trasparenza), poi il foglio si posa nella scena e si illumina coi rilievi (pieghe, grinze, gocce).
 Si lavora al doppio della risoluzione finale e si riduce alla fine.
 
-Uso: tools/.venv/bin/python tools/render/annuncio.py <giornale|volantino|tutti> [--uscita cartella] [--scala 1.0]
+Uso: tools/.venv/bin/python tools/render/annuncio.py <giornale|volantino_it|volantino_en|tutti> [--uscita cartella] [--scala 1.0] [--webp]
      (--scala 1.5 dà 2880×1620, per avere margine nella zoomata)
 I font (SIL Open Font License, da Google Fonts) sono in tools/render/fonts/annuncio/.
 """
@@ -780,7 +780,8 @@ MM_BLU = (66, 128, 214)
 MM_BLU_OMBRA = (40, 86, 170)
 MM_PANCIA = (250, 236, 200)
 MM_GUANCE = (246, 128, 140)
-MM_ZAMPILLO = (200, 238, 255)
+MM_ZAMPILLO = (226, 246, 255)
+MM_ZAMPILLO_SCURO = (140, 205, 240)
 MM_PESCI = [(250, 128, 40), (252, 208, 40), (70, 180, 90)]
 
 
@@ -855,25 +856,23 @@ def mama_marina(tela: Tela, cx, base, alt):
     # la coda dietro, con le pinne caudali a cuore che spuntano da dietro la testa
     coda = np.minimum(sd_ellisse(X, Z, 0.17, 1.0, 0.15, 0.06, -25), sd_ellisse(X, Z, -0.17, 1.0, 0.15, 0.06, 25))
     coda = np.minimum(coda, sd_capsula(X, Z, 0, 0.8, 0, 0.98, 0.05))
-    # lo zampillo dello sfiatatoio
-    zamp = sd_capsula(X, Z, 0, 1.03, 0, 1.27, 0.022)
+    # lo zampillo dello sfiatatoio: un getto che sale dritto, si apre in cima e ricade in gocce ai due lati
+    def cono(z0, z1, r0, r1):
+        t = np.clip((Z - z0) / (z1 - z0), 0, 1)
+        return np.maximum(np.abs(X) - (r0 + (r1 - r0) * t), np.maximum(z0 - Z, Z - z1))
+    getto = sd_unione(cono(1.0, 1.24, 0.026, 0.040), sd_ellisse(X, Z, 0, 1.265, 0.075, 0.042), 0.03)
+    for s_ in (1, -1):
+        getto = sd_unione(getto, sd_ellisse(X, Z, s_ * 0.075, 1.25, 0.05, 0.026, -s_ * 25), 0.02)
+    venatura = np.maximum(cono(1.03, 1.22, 0.007, 0.012), getto + 0.012)
     gocce = []
     for s_ in (1, -1):
-        # due archi d'acqua per parte che ricadono in gocce, ben sopra la testa
-        for k, (ax, az, alto) in enumerate(((0.19, 1.19, 0.05), (0.30, 1.12, 0.03))):
-            prev = (0.0, 1.27)
-            for j in range(1, 11):
-                tt = j / 10
-                x_ = s_ * ax * tt
-                z_ = 1.27 + (az - 1.27) * tt ** 2 + alto * math.sin(tt * math.pi)
-                zamp = np.minimum(zamp, sd_capsula(X, Z, prev[0], prev[1], x_, z_, 0.015 - 0.007 * tt))
-                prev = (x_, z_)
-            dx_, dz_ = s_ * (ax + 0.015), az - 0.06
-            goccia = sd_unione(np.sqrt((X - dx_) ** 2 + (Z - dz_) ** 2) - 0.02,
-                               sd_capsula(X, Z, dx_, dz_, dx_, dz_ + 0.035, 0.004), 0.02)
-            gocce.append(goccia)
-    for g in gocce:
-        zamp = np.minimum(zamp, g)
+        # ricadono lungo una parabola, sempre più piccole, a goccia con la punta in su (cadono)
+        for (gx_, gz_, r_) in ((0.15, 1.22, 0.024), (0.215, 1.135, 0.020), (0.255, 1.045, 0.016)):
+            gx_ *= s_
+            gocce.append(sd_unione(np.sqrt((X - gx_) ** 2 + (Z - gz_) ** 2) - r_,
+                                   sd_capsula(X, Z, gx_ - s_ * r_ * 0.5, gz_ + r_ * 1.6, gx_ - s_ * r_ * 0.5, gz_ + r_ * 1.7, 0.002), r_ * 0.9))
+        for (gx_, gz_, r_) in ((0.11, 1.31, 0.010), (0.19, 1.27, 0.008), (0.29, 1.12, 0.007)):
+            gocce.append(np.sqrt((X - s_ * gx_) ** 2 + (Z - gz_) ** 2) - r_)
 
     def strato(sd, colore, contorno=True):
         if contorno:
@@ -881,7 +880,13 @@ def mama_marina(tela: Tela, cx, base, alt):
         tela.dipingi(cop(sd, px), colore, (x0, y0))
 
     strato(coda, MM_BLU)
-    strato(zamp, MM_ZAMPILLO)
+    o_acqua = o * 0.7
+    tela.dipingi(cop(getto - o_acqua, px), NAVY, (x0, y0))
+    tela.dipingi(cop(getto, px), MM_ZAMPILLO, (x0, y0))
+    tela.dipingi(cop(venatura, px) * 0.8, MM_ZAMPILLO_SCURO, (x0, y0))
+    for g in gocce:
+        tela.dipingi(cop(g - o_acqua, px), NAVY, (x0, y0))
+        tela.dipingi(cop(g, px), MM_ZAMPILLO, (x0, y0))
     strato(f, MM_BLU)
     # ombra a cartone (in basso a destra) e lucido (in alto a sinistra)
     ombra = np.maximum(f, -sd_unione(sd_ellisse(X + 0.06, Z - 0.05, 0, 0.36, 0.36, 0.38),
@@ -968,8 +973,28 @@ def incolla_centro(tela, im, cx, cy):
     tela.incolla(im, int(cx - im.width / 2), int(cy - im.height / 2))
 
 
-def impagina_volantino():
+TESTI_V = {
+    'it': dict(titolo='CERCHIAMO TE!', fumetto=('I nostri', 'piccoli hanno', 'fame!'),
+               nastro='TURNO DI NOTTE · SI PESCA DALLA BARCA',
+               righe=[('Barca, luce ed esca fornite', 'Dalle 0 alle 6'), ("Paga in contanti all'alba", 'Nessuna esperienza!')],
+               invito='Ti aspettiamo al molo vecchio, al tramonto!', linguetta=('MOLO VECCHIO', 'AL TRAMONTO')),
+    'en': dict(titolo='WE WANT YOU!', fumetto=('Our little', 'ones are', 'hungry!'),
+               nastro='NIGHT SHIFT · FISHING FROM THE BOAT',
+               righe=[('Boat, light and bait provided', 'Midnight to 6 AM'), ('Cash paid at dawn', 'No experience needed!')],
+               invito='Meet us at the old pier at sunset!', linguetta=('OLD PIER', 'AT SUNSET')),
+}
+
+
+def font_adatto(nome, px, testi, larg):
+    """Il corpo più grande (fino a px) con cui tutti i testi stanno in larg."""
+    while px > 20 and max(font(nome, px).getlength(t) for t in testi) > larg:
+        px -= 2
+    return font(nome, px)
+
+
+def impagina_volantino(lingua='it'):
     """Il volantino nuovo, appena stampato: restituisce il colore (0..1)."""
+    TX = TESTI_V[lingua]
     T = Tela(VW, VH, (176, 230, 244))
     yy, xx = np.mgrid[:VH, :VW].astype(np.float32)
     # cielo: dal celeste al bianco, i raggi del sole dietro Mama Marina (come l'insegna dell'ingresso)
@@ -995,7 +1020,7 @@ def impagina_volantino():
     incolla_centro(T, testo_img("MAMA MARINA'S", font('Limelight-Regular', 170), CIANO, NAVY, 9, NAVY, (8, 10)), VW / 2, 200)
     incolla_centro(T, testo_img('SPLASHLAND', font('Limelight-Regular', 360), ROSA, NAVY, 14, NAVY, (16, 20)), VW / 2, 470)
     # CERCHIAMO TE!
-    incolla_centro(T, testo_img('CERCHIAMO TE!', font('LuckiestGuy-Regular', 300), GIALLO, NAVY, 18, (232, 70, 120), (14, 16),
+    incolla_centro(T, testo_img(TX['titolo'], font_adatto('LuckiestGuy-Regular', 300, [TX['titolo']], 1900), GIALLO, NAVY, 18, (232, 70, 120), (14, 16),
                                 gradi=4), VW / 2, 870)
     lay = Image.new('RGBA', (VW, VH), (0, 0, 0, 0))
     d = ImageDraw.Draw(lay)
@@ -1014,8 +1039,8 @@ def impagina_volantino():
     d.ellipse((bx0 - 12, by0 - 12, bx1 + 12, by1 + 12), fill=NAVY + (255,))
     d.ellipse((bx0, by0, bx1, by1), fill=(255, 255, 255, 255))
     d.polygon([(1652, 1500), (1580, 1680), (1790, 1560)], fill=(255, 255, 255, 255))
-    fb = font('Baloo2-ExtraBold', 116)
-    for k, riga in enumerate(('I nostri', 'piccoli hanno', 'fame!')):
+    fb = font_adatto('Baloo2-ExtraBold', 116, TX['fumetto'], 720)
+    for k, riga in enumerate(TX['fumetto']):
         d.text(((bx0 + bx1) / 2, by0 + 120 + k * 118), riga, font=fb, fill=NAVY + (255,), anchor='mm')
     T.incolla(lay, 0, 0)
 
@@ -1028,20 +1053,24 @@ def impagina_volantino():
     d.polygon([(150, ry1), (230, ry1 + 50), (230, ry1)], fill=(120, 30, 70, 255))
     d.polygon([(VW - 150, ry1), (VW - 230, ry1 + 50), (VW - 230, ry1)], fill=(120, 30, 70, 255))
     d.rectangle((150, ry0, VW - 150, ry1), fill=ROSA + (255,), outline=NAVY + (255,), width=8)
-    d.text((VW / 2, (ry0 + ry1) / 2 + 6), 'TURNO DI NOTTE · SI PESCA DALLA BARCA', font=font('LilitaOne-Regular', 122),
+    d.text((VW / 2, (ry0 + ry1) / 2 + 6), TX['nastro'], font=font_adatto('LilitaOne-Regular', 122, [TX['nastro']], VW - 400),
            fill=(255, 255, 255, 255), anchor='mm', stroke_width=6, stroke_fill=NAVY + (255,))
     # le condizioni, su un cartiglio bianco
     px0, py0, px1, py1 = 170, 2450, VW - 170, 2840
     d.rounded_rectangle((px0, py0, px1, py1), 50, fill=(255, 255, 255, 235), outline=NAVY + (255,), width=8)
-    fi = font('Baloo2-ExtraBold', 92)
-    righe = [('Barca, luce ed esca fornite', 'Dalle 0 alle 6'), ('Paga in contanti all\'alba', 'Nessuna esperienza!')]
+    righe = TX['righe']
+    xa, xb = px0 + 145, VW / 2 + 250
+    if max(font('Baloo2-ExtraBold', 92).getlength(b) for _, b in righe) > px1 - 40 - (xb + 55):
+        xb = px1 - 40 - 55 - max(font('Baloo2-ExtraBold', 92).getlength(b) for _, b in righe)
+    fi = font_adatto('Baloo2-ExtraBold', 92, [a for a, _ in righe], xb - 60 - xa)
+    fi = font_adatto('Baloo2-ExtraBold', fi.size, [b for _, b in righe], px1 - 40 - (xb + 55))
     for r_, (a_, b_) in enumerate(righe):
         y = py0 + 85 + r_ * 115
         stella(d, px0 + 90, y, 34, GIALLO + (255,), NAVY + (255,), 5)
         d.text((px0 + 145, y), a_, font=fi, fill=NAVY + (255,), anchor='lm')
-        stella(d, VW / 2 + 250, y, 34, GIALLO + (255,), NAVY + (255,), 5)
-        d.text((VW / 2 + 305, y), b_, font=fi, fill=NAVY + (255,), anchor='lm')
-    d.text((VW / 2, py0 + 315), 'Ti aspettiamo al molo vecchio, al tramonto!', font=font('Baloo2-ExtraBold', 104),
+        stella(d, xb, y, 34, GIALLO + (255,), NAVY + (255,), 5)
+        d.text((xb + 55, y), b_, font=fi, fill=NAVY + (255,), anchor='lm')
+    d.text((VW / 2, py0 + 315), TX['invito'], font=font_adatto('Baloo2-ExtraBold', 104, [TX['invito']], px1 - px0 - 80),
            fill=(214, 60, 130, 255), anchor='mm')
     T.incolla(lay, 0, 0)
 
@@ -1067,8 +1096,9 @@ def impagina_volantino():
                 d.line((x0, yd, x0, yd + 13), fill=NAVY + (255,), width=3)
         sub = Image.new('RGBA', (440, 200), (0, 0, 0, 0))
         ds = ImageDraw.Draw(sub)
-        ds.text((220, 62), 'MOLO VECCHIO', font=font('LilitaOne-Regular', 54), fill=NAVY + (255,), anchor='mm')
-        ds.text((220, 138), 'AL TRAMONTO', font=font('LilitaOne-Regular', 54), fill=(214, 60, 130, 255), anchor='mm')
+        fl = font_adatto('LilitaOne-Regular', 54, TX['linguetta'], 400)
+        ds.text((220, 62), TX['linguetta'][0], font=fl, fill=NAVY + (255,), anchor='mm')
+        ds.text((220, 138), TX['linguetta'][1], font=fl, fill=(214, 60, 130, 255), anchor='mm')
         sub = sub.rotate(90, expand=True)
         lay.alpha_composite(sub, (int(x0 + VW / n / 2 - sub.width / 2), int(ly0 + (VH - ly0) / 2 - sub.height / 2)))
     for xd in range(0, VW, 26):
@@ -1172,7 +1202,8 @@ def invecchia_volantino(rng, col):
 def sfondo_notte(rng, shape):
     """La baia di notte dietro il palo, fuori fuoco: il cielo, la riva con Splashland e le luci."""
     h, w = shape
-    q = 4
+    q = max(1, round(4 * SCALA))     # la mezza scena si fa sempre a ~960 px di larghezza
+    K = SCALA
     hq, wq = h // q, w // q
     yy, xx = np.mgrid[:hq, :wq].astype(np.float32)
     oriz = 0.60 * hq
@@ -1226,34 +1257,36 @@ def sfondo_notte(rng, shape):
         for k in range(3):
             dl[k].ellipse((x - r, y - r, x + r, y + r), fill=float(c[k] * i))
     for k in range(9):
-        bokeh(w * (0.82 + 0.017 * k) + rng.normal(0, 6), oy - 170 - 25 * math.sin(k * 0.7), rng.uniform(26, 40),
+        bokeh(w * (0.82 + 0.017 * k) + rng.normal(0, 6) * K, oy - (170 + 25 * math.sin(k * 0.7)) * K, rng.uniform(26, 40) * K,
               (1.0, 0.32, 0.70) if k % 3 else (0.35, 0.90, 1.0), 0.35)
     for k in range(14):
         a = k * math.pi / 7
-        bokeh(rx * q + rr * q * math.cos(a), ry * q + rr * q * math.sin(a), rng.uniform(14, 22), (1.0, 0.75, 0.45), 0.10)
+        bokeh(rx * q + rr * q * math.cos(a), ry * q + rr * q * math.sin(a), rng.uniform(14, 22) * K, (1.0, 0.75, 0.45), 0.10)
     for k in range(22):
-        bokeh(rng.uniform(0, w * 0.26), oy - rng.uniform(20, 90), rng.uniform(10, 26), (1.0, 0.66, 0.32), rng.uniform(0.08, 0.3))
-    bokeh(w * 0.05, oy - 210, 30, (1.0, 0.92, 0.75), 0.5)        # il faro
+        bokeh(rng.uniform(0, w * 0.26), oy - rng.uniform(20, 90) * K, rng.uniform(10, 26) * K, (1.0, 0.66, 0.32), rng.uniform(0.08, 0.3))
+    bokeh(w * 0.05, oy - 210 * K, 30 * K, (1.0, 0.92, 0.75), 0.5)        # il faro
     # le luci della Deep End, verdi-azzurre sotto la superficie, e i riflessi delle luci sull'acqua
     for k in range(5):
-        bokeh(w * (0.80 + 0.03 * k), oy + 70 + rng.uniform(0, 30), rng.uniform(50, 80), (0.15, 0.85, 0.75), 0.06)
+        bokeh(w * (0.80 + 0.03 * k), oy + (70 + rng.uniform(0, 30)) * K, rng.uniform(50, 80) * K, (0.15, 0.85, 0.75), 0.06)
     luci = np.dstack([np.asarray(l, np.float32) for l in lay])
-    luci = np.dstack([gaussian_filter(luci[..., c], 2.5) for c in range(3)])
-    rifl = np.dstack([gaussian_filter(np.flipud(luci[..., c]), (30, 4)) for c in range(3)])
+    luci = np.dstack([gaussian_filter(luci[..., c], 2.5 * K) for c in range(3)])
+    rifl = np.dstack([gaussian_filter(np.flipud(luci[..., c]), (30 * K, 4 * K)) for c in range(3)])
     sh = int(2 * oy - h)
     rifl = np.roll(rifl, sh, 0) * (np.mgrid[:h, :w][0] > oy)[..., None] * 0.45
-    alone = np.dstack([gaussian_filter(luci[..., c], 60) for c in range(3)]) * 1.2
+    alone = np.dstack([gaussian_filter(luci[..., c], 60 * K) for c in range(3)]) * 1.2
     return img + luci + rifl + alone
 
 
-def volantino(uscita):
+def volantino(uscita, lingua='it'):
     rng = np.random.default_rng(1997)
-    col, alfa, alt, bag = invecchia_volantino(rng, impagina_volantino())
+    K = SCALA
+    col, alfa, alt, bag = invecchia_volantino(rng, impagina_volantino(lingua))
     # il foglio a metà risoluzione (si campiona circa 1:1 nella scena)
-    h2, w2 = VH // 2, VW // 2
+    rf = 2 if SCALA < 1.4 else 1      # il foglio si campiona circa 1:1 nella scena
+    h2, w2 = VH // rf, VW // rf
     col = np.asarray(Image.fromarray((col * 255).astype(np.uint8)).resize((w2, h2), Image.LANCZOS), np.float32) / 255
     rid = lambda a: np.array(Image.fromarray(a.astype(np.float32)).resize((w2, h2), Image.BILINEAR))
-    alfa, alt, bag = rid(alfa), rid(alt) / 2, rid(bag)
+    alfa, alt, bag = rid(alfa), rid(alt) * (0.82 * SH / VH), rid(bag)
 
     sw = (SH, SW)
     yy, xx = np.mgrid[:SH, :SW].astype(np.float32)
@@ -1280,7 +1313,7 @@ def volantino(uscita):
     Bg = samp(bag)
 
     def foglio_a_scena(uf, vf):
-        uf, vf = uf / 2 - w2 / 2, vf / 2 - h2 / 2
+        uf, vf = uf / rf - w2 / 2, vf / rf - h2 / 2
         s_ = (uf * math.cos(rot) - vf * math.sin(rot)) * sc + s0
         y_ = (uf * math.sin(rot) + vf * math.cos(rot)) * sc + top + Hs / 2
         return cxp + R * math.sin(s_ / R), y_
@@ -1288,9 +1321,9 @@ def volantino(uscita):
     # il legno del palo: venature verticali, crepe, grigio di salsedine, più scuro e verde in basso
     pw = int(math.pi * R) + 4
     g = rumore(rng, (SH, pw), 1.0)
-    ven = gaussian_filter(rng.standard_normal((SH, pw)).astype(np.float32), (40, 1.0))
+    ven = gaussian_filter(rng.standard_normal((SH, pw)).astype(np.float32), (40 * K, 1.0 * K))
     ven /= ven.std()
-    ven2 = gaussian_filter(rng.standard_normal((SH, pw)).astype(np.float32), (120, 6))
+    ven2 = gaussian_filter(rng.standard_normal((SH, pw)).astype(np.float32), (120 * K, 6 * K))
     ven2 /= ven2.std()
     crepe = np.zeros((SH, pw), np.float32)
     for _ in range(9):
@@ -1299,11 +1332,11 @@ def volantino(uscita):
         if y1 - y0 < 300:
             y1 = min(SH, y0 + 600)
         ys = np.arange(SH)
-        cxs = cx0 + 12 * np.sin(ys / 90 + cx0) + 5 * gaussian_filter(rng.standard_normal(SH), 8) * 6
-        larg = rng.uniform(2, 7) * np.sin(np.clip((ys - y0) / (y1 - y0), 0, 1) * math.pi)
+        cxs = cx0 + (12 * np.sin(ys / (90 * K) + cx0) + 5 * gaussian_filter(rng.standard_normal(SH), 8 * K) * 6) * K
+        larg = rng.uniform(2, 7) * K * np.sin(np.clip((ys - y0) / (y1 - y0), 0, 1) * math.pi)
         X_ = np.arange(pw)[None, :]
         crepe = np.maximum(crepe, np.clip(1 - np.abs(X_ - cxs[:, None]) / (larg[:, None] + 0.5), 0, 1) * (larg[:, None] > 0.3))
-    ven3 = gaussian_filter(rng.standard_normal((SH, pw)).astype(np.float32), (90, 3.0))
+    ven3 = gaussian_filter(rng.standard_normal((SH, pw)).astype(np.float32), (90 * K, 3.0 * K))
     ven3 /= ven3.std()
     lumw = (0.80 + 0.025 * ven + 0.09 * ven3 + 0.10 * ven2 + 0.03 * g) * (1 - 0.85 * crepe)
     base = np.array([0.33, 0.29, 0.24], np.float32)
@@ -1316,14 +1349,14 @@ def volantino(uscita):
     Xr = np.arange(pw)[None, :].astype(np.float32)
     corda = np.zeros((SH, pw), np.float32)
     calt = np.zeros((SH, pw), np.float32)
-    for k, yc in enumerate((60.0, 150.0)):
+    for k, yc in enumerate((60.0 * K, 150.0 * K)):
         yc_ = yc + 0.025 * (Xr - pw / 2) * (1 if k else -1)
-        d_ = np.abs(yr - yc_) / 46
+        d_ = np.abs(yr - yc_) / (46 * K)
         m = np.clip(1 - d_, 0, 1)
-        fili = 0.5 + 0.5 * np.sin((Xr * 0.9 + yr * 2.2) / 14)
+        fili = 0.5 + 0.5 * np.sin((Xr * 0.9 + yr * 2.2) / (14 * K))
         corda = np.maximum(corda, (m > 0) * 1.0)
-        calt = np.maximum(calt, (np.sqrt(np.clip(1 - d_ ** 2, 0, 1)) * 30 + fili * 6) * (m > 0))
-    ctex = np.array([0.30, 0.25, 0.17], np.float32)[None, None] * (0.45 + 0.7 * (calt[..., None] / 36))
+        calt = np.maximum(calt, ((np.sqrt(np.clip(1 - d_ ** 2, 0, 1)) * 30 + fili * 6) * K) * (m > 0))
+    ctex = np.array([0.30, 0.25, 0.17], np.float32)[None, None] * (0.45 + 0.7 * (calt[..., None] / (36 * K)))
     wtex = wtex * (1 - corda[..., None]) + ctex * corda[..., None]
     walt = walt * (1 - corda) + calt
     si = np.clip(sarc + pw / 2, 0, pw - 1)
@@ -1331,8 +1364,8 @@ def volantino(uscita):
     Wa = map_coordinates(walt, [yy, si], order=1)
     Wc = map_coordinates(corda, [yy, si], order=1)
     # l'ombra della corda e del foglio sul palo
-    om_c = np.roll(gaussian_filter(Wc, 6), 22, 0) * (1 - Wc)
-    om_f = gaussian_filter(np.roll(A, (10, 8), (0, 1)), 7) * (1 - A)
+    om_c = np.roll(gaussian_filter(Wc, 6 * K), int(22 * K), 0) * (1 - Wc)
+    om_f = gaussian_filter(np.roll(A, (int(10 * K), int(8 * K)), (0, 1)), 7 * K) * (1 - A)
     A = A * (1 - Wc)              # la corda passa sopra il foglio? no: il foglio è sotto la corda solo se la tocca
 
     # le gocce d'acqua, sul foglio e sul legno, con qualche rigolo
@@ -1341,9 +1374,9 @@ def volantino(uscita):
     n_g = 420
     gx = rng.uniform(cxp - R * 0.72, cxp + R * 0.72, n_g)
     gy = top + (SH - top) * rng.uniform(0, 1, n_g) ** 0.6
-    gr_ = rng.gamma(2.0, 3.2, n_g) + 2.0
+    gr_ = (rng.gamma(2.0, 3.2, n_g) + 2.0) * K
     for x_, y_, r_ in zip(gx, gy, gr_):
-        r_ = min(r_, 22)
+        r_ = min(r_, 22 * K)
         x0, x1, y0, y1 = int(x_ - r_ - 2), int(x_ + r_ + 3), int(y_ - r_ * 1.3 - 2), int(y_ + r_ * 1.3 + 3)
         if x0 < 0 or y0 < 0 or x1 >= SW or y1 >= SH:
             continue
@@ -1351,29 +1384,29 @@ def volantino(uscita):
         dd = ((lx - x_) / r_) ** 2 + ((ly - y_) / (r_ * 1.15)) ** 2
         hgt = np.sqrt(np.clip(1 - dd, 0, 1)) * r_ * 0.7
         gh[y0:y1, x0:x1] = np.maximum(gh[y0:y1, x0:x1], hgt)
-        if r_ > 9 and rng.uniform() < 0.45:
+        if r_ > 9 * K and rng.uniform() < 0.45:
             # il rigolo che la goccia lascia salendo verso l'alto (da dove è scesa)
-            lung = int(rng.uniform(60, 420))
+            lung = int(rng.uniform(60, 420) * K)
             ys = np.arange(max(0, int(y_) - lung), int(y_))
             xs = x_ + np.cumsum(rng.normal(0, 0.6, len(ys)))[::-1] * 0.6
             for yk, xk in zip(ys, xs):
                 rw = r_ * 0.35
                 rig[yk, int(xk - rw):int(xk + rw) + 1] = 1
-    rig = gaussian_filter(rig, 1.2)
-    gh = gaussian_filter(gh, 0.7)
-    gm = np.clip(gh / 2.0, 0, 1)
+    rig = gaussian_filter(rig, 1.2 * K)
+    gh = gaussian_filter(gh, 0.7 * K)
+    gm = np.clip(gh / (2.0 * K), 0, 1)
 
     # i chiodi
     ch_h = np.zeros(sw, np.float32)
     ch_m = np.zeros(sw, np.float32)
     for (uf, vf) in CHIODI_V:
         x_, y_ = foglio_a_scena(uf, vf)
-        r_ = 21
-        ly, lx = np.mgrid[int(y_ - 30):int(y_ + 30), int(x_ - 30):int(x_ + 30)].astype(np.float32)
+        r_, W2 = 21 * K, int(30 * K)
+        ly, lx = np.mgrid[int(y_) - W2:int(y_) + W2, int(x_) - W2:int(x_) + W2].astype(np.float32)
         dd = np.sqrt((lx - x_) ** 2 + (ly - y_) ** 2) / r_
-        ch_h[int(y_ - 30):int(y_ + 30), int(x_ - 30):int(x_ + 30)] = np.sqrt(np.clip(1 - dd ** 2, 0, 1)) * 12 + 4 * (dd < 1)
-        ch_m[int(y_ - 30):int(y_ + 30), int(x_ - 30):int(x_ + 30)] = np.clip((1 - dd) * r_, 0, 1)
-    om_ch = gaussian_filter(np.roll(ch_m, (9, 7), (0, 1)), 4) * (1 - ch_m)
+        ch_h[int(y_) - W2:int(y_) + W2, int(x_) - W2:int(x_) + W2] = (np.sqrt(np.clip(1 - dd ** 2, 0, 1)) * 12 + 4 * (dd < 1)) * K
+        ch_m[int(y_) - W2:int(y_) + W2, int(x_) - W2:int(x_) + W2] = np.clip((1 - dd) * r_, 0, 1)
+    om_ch = gaussian_filter(np.roll(ch_m, (int(9 * K), int(7 * K)), (0, 1)), 4 * K) * (1 - ch_m)
     ruggine = np.clip(rumore(rng, sw, 3) * 0.8 + 0.2, 0, 1)
     ch_col = np.array([0.10, 0.09, 0.085]) * (1 - ruggine[..., None]) + np.array([0.30, 0.13, 0.05]) * ruggine[..., None]
 
@@ -1385,7 +1418,7 @@ def volantino(uscita):
     alb = alb * (1 - 0.10 * rig[..., None])
     alb = alb * (1 - ch_m[..., None]) + srgb_lin(ch_col) * ch_m[..., None]
     altezza = Wa * (1 - A) + (Hp + 2) * A + gh * 1.0 + ch_h
-    gy_, gx_ = np.gradient(gaussian_filter(altezza, 0.8))
+    gy_, gx_ = np.gradient(gaussian_filter(altezza, 0.8 * K))
     n = np.dstack([xn_c - gx_ * 0.7 * nz0, -gy_ * 0.7, nz0 + 0 * xn_c])
     n /= np.linalg.norm(n, axis=-1, keepdims=True)
     zs = R * nz0
@@ -1415,14 +1448,18 @@ def volantino(uscita):
     lin = alb * (amb + luce * (diff * cono)[..., None] + np.array([0.25, 0.35, 0.60]) * 0.35 * rim[..., None])
     lin += luce * (spec * cono)[..., None]
     # bordi del palo morbidi e fuori il fondo notturno
-    bordo_p = np.clip((1 - np.abs(xn)) * R / 2.0, 0, 1)
+    bordo_p = np.clip((1 - np.abs(xn)) * R / (2.0 * K), 0, 1)
     fondo = sfondo_notte(rng, sw)
     lin = lin * bordo_p[..., None] + fondo * (1 - bordo_p[..., None])
     # nebbiolina
     lin += np.array([0.010, 0.013, 0.022]) * np.clip(0.5 + 0.5 * rumore(rng, sw, 200)[..., None], 0, 1) * 0.12
     out = finitura(lin, rng, vignetta=0.60, grana=0.014)
-    p = os.path.join(uscita, 'annuncio_volantino.jpg')
-    out.save(p, quality=93, subsampling=0)
+    if '--webp' in sys.argv:
+        p = os.path.join(uscita, f'volantino_{lingua}.webp')
+        out.save(p, quality=90, method=6)
+    else:
+        p = os.path.join(uscita, 'annuncio_volantino.jpg' if lingua == 'it' else f'annuncio_volantino_{lingua}.jpg')
+        out.save(p, quality=93, subsampling=0)
     print(f'volantino → {p}', flush=True)
 
 
@@ -1434,9 +1471,10 @@ def main():
     uscita = sys.argv[sys.argv.index('--uscita') + 1] if '--uscita' in sys.argv else os.path.join(ROOT, 'docs', 'concept')
     os.makedirs(uscita, exist_ok=True)
     if not nomi or nomi == ['tutti']:
-        nomi = ['giornale', 'volantino']
+        nomi = ['giornale', 'volantino', 'volantino_en']
     for n in nomi:
-        {'giornale': giornale, 'volantino': volantino}[n](uscita)
+        {'giornale': giornale, 'volantino': volantino, 'volantino_it': volantino,
+         'volantino_en': lambda u: volantino(u, 'en')}[n](uscita)
 
 
 if __name__ == '__main__':

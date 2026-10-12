@@ -1,4 +1,19 @@
-# L'annuncio (dopo «Nuova partita») — due proposte, DA APPROVARE
+# L'annuncio (dopo «Nuova partita»)
+
+> **Scelta dell'utente (12 ottobre): B, il volantino.** Lo zampillo di Mama Marina è stato rifatto come un getto
+> d'acqua bianco-azzurro che sale dallo sfiatatoio e ricade in gocce ai lati (prima sembrava una corona). C'è anche la
+> versione inglese. Render finali per il gioco, 2880×1620: `public/assets/img/annuncio/volantino_it.webp` e
+> `volantino_en.webp`; anteprime 1920×1080: `annuncio_volantino.jpg` e `annuncio_volantino_en.jpg`.
+>
+> **Zoomata** (da 1 a 1,25 in 3,6 s): centro in **x = 0,52, y = 0,46**. Alla fine l'inquadratura va da x 0,12 a 0,92 e
+> da y 0,06 a 0,86: c'è tutto il volantino dalla testata alla riga «Ti aspettiamo al molo vecchio…» (le righe delle
+> condizioni stanno a y 0,70-0,73), mentre le linguette in fondo escono di campo. Il centro è un po' a destra del
+> volantino (x 0,49), verso il fumetto.
+>
+> Comandi: `tools/.venv/bin/python tools/render/annuncio.py volantino_it --scala 1.5 --webp --uscita public/assets/img/annuncio`
+> (e `volantino_en`). Un render a scala 1,5 usa ~6 GB di memoria: due insieme non stanno in 15 GB.
+
+## Le due proposte di partenza
 
 Come in FNAF: dopo «Nuova partita», per 3-4 secondi, l'annuncio con cui il pescatore ha trovato il lavoro, con una lenta
 zoomata; poi la notte 1. Due anteprime a 1920×1080, come apparirebbero nel gioco:
@@ -86,9 +101,15 @@ I testi:
 - le linguette da strappare: **MOLO VECCHIO · AL TRAMONTO**. Sono nove: **sei sono già state strappate** (altri hanno
   risposto prima di te), ne restano tre.
 
-## Cosa resta da fare
+### La versione inglese (B)
 
-- La scelta tra A e B (e i ritocchi richiesti).
-- La versione inglese della proposta scelta (testi tradotti, stessa impaginazione: lo script ha i testi in costanti).
-- Nel motore: la schermata di 3-4 s con la zoomata lenta verso l'annuncio (per A, verso x 0,55 · y 0,37); conviene
-  usare la versione a `--scala 1.5` perché la zoomata non sgrani.
+Stessa impaginazione; «MAMA MARINA'S SPLASHLAND» e «Mama Marina loves her little ones!» restano come sono.
+
+- **WE WANT YOU!**
+- nel fumetto: «**Our little ones are hungry!**»
+- sul nastro: **NIGHT SHIFT · FISHING FROM THE BOAT**
+- ★ Boat, light and bait provided ★ Midnight to 6 AM ★ Cash paid at dawn ★ No experience needed!
+- *Meet us at the old pier at sunset!*
+- le linguette: **OLD PIER · AT SUNSET**
+
+I testi delle due lingue sono in `TESTI_V`, nello script.
