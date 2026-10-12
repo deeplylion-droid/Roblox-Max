@@ -1,5 +1,5 @@
 /**
- * I disegni a pastelli dell'alba (richiesta dell'utente del 12 ottobre, «4/5 in giro per il gioco»; da approvare): all'alba
+ * I disegni a pastelli dell'alba (richiesta dell'utente del 12 ottobre, «4/5 in giro per il gioco»; approvati il 12 ottobre): all'alba
  * di ogni notte vinta, dalla prima alla quinta, sul banco c'è un disegno bagnato dei bambini di quella notte, com'erano
  * prima della Madre. Si vede nella schermata delle sei e poi resta nel Diario. Li genera tools/render/pastelli.py (la
  * stessa mano del disegno di «Il ricordo», il finale B).

@@ -153,7 +153,7 @@ const IT = {
   journalTitle: 'Diario',
   journalEmpty: 'Non hai ancora ripescato niente. Il mare restituisce le cose solo a chi pesca.',
   journalLocked: '???',
-  // i disegni a pastelli dell'alba (12 ottobre, da approvare)
+  // i disegni a pastelli dell'alba (approvati il 12 ottobre)
   drawings: {
     found: 'Sul banco, bagnato, c’è un disegno.',
     title: 'Disegni',

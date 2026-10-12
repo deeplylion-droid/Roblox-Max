@@ -85,7 +85,7 @@ stampatello con la S girata.
   paperella a Gulpy, il giocattolo luminoso a Hatch. Il quarto, intatto, col berretto e la canna col pesciolino, sei tu.
   Nel lago c'è la cosa con un occhio solo. La data è quella del braccialetto, «14-8-97»; nella prima versione
   approvata c'era per sbaglio il 26 luglio. La scena sul banco all'alba la fa la sessione dei finali.
-- **I disegni dell'alba** (*da approvare*): all'alba di ogni notte vinta, dalla prima alla quinta, sul banco c'è un
+- **I disegni dell'alba** (**approvati dall'utente il 12 ottobre**): all'alba di ogni notte vinta, dalla prima alla quinta, sul banco c'è un
   disegno bagnato dei bambini di quella notte, com'erano prima della Madre. Si vede nella schermata delle sei, accanto
   ai risultati (anche quando l'alba si riprende da «Continua»), e poi resta nel **Diario**: in cima, la pagina
   «Disegni», con i posti vuoti per quelli che mancano. «Il ricordo», l'ultimo, è il disegno in cui ci sei anche tu.
