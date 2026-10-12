@@ -582,7 +582,7 @@ Lampy, il terzo rumore di Fangy): cambiano solo **quando arriva, quanto spesso t
   lui (Robin con Molly, Hatch o Archie; Hatch con Gulpy, Lampy o Fangy; Lampy con Archie; Fangy con Archie o Robin).
   Gulpy, Molly e Hatch, che il gioco disegna in tutte le notti, a 0 restano semplicemente a casa.
 - **La schermata** (`docs/concept/notte7_livelli.jpg`): dal titolo, «Notte extra» (compare solo quando è sbloccata).
-  Nove schede in fila, una per mostro più la Madre e Soggy (sotto i 1000 px tre righe da tre): il nome, la sua regola in due parole, il livello grande con − e + (anche la
+  Nove schede in fila, una per mostro più la Madre e Soggy (nelle finestre più strette 5 + 4 centrate): il nome, la sua regola in due parole, il livello grande con − e + (anche la
   rotella sulla scheda), e sotto una parola: *non viene* (0), *calmo* (1-4), *come la sua notte* (5), *svelto* (6-14),
   *feroce* (15-20). Più è alto, più la scheda si tinge di rosso e il numero passa dall'ambra al rosso sangue; a 0 la
   scheda si spegne e il nome è barrato. Sotto, le preimpostazioni **Tutti a 0, Tutti a 5, Tutti a 10, Tutti a 20,
