@@ -811,9 +811,12 @@ def foto_1997(path):
     gate = np.array((gx, gy, gz))
     # le lucine tese fra i due piloni (il parco era aperto) e il piazzale davanti all'ingresso
     bulbs = emissive_bulbs(gate, right, rz)
-    kp = gate + fwd * 32.0
+    kp = gate + fwd * 32.4
     kz = _terra(kp[0], kp[1])
-    plaza = rbox('Piazzale', (60.0, 50.0, 0.4), (float(kp[0] - fwd[0] * 10), float(kp[1] - fwd[1] * 10), kz - 0.2), rot=(0, 0, rz), bevel=0.0, col=COL)
+    # il piazzale sale piano dai piedi dei bambini fino alla soglia dell'ingresso (il terreno lì è più alto)
+    pc = gate + fwd * 20.0
+    tilt = math.atan2(gz - kz, 32.4)
+    plaza = rbox('Piazzale', (64.0, 50.0, 0.4), (float(pc[0]), float(pc[1]), kz + 12.4 * math.tan(tilt) - 0.19), rot=(tilt, 0, rz), bevel=0.0, col=COL)
     pm, pg = material('Piazzale')
     pco = pg.texcoord('Object')
     tiles = pg.voronoi(g_scale(pg, pco, 1.4), scale=1.0, feature='DISTANCE_TO_EDGE')
@@ -851,15 +854,15 @@ def foto_1997(path):
             fish.data.materials.append(_mat('ToyFish', (0.95, 0.45, 0.10), rough=0.35))
             for o in (rod, reel, line, fish):
                 set_lightgroup(o, 'ambient')
-    target = gate + np.array((0.0, 0.0, 8.5))
-    target = cam_p + unit3(target - cam_p) * 3.0
-    cam = perspective_camera(tuple(cam_p), tuple(target), lens=28.0, name='Usaegetta')
+    # i bambini sono il soggetto (fino alle ginocchia), l'ingresso con l'insegna dietro di loro
+    target = cam_p - fwd * 3.0 + np.array((0.0, 0.0, 0.32))
+    cam = perspective_camera(tuple(cam_p), tuple(target), lens=24.0, name='Usaegetta')
     cam.data.dof.use_dof = True
     cam.data.dof.focus_distance = 3.1
     cam.data.dof.aperture_fstop = 4.0
     # il flash: piccolo, forte, appena sopra e a sinistra dell'obiettivo (le ombre nette dietro ai bambini)
     fl = bpy.data.lights.new('Flash', 'SPOT')
-    fl.energy = 1400.0
+    fl.energy = 600.0
     fl.spot_size = math.radians(85)
     fl.spot_blend = 0.5
     fl.shadow_soft_size = 0.01
@@ -874,11 +877,11 @@ def foto_1997(path):
     render(exr, 32 if not FINALE else 128, (W, H), data_passes=())
     p = post.read_exr(exr)
     lin = sum(post.rgb(p[k]) for k in ('ambient', 'lamp', 'lantern') if k in p)
-    img = post.tonemap(lin, exposure_ev=0.6, contrast=1.08)
+    img = post.tonemap(lin, exposure_ev=0.35, contrast=1.1)
     # la pellicola di allora: neri slavati verdognoli, alte luci calde, colori stanchi, vignettatura forte
     l = (img * np.array([0.2126, 0.7152, 0.0722])).sum(-1, keepdims=True)
-    img = l + (img - l) * 0.82
-    img = 0.035 + img * 0.94
+    img = l + (img - l) * 0.9
+    img = 0.02 + img * 0.96
     img = img + np.array([-0.008, 0.012, 0.004]) * (1 - l) ** 2 + np.array([0.04, 0.01, -0.03]) * l ** 2
     yy, xx = np.mgrid[0:H, 0:W]
     rr = np.hypot((xx - W / 2) / (W / 2), (yy - H / 2) / (H / 2))
@@ -894,9 +897,9 @@ def foto_1997(path):
             continue
         for e in pts['eyes']:
             ex, ey, _ = px(e)
-            r = 0.0045 * W / 1.0
+            r = 0.0016 * W
             m = np.exp(-(((xx - ex) ** 2 + (yy - ey) ** 2) / (r * r)))
-            img = img * (1 - 0.55 * m[..., None]) + np.array([0.55, 0.06, 0.04]) * 0.55 * m[..., None]
+            img = img * (1 - 0.45 * m[..., None]) + np.array([0.50, 0.05, 0.04]) * 0.45 * m[..., None]
     img = img + np.random.default_rng(97).normal(0, 0.022, img.shape) * (0.6 + 0.4 * (1 - l))
     im = Image.fromarray((np.clip(img, 0, 1) * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(0.8))
     a = np.asarray(im).astype(np.float32)
@@ -908,13 +911,16 @@ def foto_1997(path):
             continue
         cx, cy, dist = px(pts['head'])
         tx, ty, _ = px(pts['top'])
-        rad = max(6.0, abs(cy - ty) * 1.35)
-        ang = np.arctan2(yy - cy, xx - cx)
-        wob = sum(rng.uniform(0.06, 0.14) * np.sin(ang * f + rng.uniform(0, 6.3)) for f in (2, 3, 5, 7))
-        rho = np.hypot(xx - cx, (yy - cy) * 0.86) / (rad * (1 + wob))
-        grain = np.asarray(Image.fromarray((rng.random((H // 3 + 1, W // 3 + 1)) * 255).astype(np.uint8)).resize((W, H), Image.BILINEAR)) / 255.0
-        eaten = np.clip((1.0 - rho) * 9.0 + (grain - 0.5) * 1.6, 0, 1)
-        ring = np.clip(1.0 - np.abs(rho - 1.04) * 14.0, 0, 1) * (1 - eaten)
+        # solo il viso (un po' sotto il centro della testa), il bordo mangiato in modo irregolare: rumore a più scale
+        rad = max(5.0, abs(cy - ty) * 0.78)
+        cy = cy + rad * 0.25
+        def fbm(scale):
+            n = rng.random((int(H / scale) + 2, int(W / scale) + 2)).astype(np.float32)
+            return np.asarray(Image.fromarray((n * 255).astype(np.uint8)).resize((W, H), Image.BICUBIC), np.float32) / 255.0 - 0.5
+        noise = 0.55 * fbm(rad * 0.45) + 0.3 * fbm(rad * 0.18) + 0.15 * fbm(3.0)
+        rho = np.hypot((xx - cx) / 0.92, yy - cy) / rad + noise * 0.55
+        eaten = np.clip((1.0 - rho) * 7.0, 0, 1)
+        ring = np.clip(1.0 - np.abs(rho - 1.06) * 12.0, 0, 1) * (1 - eaten)
         paper = np.array([236, 231, 216], np.float32)
         a = a * (1 - eaten[..., None]) + paper * eaten[..., None]
         a = a * (1 - 0.35 * ring[..., None]) + np.array([170, 140, 95], np.float32) * 0.35 * ring[..., None]
