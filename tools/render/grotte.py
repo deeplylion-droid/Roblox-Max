@@ -1069,13 +1069,16 @@ def torcia_panorama(energy=260.0, occhio=OCCHIO):
     return o
 
 
+TORCIA_BLEND = 0.55     # il bordo del fascio della torcia nelle anteprime (1: sfumato del tutto)
+
+
 def torcia_faretto(cam, target, energy=380.0, cone=42.0):
     """La torcia per le anteprime prospettiche: un faretto appena sotto e a destra della camera."""
     d = bpy.data.lights.new('TorciaFaretto', 'SPOT')
     d.energy = energy
     d.color = (1.0, 0.93, 0.80)
     d.spot_size = math.radians(cone)
-    d.spot_blend = 0.55
+    d.spot_blend = TORCIA_BLEND
     d.shadow_soft_size = 0.03
     o = bpy.data.objects.new('TorciaFaretto', d)
     collection(COL).objects.link(o)
@@ -1111,10 +1114,13 @@ DIFFUSA = 0.55                               # quanto l'acqua rimanda della luce
 TORCIA_SCIA = np.array((0.010, 0.016, 0.016), F)   # la luce della torcia diffusa dall'acqua davanti al sub
 
 
-def acqua(passes, blur_px, cone_mask=None, sigma=None, diffusa=None):
+def acqua(passes, blur_px, cone_mask=None, sigma=None, diffusa=None, sfocata=None, alpha=None):
     """Cuoce l'acqua torbida nei passi di luce (lineari): ambient = ambient·T + (1−T)·sfocata(ambient)·DIFFUSA,
     lantern = lantern·T² (andata e ritorno) + (1−T)·scia della torcia. T = exp(−σ·distanza) dal passo mist.
-    cone_mask: per le anteprime prospettiche, la scia della torcia solo nel suo cono."""
+    cone_mask: per le anteprime prospettiche, la scia della torcia solo nel suo cono.
+    Per gli strati ritagliati sopra un panorama (la posa di un mostro): sfocata è la luce sfocata del panorama sotto
+    (la chiave 'sfocata' restituita per il panorama, ritagliata), alpha la copertura dello strato (l'acqua davanti al
+    mostro si somma solo dove c'è il mostro; il resto lo fa il panorama)."""
     from scipy.ndimage import gaussian_filter
     sigma = SIGMA if sigma is None else np.asarray(sigma, F)
     diffusa = DIFFUSA if diffusa is None else diffusa
@@ -1123,13 +1129,18 @@ def acqua(passes, blur_px, cone_mask=None, sigma=None, diffusa=None):
     out = {}
     if 'ambient' in passes:
         a = passes['ambient'][..., :3]
-        s = max(1, int(blur_px / 8))
-        small = a[::s, ::s]
-        small = np.minimum(small, np.percentile(small, 99.5))
-        bl = np.stack([gaussian_filter(small[..., c], blur_px / s, mode='nearest') for c in range(3)], -1)
-        bl = np.repeat(np.repeat(bl, s, 0), s, 1)[:a.shape[0], :a.shape[1]]
+        if sfocata is None:
+            s = max(1, int(blur_px / 8))
+            small = a[::s, ::s]
+            small = np.minimum(small, np.percentile(small, 99.5))
+            bl = np.stack([gaussian_filter(small[..., c], blur_px / s, mode='nearest') for c in range(3)], -1)
+            bl = np.repeat(np.repeat(bl, s, 0), s, 1)[:a.shape[0], :a.shape[1]]
+        else:
+            bl = sfocata
+        out['sfocata'] = bl
         tint = np.array((0.55, 1.0, 0.95), F)
-        out['ambient'] = a * T + (1 - T) * bl * tint * diffusa
+        k = 1.0 if alpha is None else alpha[..., None]
+        out['ambient'] = a * T + (1 - T) * bl * tint * diffusa * k
         if 'raggi' in passes:
             # i raggi stanno nell'acqua fra la camera e la roccia: si attenuano poco
             out['ambient'] = out['ambient'] + passes['raggi'][..., :3] * np.sqrt(T)
@@ -1138,5 +1149,7 @@ def acqua(passes, blur_px, cone_mask=None, sigma=None, diffusa=None):
         scia = (1 - np.exp(-0.12 * d)) * TORCIA_SCIA
         if cone_mask is not None:
             scia = scia * cone_mask[..., None]
+        if alpha is not None:
+            scia = scia * alpha[..., None]
         out['lantern'] = lt * T * T + scia
     return out
