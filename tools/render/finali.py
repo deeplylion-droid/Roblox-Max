@@ -111,14 +111,15 @@ def place_world(objs):
             o.matrix_world = M @ o.matrix_world
 
 
-def dawn_sky():
+def dawn_sky(sun_dir=None):
     """Cielo della prima luce: verso il sole arancio e rosa, dalla parte opposta lilla, in alto azzurro spento;
     qualche striscia di nuvole accesa di rosa da sotto."""
+    sun_dir = (sun_dir or SUN_DIR).normalized()
     w, g = world('DawnSky')
     w.lightgroup = 'ambient'
     d = g.texcoord('Generated')
     dx, dy, dz = g.sep(d)
-    sd = tuple(SUN_DIR)
+    sd = tuple(sun_dir)
     cs = g.vmath('DOT_PRODUCT', d, sd)
     c0 = g.math('MAXIMUM', cs, 0.0)
     up = g.clamp01(dz)
@@ -159,7 +160,7 @@ def dawn_sky():
     ob = bpy.data.objects.new('DawnSun', sun)
     collection(COL).objects.link(ob)
     ob.rotation_mode = 'QUATERNION'
-    ob.rotation_quaternion = (-SUN_DIR).to_track_quat('-Z', 'Y')
+    ob.rotation_quaternion = (-sun_dir).to_track_quat('-Z', 'Y')
     set_lightgroup(ob, 'ambient')
     return w
 
@@ -747,9 +748,232 @@ def scena_edicola():
     return {'ev': 0.0, 'haze': (0.62, 0.64, 0.68), 'haze_amt': 0.5, 'groups': ('ambient',)}
 
 
+# ═════════════════════════ il ricordo (il finale B della notte extra) ═════════════════════════
+
+# la foto del 1997: quattro bambini davanti all'ingresso di Splashland la sera della Night Splash, col flash. Tre hanno
+# il volto sbiadito fino al bianco come le foto dell'edicola (sono i tre che non sono tornati); il quarto, l'unico
+# nitido, tiene una canna da pesca giocattolo: sei tu
+BAMBINI = [
+    # (spostamento laterale, altezza, maglietta, calzoncini, capelli, è il pescatore)
+    (-0.95, 1.22, (0.70, 0.12, 0.10), (0.10, 0.14, 0.30), (0.10, 0.06, 0.03), False),
+    (-0.32, 1.30, (0.95, 0.80, 0.20), (0.16, 0.30, 0.55), (0.32, 0.20, 0.08), False),
+    (0.30, 1.16, (0.25, 0.60, 0.70), (0.85, 0.85, 0.80), (0.05, 0.04, 0.03), False),
+    (0.92, 1.27, (0.22, 0.42, 0.20), (0.40, 0.30, 0.20), (0.18, 0.11, 0.05), True),
+]
+
+
+def bambino(i, base, right, fwd, H, shirt, shorts, hair, you):
+    """Un bambino stilizzato in piedi (campi SDF): gambe, calzoncini, maglietta, braccia, testa, capelli o berretto;
+    il pescatore con la canna giocattolo. Restituisce gli oggetti e il centro della testa."""
+    import sdf as S
+    from creature import sdf_object
+
+    def P(lx, lz, lf=0.0):
+        return tuple(np.array(base) + right * lx + fwd * lf + np.array((0, 0, lz)))
+    hip, sh, head = 0.50 * H, 0.79 * H, 0.90 * H
+    rh = 0.105 * H / 1.25
+    skin = _mat(f'KidSkin{i}', (0.80, 0.58, 0.45), rough=0.5, sss=0.25, sss_radius=(1.0, 0.5, 0.3))
+    parts = []
+    # le gambe che si assottigliano verso la caviglia, le ginocchia appena segnate
+    legs = S.union(*[S.union(S.round_cone(P(sx * 0.065, hip - 0.04), P(sx * 0.06, 0.26 * H), 0.05, 0.038),
+                             S.round_cone(P(sx * 0.06, 0.26 * H), P(sx * 0.058, 0.05), 0.038, 0.03), k=0.02) for sx in (-1, 1)])
+    hand_l = P(-0.19, hip + 0.0, 0.03)
+    hand_r = P(0.22, hip + 0.18, 0.18) if you else P(0.19, hip + 0.0, 0.03)
+    elbow_l = P(-0.18, sh - 0.17, 0.0)
+    elbow_r = P(0.21, sh - 0.15, 0.08) if you else P(0.18, sh - 0.17, 0.0)
+    arms = S.union(S.round_cone(P(-0.15, sh - 0.04), elbow_l, 0.036, 0.03), S.round_cone(elbow_l, hand_l, 0.03, 0.026),
+                   S.round_cone(P(0.15, sh - 0.04), elbow_r, 0.036, 0.03), S.round_cone(elbow_r, hand_r, 0.03, 0.026),
+                   S.sphere(hand_l, 0.034), S.sphere(hand_r, 0.034), k=0.015)
+    # la testa da bambino (grande), il mento, le orecchie
+    face = S.union(S.ellipsoid(P(0, head), (rh * 0.95, rh * 0.98, rh * 1.05)), S.ellipsoid(P(0, head - rh * 0.45, rh * 0.15), (rh * 0.62, rh * 0.6, rh * 0.5)),
+                   S.sphere(P(-rh * 0.95, head - rh * 0.05), rh * 0.18), S.sphere(P(rh * 0.95, head - rh * 0.05), rh * 0.18), k=0.03)
+    neck = S.capsule(P(0, sh - 0.02), P(0, head - rh * 0.6), 0.038)
+    parts.append(('Skin', S.union(legs, arms, face, neck, k=0.012), skin))
+    parts.append(('Shorts', S.union(S.round_cone(P(-0.065, hip + 0.01), P(-0.07, hip - 0.15), 0.07, 0.062),
+                                     S.round_cone(P(0.065, hip + 0.01), P(0.07, hip - 0.15), 0.07, 0.062),
+                                     S.ellipsoid(P(0, hip + 0.03), (0.14, 0.095, 0.07)), k=0.03), _mat(f'KidShorts{i}', shorts, rough=0.8)))
+    torso = S.union(S.ellipsoid(P(0, (hip + sh) / 2 + 0.03), (0.13, 0.095, (sh - hip) / 2 + 0.02)),
+                    S.ellipsoid(P(0, sh - 0.04), (0.155, 0.09, 0.06)), k=0.05)
+    sleeves = S.union(S.round_cone(P(-0.15, sh - 0.04), P(-0.17, sh - 0.12), 0.052, 0.046), S.round_cone(P(0.15, sh - 0.04), P(0.17, sh - 0.12), 0.052, 0.046))
+    parts.append(('Shirt', S.union(torso, sleeves, k=0.03), _mat(f'KidShirt{i}', shirt, rough=0.85, sheen=0.4)))
+    parts.append(('Shoes', S.union(S.ellipsoid(P(-0.06, 0.035, 0.035), (0.045, 0.085, 0.04)), S.ellipsoid(P(0.06, 0.035, 0.035), (0.045, 0.085, 0.04))),
+                  _mat(f'KidShoes{i}', (0.85, 0.85, 0.82), rough=0.6)))
+    if you:
+        # il berretto con la visiera (quello da pescatore, in piccolo)
+        cap = S.union(S.ellipsoid(P(0, head + rh * 0.35), (rh * 1.05, rh * 1.05, rh * 0.7)),
+                      S.ellipsoid(P(0, head + rh * 0.25, rh * 0.95), (rh * 0.85, rh * 0.75, rh * 0.15)), k=0.01)
+        parts.append(('Cap', S.intersect(cap, S.plane((0, 0, -1), base[2] + head + rh * 0.1)), _mat(f'KidCap{i}', (0.80, 0.62, 0.12), rough=0.7)))
+    else:
+        parts.append(('Hair', S.intersect(S.ellipsoid(P(0, head + rh * 0.2, -rh * 0.15), (rh * 1.08, rh * 1.1, rh * 0.95)),
+                                           S.plane((0, 0, -1), base[2] + head - rh * 0.1)), _mat(f'KidHair{i}', hair, rough=0.6)))
+    obs = []
+    lo = np.array(base) - np.array((0.5, 0.5, 0.05))
+    hi = np.array(base) + np.array((0.5, 0.5, H + 0.15))
+    for name, f, m in parts:
+        o = sdf_object(f'Kid{i}{name}', f, lo, hi, res=0.008, col=COL)
+        o.data.materials.append(m)
+        set_lightgroup(o, 'ambient')
+        obs.append(o)
+    if you:
+        # la canna giocattolo: un bastoncino giallo col mulinello rosso, il filo e il pesciolino di plastica
+        hand = np.array(hand_r)
+        tip = hand + fwd * 0.55 + right * 0.25 + np.array((0, 0, 0.45))
+        rod = tube(f'KidRod{i}', [tuple(hand - (tip - hand) * 0.25), tuple(tip)], 0.008, n=8, col=COL)
+        rod.data.materials.append(_mat('ToyRod', (0.95, 0.75, 0.10), rough=0.4))
+        reel = sphere(f'KidReel{i}', 0.03, tuple(hand + np.array((0, 0, -0.03))), segs=12, rings=8, col=COL)
+        reel.data.materials.append(_mat('ToyReel', (0.85, 0.08, 0.06), rough=0.35))
+        bob = tip + np.array((0, 0, -0.55))
+        line = tube(f'KidLine{i}', [tuple(tip), tuple(bob)], 0.0015, n=4, col=COL)
+        line.data.materials.append(_mat('ToyLine', (0.9, 0.9, 0.9), rough=0.5))
+        fish = sphere(f'KidFish{i}', 0.04, tuple(bob), segs=12, rings=8, col=COL, scale=(1.0, 0.4, 0.6))
+        fish.data.materials.append(_mat('ToyFish', (0.95, 0.45, 0.10), rough=0.35))
+        obs += [rod, reel, line, fish]
+        for o in obs[-4:]:
+            set_lightgroup(o, 'ambient')
+    return obs, np.array(P(0, head))
+
+
+def foto_1997(path):
+    """La foto della Night Splash, sera del 1997: render vero della scena del parco (l'ingresso con lo striscione, le
+    luci accese) col flash della macchinetta, poi resa come una stampa di allora: colori caldi e slavati, il flash che
+    brucia i primi piani, grana, angoli più scuri, i volti dei tre bambini scomparsi sbiaditi fino al bianco, e la data
+    arancione stampata nell'angolo."""
+    import binocolo
+    import jobs
+    from bpy_extras.object_utils import world_to_camera_view
+    jobs.build_scene(fish=0, rod=False)
+    binocolo.lore_banner()
+    for o in jobs.coll_objects('boat'):
+        o.hide_render = True
+    (gx, gy, gz), rz = binocolo._gate()
+    fwd = np.array((math.sin(rz), -math.cos(rz), 0.0))
+    right = np.array((math.cos(rz), math.sin(rz), 0.0))
+    gate = np.array((gx, gy, gz))
+    heads = []
+    for i, (lx, H, shirt, shorts, hair, you) in enumerate(BAMBINI):
+        base = gate + fwd * 17.8 + right * lx * 0.9
+        base[2] = gz + 0.02
+        # in posa, girati verso chi scatta (un poco di sbieco)
+        _, hc = bambino(i, tuple(base), right, fwd, H, shirt, shorts, hair, you)
+        heads.append((hc, you))
+    cam_p = gate + fwd * 21.0 + np.array((0, 0, 1.05))
+    cam = perspective_camera(tuple(cam_p), tuple(gate + np.array((0.0, 0.0, 5.2))), lens=26.0, name='Kodak')
+    # il flash: una luce piccola e forte accanto all'obiettivo
+    fl = bpy.data.lights.new('Flash', 'SPOT')
+    fl.energy = 900.0
+    fl.spot_size = math.radians(80)
+    fl.spot_blend = 0.6
+    fl.shadow_soft_size = 0.02
+    fo = bpy.data.objects.new('Flash', fl)
+    collection(COL).objects.link(fo)
+    fo.location = tuple(cam_p + right * 0.06 + np.array((0, 0, 0.05)))
+    fo.rotation_mode = 'QUATERNION'
+    fo.rotation_quaternion = cam.rotation_quaternion.copy()
+    set_lightgroup(fo, 'ambient')
+    W, H = (900, 600) if not FINALE else (1500, 1000)
+    exr = os.path.join(TEX, 'foto_1997.exr')
+    render(exr, 24 if not FINALE else 96, (W, H), data_passes=())
+    p = post.read_exr(exr)
+    lin = sum(post.rgb(p[k]) for k in ('ambient', 'lamp', 'lantern') if k in p)
+    img = post.tonemap(lin, exposure_ev=0.9)
+    # i colori di una stampa del 1997 che è stata al sole: caldi, slavati, i neri che non sono neri
+    l = (img * np.array([0.2126, 0.7152, 0.0722])).sum(-1, keepdims=True)
+    img = l + (img - l) * 0.78
+    img = 0.06 + img * 0.9
+    img = img * np.array([1.06, 0.98, 0.84]) + np.array([0.02, 0.0, -0.01])
+    # i volti dei tre che non sono tornati, sbiaditi fino al bianco (come le foto dell'edicola)
+    sc = bpy.context.scene
+    face = np.zeros(img.shape[:2], np.float32)
+    yy, xx = np.mgrid[0:H, 0:W]
+    for hc, you in heads:
+        if you:
+            continue
+        q = world_to_camera_view(sc, cam, Vector(tuple(hc)))
+        cx, cy = q.x * W, (1 - q.y) * H
+        r = 0.13 / max(q.z, 0.1) * (W / 2) / math.tan(math.radians(36.87) / 2) * 0.6
+        face = np.maximum(face, np.exp(-(((xx - cx) / (r * 0.95)) ** 2 + ((yy - cy) / (r * 1.15)) ** 2) ** 1.6))
+    img = img * (1 - face[..., None]) + np.array([0.93, 0.91, 0.86]) * face[..., None]
+    rr = np.hypot((xx - W / 2) / (W / 2), (yy - H / 2) / (H / 2))
+    img = img * (1 - 0.30 * np.clip(rr - 0.5, 0, 1) ** 1.4)[..., None]
+    img = img + np.random.default_rng(97).normal(0, 0.018, img.shape)
+    im = Image.fromarray((np.clip(img, 0, 1) * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(1.1))
+    # la data stampata dalla macchinetta, arancione, in basso a destra
+    from PIL import ImageFont
+    d = ImageDraw.Draw(im)
+    fnt = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf', int(H * 0.045))
+    txt = "'97 7 26"
+    tw = d.textlength(txt, font=fnt)
+    glow = Image.new('L', im.size, 0)
+    ImageDraw.Draw(glow).text((W - tw - W * 0.05, H * 0.88), txt, font=fnt, fill=255)
+    glow = glow.filter(ImageFilter.GaussianBlur(2.5))
+    a = np.asarray(im).astype(np.float32)
+    g = np.asarray(glow).astype(np.float32)[..., None] / 255.0
+    a = a * (1 - 0.35 * g) + np.array([255, 120, 30]) * 0.35 * g
+    im = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
+    ImageDraw.Draw(im).text((W - tw - W * 0.05, H * 0.88), txt, font=fnt, fill=(255, 150, 60))
+    im = im.filter(ImageFilter.GaussianBlur(0.5))
+    im.save(path)
+    return path
+
+
+def scena_ricordo():
+    """Sul banco di prua, all'alba: la foto del 1997 lasciata dalla Madre, bagnata, accanto al secchio vuoto; dove l'ha
+    posata, una pozza d'acqua e un filo della sua melma."""
+    os.makedirs(TEX, exist_ok=True)
+    foto = os.path.join(TEX, 'foto_1997.png')
+    if not (os.environ.get('FINALI_RIUSA_FOTO') and os.path.exists(foto)):
+        foto_1997(foto)
+    import boat
+    import jobs
+    jobs.build_scene(fish=0, rod=True)
+    for n in ('Moon',):
+        o = bpy.data.objects.get(n)
+        if o:
+            bpy.data.objects.remove(o)
+    dawn_sky(Vector((-0.55, -0.80, 0.16)))
+    z = boat.BENCH_TOP + 0.002
+    c = Vector((0.10, 0.93, z))
+    # la stampa 15×10, un poco storta, appena incurvata dall'acqua
+    rot = math.radians(-14)
+    r = Vector((math.cos(rot), math.sin(rot), 0.0))
+    u = Vector((-math.sin(rot), math.cos(rot), 0.0))
+    m, g = material('Foto1997')
+    col, _ = g.image(foto, g.texcoord('UV'), extension='CLIP')
+    co = g.texcoord('Object')
+    wet = g.smoothstep(0.45, 0.7, g.noise(co, scale=6.0, detail=3.0).fac)
+    g.output_material(g.principled(color=col, rough=g.mixf(wet, 0.25, 0.05), coat=g.add(0.4, g.mul(wet, 0.6)), coat_rough=0.02))
+    import binocolo
+    ph = binocolo.quad('Foto1997', tuple(c), tuple(r), tuple(u), 0.15, 0.10, m, sag=-0.003, segs=16)
+    for o in (ph,):
+        set_lightgroup(o, 'ambient')
+    # la pozza d'acqua sotto e attorno, lucida, e qualche goccia sulla foto
+    pm, pg = material('Pozza')
+    pco = pg.texcoord('Object')
+    edge = pg.smoothstep(0.42, 0.55, pg.noise(pco, scale=5.0, detail=4.0).fac)
+    pg.output_material(pg.principled(color=(0.05, 0.06, 0.06), rough=0.03, alpha=edge, transmission=0.0))
+    pool = binocolo.quad('Pozza', tuple(c + Vector((0.02, -0.02, -0.0015))), tuple(r), tuple(u), 0.32, 0.22, pm, segs=8)
+    set_lightgroup(pool, 'ambient')
+    rng = np.random.default_rng(14)
+    drops = []
+    for k in range(9):
+        p = c + r * rng.uniform(-0.07, 0.07) + u * rng.uniform(-0.045, 0.045) + Vector((0, 0, 0.002))
+        o = sphere('Goccia', rng.uniform(0.003, 0.007), tuple(p), segs=12, rings=8, col=COL, scale=(1, 1, 0.45))
+        drops.append(o)
+    dm = _mat('Goccia', (1.0, 1.0, 1.0), rough=0.0, ior=1.33, transmission=1.0)
+    for o in drops:
+        o.data.materials.append(dm)
+        set_lightgroup(o, 'ambient')
+    eye = Vector((0.02, 0.05, 1.02))
+    cam = perspective_camera(tuple(eye), tuple(c + Vector((0.02, 0.0, 0.0))), lens=58.0, name='RicordoCam')
+    cam.data.dof.use_dof = True
+    cam.data.dof.focus_distance = (c - eye).length
+    cam.data.dof.aperture_fstop = 3.2
+    return {'ev': 0.3, 'haze': (0.30, 0.22, 0.24), 'haze_amt': 0.0, 'groups': ('ambient',)}
+
+
 # ═════════════════════════ render ═════════════════════════
 
-SCENES = {'molo': scena_molo, 'edicola': scena_edicola}
+SCENES = {'molo': scena_molo, 'edicola': scena_edicola, 'ricordo': scena_ricordo}
 
 
 def run(key):
