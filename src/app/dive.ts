@@ -19,6 +19,7 @@ import { apply, wrap180 } from '../engine/view.ts';
 import type { NightMonster as NightMonster } from '../game/config.ts';
 import { STRINGS, type Lang } from '../i18n.ts';
 import { DiveRun, type DiveData, type DiveLink, type DivePano, type DivePlace } from './dive_run.ts';
+import { badge, dualText, pad } from './pad.ts';
 import type { Options } from './save.ts';
 import type { Stage } from './stage.ts';
 
@@ -181,14 +182,18 @@ export class Dive {
     this.spotsEl = el('div', 'dive-spots');
     this.buttonsEl = el('div', 'dive-buttons');
     this.capEl = el('div', 'dive-cap');
-    this.hintEl = el('div', 'hud-hint', S.dive.hint);
+    this.hintEl = el('div', 'hud-hint');
+    dualText(this.hintEl, S.dive.hint, S.pad.diveHint);
     const up = el('button', 'dive-up', S.dive.ascend);
     up.type = 'button';
+    // col controller: Y per risalire
+    up.append(badge('Y'));
     up.addEventListener('click', (e) => {
       e.stopPropagation();
       this.ascend();
     });
-    this.root.append(this.spotsEl, this.buttonsEl, this.capEl, this.hintEl, up);
+    // col controller si sceglie col centro dello schermo: il mirino
+    this.root.append(this.spotsEl, this.buttonsEl, this.capEl, this.hintEl, up, el('div', 'dive-reticle'));
     d.ui.appendChild(this.root);
   }
 
@@ -295,6 +300,8 @@ export class Dive {
         // un tasto sullo schermo (nelle inquadrature fisse, «torna alla grotta»)
         const b = el('button', 'dive-back', label ?? '←');
         b.type = 'button';
+        // col controller: B
+        b.append(badge('B'));
         b.addEventListener('click', (e) => {
           e.stopPropagation();
           if (!this.confirmEl) this.follow(l);
@@ -426,6 +433,8 @@ export class Dive {
     const yes = el('button', '', S.offerYes);
     const no = el('button', '', S.offerNo);
     yes.type = no.type = 'button';
+    // col controller: A sul pulsante scelto, B per «No» (src/app/padnav.ts)
+    no.dataset.back = '';
     yes.addEventListener('click', (e) => {
       e.stopPropagation();
       this.closeConfirm();
@@ -506,7 +515,28 @@ export class Dive {
     this.time += dt;
     const st = this.d.stage;
     const v = st.view;
-    // sguardo: bordi dello schermo, A/D, W/S (anche in su e in giù, per vedere la luce e il fondo)
+    // il controller: A sul passaggio nel mirino, B il tasto «torna indietro», Y risali (la conferma del pesce la
+    // comandano i menu, src/app/padnav.ts)
+    let padSpin = 0, padTilt = 0;
+    if (!this.confirmEl && this.phase !== 'ascend' && this.phase !== 'done') {
+      if (pad.active) this.edgeArmed = false;
+      if (this.phase === 'look') {
+        const h = this.hover;
+        if (pad.pressed('A') && h) {
+          if (h.sleeper) this.offer();
+          else if (h.link) this.follow(h.link);
+        }
+        if (pad.pressed('B')) this.buttonsEl.querySelector<HTMLButtonElement>('.dive-back')?.click();
+      }
+      if (pad.pressed('Y')) this.ascend();
+      [padSpin, padTilt] = pad.look();
+      padTilt = -padTilt;
+      if (pad.down('Left')) padSpin = -1;
+      if (pad.down('Right')) padSpin = 1;
+      if (pad.down('Up')) padTilt = 1;
+      if (pad.down('Down')) padTilt = -1;
+    }
+    // sguardo: bordi dello schermo, A/D, W/S (anche in su e in giù, per vedere la luce e il fondo), il controller
     if (!this.confirmEl && this.phase !== 'ascend') {
       const edge = 0.2;
       let spin = 0, tilt = 0;
@@ -522,6 +552,8 @@ export class Dive {
       if (k.has('d') || k.has('arrowright')) spin = 1;
       if (k.has('w') || k.has('arrowup')) tilt = 1;
       if (k.has('s') || k.has('arrowdown')) tilt = -1;
+      if (padSpin) spin = padSpin;
+      if (padTilt) tilt = padTilt;
       // sott'acqua ci si gira più piano che sulla barca
       v.targetYaw += spin * 110 * this.d.options.sensitivity * dt;
       v.pitch = Math.max(-60, Math.min(60, v.pitch + tilt * 60 * this.d.options.sensitivity * dt));
@@ -611,8 +643,11 @@ export class Dive {
     const v = this.d.stage.view;
     const look = this.phase === 'look' && !this.confirmEl;
     let best: Spot | null = null;
-    if (look && this.mouse.inside) {
-      const m = apply(v.motion, v.unproject(this.mouse.x, 1 - this.mouse.y));
+    // col controller conta il mirino in mezzo allo schermo
+    const usePad = pad.active;
+    if (look && (this.mouse.inside || usePad)) {
+      const [px, py] = usePad ? [0.5, 0.5] : [this.mouse.x, this.mouse.y];
+      const m = apply(v.motion, v.unproject(px, 1 - py));
       let bestA = Infinity;
       for (const s of this.spots) {
         const a = angle(m, s.dir);

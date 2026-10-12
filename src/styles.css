@@ -342,3 +342,33 @@ html, body {
 .dive-buttons { position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); display: flex; gap: 14px; }
 .dive-back { pointer-events: auto; background: none; border: 1px solid rgba(160,230,220,.45); color: #bfe9e2; font: inherit; font-size: 14px; letter-spacing: .25em; text-transform: uppercase; padding: 8px 16px; cursor: pointer; }
 .dive-back:hover { border-color: #bfe9e2; color: #fff; }
+
+/* ── controller (src/app/pad.ts, padnav.ts): la selezione, i tastini, la legenda, il mirino delle immersioni ── */
+/* i tastini col simbolo del controller: solo col controller in uso */
+.pad-badge { display: none; }
+html.pad .pad-badge {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 1.7em; height: 1.7em; padding: 0 .35em; margin: 0 .45em;
+  border: 1px solid currentColor; border-radius: .85em; font-family: system-ui, sans-serif; font-size: calc(13px * var(--ts)); font-weight: 600;
+  letter-spacing: 0; line-height: 1; vertical-align: middle; opacity: .85;
+}
+/* la selezione col controller: ben visibile anche da lontano (Steam Deck in mano, TV) */
+html.pad #ui .screen :is(button, input, [data-pad-focus]):focus,
+html.pad #ui .dive-confirm button:focus {
+  color: var(--amber); opacity: 1; outline: 2px solid var(--amber); outline-offset: 3px; border-radius: 6px;
+  box-shadow: 0 0 18px rgba(255,179,92,.45); background: rgba(255,179,92,.10);
+}
+html.pad #ui .screen .menu button:focus::before { content: '▸ '; }
+/* la legenda «A Scegli · B Indietro» in basso a destra, nei menu */
+.pad-legend { display: none; }
+html.pad #ui:has(.screen button) .pad-legend {
+  display: flex; gap: 22px; position: fixed; right: 24px; bottom: 18px; z-index: 50; pointer-events: none;
+  font-size: calc(15px * var(--ts)); letter-spacing: .12em; text-transform: uppercase; color: var(--dim);
+}
+/* il mirino delle immersioni: col controller si sceglie il passaggio al centro dello schermo */
+.dive-reticle { display: none; }
+html.pad .dive-reticle {
+  display: block; position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px;
+  border: 2px solid rgba(191,233,226,.75); border-radius: 50%; box-shadow: 0 0 6px rgba(0,0,0,.6);
+}
+/* dove B non torna indietro (il titolo, i risultati) la legenda non lo dice */
+html.pad #ui:not(:has(.screen [data-back])) .pad-legend span:last-child { display: none; }

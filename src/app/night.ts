@@ -15,6 +15,7 @@ import { NightSim, type MotherCause } from '../game/sim.ts';
 import { FISH_BY_ID } from '../game/catalog.ts';
 import { LORE_TEXT, RADIO, RADIO_FINALE, STRINGS, type Lang, type RadioLine } from '../i18n.ts';
 import { Hud } from './hud.ts';
+import { dualText, pad } from './pad.ts';
 import type { Options } from './save.ts';
 import type { Sfx } from './sfx.ts';
 import { FINALE_A, between, sample, textAt, type CinematicScript } from './cinematic.ts';
@@ -299,6 +300,8 @@ export class Night {
   private binoPitch = 2.5;
   private turnArmed = true;
   private reelByMouse = false;
+  /** il recupero tenuto col grilletto destro del controller */
+  private reelByPad = false;
   private hoverTarget: Target = null;
   // stato visivo (morbido)
   private v = { gSale: 0, gRise: 0, gPret: 0, mR: 0, mL: 0, hRise: 0, robin: 0, robinFear: 0, robinBlink: 0,
@@ -372,7 +375,7 @@ export class Night {
     this.sonarEl.appendChild(this.sonar.canvas);
     const close = document.createElement('div');
     close.className = 'sonar-close';
-    close.textContent = this.S.sonarClose;
+    dualText(close, this.S.sonarClose, this.S.pad.sonarClose);
     this.sonarEl.appendChild(close);
     d.ui.appendChild(this.sonarEl);
     this.sonar.onPing = () => d.audio.play('sonar_ping', { pos: [0.3, -1.42, -0.5], gain: 0.25 });
@@ -446,10 +449,16 @@ export class Night {
     this.paused = p;
     this.held.clear();
     this.mouse.down = false;
+    this.reelByPad = false;
     this.sim.setReelHeld(false);
   }
 
   // ───────────────────────── input ─────────────────────────
+
+  /** Il recupero è tenuto: Spazio, il clic sulla canna o il grilletto destro. */
+  private reelHeld(): boolean {
+    return this.held.has(' ') || (this.mouse.down && this.reelByMouse) || this.reelByPad;
+  }
 
   private on(t: EventTarget, ev: string, fn: (e: Event) => void): void {
     t.addEventListener(ev, fn as EventListener);
@@ -462,11 +471,12 @@ export class Night {
     this.on(window, 'keyup', (e) => {
       const k = (e as KeyboardEvent).key.toLowerCase();
       this.held.delete(k);
-      if (k === ' ') this.sim.setReelHeld(this.mouse.down && this.reelByMouse);
+      if (k === ' ') this.sim.setReelHeld(this.reelHeld());
     });
     this.on(window, 'blur', () => {
       this.held.clear();
       this.mouse.down = false;
+      this.reelByPad = false;
       this.sim.setReelHeld(false);
     });
     this.on(c, 'mousemove', (e) => {
@@ -490,7 +500,7 @@ export class Night {
       this.mouse.down = false;
       if (this.reelByMouse) {
         this.reelByMouse = false;
-        this.sim.setReelHeld(this.held.has(' '));
+        this.sim.setReelHeld(this.reelHeld());
       }
     });
     this.on(c, 'wheel', (e) => {
@@ -576,6 +586,83 @@ export class Night {
         this.raiseBino(!this.binoUp);
         break;
     }
+  }
+
+  /**
+   * Il controller (src/app/pad.ts), un fotogramma: gli stessi comandi della tastiera e del mouse. Torna di quanto
+   * girare e inclinare lo sguardo (stick, −1..1; con la croce col binocolo alzato).
+   *   RT lancia, ferra e (tenuto) recupera · LT (tenuto) o B il binocolo · LB e RB la luce (col binocolo lo zoom)
+   *   A il telone · X il pesce · Y il sonar · croce: voltarsi di scatto · R3 voltarsi indietro · Start la pausa
+   */
+  private padControls(): [number, number] {
+    const p = pad;
+    if (this.cine) {
+      // la cinematica di un finale: A, B o Start la saltano
+      if (p.pressed('A') || p.pressed('B') || p.pressed('Start')) this.skipCinematic();
+      return [0, 0];
+    }
+    if (p.pressed('Start')) {
+      // lo stesso Start non deve anche riprendere dalla pausa appena aperta
+      p.consume();
+      if (!this.finished) this.d.onPause();
+      return [0, 0];
+    }
+    // il grilletto lasciato smette di recuperare anche a notte finita
+    if (this.reelByPad && !p.down('RT')) {
+      this.reelByPad = false;
+      this.sim.setReelHeld(this.reelHeld());
+    }
+    if (p.released('LT')) this.binoUp = false;
+    if (this.finished || this.js) return [0, 0];
+    // col controller in mano il mouse rimasto fermo sul bordo dello schermo non gira più lo sguardo
+    if (p.active) this.edgeArmed = false;
+    const bino = this.bino > 0.5;
+    if (p.pressed('RT')) {
+      if (this.sonarOpen) this.toggleSonar(false);
+      this.sim.pressRod();
+      this.reelByPad = true;
+      this.sim.setReelHeld(true);
+    }
+    if (p.pressed('X')) this.sim.throwFish();
+    if (p.pressed('A')) this.hideToggle();
+    if (p.pressed('Y')) this.toggleSonar();
+    if (p.pressed('B')) {
+      if (this.sonarOpen) this.toggleSonar(false);
+      else this.raiseBino(!this.binoUp);
+    }
+    if (p.pressed('LT')) this.raiseBino(true);
+    // LB e RB come la rotella: la luce giù e su; col binocolo lo zoom
+    if (p.pressed('LB')) {
+      if (bino) this.binoFov = 9;
+      else this.setLamp(this.sim.lamp - 1);
+    }
+    if (p.pressed('RB')) {
+      if (bino) this.binoFov = 4.5;
+      else this.setLamp(this.sim.lamp + 1);
+    }
+    if (p.pressed('R3')) this.turn();
+    let [spin, tilt] = p.look();
+    tilt = -tilt;
+    if (bino) {
+      // col binocolo la croce gira e inclina piano, come W A S D
+      if (p.down('Left')) spin = -1;
+      if (p.down('Right')) spin = 1;
+      if (p.down('Up')) tilt = 1;
+      if (p.down('Down')) tilt = -1;
+    } else {
+      // la croce: voltarsi di scatto verso prua, a sinistra, verso poppa, a destra (come W A S D)
+      if (p.pressed('Up')) this.face(YAW.bow);
+      if (p.pressed('Left')) this.face(-90);
+      if (p.pressed('Down')) this.face(YAW.stern);
+      if (p.pressed('Right')) this.face(90);
+    }
+    return [spin, tilt];
+  }
+
+  /** Il suggerimento `k` coi tasti del controller, se è quello in uso (e se il testo ne parla). */
+  private hintText(k: keyof (typeof STRINGS)['it']['hints']): string {
+    const padText = pad.active ? this.S.pad.hints[k] : undefined;
+    return padText ? pad.glyphs(padText) : this.S.hints[k];
   }
 
   /** Alza o abbassa il binocolo; alzandolo vicino a un luogo lo sguardo si centra su di lui. */
@@ -699,6 +786,9 @@ export class Night {
     const view = st.view;
     if (this.paused) return;
     const sim = this.sim;
+    const [padSpin, padTilt] = this.padControls();
+    // (il controller può aver messo in pausa)
+    if (this.paused) return;
 
     // sguardo
     if (!this.js && sim.hide === 'out' && !this.sonarOpen && !this.finished) {
@@ -713,6 +803,8 @@ export class Night {
       // le frecce girano piano; A e D solo col binocolo (senza, voltano di scatto: keyDown)
       if ((this.bino > 0.5 && this.held.has('a')) || this.held.has('arrowleft')) spin = -1;
       if ((this.bino > 0.5 && this.held.has('d')) || this.held.has('arrowright')) spin = 1;
+      // lo stick del controller (morbido: pad.look); fermo, non toglie niente al mouse e alla tastiera
+      if (padSpin) spin = padSpin;
       // col binocolo si gira piano, in proporzione allo zoom; su e giù coi bordi alto e basso
       const zoomK = this.bino > 0 ? view.hfov / 90 : 1;
       view.targetYaw += spin * 150 * this.d.options.sensitivity * dt * zoomK;
@@ -725,6 +817,7 @@ export class Night {
         }
         if (this.held.has('w') || this.held.has('arrowup')) tilt = 1;
         if (this.held.has('s')) tilt = -1;
+        if (padTilt) tilt = padTilt;
         this.binoPitch = Math.max(-8, Math.min(12, this.binoPitch + tilt * 30 * zoomK * dt));
         // vicino a un luogo, quando smetti di girare lo sguardo ci scivola sopra da solo (centrarlo a mano è scomodo, e
         // fuori dal luogo si vede il panorama lontano, che da vicino è sgranato)
@@ -812,6 +905,7 @@ export class Night {
         break;
       case 'bite':
         this.biteAt = this.sim.time;
+        pad.rumble('bite');
         a.play(Math.random() < 0.5 ? 'rod_bell_1' : 'rod_bell_2', { pos: this.d.stage.man.points.rodTip });
         this.ripple(0.6, 0);
         this.rod.kick(4);
@@ -1343,6 +1437,7 @@ export class Night {
     if (this.sonarOpen) this.toggleSonar(false);
     const reduce = this.d.options.reduceFlash;
     this.js = { killer, t: 0, yaw, scream: this.d.sfx.jumpscare(killer) };
+    pad.rumble('scare');
     this.d.stage.view.shake = reduce ? 0.6 : 3.2;
     this.loops.heart?.stop(0.1);
     this.loops.heart = null;
@@ -1934,9 +2029,9 @@ export class Night {
   private biteHint(): string {
     const sim = this.sim;
     const l = sim.cfg.lampy;
-    if (!l) return this.S.hints.hook;
-    if (sim.fishing.fake) return sim.lampy?.holding && sim.lampy.beats >= 2 ? this.S.hints.lampy : '';
-    return sim.time - this.biteAt >= LAMPY_FIRST_BEAT + l.beat ? this.S.hints.hook : '';
+    if (!l) return this.hintText('hook');
+    if (sim.fishing.fake) return sim.lampy?.holding && sim.lampy.beats >= 2 ? this.hintText('lampy') : '';
+    return sim.time - this.biteAt >= LAMPY_FIRST_BEAT + l.beat ? this.hintText('hook') : '';
   }
 
   /** Di quanto è sotto il pelo dell'acqua una creatura in mare (r = 1 tutta fuori): a r = 0 la cima è scesa fino
@@ -2715,34 +2810,34 @@ export class Night {
     hud.reel(f.phase === 'reeling' && sim.hide === 'out' && !this.finished, f.tension, f.progress, f.strain);
     // il nome di ciò che sta sotto il puntatore
     let target: Target = null;
-    if (sim.hide === 'out' && !this.sonarOpen && !this.js && this.mouse.inside) target = this.targetAt(this.mouse.x, this.mouse.y);
+    if (sim.hide === 'out' && !this.sonarOpen && !this.js && this.mouse.inside && !pad.active) target = this.targetAt(this.mouse.x, this.mouse.y);
     if (target !== this.hoverTarget) {
       this.hoverTarget = target;
       this.d.canvas.style.cursor = target ? 'pointer' : 'crosshair';
     }
     const label = target ? S.labels[target] : '';
     hud.hover(label, this.mouse.x * innerWidth, this.mouse.y * innerHeight);
-    hud.showTurn(sim.hide === 'out' && !this.js && !this.finished && this.mouse.inside && this.mouse.y > 0.88);
+    hud.showTurn(sim.hide === 'out' && !this.js && !this.finished && this.mouse.inside && !pad.active && this.mouse.y > 0.88);
     hud.setVisible(!this.js);
     // suggerimenti della prima notte
     let hint = '';
     if (!this.finished && !this.js) {
       const mo = sim.mother;
-      if (mo && (mo.state === 'passing' || (mo.state === 'approaching' && mo.stateTime > 3.5))) hint = S.hints.mother;
-      else if (sim.hide === 'in') hint = S.hints.unhide;
-      else if (sim.fangy?.listening) hint = S.hints.fangy;
-      else if (sim.hatch.state === 'counting') hint = S.hints.hide;
-      else if (sim.gulpy.canBeFed && sim.fish > 0) hint = sim.facing(YAW.bow, VIEW.bowHalfAngle) ? S.hints.throw : '';
-      else if (sim.robin?.present && !sim.blackout) hint = S.hints.robin;
-      else if (sim.archie?.state === 'inhaling' && sim.lamp > 0) hint = S.hints.archie;
-      else if (sim.archie?.state === 'waiting') hint = S.hints.archieWait;
-      else if (sim.foxy?.state === 'gone' && this.bino > 0.5) hint = S.hints.foxyGone;
-      else if (sim.foxy && sim.foxy.stage !== null && !sim.foxy.everSeen) hint = S.hints.foxy;
+      if (mo && (mo.state === 'passing' || (mo.state === 'approaching' && mo.stateTime > 3.5))) hint = this.hintText('mother');
+      else if (sim.hide === 'in') hint = this.hintText('unhide');
+      else if (sim.fangy?.listening) hint = this.hintText('fangy');
+      else if (sim.hatch.state === 'counting') hint = this.hintText('hide');
+      else if (sim.gulpy.canBeFed && sim.fish > 0) hint = sim.facing(YAW.bow, VIEW.bowHalfAngle) ? this.hintText('throw') : '';
+      else if (sim.robin?.present && !sim.blackout) hint = this.hintText('robin');
+      else if (sim.archie?.state === 'inhaling' && sim.lamp > 0) hint = this.hintText('archie');
+      else if (sim.archie?.state === 'waiting') hint = this.hintText('archieWait');
+      else if (sim.foxy?.state === 'gone' && this.bino > 0.5) hint = this.hintText('foxyGone');
+      else if (sim.foxy && sim.foxy.stage !== null && !sim.foxy.everSeen) hint = this.hintText('foxy');
       else if (f.phase === 'bite') hint = this.biteHint();
-      else if (f.phase === 'reeling') hint = S.hints.reel;
+      else if (f.phase === 'reeling') hint = this.hintText('reel');
       else if (sim.molly.present || sim.gulpy.present) hint = '';
-      else if (f.phase === 'idle' && sim.facing(YAW.rod, VIEW.rodHalfAngle) && sim.landedCount < 2) hint = S.hints.cast;
-      else if (sim.time < 25 && !sim.facing(YAW.rod, VIEW.rodHalfAngle)) hint = S.look;
+      else if (f.phase === 'idle' && sim.facing(YAW.rod, VIEW.rodHalfAngle) && sim.landedCount < 2) hint = this.hintText('cast');
+      else if (sim.time < 25 && !sim.facing(YAW.rod, VIEW.rodHalfAngle)) hint = pad.active ? pad.glyphs(S.pad.look) : S.look;
     }
     hud.hint(hint);
     // la radio: i sottotitoli spariscono da soli se non c'è chiamata in corso
