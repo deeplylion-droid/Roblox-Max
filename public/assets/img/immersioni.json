@@ -587,11 +587,11 @@
       "passes": {
        "ambient": {
         "file": "immersioni/tana_archie_posa_ambient.webp",
-        "scale": 0.74
+        "scale": 0.71
        },
        "lantern": {
         "file": "immersioni/tana_archie_posa_lantern.webp",
-        "scale": 0.32
+        "scale": 0.26
        }
       },
       "rect": [
@@ -605,11 +605,11 @@
       "passes": {
        "ambient": {
         "file": "immersioni/tana_archie_respiro_ambient.webp",
-        "scale": 0.75
+        "scale": 0.73
        },
        "lantern": {
         "file": "immersioni/tana_archie_respiro_lantern.webp",
-        "scale": 0.32
+        "scale": 0.27
        }
       },
       "rect": [
