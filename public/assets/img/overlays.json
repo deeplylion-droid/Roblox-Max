@@ -280,6 +280,44 @@
     }
    ]
   },
+  "madre": {
+   "aspect": 1.7778,
+   "fps": 10,
+   "frames": [
+    {
+     "file": "js_madre_00.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_madre_01.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_madre_02.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_madre_03.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_madre_04.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_madre_05.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_madre_06.webp",
+     "scale": 0.25
+    },
+    {
+     "file": "js_madre_07.webp",
+     "scale": 0.25
+    }
+   ]
+  },
   "molly": {
    "aspect": 1.7778,
    "fps": 10,
