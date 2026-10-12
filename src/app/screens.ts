@@ -43,6 +43,29 @@ function button(label: string, onClick: () => void, kind: 'click' | 'back' | 'st
   return b;
 }
 
+/** Le due bombole da sub, a linee nel colore del testo: davanti a «Scendi con le bombole» (prova dell'utente del 12
+ *  ottobre: «il simbolo delle bombole affianco alla scritta»). */
+function tanksIcon(): SVGSVGElement {
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('class', 'icona');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.innerHTML =
+    '<g fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">' +
+    '<rect x="4.5" y="7" width="6" height="14.5" rx="3"/><rect x="13.5" y="7" width="6" height="14.5" rx="3"/>' +
+    '<path d="M4.5 12.5h15"/><path d="M7.5 7V4.5M16.5 7V4.5M6.5 4.5h11"/>' +
+    '<path d="M17.5 4.5c3 0 4.5 2 4.5 4.5s-1 4-2.5 5"/></g>';
+  return svg;
+}
+
+/** Il pulsante della discesa, con le bombole davanti. */
+function diveButton(label: string, onClick: () => void): HTMLButtonElement {
+  const b = button(label, onClick, 'start');
+  b.prepend(tanksIcon());
+  return b;
+}
+
 /** B (col controller) preme questo pulsante: tornare indietro. Col controller in uso ci compare accanto il tasto. */
 function backKey<T extends HTMLElement>(b: T): T {
   b.dataset.back = '';
@@ -570,7 +593,7 @@ export class Screens {
   dawn(o: { spare: number; drawing?: string | null; onDive: () => void; onNext: () => void; onMenu: () => void }): void {
     const S = this.S;
     const stats = h('div', { class: 'stats' }, h('div', {}, h('span', {}, S.results.spare), h('b', {}, String(o.spare))));
-    const menu = h('div', { class: 'menu' }, button(S.dive.descend, o.onDive, 'start'), button(S.nextNight, o.onNext, 'start'), button(S.menu, o.onMenu, 'back'));
+    const menu = h('div', { class: 'menu' }, diveButton(S.dive.descend, o.onDive), button(S.nextNight, o.onNext, 'start'), button(S.menu, o.onMenu, 'back'));
     const parts: Node[] = [h('h2', {}, `${S.sixAm} · ${S.survived}`), stats, menu];
     this.show(this.withDrawing('screen dawn fade-in', parts, o.drawing));
   }
@@ -612,7 +635,7 @@ export class Screens {
     if (o.won && o.spare !== undefined) stats.append(h('div', {}, h('span', {}, S.results.spare), h('b', {}, String(o.spare))));
     const menu = h('div', { class: 'menu' });
     if (!o.won) menu.append(button(S.retry, o.onRetry, 'start'));
-    if (o.won && o.onDive) menu.append(button(S.dive.descend, o.onDive, 'start'));
+    if (o.won && o.onDive) menu.append(diveButton(S.dive.descend, o.onDive));
     if (o.won && o.onNext) menu.append(button(S.nextNight, o.onNext, 'start'));
     if (o.won && o.onExtra) menu.append(button(S.extraNight, o.onExtra, 'start'));
     if (o.demoEnd && !o.onExtra && o.onWishlist) menu.append(button(S.wishlist, o.onWishlist, 'start'));
