@@ -589,9 +589,10 @@ def job_creature(q):
     fatti = {}
     # le pose di gioco e le toppe delle animazioni (le mascelle, gli occhi di Gulpy, Molly e Hatch)
     poses = {**scena_creature.POSES, **pose_animate.TOPPE}
+    if only:
+        # nell'ordine di POSES=...: una creatura alla volta, base e toppe, così è pronta appena finisce
+        poses = {k: poses[k] for k in only}
     for key, voce in poses.items():
-        if only and key not in only:
-            continue
         fn, space, sea = voce[:3]
         opts = voce[3] if len(voce) > 3 else {}
         before = set(bpy.data.objects.keys())

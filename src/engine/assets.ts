@@ -32,8 +32,9 @@ export interface LayerInfo {
   /** lucine della creatura (dall'occhio del pescatore), in ordine, ognuna con la sua fila (Fangy: il motore le
    *  accende in fila, come un respiro) */
   luci?: { p: Vec3[]; fila: string[] };
-  /** il mondo e la barca senza la nebbia resa (le immagini di prima dell'atmosfera, per l'opzione «Nebbia» spenta):
-   *  gli stessi riquadri, altri file */
+  /** lo strato senza la nebbia resa (le immagini di prima dell'atmosfera, per l'opzione «Nebbia» spenta): il mondo, la
+   *  barca, i mostri e le loro toppe. Gli stessi riquadri, altri file; uno strato senza questa voce è uguale nelle due
+   *  serie */
   senza?: { passes: LayerInfo['passes']; data?: string };
 }
 
@@ -89,11 +90,21 @@ async function bitmap(url: string): Promise<ImageBitmap> {
   return createImageBitmap(blob, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' });
 }
 
+/** Lo strato nella serie scelta: con senza (l'opzione «Nebbia» spenta) i file della sua serie senza nebbia, se ce l'ha. */
+export function layerSeries(base: LayerInfo, senza: boolean): LayerInfo {
+  return senza && base.senza ? { ...base, passes: base.senza.passes, data: base.senza.data ?? base.data } : base;
+}
+
+/** Gli strati caricati che cambiano con l'opzione «Nebbia»: quelli che hanno la serie senza nebbia. */
+export function fogLayerKeys(man: Manifest, loaded: Iterable<string>): string[] {
+  return [...loaded].filter((k) => !!man.layers[k]?.senza);
+}
+
 /** Carica uno strato; con senza (l'opzione «Nebbia» spenta) prende la sua serie senza nebbia, se ce l'ha. */
 export async function loadLayer(gl: GL, man: Manifest, key: string, senza = false): Promise<LoadedLayer> {
   const base = man.layers[key];
   if (!base) throw new Error(`strato ${key} non presente nel manifest`);
-  const info: LayerInfo = senza && base.senza ? { ...base, passes: base.senza.passes, data: base.senza.data ?? base.data } : base;
+  const info = layerSeries(base, senza);
   const fullPano = info.rect[0] === 0 && info.rect[2] === man.pano.width;
   const wrap = fullPano ? gl.REPEAT : gl.CLAMP_TO_EDGE;
   const load = async (p?: PassInfo) => {

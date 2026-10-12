@@ -63,8 +63,10 @@ async function boot(): Promise<void> {
     const worldExtra = extra.filter((k) => man.layers[k]!.space === 'world');
     const boatExtra = extra.filter((k) => man.layers[k]!.space !== 'world');
     const keys = ['world', ...worldExtra, 'boat', 'rod0', 'fish5', ...boatExtra].filter((k) => man.layers[k]);
+    // ?senza: la serie senza la nebbia resa (l'opzione «Nebbia» spenta), per confrontare le due
+    const senzaV = params.has('senza');
     for (const [i, k] of keys.entries()) {
-      r.addLayer(await loadLayer(r.gl, man, k));
+      r.addLayer(await loadLayer(r.gl, man, k, senzaV));
       screens.loading((i + 1) / keys.length);
     }
     screens.clear();
@@ -93,7 +95,7 @@ async function boot(): Promise<void> {
   const keys = GAME_LAYERS.filter((k) => man.layers[k]);
   const audio = new AudioEngine();
   await audio.load();
-  // l'opzione «Nebbia» spenta: il mondo, la barca, il binocolo e il telone senza la nebbia resa
+  // l'opzione «Nebbia» spenta: gli strati, il binocolo, il telone e i jumpscare senza la nebbia resa (dove c'è la serie)
   const senza = !save.options.fog;
   for (const [i, k] of keys.entries()) {
     r.addLayer(await loadLayer(r.gl, man, k, senza));

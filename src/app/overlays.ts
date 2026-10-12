@@ -36,11 +36,24 @@ interface PlaceFile extends PassFile {
 interface OverlayManifest {
   tarp?: { base: PassFile; glow: PassFile; aspect: number; senza?: { base: PassFile; glow: PassFile } };
   /** i jumpscare: dei mostri, della Madre (notte 6) e della quota mancata (l'occhio della Madre, notti 1-5) */
-  jumpscares?: Partial<Record<MonsterId | 'mother' | 'quota', { frames: PassFile[]; fps: number; aspect: number }>>;
+  jumpscares?: Partial<Record<MonsterId | 'mother' | 'quota', JumpscareFile>>;
   /** i posti del binocolo; dove sta il Foxy anche le sue due viste (fermo, più vicino), con la stessa inquadratura */
   binocular?: { places: PlaceFile[]; rec?: [number, number, number] };
   /** le ultime inquadrature dei finali segreti (tools/render/finali.py): l'esposizione in EV da dare al tono */
   endings?: Partial<Record<EndingStill, PassFile & { aspect: number; exposure?: number }>>;
+}
+
+/** I fotogrammi di un jumpscare; senza: quelli senza la nebbia resa (l'opzione «Nebbia» spenta), le stesse inquadrature. */
+export interface JumpscareFile {
+  frames: PassFile[];
+  fps: number;
+  aspect: number;
+  senza?: { frames: PassFile[] };
+}
+
+/** I fotogrammi di un jumpscare nella serie scelta: senza nebbia solo se ce l'ha (se no è uguale nelle due serie). */
+export function jumpscareFrames(js: JumpscareFile, senza: boolean): PassFile[] {
+  return senza && js.senza?.frames.length ? js.senza.frames : js.frames;
 }
 
 type Place = NightAssets['binocular']['places'][number];
@@ -132,7 +145,18 @@ function proceduralTarp(gl: GL): NightAssets['tarp'] {
   };
 }
 
-/** Gli overlay della notte; con senza (l'opzione «Nebbia» spenta) il binocolo e il telone senza la nebbia resa. */
+/** jumpscare.py scrive la Madre come 'madre' (il nome dei render): nel gioco è 'mother' */
+function jumpscareId(k: string): MonsterId | 'mother' | 'quota' {
+  return (k === 'madre' ? 'mother' : k) as MonsterId | 'mother' | 'quota';
+}
+
+async function loadJumpscare(gl: GL, js: JumpscareFile, senza: boolean): Promise<NightAssets['jumpscares'][MonsterId]> {
+  const frames = await Promise.all(jumpscareFrames(js, senza).map((f) => tex(gl, f)));
+  return { frames, fps: js.fps, aspect: js.aspect };
+}
+
+/** Gli overlay della notte; con senza (l'opzione «Nebbia» spenta) il binocolo, il telone e i jumpscare senza la nebbia
+ *  resa (quelli che ne hanno la serie). */
 export async function loadNightAssets(gl: GL, senza = false): Promise<NightAssets> {
   let man: OverlayManifest = {};
   try {
@@ -169,9 +193,7 @@ export async function loadNightAssets(gl: GL, senza = false): Promise<NightAsset
   for (const [k, js] of Object.entries(man.jumpscares ?? {})) {
     if (!js) continue;
     try {
-      const frames = await Promise.all(js.frames.map((f) => tex(gl, f)));
-      // jumpscare.py scrive la Madre come 'madre' (il nome dei render): nel gioco è 'mother'
-      out.jumpscares[(k === 'madre' ? 'mother' : k) as MonsterId | 'mother' | 'quota'] = { frames, fps: js.fps, aspect: js.aspect };
+      out.jumpscares[jumpscareId(k)] = await loadJumpscare(gl, js, senza);
     } catch (e) {
       console.warn(e);
     }
@@ -188,8 +210,9 @@ export async function loadNightAssets(gl: GL, senza = false): Promise<NightAsset
 }
 
 /**
- * L'opzione «Nebbia» cambiata: rimette i posti del binocolo e il telone della serie scelta, al posto di quelli caricati
- * (anche a notte in corso: la notte li legge da qui a ogni fotogramma). Solo dove le due serie sono diverse.
+ * L'opzione «Nebbia» cambiata: rimette i posti del binocolo, il telone e i jumpscare della serie scelta, al posto di
+ * quelli caricati (anche a notte in corso: la notte li legge da qui a ogni fotogramma). Solo dove le due serie sono
+ * diverse.
  */
 export async function swapFogAssets(gl: GL, assets: NightAssets, senza: boolean): Promise<void> {
   const drop = (t: WebGLTexture | null) => t && gl.deleteTexture(t);
@@ -204,6 +227,18 @@ export async function swapFogAssets(gl: GL, assets: NightAssets, senza: boolean)
       places[i] = fresh;
       drop(old.place.tex);
       for (const f of old.foxy ?? []) drop(f.tex);
+    } catch (e) {
+      console.warn(e);
+    }
+  }
+  for (const [k, js] of Object.entries(overlayMan.jumpscares ?? {})) {
+    if (!js?.senza) continue;
+    const id = jumpscareId(k);
+    try {
+      const fresh = await loadJumpscare(gl, js, senza);
+      const old = assets.jumpscares[id];
+      assets.jumpscares[id] = fresh;
+      for (const f of old?.frames ?? []) drop(f.tex);
     } catch (e) {
       console.warn(e);
     }
