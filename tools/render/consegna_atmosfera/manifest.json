@@ -1,0 +1,38 @@
+{
+ "layers": {
+  "world": {
+   "data": "world_data.webp",
+   "passes": {
+    "ambient": {
+     "file": "world_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "world_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "world_lantern.webp",
+     "res": 0.5,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    0,
+    0,
+    8192,
+    2139
+   ],
+   "space": "world",
+   "yaw": 0.0
+  }
+ },
+ "pano": {
+  "height": 2139,
+  "latMax": 36.0,
+  "latMin": -58.0,
+  "width": 8192
+ }
+}
