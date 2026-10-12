@@ -1019,6 +1019,21 @@ describe('Notte 7, la notte extra', () => {
     expect(wins).toBeGreaterThanOrEqual(18);
   });
 
+  it('Soggy (il Foxy): a 0 non c’è, al 5 è come nella notte 2, più alto è più impaziente; con lui il recupero è più svelto', () => {
+    expect(extraNight(extraLevels(0)).foxy).toBeUndefined();
+    expect(extraNight(extraLevels(0)).reelMul).toBeUndefined();
+    const f5 = extraNight({ ...extraLevels(0), foxy: 5 });
+    expect(f5.foxy).toEqual(NIGHTS[2]!.foxy);
+    expect(f5.reelMul).toBeGreaterThan(1);
+    let prev = Infinity;
+    for (let l = 1; l <= 20; l++) {
+      const f = extraNight({ ...extraLevels(0), foxy: l }).foxy!;
+      expect(f.leave, `livello ${l}`).toBeLessThanOrEqual(prev);
+      expect(f.lean, `livello ${l}`).toBeLessThan(f.leave);
+      prev = f.leave;
+    }
+  });
+
   it('la Madre: a 0 non viene, al 10 è come nella notte 6, al 20 passa più volte e avvisa meno', () => {
     expect(extraMother(0)).toBeUndefined();
     expect(extraNight(extraLevels(0)).mother).toBeUndefined();

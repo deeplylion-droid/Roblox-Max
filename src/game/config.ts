@@ -45,6 +45,9 @@ export const YAW = {
  * dove salta in acqua e arriva alla barca. Scelti con la tavola del Foxy (notte fra l'11 e il 12 ottobre): l'albergo
  * Miramare, a 885 m, lo avrebbe fatto di pochi pixel.
  */
+/** il nome del Foxy nel gioco (scelto dall'utente il 12 ottobre); nel codice resta «foxy» */
+export const FOXY_NAME = 'Soggy';
+
 export const FOXY_PLACES: { id: string; yaw: number; pitch: number }[] = [
   { id: 'scivoli', yaw: -167, pitch: 1.8 },
   { id: 'relitto', yaw: 13.955, pitch: 0.42 },
@@ -494,20 +497,21 @@ export const NIGHTS: Record<number, NightConfig> = {
 export const EXTRA_NIGHT = 7;
 export const EXTRA_MAX = 20;
 
-/** i sette mostri delle notti (il Foxy, deciso dopo, nella notte extra non c'è ancora) */
+/** i sette mostri delle notti, i figli (il Foxy non è uno di loro: non ha una tana e si guarda col binocolo) */
 export type NightMonster = Exclude<MonsterId, 'foxy'>;
 
 /** i sette mostri, nell'ordine in cui arrivano nelle notti (è anche l'ordine della schermata dei livelli) */
 export const MONSTERS: NightMonster[] = ['gulpy', 'molly', 'hatch', 'robin', 'archie', 'lampy', 'fangy'];
 
-/** chi si sceglie nella notte extra: i sette mostri e, ottava, la Madre (deciso dall'utente l'11 ottobre) */
-export type ExtraId = NightMonster | 'mother';
-export const EXTRA_IDS: ExtraId[] = [...MONSTERS, 'mother'];
+/** chi si sceglie nella notte extra: i sette mostri, ottava la Madre (deciso dall'utente l'11 ottobre) e nono il Foxy,
+ *  Soggy (deciso il 12 ottobre) */
+export type ExtraId = NightMonster | 'mother' | 'foxy';
+export const EXTRA_IDS: ExtraId[] = [...MONSTERS, 'mother', 'foxy'];
 
 export type ExtraLevels = Record<ExtraId, number>;
 
 export function extraLevels(level: number): ExtraLevels {
-  return { gulpy: level, molly: level, hatch: level, robin: level, archie: level, lampy: level, fangy: level, mother: level };
+  return { gulpy: level, molly: level, hatch: level, robin: level, archie: level, lampy: level, fangy: level, mother: level, foxy: level };
 }
 
 /** Le preimpostazioni della schermata (da approvare). */
@@ -517,7 +521,7 @@ export const EXTRA_PRESETS: { id: string; levels: ExtraLevels }[] = [
   { id: 'all10', levels: extraLevels(10) },
   { id: 'all20', levels: extraLevels(20) },
   // i tre della prima notte, ma feroci
-  { id: 'first3', levels: { gulpy: 15, molly: 15, hatch: 15, robin: 0, archie: 0, lampy: 0, fangy: 0, mother: 0 } },
+  { id: 'first3', levels: { gulpy: 15, molly: 15, hatch: 15, robin: 0, archie: 0, lampy: 0, fangy: 0, mother: 0, foxy: 0 } },
 ];
 
 /** un livello valido: intero da 0 a EXTRA_MAX */
@@ -538,7 +542,10 @@ type Num = Record<string, number | [number, number]>;
  * Le regole che il giocatore impara (i dieci della conta, i tre colpi di Lampy, il terzo rumore di Fangy) non cambiano
  * mai: cambiano solo la frequenza e la pazienza.
  */
-const EXTRA_ANCHORS: Record<NightMonster, { calm: Num; debut: Num; fierce: Num }> = {
+/** chi ha i tre punti di riferimento: i sette mostri e il Foxy (la Madre ha i suoi numeri, extraMother) */
+type Anchored = NightMonster | 'foxy';
+
+const EXTRA_ANCHORS: Record<Anchored, { calm: Num; debut: Num; fierce: Num }> = {
   gulpy: {
     calm: { firstAt: 2.2 * H, cooldown: [131, 200], rise: 7, climb: 6, patience: 8.5, eat: 4.5 },
     debut: { firstAt: 1 * H + 6, cooldown: [82, 125], rise: 7, climb: 6, patience: 8, eat: 4.5 },
@@ -574,6 +581,14 @@ const EXTRA_ANCHORS: Record<NightMonster, { calm: Num; debut: Num; fierce: Num }
     debut: { firstAt: 0.4 * H, cooldown: [85, 125], approach: 5, rise: 1.4, listen: 7, noises: 3, deaf: 0.8, reelNoise: 1.2, leave: 2 },
     fierce: { firstAt: 0.2 * H, cooldown: [58, 88], approach: 4, rise: 1.2, listen: 8.5, noises: 3, deaf: 0.8, reelNoise: 1.0, leave: 2 },
   },
+  // il Foxy non torna a visite: sta nel suo posto tutta la notte. Il livello cambia quando compare e quanto aspetta
+  // prima di sporgersi e di lasciare il posto (la sua pazienza), la corsa fino alla barca e quanto spesso cambia posto.
+  // Il punto «come la sua notte» è la notte 2 (da approvare)
+  foxy: {
+    calm: { firstAt: 1.8 * H, lean: 60, leave: 110, run: 4, swap: 0.1 },
+    debut: { firstAt: 0.9 * H, lean: 46, leave: 85, run: 3.5, swap: 0.15 },
+    fierce: { firstAt: 0.3 * H, lean: 30, leave: 54, run: 2.6, swap: 0.45 },
+  },
 };
 
 function mix(a: Num, b: Num, t: number): Num {
@@ -588,7 +603,7 @@ function mix(a: Num, b: Num, t: number): Num {
 }
 
 /** i numeri di un mostro al livello dato (da 1 a EXTRA_MAX) */
-function monsterAt(who: NightMonster, level: number): Num {
+function monsterAt(who: Anchored, level: number): Num {
   const a = EXTRA_ANCHORS[who];
   if (level <= 5) return mix(a.calm, a.debut, (level - 1) / 4);
   // oltre il 5 la curva sale piano all'inizio e più in fretta verso il 20, se no il 10 è già quasi impossibile
@@ -599,7 +614,8 @@ function monsterAt(who: NightMonster, level: number): Num {
   // arrivo vanno fino al punto feroce: dal 10 al 20 i mostri non tornano più spesso, ma ogni visita è più cattiva.
   // Con le pause del punto feroce anche al 20 l'esperto non vinceva quasi mai (docs/NOTTI_E_MOSTRI.md)
   const at10 = up(10);
-  return mix(at10, { ...a.fierce, cooldown: at10.cooldown! }, (level - 10) / 10);
+  // (il Foxy non ha pause: per lui dal 10 al 20 si va dritti al punto feroce)
+  return mix(at10, at10.cooldown ? { ...a.fierce, cooldown: at10.cooldown } : a.fierce, (level - 10) / 10);
 }
 
 /**
@@ -656,6 +672,9 @@ export function extraEndingEarned(levels: ExtraLevels): boolean {
  *  primo arrivo è ben oltre le sei, cioè non arrivano mai (come nei test, quiet()). */
 const NEVER = 1e9;
 
+/** quanto è più veloce il recupero nella notte extra quando c'è il Foxy (come reelMul delle notti 2-5) */
+const FOXY_REEL = 1.1;
+
 /**
  * La config della notte extra dai livelli dei sette mostri. Quota 10 (da approvare): la notte quinta ne chiede 11
  * coi suoi tre mostri radi; qui possono venire tutti insieme. I pesci abboccano in fretta come nella quinta notte,
@@ -663,9 +682,9 @@ const NEVER = 1e9;
  * contrario dell'altro non viene insieme a lui).
  */
 export function extraNight(levels: ExtraLevels): NightConfig {
-  const lv = (who: NightMonster) => clampLevel(levels[who] ?? 0);
-  const on = (who: NightMonster) => lv(who) > 0;
-  const at = <T>(who: NightMonster) => monsterAt(who, lv(who)) as unknown as T;
+  const lv = (who: Anchored) => clampLevel(levels[who] ?? 0);
+  const on = (who: Anchored) => lv(who) > 0;
+  const at = <T>(who: Anchored) => monsterAt(who, lv(who)) as unknown as T;
   const off = <T extends { firstAt: number }>(who: NightMonster): T => ({ ...(monsterAt(who, 1) as unknown as T), firstAt: NEVER });
   return {
     night: EXTRA_NIGHT,
@@ -693,6 +712,9 @@ export function extraNight(levels: ExtraLevels): NightConfig {
     archie: on('archie') ? at<ArchieConfig>('archie') : undefined,
     lampy: on('lampy') ? at<LampyConfig>('lampy') : undefined,
     fangy: on('fangy') ? at<FangyConfig>('fangy') : undefined,
+    foxy: on('foxy') ? at<FoxyConfig>('foxy') : undefined,
+    // il tempo col binocolo si ripaga tirando su i pesci più in fretta, come nelle notti 2-5 (decisione dell'utente)
+    ...(on('foxy') ? { reelMul: FOXY_REEL } : {}),
     mother: extraMother(levels.mother ?? 0),
     battery: { drain: [0, 1 / 700, 1 / 320], sonar: 1 / 1100, low: 0.15, lullaby: 64 },
     hideTime: 0.7,

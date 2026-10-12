@@ -1,6 +1,6 @@
 /** Schermate in DOM sopra la scena: avvertenza, titolo, intro, pausa, opzioni, diario, alba, game over. */
 import { FISH, FISH_BY_ID, type FishFamily, type FishSpecies } from '../game/catalog.ts';
-import { EXTRA_IDS, EXTRA_MAX, EXTRA_PRESETS, LORE, clampLevel, type ExtraLevels } from '../game/config.ts';
+import { EXTRA_IDS, EXTRA_MAX, EXTRA_PRESETS, FOXY_NAME, LORE, clampLevel, type ExtraLevels } from '../game/config.ts';
 import { LORE_TEXT, STRINGS, type Lang } from '../i18n.ts';
 import type { CatalogEntry, Options } from './save.ts';
 
@@ -169,7 +169,7 @@ export class Screens {
   }
 
   /**
-   * La notte extra (notte 7): per ognuno dei sette mostri il livello da 0 (non viene) a 20 (feroce), con − e +,
+   * La notte extra (notte 7): per ognuno dei sette mostri, la Madre e Soggy il livello da 0 (non viene) a 20 (feroce), con − e +,
    * e qualche preimpostazione. onChange a ogni modifica (l'App la salva), onStart per salpare.
    */
   extraNight(levels: ExtraLevels, o: { onChange: (l: ExtraLevels) => void; onStart: (l: ExtraLevels) => void; onBack: () => void }): void {
@@ -196,7 +196,7 @@ export class Screens {
       const card = h(
         'div',
         { class: 'extra-card', 'data-who': who },
-        h('div', { class: 'who' }, who === 'mother' ? S.extraMother : who[0]!.toUpperCase() + who.slice(1)),
+        h('div', { class: 'who' }, who === 'mother' ? S.extraMother : who === 'foxy' ? FOXY_NAME : who[0]!.toUpperCase() + who.slice(1)),
         h('div', { class: 'rule' }, S.extraRules[who]),
         h('div', { class: 'ctl' }, minus, num, plus),
         what,
