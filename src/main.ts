@@ -12,7 +12,7 @@ import { Stage } from './app/stage.ts';
 import { loadLayer, loadManifest } from './engine/assets.ts';
 import { AudioEngine } from './engine/audio.ts';
 import { Renderer } from './engine/renderer.ts';
-import { detectLang } from './i18n.ts';
+import { LANGS, detectLang } from './i18n.ts';
 
 const canvas = document.getElementById('scene') as HTMLCanvasElement;
 const ui = document.getElementById('ui') as HTMLDivElement;
@@ -48,7 +48,8 @@ function loop(step: (dt: number) => void): void {
 async function boot(): Promise<void> {
   const params = new URLSearchParams(location.search);
   const save = loadSave();
-  const lang = save.lang ?? detectLang();
+  // una lingua salvata che il gioco non ha più (o non ha ancora): quella del sistema
+  const lang = save.lang && LANGS.includes(save.lang) ? save.lang : detectLang();
   const screens = new Screens(ui, lang);
   screens.loading(0);
   const man = await loadManifest();

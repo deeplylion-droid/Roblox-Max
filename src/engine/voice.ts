@@ -62,7 +62,7 @@ const FORMANTS: Record<string, [number, number, number]> = {
 };
 const NEUTRAL: [number, number, number] = [500, 1500, 2500];
 
-interface Syl {
+export interface Syl {
   vowel: string;
   /** consonante d'attacco (rumore) */
   hiss: number;
@@ -71,7 +71,38 @@ interface Syl {
   stress: boolean;
 }
 
-function syllables(text: string): Syl[] {
+/** I caratteri del cinese, del giapponese (kana compresi) e del coreano: non hanno vocali latine né spazi fra le
+ *  parole, quindi ognuno è una sillaba (lingue a cui il gioco potrebbe arrivare: scelta dell'utente del 12 ottobre). */
+const CJK = /[\u3040-\u30ff\u31f0-\u31ff\u3400-\u4dbf\u4e00-\u9fff\u1100-\u11ff\u3130-\u318f\uac00-\ud7af]/;
+/** le vocali delle sillabe giapponesi, riga per riga del sillabario (hiragana e katakana) */
+const KANA: Record<string, string> = {
+  a: 'あかさたなはまやらわがざだばぱぁゃゎアカサタナハマヤラワガザダバパァャヮ',
+  i: 'いきしちにひみりぎじぢびぴぃイキシチニヒミリギジヂビピィ',
+  u: 'うくすつぬふむゆるぐずづぶぷぅっゅんウクスツヌフムユルグズヅブプゥッュンヴ',
+  e: 'えけせてねへめれげぜでべぺぇエケセテネヘメレゲゼデベペェ',
+  o: 'おこそとのほもよろをごぞどぼぽぉょオコソトノホモヨロヲゴゾドボポォョ',
+};
+/** le 21 vocali dell'hangul (jungseong), in ordine, ridotte alle cinque delle formanti */
+const HANGUL_V = 'aeaeoeoeoaeeouoeiuuii';
+/** i suoni d'attacco dell'hangul (choseong): s, ss, j, jj, ch sibilano; g, kk, d, tt, b, pp, k, t, p schioccano */
+const HANGUL_C = [0.55, 0.55, 0.25, 0.55, 0.55, 0.25, 0.25, 0.55, 0.55, 1, 1, 0, 1, 1, 1, 0.55, 0.55, 0.55, 0.25];
+
+/** La sillaba di un carattere quadrato: la vocale dall'hangul o dal sillabario; i caratteri cinesi (e i kanji) non
+ *  dicono come si leggono, quindi ne prendono una a caso ma sempre la stessa. */
+export function cjkSyllable(ch: string): { vowel: string; hiss: number } {
+  const o = ch.codePointAt(0)!;
+  if (o >= 0xac00 && o <= 0xd7a3) {
+    const k = o - 0xac00;
+    return { vowel: HANGUL_V[Math.floor((k % 588) / 28)]!, hiss: HANGUL_C[Math.floor(k / 588)]! };
+  }
+  for (const [v, row] of Object.entries(KANA)) {
+    const i = row.indexOf(ch);
+    if (i >= 0) return { vowel: v, hiss: /[さしすせそざじずぜぞサシスセソザジズゼゾ]/.test(ch) ? 1 : /[かきくけこたちつてとぱぴぷぺぽカキクケコタチツテトパピプペポ]/.test(ch) ? 0.55 : 0.25 };
+  }
+  return { vowel: 'aeiou'[o % 5]!, hiss: [0.25, 0.55, 1][(o >> 3) % 3]! };
+}
+
+export function syllables(text: string): Syl[] {
   const out: Syl[] = [];
   const t = text
     .toLowerCase()
@@ -79,6 +110,18 @@ function syllables(text: string): Syl[] {
     .replace(/[̀-ͯ]/g, '');
   const words = t.split(/\s+/).filter(Boolean);
   for (const w of words) {
+    if (CJK.test(w)) {
+      // una sillaba per carattere; la punteggiatura larga fa le pause
+      for (const ch of w.normalize('NFC')) {
+        const last = out[out.length - 1];
+        if (CJK.test(ch)) out.push({ ...cjkSyllable(ch), pause: 0, stress: false });
+        else if (last && /[。！？!?.…]/.test(ch)) last.pause = 0.34;
+        else if (last && /[、，,;:；：]/.test(ch)) last.pause = 0.17;
+      }
+      const last = out[out.length - 1];
+      if (last) last.pause = Math.max(last.pause, 0.035);
+      continue;
+    }
     const groups = w.match(/[aeiouy]+/g) ?? [];
     const cons = w.match(/[^aeiouy\W\d]+/g) ?? [];
     const n = Math.max(1, groups.length);

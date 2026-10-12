@@ -62,8 +62,10 @@ PASTELLI = {
 # Le scritte che il giocatore deve capire, lingua per lingua (prova dell'utente del 12 ottobre: «stai attento alle
 # immagini e ai testi nelle immagini»; e prima del lancio il gioco potrebbe uscire in altre lingue). `--lingua xx` rifà
 # i disegni che hanno scritte da tradurre, col resto del disegno identico a quello italiano; per una lingua nuova
-# bastano le sue righe qui (e le lettere che mancano in LETTERE). Restano uguali in tutte le lingue i nomi (SPLASHLAND,
-# NIGHT SPLASH, SNACK), le date in cifre, AH AH AH e MARCO!/POLO! (il gioco si chiama così anche in inglese).
+# bastano le sue righe qui. Le lettere accentate ci sono; cinese, giapponese e coreano la mano li prende dallo
+# scheletro di un font (vedi _tratti_da_font). Restano uguali in tutte le lingue i nomi (SPLASHLAND, NIGHT SPLASH,
+# SNACK), le date in cifre e MARCO!/POLO! (il gioco si chiama così anche in inglese). Le prove delle altre lingue sono in
+# pastelli_prova_lingue.py.
 # L'elenco di tutte le immagini con scritte è in docs/LOCALIZZAZIONE.md.
 SCRITTE = {
     'en': {
@@ -74,6 +76,8 @@ SCRITTE = {
         'IL MIO TESORO': 'MY TREASURE',
         'TANTI AUGURI': 'HAPPY BIRTHDAY',
         'AIUTO!': 'HELP!',
+        # la risata di Lampy: in inglese «AH AH AH» sembra un grido, la risata è «HA HA HA»
+        'AH AH AH': 'HA HA HA',
     },
 }
 LINGUA = 'it'
@@ -344,6 +348,185 @@ LETTERE = {
 }
 STRETTE = set("I1!'-")
 
+# ───────────────── le lettere delle altre lingue (12 ottobre sera: es, fr, de, pt, zh, ja, ko) ─────────────────
+
+# quelle che mancavano all'alfabeto del bambino, e un po' di punteggiatura
+LETTERE.update({
+    'J': [[(0.85, 0), (0.85, 0.72), (0.68, 0.97), (0.35, 1), (0.12, 0.8)]],
+    'Q': [_O, [(0.58, 0.7), (1.0, 1.1)]],
+    'X': [[(0.05, 0), (0.95, 1)], [(0.95, 0), (0.05, 1)]],
+    '¡': [[(0.5, 0), (0.52, 0.1)], [(0.5, 0.32), (0.5, 1)]],
+    '¿': [[(0.85, 0.8), (0.6, 1), (0.25, 0.95), (0.15, 0.7), (0.5, 0.45), (0.5, 0.28)], [(0.5, 0.1), (0.48, 0)]],
+    '.': [[(0.5, 0.9), (0.52, 1)]],
+    ',': [[(0.52, 0.86), (0.4, 1.12)]],
+    ':': [[(0.5, 0.3), (0.52, 0.4)], [(0.5, 0.9), (0.52, 1)]],
+})
+STRETTE |= set('¡.,:')
+# gli accenti: sopra la lettera (v < 0), la cediglia sotto
+_SEGNI = {
+    'acuto': [[(0.42, -0.1), (0.64, -0.32)]],
+    'grave': [[(0.36, -0.32), (0.58, -0.1)]],
+    'circonflesso': [[(0.2, -0.1), (0.5, -0.32), (0.8, -0.1)]],
+    'tilde': [[(0.15, -0.16), (0.33, -0.28), (0.5, -0.2), (0.67, -0.12), (0.85, -0.24)]],
+    'dieresi': [[(0.28, -0.24), (0.3, -0.14)], [(0.7, -0.24), (0.72, -0.14)]],
+    'cediglia': [[(0.5, 1.0), (0.62, 1.12), (0.42, 1.25)]],
+}
+_ACCENTATE = {
+    'À': 'A grave', 'Á': 'A acuto', 'Â': 'A circonflesso', 'Ã': 'A tilde', 'Ä': 'A dieresi', 'Ç': 'C cediglia',
+    'È': 'E grave', 'É': 'E acuto', 'Ê': 'E circonflesso', 'Ë': 'E dieresi',
+    'Ì': 'I grave', 'Í': 'I acuto', 'Î': 'I circonflesso', 'Ï': 'I dieresi', 'Ñ': 'N tilde',
+    'Ò': 'O grave', 'Ó': 'O acuto', 'Ô': 'O circonflesso', 'Õ': 'O tilde', 'Ö': 'O dieresi',
+    'Ù': 'U grave', 'Ú': 'U acuto', 'Û': 'U circonflesso', 'Ü': 'U dieresi', 'Ÿ': 'Y dieresi',
+}
+for _c, _d in _ACCENTATE.items():
+    _b, _s = _d.split()
+    LETTERE[_c] = LETTERE[_b] + _SEGNI[_s]
+STRETTE |= set('ÌÍÎÏ')
+# quelle che un bambino scrive in due lettere, e la punteggiatura larga del cinese e del giapponese
+_SCIOGLI = {'ß': 'SS', 'ẞ': 'SS', 'Œ': 'OE', 'Æ': 'AE', '！': '!', '？': '?', '，': ',', '。': '.', '、': ',', '：': ':',
+            '～': '-', '\u3000': ' '}
+
+
+def _sciogli(testo):
+    testo = testo.upper()
+    return ''.join(_SCIOGLI.get(c, c) for c in testo)
+
+
+def _e_cjk(ch):
+    """Cinese, giapponese (kana compresi) o coreano: lettere quadrate, che la mano del bambino prende da un font."""
+    o = ord(ch)
+    return (0x3040 <= o <= 0x30FF or 0x31F0 <= o <= 0x31FF or 0x3400 <= o <= 0x4DBF or 0x4E00 <= o <= 0x9FFF
+            or 0x1100 <= o <= 0x11FF or 0x3130 <= o <= 0x318F or 0xAC00 <= o <= 0xD7AF)
+
+
+# Le lettere che non ha disegnate a tratti (cinese, giapponese, coreano; e, se servisse, cirillico e greco) le prende
+# dallo scheletro di un font (Noto, OFL, da Google Fonts: si scaricano la prima volta in tools/render/cache/fonts) e le
+# ripassa a pastello con lo stesso tremolio: un bambino che scrive le lettere della sua lingua come le ha imparate.
+_GF = 'https://raw.githubusercontent.com/google/fonts/main/ofl/'
+FONT_SCHELETRO = {
+    'zh': ('NotoSansSC[wght].ttf', _GF + 'notosanssc/NotoSansSC%5Bwght%5D.ttf'),
+    'ja': ('NotoSansJP[wght].ttf', _GF + 'notosansjp/NotoSansJP%5Bwght%5D.ttf'),
+    'ko': ('NotoSansKR[wght].ttf', _GF + 'notosanskr/NotoSansKR%5Bwght%5D.ttf'),
+    'altro': ('NotoSans[wdth,wght].ttf', _GF + 'notosans/NotoSans%5Bwdth,wght%5D.ttf'),
+}
+_SCHELETRI: dict = {}
+
+
+def _font_scheletro(ch):
+    chiave = LINGUA if LINGUA in FONT_SCHELETRO else ('ja' if _e_cjk(ch) else 'altro')
+    nome, url = FONT_SCHELETRO[chiave]
+    cartella = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cache', 'fonts')
+    path = os.path.join(cartella, nome)
+    if not os.path.exists(path):
+        import urllib.request
+        os.makedirs(cartella, exist_ok=True)
+        urllib.request.urlretrieve(url, path)
+    return path
+
+
+def _tratti_da_font(ch):
+    """I tratti di una lettera presa dal suo scheletro in un font: il glifo (peso normale) ridotto a linee di un pixel,
+    seguite da un incrocio all'altro; le linee nel quadrato 0..1 come quelle di LETTERE."""
+    chiave = (LINGUA, ch)
+    if chiave in _SCHELETRI:
+        return _SCHELETRI[chiave]
+    from PIL import ImageFont
+    from skimage.morphology import skeletonize
+    n = 240
+    f = ImageFont.truetype(_font_scheletro(ch), int(n * 0.7))
+    try:
+        f.set_variation_by_axes([400] if 'NotoSans[' not in f.path else [100, 400])
+    except Exception:
+        pass
+    im = Image.new('L', (n, n), 0)
+    d = ImageDraw.Draw(im)
+    if _e_cjk(ch):
+        # la scatola di un carattere pieno (国, o 한 per il coreano) diventa il quadrato della lettera: i caratteri
+        # pieni lo riempiono, quelli piccoli (っ, ー, i segni) restano piccoli e al loro posto
+        rif = d.textbbox((0, 0), '한' if 0xAC00 <= ord(ch) <= 0xD7AF or 0x1100 <= ord(ch) <= 0x11FF else '国', font=f)
+    else:
+        rif = d.textbbox((0, 0), ch, font=f)
+    lato = max(rif[2] - rif[0], rif[3] - rif[1])
+    ox, oy = (n - lato) / 2 - rif[0] + (lato - (rif[2] - rif[0])) / 2, (n - lato) / 2 - rif[1] + (lato - (rif[3] - rif[1])) / 2
+    d.text((ox, oy), ch, font=f, fill=255)
+    sk = skeletonize(np.asarray(im) > 110)
+    # dal quadrato del riferimento (in pixel) al quadrato 0..1 della lettera
+    x0, y0 = (n - lato) / 2, (n - lato) / 2
+    tratti = [[((x - x0) / lato, (y - y0) / lato) for (y, x) in _semplifica(l, 1.2)] for l in _linee(sk) if len(l) >= max(4, n * 0.025)]
+    _SCHELETRI[chiave] = tratti
+    return tratti
+
+
+def _linee(sk):
+    """Le linee di uno scheletro: da un nodo (fine o incrocio) all'altro; i pezzi in diagonale contano solo dove non c'è
+    già un passo dritto (se no ogni angolo sembrerebbe un incrocio); poi gli anelli senza nodi."""
+    pts = set(zip(*np.nonzero(sk)))
+
+    def vicini(p):
+        y, x = p
+        dritti = [(y + dy, x + dx) for dy, dx in ((-1, 0), (1, 0), (0, -1), (0, 1)) if (y + dy, x + dx) in pts]
+        storti = [(y + dy, x + dx) for dy, dx in ((-1, -1), (-1, 1), (1, -1), (1, 1))
+                  if (y + dy, x + dx) in pts and (y + dy, x) not in pts and (y, x + dx) not in pts]
+        return dritti + storti
+
+    nodi = {p for p in pts if len(vicini(p)) != 2}
+    fatti = set()
+    linee = []
+
+    def cammina(a, b):
+        linea = [a, b]
+        fatti.add(frozenset((a, b)))
+        prev, cur = a, b
+        while cur not in nodi and cur != a:
+            avanti = [q for q in vicini(cur) if q != prev and frozenset((cur, q)) not in fatti]
+            if not avanti:
+                break
+            q = avanti[0]
+            fatti.add(frozenset((cur, q)))
+            linea.append(q)
+            prev, cur = cur, q
+        return linea
+
+    for a in sorted(nodi):
+        for b in vicini(a):
+            if frozenset((a, b)) not in fatti:
+                linee.append(cammina(a, b))
+    for a in sorted(pts):
+        for b in vicini(a):
+            if frozenset((a, b)) not in fatti:
+                linee.append(cammina(a, b))
+    return linee
+
+
+def _semplifica(linea, tol):
+    """Ramer-Douglas-Peucker: la linea con meno punti, entro `tol` pixel (un anello si divide prima in due metà, se no
+    sparirebbe: i suoi capi coincidono)."""
+    if len(linea) < 3:
+        return linea
+    if abs(linea[0][0] - linea[-1][0]) + abs(linea[0][1] - linea[-1][1]) <= 2 and len(linea) > 6:
+        m = len(linea) // 2
+        return _semplifica(linea[:m + 1], tol)[:-1] + _semplifica(linea[m:], tol)
+    a, b = np.array(linea[0], float), np.array(linea[-1], float)
+    ab = b - a
+    lab = np.hypot(*ab) or 1e-9
+    dist = [abs(ab[0] * (p[1] - a[1]) - ab[1] * (p[0] - a[0])) / lab for p in linea]
+    i = int(np.argmax(dist))
+    if dist[i] > tol:
+        return _semplifica(linea[:i + 1], tol)[:-1] + _semplifica(linea[i:], tol)
+    return [linea[0], linea[-1]]
+
+
+def _largo(ch, a):
+    """Quanto è larga una lettera alta `a`: quelle del cinese, del giapponese e del coreano sono quadrate."""
+    if _e_cjk(ch):
+        return a * 0.95
+    return a * (0.62 if ch not in 'MW' else 0.9) * (0.3 if ch in STRETTE else 1.0)
+
+
+def _passo(ch, alt, spazio):
+    """Lo spazio dopo una lettera (i caratteri quadrati hanno già il loro margine)."""
+    return alt * spazio * (0.3 if _e_cjk(ch) else 1.0)
+
 
 def _da_tradurre(testo):
     return LINGUA != 'it' and not _SECCO and testo in SCRITTE.get(LINGUA, {})
@@ -371,8 +554,7 @@ def _come_in_italiano(disegna, testo):
 
 def _larghezza(testo, alt, spazio=0.32):
     """Quanto è larga una scritta di _scrivi, senza le variazioni a caso."""
-    return sum(alt * 0.6 if ch == ' ' else alt * (0.62 if ch not in 'MW' else 0.9) * (0.3 if ch in STRETTE else 1.0) + alt * spazio
-               for ch in testo)
+    return sum(alt * 0.6 if ch == ' ' else _largo(ch, alt) + _passo(ch, alt, spazio) for ch in _sciogli(testo))
 
 
 def _al_posto(it, tr, x, alt, spazio=0.32, pieno=1.0):
@@ -381,7 +563,8 @@ def _al_posto(it, tr, x, alt, spazio=0.32, pieno=1.0):
     `pieno`: quanto di quello spazio può prendere (nelle nuvolette un po' meno, che l'ultima lettera non tocchi il
     bordo)."""
     w_it, w_tr = _larghezza(it, alt, spazio), _larghezza(tr, alt, spazio)
-    k = min(1.0, pieno * w_it / w_tr)
+    # in cinese, giapponese e coreano i tratti sono fitti: se la scritta è più corta, cresce un po', che si legga
+    k = min(1.35 if any(_e_cjk(c) for c in tr) else 1.0, pieno * w_it / w_tr)
     return x + (w_it - w_tr * k) / 2, alt * k
 
 
@@ -412,15 +595,16 @@ def _scrivi(colore, testo, x, y, alt, larg=14.0, press=1.1, spazio=0.32, specchi
     rng = rnd()
     st = strato(colore)
     cx = x
-    for i, ch in enumerate(testo):
+    for i, ch in enumerate(_sciogli(testo)):
         if ch == ' ':
             cx += alt * 0.6
             continue
         a = alt * (1 + rng.uniform(-salti, salti)) * (1 + cresce * i)
-        w = a * (0.62 if ch not in 'MW' else 0.9) * (0.3 if ch in STRETTE else 1.0)
+        w = _largo(ch, a)
         dy = rng.uniform(-0.08, 0.08) * alt + cresce * i * alt * -0.4
         rot = math.radians(rng.uniform(-7, 7))
-        for s in LETTERE[ch]:
+        quadrata = _e_cjk(ch)
+        for s in LETTERE[ch] if ch in LETTERE else _tratti_da_font(ch):
             pts = []
             for (u, v) in s:
                 if i in specchia:
@@ -429,8 +613,9 @@ def _scrivi(colore, testo, x, y, alt, larg=14.0, press=1.1, spazio=0.32, specchi
                 rx = px * math.cos(rot) - py * math.sin(rot)
                 ry = px * math.sin(rot) + py * math.cos(rot)
                 pts.append((cx + w / 2 + rx, y + dy + ry))
-            tratto(st, pts, larg, press, trema=0.35)
-        cx += w + alt * spazio
+            # nei caratteri quadrati i tratti sono tanti e fitti: il pastello un po' più fine e la mano più ferma
+            tratto(st, pts, larg * (0.6 if quadrata else 1.0), press, trema=0.25 if quadrata else 0.35)
+        cx += w + _passo(ch, alt, spazio)
     return cx
 
 

@@ -1,7 +1,7 @@
 /** Schermate in DOM sopra la scena: avvertenza, titolo, intro, pausa, opzioni, diario, alba, game over. */
 import { FISH, FISH_BY_ID, type FishFamily, type FishSpecies } from '../game/catalog.ts';
 import { EXTRA_IDS, EXTRA_MAX, EXTRA_PRESETS, FOXY_NAME, LORE, clampLevel, type ExtraLevels } from '../game/config.ts';
-import { LORE_TEXT, STRINGS, type Lang } from '../i18n.ts';
+import { LANGS, LANG_NAMES, LORE_TEXT, STRINGS, type Lang } from '../i18n.ts';
 import { disegnoSrc } from './disegni.ts';
 import { badge, dualText, type PadButton } from './pad.ts';
 import type { CatalogEntry, Options } from './save.ts';
@@ -249,7 +249,8 @@ export class Screens {
       tb.textContent = tLabel(v);
     });
     rows.append(h('label', {}, h('span', {}, S.textSize), tb));
-    const lang = button(this.lang === 'it' ? 'Italiano' : 'English', () => o.onChange('lang', this.lang === 'it' ? 'en' : 'it'));
+    // il pulsante passa alla lingua dopo (con due lingue, all'altra)
+    const lang = button(LANG_NAMES[this.lang] ?? this.lang, () => o.onChange('lang', LANGS[(LANGS.indexOf(this.lang) + 1) % LANGS.length]!));
     rows.append(h('label', {}, h('span', {}, S.language), lang));
     if (o.fullscreen) {
       const fs = o.fullscreen;

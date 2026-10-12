@@ -23,6 +23,10 @@ html, body {
   font-optical-sizing: auto;
   user-select: none;
 }
+/* gli a capo del coreano fra le parole (non dentro), quelli del cinese e del giapponese con le regole strette (la
+   punteggiatura non va a capo da sola): la lingua della pagina la mette App */
+:lang(ko) { word-break: keep-all; }
+:lang(ja), :lang(zh) { line-break: strict; }
 #scene {
   position: fixed;
   inset: 0;

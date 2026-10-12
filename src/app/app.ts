@@ -5,6 +5,7 @@
  */
 import { loadLayer } from '../engine/assets.ts';
 import { DISEGNI_ALBA, disegnoAlba, disegniTrovati } from './disegni.ts';
+import { useLangFonts } from './fonts_lingua.ts';
 import type { AudioEngine, Voice } from '../engine/audio.ts';
 import { EXTRA_NIGHT, NIGHTS, extraEndingEarned, extraNight, type MonsterId, type NightConfig } from '../game/config.ts';
 import { STRINGS, localizedImage, type Lang } from '../i18n.ts';
@@ -99,6 +100,9 @@ export class App {
     lang: Lang,
   ) {
     this.lang = lang;
+    // la lingua della pagina: i font e gli a capo del cinese, del giapponese e del coreano dipendono da questa (styles.css)
+    document.documentElement.lang = lang;
+    useLangFonts(lang);
     this.screens = new Screens(ui, lang);
     this.legendEl = document.createElement('div');
     this.legendEl.className = 'pad-legend';
@@ -242,6 +246,8 @@ export class App {
           this.lang = v as Lang;
           this.save.lang = this.lang;
           this.screens.lang = this.lang;
+          document.documentElement.lang = this.lang;
+          useLangFonts(this.lang);
           this.legend();
           writeSave(this.save);
           this.options(back);
