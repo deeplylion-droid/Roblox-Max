@@ -367,8 +367,11 @@ def run(q, who, post_mod, overlays_path, build_scene, coll_objects, renderable):
     for o in meshes:
         o.hide_render = True
     bg_exr = os.path.join(out_dir, f'{who}_bg.exr')
+    # JS_RIPRENDI=1: riprende un render interrotto, riusando lo sfondo e i fotogrammi già in cache
+    riprendi = bool(os.environ.get('JS_RIPRENDI'))
     t = time.time()
-    render(bg_exr, samples, (W, H), data_passes=())
+    if not (riprendi and os.path.exists(bg_exr)):
+        render(bg_exr, samples, (W, H), data_passes=())
     log(f'jumpscare {who} sfondo', round(time.time() - t), 's')
     for o in meshes:
         o.hide_render = False
@@ -391,7 +394,8 @@ def run(q, who, post_mod, overlays_path, build_scene, coll_objects, renderable):
         _set_creature(creature, base, M0inv, _lerp_matrix(M0, M1, u))
         exr = os.path.join(out_dir, f'{who}_{i:02d}.exr')
         t = time.time()
-        render(exr, samples, (W, H), transparent=True, data_passes=('Alpha',))
+        if not (riprendi and os.path.exists(exr)):
+            render(exr, samples, (W, H), transparent=True, data_passes=('Alpha',))
         p = post_mod.read_exr(exr)
         fg = sum(p[g][..., :3] for g in ('ambient', 'lamp', 'lantern') if g in p)
         a = p['alpha'][..., None] if 'alpha' in p else np.ones(fg.shape[:2] + (1,), np.float32)

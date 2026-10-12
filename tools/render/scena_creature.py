@@ -170,6 +170,9 @@ POSES = {
     # notte 5: Fangy nell'acqua a destra, dietro il pescatore (approvata l'11 ottobre); le lucine spente, le accende il
     # motore (deciso l'11 ottobre), che ne trova le posizioni nel manifest
     'fangy_ascolta': (lambda: fangy_ascolta(luci=0.0), 'world', True, {'luci': FANGY_LUCI}),
+    # notte 6: la Madre sale accanto alla barca a sinistra, fuori la fronte e l'occhio (approvata l'11 ottobre sera: via
+    # libera dell'utente alla sessione principale per scegliere stanotte)
+    'madre_sale': (lambda: madre_sale(), 'world', True),
 }
 
 
