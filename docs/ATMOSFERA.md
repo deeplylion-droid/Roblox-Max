@@ -90,13 +90,36 @@ Il mondo e la barca stanno in una notte. Il resto in un'altra.
   serie senza nebbia e non usa la voce `atmosfera`. Si cambia anche a notte in corso: si scambiano solo il mondo, la
   barca, i posti del binocolo e il telone (pochi megabyte). **Mostri e jumpscare sono gli stessi nelle due serie** (le
   pose di adesso stanno bene anche sul panorama con la nebbia: provato con una bozza), quindi non si rifanno con
-  l'atmosfera. I posti del Foxy (scivoli e relitto) hanno solo la serie con la nebbia finché non ci sono anche le sue
-  viste senza: un posto deve cambiare tutto insieme, se no si vedrebbe quando arriva lui.
+  l'atmosfera. Un posto del Foxy (scivoli, relitto) cambia serie solo se ha anche le sue viste senza nebbia, se no
+  si vedrebbe quando arriva lui: dal 12 ottobre le ha tutte e due (sessione del Foxy).
 - **Mettere le immagini nuove nel gioco**: `tools/render/atmosfera_due_serie.py <cartella dei render> <repository>
   --mondo --barca --luoghi albergo,edicola,... --telone`. La prima volta sposta le immagini di adesso nella serie
   `senza`; le volte dopo sostituisce solo quelle con la nebbia.
 - **Il binocolo con la nebbia** (`binocolo.py` con `ATMOSFERA=1`): 192 campioni nei finali (`CAMPIONI=n`) e il mist
   dell'alfa dal passo Depth, come il mondo.
+- **Attenzione alle scale**: `jobs.py binocolo` scrive le scale in `overlays.json` solo alla fine di tutti i posti.
+  Il 12 ottobre le prime viste sono entrate con le scale del render di prima, e la statua si vedeva 3,8 volte più
+  chiara, col bordo del riquadro staccato dal mondo. Ora l'installatore si ferma se il manifest della cartella dei
+  render è più vecchio dei file da installare.
+- **Le luci attorno a Soggy** (`stage.ts`, da approvare): lampione, lanterna e le due lampadine che pendono dal tetto
+  della torre hanno un bagliore del motore solo nel binocolo, con un loro sfarfallio (nel render sono fisse).
+  Posizioni e colori vengono dalla scena del Foxy (`luci_posti.json`) e stanno nel codice (`GlowDef.pos`), perché il
+  render del mondo riscrive le luci del manifest. Col binocolo alzato le luci lontane dall'inquadratura restano fuori
+  dal conto dei 16 bagliori.
+
+### Installato il 12 ottobre (ramo `claude/atmosfera-motore`)
+
+| Cosa | Da dove | Note |
+| --- | --- | --- |
+| Mondo | sessione dell'atmosfera, `claude/atmosfera` 8a9eb7b | 8192×2139, 256 campioni, 16 strisce |
+| Barca | catena di questa macchina | 256 campioni |
+| Binocolo: ingresso, statua, ruota (albergo, edicola, faro, paese in arrivo) | catena di questa macchina | 192 campioni |
+| Soggy al binocolo (scivoli, relitto), tutte e due le serie | sessione del Foxy, `claude/foxy` 1079fdf e 737f944 | con lampione, festone e lanterna |
+| Telone | catena di questa macchina | in arrivo |
+
+Controllato nel gioco: sei direzioni con la luce alta e spenta, i posti del binocolo installati, Soggy fermo, più
+vicino e via, l'opzione accesa e spenta a notte in corso. La grana che si vede sulla foschia chiara è quella della pellicola
+di sempre (`uGrain`), non del render.
 
 ## Cosa cambiare nel motore (scritto prima del lavoro sul motore: vedi sopra)
 
