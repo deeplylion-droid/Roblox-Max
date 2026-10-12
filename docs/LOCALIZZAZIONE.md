@@ -34,8 +34,12 @@ le scritte disegnate o renderizzate **dentro le immagini**, che non passano da l
 tradurre (tabella `SCRITTE`); il resto del disegno resta identico a quello italiano, tratto per tratto (la scritta
 italiana si «disegna a secco» per consumare gli stessi numeri a caso). Una scritta tradotta più lunga si rimpicciolisce
 fino a stare nello spazio dell'italiana; una più corta si mette nel mezzo (in cinese, giapponese e coreano può anche
-crescere un po', che i tratti fitti si leggano). Le lettere del bambino (`LETTERE`): tutte le maiuscole, quelle
-accentate dell'Europa occidentale, `! ? ¡ ¿ ' - . , :` e le cifre; il resto dallo scheletro di un font (vedi sotto).
+crescere un po', che i tratti fitti si leggano). Nelle nuvolette, una traduzione molto più lunga (AIUTO! → AU SECOURS!)
+allarga la nuvoletta dalla parte opposta a chi parla, fino a una volta e mezza (meno dove accanto c'è poco posto:
+`allarga` nella chiamata), invece di diventare minuscola. Le lettere del bambino (`LETTERE`): tutte le maiuscole,
+quelle accentate dell'Europa occidentale (gli accenti grandi e staccati, che nelle scritte piccole non si impastino
+con la lettera), `! ? ¡ ¿ ' - . , :` e le cifre (il trattino fra due lettere, TROUVE-MOI, è largo come una lettera;
+quello delle date resta stretto); il resto dallo scheletro di un font (vedi sotto).
 
 ### Uguali in tutte le lingue
 
