@@ -240,11 +240,33 @@ Regole e salvataggio: `DiveRun.findHere()` e `take()` (le voci già nel Diario n
 `afterDive` le aggiunge al Diario. Test in `tests/dive.test.ts`, `tests/save.test.ts`, `tests/sim.test.ts`. Il suono
 della cosa trovata per ora è quello delle bolle dell'erogatore, più piano (un suono suo è da fare).
 
-**Problemi aperti delle tane (12 ottobre).** Il braccio lungo di Robin è ancora nella posa della barca (teso in
-avanti), non raccolto nel sonno; il cabinato dei biglietti rovesciato si legge poco; le strisce della coperta di Molly
-non si vedono (sembra un telo rosa); Lampy ha un'inquadratura diversa dalle altre (da −45° a +35°, sguardo a −5°) e va
-guardata nel gioco; il suono della cosa trovata è provvisorio. Le tane di Hatch (le ante dell'armadio aperte verso
-fuori) e di Archie (la tovaglia tonda che ricade dal tavolo) sono state rifatte dopo il primo giro di finali.
+**Rifatte il 12 ottobre notte.** Hatch (le ante dell'armadio aperte verso fuori) e Archie (la tovaglia tonda che
+ricade dal tavolo; lo striscione «HAPPY BIRTHDAY», uguale in tutte le lingue, orientato come il telo e con le lucine
+sopra). Poi, una tana alla volta:
+
+- **Le scritte** (docs/LOCALIZZAZIONE.md: niente italiano leggibile nelle scene, scritte inglesi come le insegne del
+  parco o neutre, così non si rifà un render per lingua): Gulpy «ICE CREAM / SUMMER 1997» e «FRIES»; Hatch «10!» nel
+  foglio della conta (e «CHI C'È C'È» con l'accento: la È è in `pastelli.py`), il Diario cita «10!»; Robin «LOST &
+  FOUND»; nel sorgente, per i render futuri, Archie «PARTY / MAY 1999», Lampy «WELCOME! / JULY 2003», Fangy «EYES
+  CLOSED!» e «AUGUST». I disegni a pastelli tengono le loro parole («MENU», «TUTTO!», «VOGLIO TUTTO», «IO»): nel gioco
+  sono piccoli e non si leggono; il «!» di «TUTTO!» ora sta sul foglio.
+- **Molly**: la foto è caduta sulla sabbia davanti al trampolino (sopra la tavola, all'altezza degli occhi, si vedeva
+  di taglio), con «6 / 1997»; la coperta ha le strisce. Le strisce non comparivano in nessun telo
+  (`strisce_material`: la soglia era fissa a 0,5 e il passo più corto): ora sì anche negli asciugamani di Hatch, e nella
+  tenda di Gulpy e nella tovaglia di Archie al prossimo render.
+- **Lampy**: il cartoncino del braccialetto rosa acceso (bianco spariva sotto la torcia), legato al corrimano davanti
+  della culla, verso chi entra: «3,1 KG – 7 / 2003»; le parole («non lasciarla mai andare») stanno nel Diario.
+- **Robin**: il braccio lungo raccolto nel sonno (il gomito alto ripiegato, il pugno sotto il mento); il cabinato dei
+  biglietti caduto sul fianco ma con la faccia verso chi entra: il cartellone «TICKETS» acceso, lo schermo verde, la
+  plancia con la leva e i pulsanti, lo sportello delle monete, la striscia di biglietti che esce e si arrotola sulla
+  sabbia (`tane.cabinato`). Il disegno da trovare è dall'altra parte del mucchio.
+- **La cosa trovata** ha un suo suono, `dive_found` (docs/AUDIO.md): la carta fradicia fra le dita, un gonfiore grave
+  e sordo, la roccia lontana; non un premio.
+
+**Lampy resta con la sua inquadratura** (da −45° a +35°, sguardo a −5°): dorme attaccata al soffitto sopra la culla,
+a 3,5 m (la posa approvata), e con l'inquadratura delle altre (fino a +18° in alto) il soffitto e lei sarebbero fuori
+campo. Per portarla come le altre bisognerebbe abbassarla di un metro abbondante, attaccata a qualcos'altro (la
+corda della giostrina, una trave): è una scelta da approvare.
 
 ## Il pesce e i finali
 
