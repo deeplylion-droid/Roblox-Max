@@ -8,10 +8,12 @@ Molly si rende sul lato destro: per il sinistro il motore specchia l'immagine.
 Archie (notte 3) arriva dopo che il vetro della lampara è esploso: nella sua scena la lampara è spenta.
 Lampy (notte 4) arriva dalla lenza con la ventosa spalancata, e da un fotogramma all'altro gli anelli di denti girano.
 Fangy (notte 5) si lancia dalla fiancata con le zanne avanti e tutte le lucine accese.
+La Madre (notte 6, da approvare) viene da sotto: la barca è sbalzata e inclinata, e dal mare sale la bocca spalancata
+attorno alla barca, coi fanoni come le sbarre di un lettino; la camera si inclina con la barca (CAMERE).
 
 Uso: tools/.venv/bin/python tools/render/jobs.py jumpscare --quality preview   (JUMPSCARES=gulpy,molly,hatch,robin;
-JS_ANTEPRIMA=1 per lasciare i fotogrammi in cache senza toccare il gioco; Archie, Lampy e Fangy si chiedono a parte:
-JUMPSCARES=archie, JUMPSCARES=lampy, JUMPSCARES=fangy)
+JS_ANTEPRIMA=1 per lasciare i fotogrammi in cache senza toccare il gioco; Archie, Lampy, Fangy e la Madre si chiedono a
+parte: JUMPSCARES=archie, JUMPSCARES=lampy, JUMPSCARES=fangy, JUMPSCARES=madre)
 """
 from __future__ import annotations
 
@@ -221,8 +223,69 @@ def fangy_attack():
 # (gradi: le zanne vengono verso la camera)
 FANGY_JS = {'dist': 0.55, 'pitch': 6.0}
 
+def _barca_sbalzata(su, rollio, beccheggio):
+    """La barca sollevata e inclinata (dalla Madre che sale da sotto): tutti gli oggetti della barca, attorno al suo
+    centro. Restituisce la trasformazione, che vale anche per l'occhio del pescatore."""
+    B = (Matrix.Translation((0.0, 0.0, su)) @ Matrix.Rotation(math.radians(rollio), 4, 'Y')
+         @ Matrix.Rotation(math.radians(beccheggio), 4, 'X'))
+    col = bpy.data.collections.get('boat')
+    for o in (col.all_objects if col else []):
+        if o.parent is None:
+            o.matrix_world = B @ o.matrix_world
+    bpy.context.view_layer.update()
+    return B
+
+
+def madre_attack():
+    import madre as ma
+    # ti sei mosso mentre passava sotto: la Madre ti prende con tutta la barca. La barca è sbalzata (sollevata e
+    # inclinata a sinistra, la prua su) e la vista si inclina con lei; da sinistra, dal basso, sale la bocca
+    # spalancata con l'apertura verso di te: sopra il palato, sotto la lingua, in fondo la gola nera, e ai due lati i
+    # fanoni in fila come le sbarre di un lettino, col corrimano. Arriva da lontano, bassa, mezza sott'acqua, e sale
+    # mentre ti viene addosso: entri dall'apertura (venendo dritta da sotto il palato ti passerebbe davanti agli occhi)
+    B = _barca_sbalzata(MADRE_JS['su'], MADRE_JS['rollio'], MADRE_JS['beccheggio'])
+    occhio = B @ Vector(EYE)
+    yaw, pitch = math.radians(MADRE_JS['yaw']), math.radians(MADRE_JS['pitch'])
+    d = Vector((math.sin(yaw) * math.cos(pitch), math.cos(yaw) * math.cos(pitch), math.sin(pitch)))
+    C1 = occhio + d * MADRE_JS['dist']
+    # il centro della bocca (fra le mascelle) e la bisettrice dell'apertura, nel sistema della Madre
+    a = math.radians(ma.BOCCA_MAX)
+    bis = Vector((0.0, -(1.0 + math.cos(a)), -math.sin(a))).normalized()
+    c_loc = Vector(tuple(float(x) for x in ma.CERNIERA)) + bis * MADRE_JS['bocca']
+    # alzata col muso finché l'apertura guarda in orizzontale, poi girata verso di te
+    beta = math.atan2(-bis.z, -bis.y)
+    h = Vector((occhio.x - C1.x, occhio.y - C1.y, 0.0)).normalized()
+    psi = math.atan2(h.x, -h.y)
+    R = Matrix.Rotation(psi, 4, 'Z') @ Matrix.Rotation(-beta + math.radians(MADRE_JS['muso_su']), 4, 'X')
+    M1 = Matrix.Translation(C1 - R @ c_loc) @ R
+    M0 = Matrix.Translation(-h * MADRE_JS['indietro'] + Vector((0.0, 0.0, -MADRE_JS['giu']))) @ M1
+    viewer = tuple(float(x) for x in (M1.inverted() @ occhio))
+    obs = sc.place(ma.build(viewer=viewer, bocca=1.0, piccoli=False, spruzzo_on=False, corpo_on=False), M0)
+    sc.LAST_M['madre_sale'] = M1
+
+    def camera():
+        t = B.inverted() @ C1
+        cam = perspective_camera(EYE, tuple(t), lens=MADRE_JS['lente'], name='JumpCam')
+        bpy.context.view_layer.update()
+        cam.matrix_world = B @ cam.matrix_world
+        return cam
+    CAMERE['madre'] = camera
+    return obs, M0, M1, C1
+
+
+# La Madre: la barca sollevata di 'su' metri, inclinata a sinistra ('rollio', gradi) e con la prua su ('beccheggio');
+# dove arriva il centro della bocca: 'dist' metri dall'occhio verso 'yaw' e 'pitch' (gradi), con la bocca a 'bocca'
+# metri dalla cerniera lungo l'apertura e il muso alzato di 'muso_su' gradi in più; da dove parte: 'indietro' metri più
+# in là e 'giu' metri più sotto. La lente della camera, che guarda il centro della bocca
+MADRE_JS = {'su': 0.9, 'rollio': -14.0, 'beccheggio': 5.0, 'yaw': -62.0, 'pitch': -6.0, 'dist': 2.0, 'bocca': 5.5,
+            'muso_su': 0.0, 'indietro': 11.0, 'giu': 3.2, 'lente': 20.0}
+
 ATTACKS = {'gulpy': gulpy_attack, 'molly': molly_attack, 'hatch': hatch_attack, 'robin': robin_attack,
-           'archie': archie_attack, 'lampy': lampy_attack, 'fangy': fangy_attack}
+           'archie': archie_attack, 'lampy': lampy_attack, 'fangy': fangy_attack, 'madre': madre_attack}
+
+# Le camere fatte dall'attacco (la Madre: la camera si inclina con la barca sbalzata); per gli altri la camera guarda la
+# creatura dall'occhio, come sempre
+CAMERE = {}
 
 # I pezzi che cambiano da un fotogramma all'altro (oltre a muoversi): funzione del numero del fotogramma, preparata
 # dall'attacco (i denti di Lampy che girano)
@@ -238,7 +301,9 @@ FILL = {'robin': {'energy': 3.0, 'dist': 0.35},
         'lampy': {'energy': 3.0, 'dist': 0.35},
         # Fangy arriva da dietro a destra, con la lampara alle spalle del pescatore: la faccia la fanno questa luce e le
         # sue lucine
-        'fangy': {'energy': 3.0, 'dist': 0.35}}
+        'fangy': {'energy': 3.0, 'dist': 0.35},
+        # la Madre: dentro la bocca la lampara arriva poco; questa luce, più forte perché la bocca è grande, la fa leggere
+        'madre': {'energy': 90.0, 'dist': 0.35}}
 
 
 def _fill_light(cfg):
@@ -274,13 +339,16 @@ def run(q, who, post_mod, overlays_path, build_scene, coll_objects, renderable):
     meshes = [o for o in creature if o.type == 'MESH']
     base = {o.name: o.matrix_world.copy() for o in creature}
     M0inv = M0.inverted()
-    # la camera guarda la creatura, un po' sotto la testa (come quando alzi gli occhi di scatto)
-    d = (aim - Vector(EYE)).normalized()
-    hor = math.hypot(d.x, d.y)
-    max_up = math.tan(math.radians(22.0)) * hor
-    d = Vector((d.x, d.y, min(d.z, max_up) - 0.06)).normalized()
-    cam_target = tuple(Vector(EYE) + d * 2.0)
-    perspective_camera(EYE, cam_target, lens=22.0, name='JumpCam')
+    if who in CAMERE:
+        CAMERE[who]()
+    else:
+        # la camera guarda la creatura, un po' sotto la testa (come quando alzi gli occhi di scatto)
+        d = (aim - Vector(EYE)).normalized()
+        hor = math.hypot(d.x, d.y)
+        max_up = math.tan(math.radians(22.0)) * hor
+        d = Vector((d.x, d.y, min(d.z, max_up) - 0.06)).normalized()
+        cam_target = tuple(Vector(EYE) + d * 2.0)
+        perspective_camera(EYE, cam_target, lens=22.0, name='JumpCam')
     # la versione da approvare basta più piccola e con meno campioni (ci sono scosse e grana sopra)
     W, H = (1920, 1080) if q.name == 'final' else (960, 540) if q.name == 'preview' else (640, 360)
     samples = q.samples if q.name == 'final' else min(q.samples, 32)
@@ -299,8 +367,11 @@ def run(q, who, post_mod, overlays_path, build_scene, coll_objects, renderable):
     for o in meshes:
         o.hide_render = True
     bg_exr = os.path.join(out_dir, f'{who}_bg.exr')
+    # JS_RIPRENDI=1: riprende un render interrotto, riusando lo sfondo e i fotogrammi già in cache
+    riprendi = bool(os.environ.get('JS_RIPRENDI'))
     t = time.time()
-    render(bg_exr, samples, (W, H), data_passes=())
+    if not (riprendi and os.path.exists(bg_exr)):
+        render(bg_exr, samples, (W, H), data_passes=())
     log(f'jumpscare {who} sfondo', round(time.time() - t), 's')
     for o in meshes:
         o.hide_render = False
@@ -323,7 +394,8 @@ def run(q, who, post_mod, overlays_path, build_scene, coll_objects, renderable):
         _set_creature(creature, base, M0inv, _lerp_matrix(M0, M1, u))
         exr = os.path.join(out_dir, f'{who}_{i:02d}.exr')
         t = time.time()
-        render(exr, samples, (W, H), transparent=True, data_passes=('Alpha',))
+        if not (riprendi and os.path.exists(exr)):
+            render(exr, samples, (W, H), transparent=True, data_passes=('Alpha',))
         p = post_mod.read_exr(exr)
         fg = sum(p[g][..., :3] for g in ('ambient', 'lamp', 'lantern') if g in p)
         a = p['alpha'][..., None] if 'alpha' in p else np.ones(fg.shape[:2] + (1,), np.float32)

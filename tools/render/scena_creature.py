@@ -170,6 +170,9 @@ POSES = {
     # notte 5: Fangy nell'acqua a destra, dietro il pescatore (approvata l'11 ottobre); le lucine spente, le accende il
     # motore (deciso l'11 ottobre), che ne trova le posizioni nel manifest
     'fangy_ascolta': (lambda: fangy_ascolta(luci=0.0), 'world', True, {'luci': FANGY_LUCI}),
+    # notte 6: la Madre sale accanto alla barca a sinistra, fuori la fronte e l'occhio (approvata l'11 ottobre sera: via
+    # libera dell'utente alla sessione principale per scegliere stanotte)
+    'madre_sale': (lambda: madre_sale(), 'world', True),
 }
 
 
@@ -384,3 +387,42 @@ def fangy_ascolta(testa=0.0, luci=1.0):
     M, kw = fangy_posa()
     LAST_M['fangy_ascolta'] = M
     return place(fa.build(**kw, testa=testa, luci=luci), M)
+
+
+# ───────────────────────── notte 6 ─────────────────────────
+
+# La Madre (madre.py; da approvare) sale accanto alla barca, a sinistra: fuori dall'acqua escono solo la fronte e
+# l'occhio destro, grande quanto la barca, che guarda il pescatore a qualche metro dal bordo; il resto (una trentina
+# di metri) resta sotto, col muso verso prua e la coda che scende verso poppa. È inclinata sul fianco verso la barca
+# (MADRE_ROLLIO) e con la testa un po' alzata (MADRE_BECCHEGGIO). Sta nel mondo, non sulla barca.
+MADRE_YAW = -55.0         # gradi: dove sta il centro dell'occhio, dall'occhio del pescatore
+MADRE_DIST = 6.8          # metri, in orizzontale, dall'occhio del pescatore al centro dell'occhio
+MADRE_QUOTA = 1.0         # metri: il centro dell'occhio sopra il mare
+MADRE_ROLLIO = -6.0       # gradi: il fianco dell'occhio appena giù verso la barca
+MADRE_BECCHEGGIO = -6.0   # gradi: la testa alzata (negativo: il muso, che sta a −y, sale; la nuca scende)
+
+
+def madre_posa():
+    """La trasformazione della posa madre_sale e i parametri di madre.build() in coordinate locali (servono anche alla
+    tavola di madre.py e al jumpscare). L'asse dell'occhio, in orizzontale, punta sul pescatore."""
+    import madre as ma
+    from mathutils import Matrix, Vector
+    R0 = Matrix.Rotation(math.radians(MADRE_BECCHEGGIO), 4, 'X') @ Matrix.Rotation(math.radians(MADRE_ROLLIO), 4, 'Y')
+    a = R0 @ Vector(tuple(map(float, ma.OCCHIO_ASSE)))
+    a_yaw = math.degrees(math.atan2(a.x, a.y))
+    t = math.radians(MADRE_YAW)
+    e = Vector((EYE[0] + MADRE_DIST * math.sin(t), EYE[1] + MADRE_DIST * math.cos(t), MADRE_QUOTA))
+    want = math.degrees(math.atan2(EYE[0] - e.x, EYE[1] - e.y))
+    R = Matrix.Rotation(math.radians(a_yaw - want), 4, 'Z') @ R0
+    off = R @ Vector(tuple(map(float, ma.OCCHIO)))
+    M = Matrix.Translation(e - off) @ R
+    loc = lambda p: tuple(round(float(v), 4) for v in to_local(M, p))
+    return M, {'viewer': loc(EYE)}
+
+
+def madre_sale(bocca=0.0):
+    """La posa madre_sale (da approvare)."""
+    import madre as ma
+    M, kw = madre_posa()
+    LAST_M['madre_sale'] = M
+    return place(ma.build(**kw, bocca=bocca), M)

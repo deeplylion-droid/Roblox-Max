@@ -32,7 +32,7 @@ export interface NightAssets {
   /** vista da sotto il telone: passo base e passo retroilluminato (la luce del giocattolo che fruga) */
   tarp: { base: OverlayTex; glow: OverlayTex; aspect: number } | null;
   /** fotogrammi dei jumpscare renderizzati, se ci sono */
-  jumpscares: Partial<Record<MonsterId | 'mother', { frames: OverlayTex[]; fps: number; aspect: number }>>;
+  jumpscares: Partial<Record<MonsterId | 'mother' | 'quota', { frames: OverlayTex[]; fps: number; aspect: number }>>;
   /** ritratti dei pesci del Catalogo già renderizzati: id → URL dell'immagine */
   fish: Record<string, string>;
   /** i luoghi dell'orizzonte per il binocolo, e dove sta la luce rossa della videocamera */
@@ -47,7 +47,9 @@ export interface NightStats {
   time: number;
 }
 
-export type NightEnd = { kind: 'won'; stats: NightStats } | { kind: 'dead'; killer: MonsterId | 'mother'; cause?: MotherCause; stats: NightStats };
+export type NightEnd =
+  | { kind: 'won'; stats: NightStats }
+  | { kind: 'dead'; killer: MonsterId | 'mother'; cause?: MotherCause; stats: NightStats; /** c'è stato un jumpscare (anche quello della quota) */ js?: boolean };
 
 export interface NightDeps {
   stage: Stage;
@@ -139,6 +141,8 @@ const BELL_YAW = -40;
 
 /** Pose renderizzate nella scena (vedi tools/render/scena_creature.py). */
 const POSE = {
+  /** notte 6: la Madre sale accanto alla barca a sinistra, fuori la fronte e l'occhio (il finale A) */
+  madre: 'madre_sale',
   gulpySale: 'gulpy_sale',
   gulpyPretende: 'gulpy_pretende',
   mollyRight: 'molly_destra',
@@ -294,11 +298,11 @@ export class Night {
   // stato visivo (morbido)
   private v = { gSale: 0, gRise: 0, gPret: 0, mR: 0, mL: 0, hRise: 0, robin: 0, robinFear: 0, robinBlink: 0,
     gJaw: 0, gJawPhase: 0, gJawAmp: 0, mBlink1: 0, mBlink2: 0, hMouth: 0, hMouthT: 99, aRise: 0, aHornT: 0, aHornHalf: 0, aHornFull: 0, aFiato: 0, lRise: 0, lMouth: 0, lMouthT: 0, lClimb: 0,
-    fRise: 0, fBow: 0, fStern: 0, fHead: 0, fHeadT: 1, fFlash: 0, fBreath: 0, fApp: 0, fRow: 0, mCalm: 0, mLift: 0, tarp: 0, toy: 0, toyX: -1, dawn: 0, rock: 0, dark: 0 };
+    fRise: 0, fBow: 0, fStern: 0, fHead: 0, fHeadT: 1, fFlash: 0, fBreath: 0, fApp: 0, fRow: 0, mCalm: 0, mLift: 0, mdRise: 0, tarp: 0, toy: 0, toyX: -1, dawn: 0, rock: 0, dark: 0 };
   private gulpyDive = 0;
   /** quando è cominciata l'abboccata in corso (per il suggerimento nelle notti di Lampy) */
   private biteAt = -1;
-  private js: { killer: MonsterId | 'mother'; t: number; yaw: number; scream: Voice | null } | null = null;
+  private js: { killer: MonsterId | 'mother' | 'quota'; t: number; yaw: number; scream: Voice | null } | null = null;
   private lineSway = 0;
   /** secondi dal lancio e dal tonfo del galleggiante (−1: niente da animare) */
   private castT = -1;
@@ -1205,7 +1209,18 @@ export class Night {
           const cause = o.kind === 'dead' ? o.cause : undefined;
           this.endResult = { kind: 'dead', killer: 'mother', cause, stats: this.stats() };
           this.endTimer = 4.5;
-          if (cause === 'lullaby') {
+          const quota = this.d.assets.jumpscares.quota;
+          if (!cause && quota) {
+            // la quota mancata alle sei (deciso l'11 ottobre sera): l'occhio della Madre sale da sotto la barca e ti
+            // guarda attraverso l'acqua; la Madre intera si vede solo nella notte 6
+            this.lullabyV?.stop(0.2);
+            this.lullabyV = null;
+            this.motherSong?.stop(0.2);
+            this.motherSong = null;
+            this.startJumpscare('quota');
+            this.endResult = { kind: 'dead', killer: 'mother', stats: this.stats(), js: true };
+            this.endTimer = quota.frames.length / quota.fps;
+          } else if (cause === 'lullaby') {
             // la canzone è finita al buio: sotto la barca sale qualcosa di enorme
             this.lullabyV?.stop(0.2);
             this.lullabyV = null;
@@ -1272,13 +1287,15 @@ export class Night {
     this.loops.reel = this.loops.tension = null;
   }
 
-  private startJumpscare(killer: MonsterId | 'mother'): void {
+  private startJumpscare(killer: MonsterId | 'mother' | 'quota'): void {
     // la camera si gira dove la creatura parte (la posa di gioco da cui partono i fotogrammi); la Madre viene da sotto,
     // dove stai guardando
     const L = this.d.stage.man.layers;
     const yaw =
       killer === 'mother'
         ? this.d.stage.view.yaw
+        : killer === 'quota'
+        ? -50
         : killer === 'gulpy'
         ? (L[POSE.gulpyPretende]?.yaw ?? 0)
         : killer === 'molly'
@@ -1587,6 +1604,7 @@ export class Night {
     if (cr.lampy) v.lRise = sample(cr.lampy, t);
     if (cr.fangy) v.fRise = sample(cr.fangy, t);
     if (cr.hatch) v.hRise = sample(cr.hatch, t);
+    if (cr.madre) v.mdRise = sample(cr.madre, t);
     const soft = this.d.options.reduceFlash ? 0.5 : 1;
     if (s.tilt) {
       const [roll, pt] = sample(s.tilt, t);
@@ -1665,6 +1683,9 @@ export class Night {
       const pelo = info.pelo ? { x0: info.rect[0], x1: info.rect[2], rows: info.pelo } : undefined;
       return { key, opacity, shift: [0, this.wavePx(key, r)], clipY: info.rect[3] - 3, pelo, masks };
     };
+    // la Madre (notte 6, il finale A): emerge accanto alla barca a sinistra, dietro a tutti
+    const md = rise(POSE.madre, v.mdRise > 0.002 ? 1 : 0, ease(v.mdRise));
+    if (md) layers.push(md);
     const gs = rise(POSE.gulpySale, v.gSale, v.gRise);
     if (gs) layers.push(gs);
     // Hatch che conta, e la bocca che si chiude a ogni numero: prima la toppa mezza chiusa, poi sopra quella chiusa
@@ -1804,6 +1825,28 @@ export class Night {
   private sinkPx(key: string, p: number): number {
     const info = this.baseOf(key);
     return info ? (1 - ease(p)) * (info.rect[3] - info.rect[1] + 8) : 0;
+  }
+
+  /**
+   * Vero se una direzione cade dietro la sagoma di una creatura del mondo (sotto la cima, manifest → cima), con lo strato
+   * sceso di `drop` pixel: per le luci lontane del paesaggio, che se no si vedrebbero attraverso la Madre.
+   */
+  private behind(key: string, drop: number, dir: Vec3): boolean {
+    const info = this.d.stage.man.layers[key];
+    const c = info?.cima;
+    if (!info || !c || c.length < 2) return false;
+    const pano = this.d.stage.man.pano;
+    const yaw = Math.atan2(dir[0], dir[1]) / D2R;
+    const el = Math.atan2(dir[2], Math.hypot(dir[0], dir[1])) / D2R;
+    const col = (0.5 + ((((yaw - info.yaw + 540) % 360) - 180) / 360)) * pano.width;
+    const [x0, , x1] = info.rect;
+    if (col < x0 || col > x1) return false;
+    const f = ((col - x0) / (x1 - x0)) * (c.length - 1);
+    const i = Math.min(c.length - 2, Math.floor(f));
+    const a = c[i], b = c[i + 1];
+    if (a == null || b == null) return false;
+    const row = a + (b - a) * (f - i) + drop;
+    return el < pano.latMax - (row * (pano.latMax - pano.latMin)) / pano.height;
   }
 
   /** Lo strato della posa (per una toppa, quello su cui va): la toppa sale e scende insieme a lui. */
@@ -2312,6 +2355,7 @@ export class Night {
     // [strato, intensità, di quanto è sceso e di quanto è andato di lato (pixel del panorama)]: gli occhi
     // scendono con la creatura e spariscono sotto il pelo dell'acqua o dietro il bordo
     const shown: [string, number, number, number][] = [
+      [POSE.madre, v.mdRise > 0.002 ? 1 : 0, this.wavePx(POSE.madre, ease(v.mdRise)), 0],
       [POSE.gulpySale, v.gSale, this.wavePx(POSE.gulpySale, v.gRise), 0],
       [POSE.hatchConta, v.hRise > 0.002 ? 1 : 0, this.wavePx(POSE.hatchConta, ease(v.hRise)), 0],
       [POSE.archie, v.aRise > 0.002 ? 1 : 0, this.wavePx(POSE.archie, ease(v.aRise)), 0],
@@ -2459,8 +2503,11 @@ export class Night {
     const places = this.bino > 0
       ? B.places.filter((p) => Math.abs(((p.yaw - st.view.yaw + 540) % 360) - 180) < p.hfov / 2 + st.view.hfov * 0.75 + 2).map((p) => p.place)
       : [];
-    // gli aloni delle luci lontane sono pensati per la vista normale: col binocolo si stringono
-    let glows = st.landscapeGlows(eyes.world);
+    // gli aloni delle luci lontane sono pensati per la vista normale: col binocolo si stringono. Quelle che la Madre ha
+    // dietro (la candela dell'edicola) non si vedono attraverso di lei
+    const madreDrop = v.mdRise > 0.002 ? this.wavePx(POSE.madre, ease(v.mdRise)) : null;
+    const land = madreDrop === null ? st.landscapeGlows() : st.landscapeGlows().filter((g) => !this.behind(POSE.madre, madreDrop, g.dir));
+    let glows = land.concat(eyes.world).slice(0, 16);
     if (be > 0) {
       const k = 1 - be * (1 - Math.min(1, (st.view.hfov / 90) * 1.6));
       glows = glows.map((g) => ({ ...g, radius: g.radius * k, color: [g.color[0] * (1 - 0.35 * be), g.color[1] * (1 - 0.35 * be), g.color[2] * (1 - 0.35 * be)] }));

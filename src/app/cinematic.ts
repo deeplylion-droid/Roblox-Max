@@ -27,7 +27,8 @@ export interface CinematicScript {
   dawn?: Key<number>[];
   /** la luce della lampara (il livello: 0 spenta, 1 bassa, 2 alta, anche a metà) */
   lamp?: Key<number>[];
-  /** quanto è su ognuna delle creature che salgono dall'acqua (0 sotto, 1 su): gulpy, archie, lampy, fangy, hatch */
+  /** quanto è su ognuna delle creature che salgono dall'acqua (0 sotto, 1 su): gulpy, archie, lampy, fangy, hatch e la
+   *  Madre (madre, la posa madre_sale) */
   creatures?: Partial<Record<CineCreature, Key<number>[]>>;
   /** la barca inclinata: gradi di rollio e di beccheggio in più */
   tilt?: Key<[number, number]>[];
@@ -39,7 +40,7 @@ export interface CinematicScript {
   events?: { t: number; e: CineEvent }[];
 }
 
-export type CineCreature = 'gulpy' | 'archie' | 'lampy' | 'fangy' | 'hatch';
+export type CineCreature = 'gulpy' | 'archie' | 'lampy' | 'fangy' | 'hatch' | 'madre';
 
 function curve(x: number, e: Ease = 'lin'): number {
   const k = Math.max(0, Math.min(1, x));
@@ -80,7 +81,8 @@ export function textAt(s: CinematicScript, t: number, lang: Lang): string {
  * Il finale A «La quota» (approvato l'11 ottobre), sui tempi del suono `madre_dawn_breve` (17 s): alle sei lei sale a
  * sinistra e il mare si gonfia (la barca s'inclina); i figli affiorano davanti alla prua, uno dopo l'altro; la sua
  * pinna sul capodibanda e il secchio che si svuota; tornano giù tutti; sorge il sole e la radio. Finché non c'è la
- * Madre renderizzata, di lei si vedono solo l'acqua, la barca che s'inclina e il secchio.
+ * Madre renderizzata (la posa madre_sale, notte del 12 ottobre), di lei si vedevano solo l'acqua, la barca che
+ * s'inclina e il secchio: ora sale accanto alla barca.
  */
 export const FINALE_A: CinematicScript = {
   length: 17.2,
@@ -101,6 +103,9 @@ export const FINALE_A: CinematicScript = {
     { t: 16, v: 1, ease: 'smooth' },
   ],
   creatures: {
+    // lei sale a sinistra piano, insieme al mare che si gonfia e alla barca che s'inclina, mentre lo sguardo si gira
+    // (a 2,6 s è sul suo occhio); resta finché il secchio si svuota e torna giù per prima
+    madre: [{ t: 0.3, v: 0 }, { t: 3.0, v: 1, ease: 'smooth' }, { t: 10.0, v: 1 }, { t: 12.2, v: 0, ease: 'in' }],
     gulpy: [{ t: 4.0, v: 0 }, { t: 5.2, v: 1, ease: 'out' }, { t: 10.2, v: 1 }, { t: 12.0, v: 0, ease: 'in' }],
     archie: [{ t: 4.8, v: 0 }, { t: 6.2, v: 1, ease: 'out' }, { t: 10.4, v: 1 }, { t: 12.2, v: 0, ease: 'in' }],
     lampy: [{ t: 5.6, v: 0 }, { t: 6.8, v: 1, ease: 'out' }, { t: 10.6, v: 1 }, { t: 12.3, v: 0, ease: 'in' }],
