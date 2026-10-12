@@ -27,15 +27,15 @@ le scritte disegnate o renderizzate **dentro le immagini**, che non passano da l
 | `disegni/pastelli_piscina` | alba della notte 1, Diario | TROVAMI! → FIND ME!, GUARDAMI! → LOOK AT ME!, HO FAME! → I'M HUNGRY!, AGOSTO 97 → AUGUST 97 (SNACK resta) | `pastelli.py` |
 | `disegni/pastelli_tesoro` | alba della notte 2, Diario | IL MIO TESORO → MY TREASURE | `pastelli.py` |
 | `disegni/pastelli_compleanno` | alba della notte 3, Diario | TANTI AUGURI → HAPPY BIRTHDAY | `pastelli.py` |
-| `disegni/pastelli_sottacqua` | alba della notte 4, Diario | AIUTO! → HELP! (AH AH AH resta) | `pastelli.py` |
+| `disegni/pastelli_sottacqua` | alba della notte 4, Diario | AIUTO! → HELP!, AH AH AH → HA HA HA (in inglese «AH AH AH» sembra un grido) | `pastelli.py` |
 | `annuncio/volantino` | dopo «Nuova partita» | tutto il volantino (vedi `docs/concept/annuncio.md`) | `annuncio.py` |
 
 `pastelli.py --lingua xx --larghezza 1600 --uscita public/assets/img/disegni <nomi>` rifà i disegni con scritte da
 tradurre (tabella `SCRITTE`); il resto del disegno resta identico a quello italiano, tratto per tratto (la scritta
 italiana si «disegna a secco» per consumare gli stessi numeri a caso). Una scritta tradotta più lunga si rimpicciolisce
-fino a stare nello spazio dell'italiana; una più corta si mette nel mezzo. Le lettere del bambino (`LETTERE`) sono le
-maiuscole senza accenti, meno J, Q e X, più `! ? ' -` e le cifre: per altre lingue vanno aggiunte le lettere che
-mancano (À È É Ì Ò Ù, Ä Ö Ü ß, Ñ, Ç…).
+fino a stare nello spazio dell'italiana; una più corta si mette nel mezzo (in cinese, giapponese e coreano può anche
+crescere un po', che i tratti fitti si leggano). Le lettere del bambino (`LETTERE`): tutte le maiuscole, quelle
+accentate dell'Europa occidentale, `! ? ¡ ¿ ' - . , :` e le cifre; il resto dallo scheletro di un font (vedi sotto).
 
 ### Uguali in tutte le lingue
 
@@ -79,16 +79,42 @@ ogni lingua.
 
 ## Per una lingua nuova
 
-- I testi dell'interfaccia, della radio e del Diario: `src/i18n.ts` (e il tipo `Lang`).
-- I disegni dell'alba: le righe in `SCRITTE` di `tools/render/pastelli.py`, le lettere che mancano in `LETTERE`, poi
-  `pastelli.py --lingua xx --larghezza 1600 --uscita public/assets/img/disegni piscina tesoro compleanno sottacqua`
-  e la lingua in `TRADOTTI` di `src/app/disegni.ts`.
-- Il volantino: le righe in `TESTI_V` di `tools/render/annuncio.py`, poi
-  `annuncio.py volantino --lingua xx --scala 1.5 --webp --uscita public/assets/img/annuncio` (una lingua per volta:
-  servono circa 6 GB) e la lingua in `ANNUNCIO.langs` di `src/app/app.ts`. I font del volantino coprono gli accenti
-  dell'Europa occidentale, ß e ñ (Lilita One solo in parte polacco e turco); per cirillico e greco servono altri font
-  (la chiave `font` della lingua; da provare Rubik).
-- Poi si guardano le immagini nuove, come le vede il giocatore (regola 4).
+Le lingue a cui il gioco potrebbe arrivare (scelta dell'utente del 12 ottobre sera): **spagnolo, francese, tedesco,
+portoghese, cinese, giapponese, coreano**. La notte del 12-13 ottobre il gioco è stato preparato per tutte; mancano solo i
+testi tradotti, che si fanno con l'ok dell'utente (e un madrelingua che li controlli).
+
+**Già pronto**
+- **Interfaccia**: il pulsante della lingua nelle opzioni passa da una lingua all'altra di quelle che hanno i testi
+  (`LANGS` e `LANG_NAMES` in `src/i18n.ts`, ognuna col suo nome: Español, Français, Deutsch, Português, 中文, 日本語, 한국어);
+  al primo avvio la lingua è quella del sistema, se il gioco ce l'ha (pt-BR → pt, zh-CN → zh), se no l'inglese; una
+  lingua salvata che il gioco non ha più torna a quella del sistema. La pagina dice la sua lingua (`<html lang>`).
+- **Font dell'interfaccia**: Limelight e Source Serif 4 hanno già tutti gli accenti di spagnolo, francese, tedesco e
+  portoghese (manca solo la Ÿ, che il francese usa in qualche nome). Per cinese, giapponese e coreano
+  `src/app/fonts_lingua.ts` aggiunge alle stesse famiglie, solo per i caratteri quadrati, il sottoinsieme di Noto Serif
+  della lingua (il fratello di Source Serif 4) fatto da `tools/fonts/sottoinsieme_cjk.py`: qualche centinaio di KB
+  invece di 10-25 MB. Gli a capo: il coreano fra le parole, cinese e giapponese con le regole strette (`styles.css`).
+- **La voce della radio e la conta di Hatch** (`src/engine/voice.ts`): in cinese, giapponese e coreano ogni carattere è
+  una sillaba, con la vocale presa dall'hangul o dal sillabario (i caratteri cinesi ne prendono una sempre uguale); la
+  punteggiatura larga fa le pause.
+- **I disegni a pastello**: la mano del bambino scrive le lettere accentate (Á É Í Ó Ú Ñ Ü Ç À È Ê Ô Ã Õ Ä Ö…, ¡ ¿, la ß
+  come SS) e J, Q, X; cinese, giapponese e coreano li prende dallo scheletro di Noto Sans e li ripassa a pastello con lo
+  stesso tremolio. Le prove in tutte le sette lingue sono in `docs/concept/lingue/pastelli_<lingua>_prova.jpg`, coi testi
+  di `tools/render/pastelli_prova_lingue.py` (PROVE, da far controllare: non vanno nel gioco).
+- **Il volantino**: i font di ogni lingua e le prove sono della sessione del volantino (`docs/concept/annuncio.md`).
+
+**I passi per una lingua (per esempio lo spagnolo, `es`)**
+1. I testi: `es` nel tipo `Lang` e i suoi testi in `STRINGS`, `LORE_TEXT` e nelle `RADIO_NIGHT…` di `src/i18n.ts`
+   (TypeScript dice cosa manca), poi il suo nome è già in `LANG_NAMES`.
+2. I disegni dell'alba: le sue righe in `SCRITTE` di `tools/render/pastelli.py`, poi
+   `pastelli.py --lingua es --larghezza 1600 --uscita public/assets/img/disegni piscina tesoro compleanno sottacqua`
+   e `es` in `TRADOTTI` di `src/app/disegni.ts`.
+3. Il volantino: le sue righe in `TESTI_V` di `tools/render/annuncio.py`, poi
+   `annuncio.py volantino --lingua es --scala 1.5 --webp --uscita public/assets/img/annuncio` (una lingua per volta:
+   servono circa 6 GB) e `es` in `ANNUNCIO.langs` di `src/app/app.ts`.
+4. Solo per cinese, giapponese e coreano: `tools/.venv/bin/python tools/fonts/sottoinsieme_cjk.py zh` (da rifare quando
+   cambiano i testi) e `zh: 'fonts/cjk-zh.woff2'` in `CJK_FONTS` di `src/app/fonts_lingua.ts`.
+5. Poi si guardano le immagini nuove e le schermate come le vede il giocatore (regola 4): che i testi stiano nei loro
+   spazi anche con la dimensione dei testi al massimo.
 
 ## Come è stato controllato
 

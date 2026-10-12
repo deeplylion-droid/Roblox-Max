@@ -891,9 +891,31 @@ export const RADIO: Record<number, Record<Lang, RadioLine[]>> = { 1: RADIO_NIGHT
 
 export const STRINGS: Record<Lang, typeof IT> = { it: IT, en: EN };
 
-export function detectLang(): Lang {
-  const l = (navigator.language || 'en').slice(0, 2).toLowerCase();
-  return l === 'it' ? 'it' : 'en';
+/** Le lingue del gioco, nell'ordine in cui le propone il pulsante delle opzioni. Una lingua nuova: il suo codice in
+ *  `Lang`, i suoi testi in STRINGS, LORE_TEXT e RADIO (TypeScript dice cosa manca), il suo nome qui sotto
+ *  (docs/LOCALIZZAZIONE.md). */
+export const LANGS = Object.keys(STRINGS) as Lang[];
+
+/** Il nome di ogni lingua nella lingua stessa (anche quelle a cui il gioco potrebbe arrivare). */
+export const LANG_NAMES: Record<string, string> = {
+  it: 'Italiano',
+  en: 'English',
+  es: 'Español',
+  fr: 'Français',
+  de: 'Deutsch',
+  pt: 'Português',
+  zh: '中文',
+  ja: '日本語',
+  ko: '한국어',
+};
+
+/** La lingua del sistema, se il gioco ce l'ha (pt-BR → pt, zh-CN → zh); se no l'inglese. */
+export function detectLang(prefs: readonly string[] = typeof navigator === 'undefined' ? [] : navigator.languages?.length ? navigator.languages : [navigator.language]): Lang {
+  for (const p of prefs) {
+    const l = (p || '').slice(0, 2).toLowerCase() as Lang;
+    if (LANGS.includes(l)) return l;
+  }
+  return 'en';
 }
 
 /**
