@@ -3,11 +3,13 @@
  * (dalla prima alla quinta) si può scendere con le bombole (l'immersione, src/app/dive.ts) prima della notte dopo.
  * Tiene il salvataggio, le opzioni e lo sfondo animato dei menu (la scena dalla barca).
  */
+import { loadLayer } from '../engine/assets.ts';
 import type { AudioEngine, Voice } from '../engine/audio.ts';
 import { EXTRA_NIGHT, NIGHTS, extraEndingEarned, extraNight, type MonsterId, type NightConfig } from '../game/config.ts';
 import { STRINGS, type Lang } from '../i18n.ts';
 import { Dive, loadDiveData, type DiveResult } from './dive.ts';
 import { Night, type NightAssets, type NightEnd } from './night.ts';
+import { swapFogAssets } from './overlays.ts';
 import { afterDive, fedFor, newGame, pendingDawn, skipDawn, wonNight, writeSave, type Options, type SaveData } from './save.ts';
 import { Screens, setUiSound } from './screens.ts';
 import type { Sfx } from './sfx.ts';
@@ -193,6 +195,7 @@ export class App {
         }
         (this.save.options as unknown as Record<string, number | boolean>)[k] = v as number | boolean;
         this.applyOptions();
+        if (k === 'fog') this.swapFog(v as boolean);
         writeSave(this.save);
       },
       onBack: back,
@@ -205,8 +208,29 @@ export class App {
     });
   }
 
+  /** i cambi di serie dell'opzione «Nebbia», uno dopo l'altro (se si preme due volte di fila il secondo aspetta) */
+  private fogSwap: Promise<void> = Promise.resolve();
+
+  /** L'opzione «Nebbia» cambiata: il mondo, la barca, il binocolo e il telone passano all'altra serie di immagini
+   *  (pochi megabyte, un attimo; anche a notte in corso). Mostri e jumpscare sono gli stessi nelle due serie. */
+  private swapFog(on: boolean): void {
+    this.fogSwap = this.fogSwap
+      .then(async () => {
+        const r = this.stage.renderer;
+        for (const k of ['world', 'boat']) {
+          if (!this.stage.man.layers[k]?.senza) continue;
+          const l = await loadLayer(r.gl, this.stage.man, k, !on);
+          r.removeLayer(k);
+          r.addLayer(l);
+        }
+        await swapFogAssets(r.gl, this.assets, !on);
+      })
+      .catch((e) => console.warn(e));
+  }
+
   private applyOptions(): void {
     const o: Options = this.save.options;
+    this.stage.fog = o.fog;
     const v = this.audio.volumes;
     v.master = o.master;
     v.music = o.music;

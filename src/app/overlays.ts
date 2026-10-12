@@ -14,13 +14,63 @@ interface PassFile {
   scale: number;
 }
 
+/** le immagini senza la nebbia resa, per l'opzione «Nebbia» spenta (le stesse inquadrature, altri file) */
+interface Senza extends PassFile {
+  /** la nebbia del motore su questa vista (di solito 1: queste immagini non ce l'hanno) */
+  fog?: number;
+  foxy?: PassFile[];
+}
+
+interface PlaceFile extends PassFile {
+  key: string;
+  yaw: number;
+  pitch: number;
+  hfov: number;
+  aspect: number;
+  foxy?: PassFile[];
+  fog?: number;
+  senza?: Senza;
+}
+
 interface OverlayManifest {
-  tarp?: { base: PassFile; glow: PassFile; aspect: number };
+  tarp?: { base: PassFile; glow: PassFile; aspect: number; senza?: { base: PassFile; glow: PassFile } };
   /** i jumpscare: dei mostri, della Madre (notte 6) e della quota mancata (l'occhio della Madre, notti 1-5) */
   jumpscares?: Partial<Record<MonsterId | 'mother' | 'quota', { frames: PassFile[]; fps: number; aspect: number }>>;
   /** i posti del binocolo; dove sta il Foxy anche le sue due viste (fermo, più vicino), con la stessa inquadratura */
-  binocular?: { places: (PassFile & { key: string; yaw: number; pitch: number; hfov: number; aspect: number; foxy?: PassFile[]; fog?: number })[]; rec?: [number, number, number] };
+  binocular?: { places: PlaceFile[]; rec?: [number, number, number] };
 }
+
+type Place = NightAssets['binocular']['places'][number];
+
+/** Un posto del binocolo nella serie scelta. Senza nebbia vale solo se c'è tutta: dove sta il Foxy servono anche le
+ *  sue viste senza nebbia, se no il posto cambierebbe aspetto quando arriva lui (e resta quello con la nebbia). */
+async function loadPlace(gl: GL, pl: PlaceFile, senza: boolean): Promise<Place> {
+  const s = senza && pl.senza && (!pl.foxy?.length || pl.senza.foxy?.length) ? pl.senza : null;
+  const t = await tex(gl, s ?? pl);
+  // camera del luogo: yaw (a destra) poi pitch (in su), come lo sguardo; la trasposta porta il mondo nella camera
+  const R = mul(rotZ(pl.yaw), rotX(pl.pitch));
+  const tx = Math.tan((pl.hfov / 2) * (Math.PI / 180));
+  const place = { tex: t.tex, scale: t.scale, cam: transpose(R), tan: [tx, tx / pl.aspect] as [number, number], fog: s ? s.fog : pl.fog };
+  // le viste col Foxy: servono tutte e due, se no resta il segnaposto (gli occhi rossi)
+  let foxy: (typeof place)[] | undefined;
+  const fx = s ? s.foxy : pl.foxy;
+  if (fx?.length) {
+    try {
+      foxy = await Promise.all(fx.map(async (f) => ({ ...place, ...(await tex(gl, f)) })));
+    } catch (e) {
+      console.warn(e);
+    }
+  }
+  return { key: pl.key, yaw: pl.yaw, pitch: pl.pitch, hfov: pl.hfov, place, foxy };
+}
+
+async function loadTarp(gl: GL, t: NonNullable<OverlayManifest['tarp']>, senza: boolean): Promise<NonNullable<NightAssets['tarp']>> {
+  const s = senza && t.senza ? t.senza : t;
+  return { base: await tex(gl, s.base), glow: await tex(gl, s.glow), aspect: t.aspect };
+}
+
+/** il manifest degli overlay letto all'avvio (per cambiare serie con l'opzione «Nebbia» senza rileggerlo) */
+let overlayMan: OverlayManifest = {};
 
 async function tex(gl: GL, p: PassFile): Promise<OverlayTex> {
   const r = await fetch(ASSET_BASE + 'img/' + p.file);
@@ -79,7 +129,8 @@ function proceduralTarp(gl: GL): NightAssets['tarp'] {
   };
 }
 
-export async function loadNightAssets(gl: GL): Promise<NightAssets> {
+/** Gli overlay della notte; con senza (l'opzione «Nebbia» spenta) il binocolo e il telone senza la nebbia resa. */
+export async function loadNightAssets(gl: GL, senza = false): Promise<NightAssets> {
   let man: OverlayManifest = {};
   try {
     const r = await fetch(ASSET_BASE + 'img/overlays.json');
@@ -87,24 +138,11 @@ export async function loadNightAssets(gl: GL): Promise<NightAssets> {
   } catch {
     // niente overlay renderizzati: si usano i segnaposto
   }
+  overlayMan = man;
   const out: NightAssets = { tarp: null, jumpscares: {}, fish: {}, binocular: { places: [], rec: null } };
   for (const pl of man.binocular?.places ?? []) {
     try {
-      const t = await tex(gl, pl);
-      // camera del luogo: yaw (a destra) poi pitch (in su), come lo sguardo; la trasposta porta il mondo nella camera
-      const R = mul(rotZ(pl.yaw), rotX(pl.pitch));
-      const tx = Math.tan((pl.hfov / 2) * (Math.PI / 180));
-      const place = { tex: t.tex, scale: t.scale, cam: transpose(R), tan: [tx, tx / pl.aspect] as [number, number], fog: pl.fog };
-      // le viste col Foxy: servono tutte e due, se no resta il segnaposto (gli occhi rossi)
-      let foxy: (typeof place)[] | undefined;
-      if (pl.foxy?.length) {
-        try {
-          foxy = await Promise.all(pl.foxy.map(async (f) => ({ ...place, ...(await tex(gl, f)) })));
-        } catch (e) {
-          console.warn(e);
-        }
-      }
-      out.binocular.places.push({ key: pl.key, yaw: pl.yaw, pitch: pl.pitch, hfov: pl.hfov, place, foxy });
+      out.binocular.places.push(await loadPlace(gl, pl, senza));
     } catch (e) {
       console.warn(e);
     }
@@ -120,7 +158,7 @@ export async function loadNightAssets(gl: GL): Promise<NightAssets> {
     // nessun pesce renderizzato: le schede restano senza figura
   }
   try {
-    if (man.tarp) out.tarp = { base: await tex(gl, man.tarp.base), glow: await tex(gl, man.tarp.glow), aspect: man.tarp.aspect };
+    if (man.tarp) out.tarp = await loadTarp(gl, man.tarp, senza);
   } catch (e) {
     console.warn(e);
   }
@@ -136,4 +174,38 @@ export async function loadNightAssets(gl: GL): Promise<NightAssets> {
     }
   }
   return out;
+}
+
+/**
+ * L'opzione «Nebbia» cambiata: rimette i posti del binocolo e il telone della serie scelta, al posto di quelli caricati
+ * (anche a notte in corso: la notte li legge da qui a ogni fotogramma). Solo dove le due serie sono diverse.
+ */
+export async function swapFogAssets(gl: GL, assets: NightAssets, senza: boolean): Promise<void> {
+  const drop = (t: WebGLTexture | null) => t && gl.deleteTexture(t);
+  const places = assets.binocular.places;
+  for (const pl of overlayMan.binocular?.places ?? []) {
+    if (!pl.senza) continue;
+    const i = places.findIndex((p) => p.key === pl.key);
+    if (i < 0) continue;
+    try {
+      const fresh = await loadPlace(gl, pl, senza);
+      const old = places[i]!;
+      places[i] = fresh;
+      drop(old.place.tex);
+      for (const f of old.foxy ?? []) drop(f.tex);
+    } catch (e) {
+      console.warn(e);
+    }
+  }
+  if (overlayMan.tarp?.senza && assets.tarp) {
+    try {
+      const fresh = await loadTarp(gl, overlayMan.tarp, senza);
+      const old = assets.tarp;
+      assets.tarp = fresh;
+      drop(old.base.tex);
+      drop(old.glow.tex);
+    } catch (e) {
+      console.warn(e);
+    }
+  }
 }

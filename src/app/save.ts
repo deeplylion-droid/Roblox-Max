@@ -17,6 +17,8 @@ export interface Options {
   quality: number;
   /** dimensione dei testi dell'interfaccia: 1 normale, 1,2 grande, 1,4 molto grande (la variabile CSS --ts) */
   textSize: number;
+  /** la nebbia resa nel panorama (docs/ATMOSFERA.md); spenta, le immagini di prima (opzione decisa il 12 ottobre) */
+  fog: boolean;
 }
 
 export interface CatalogEntry {
@@ -48,7 +50,7 @@ const isMonster = (x: unknown): x is MonsterId => typeof x === 'string' && Objec
 const KEY = 'splashland.save.v1';
 
 export function defaultOptions(): Options {
-  return { master: 0.9, music: 0.7, sfx: 0.9, brightness: 1, subtitles: true, captions: false, reduceFlash: false, sensitivity: 1, quality: 1, textSize: 1 };
+  return { master: 0.9, music: 0.7, sfx: 0.9, brightness: 1, subtitles: true, captions: false, reduceFlash: false, sensitivity: 1, quality: 1, textSize: 1, fog: true };
 }
 
 function fresh(): SaveData {

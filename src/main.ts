@@ -92,11 +92,13 @@ async function boot(): Promise<void> {
   const keys = GAME_LAYERS.filter((k) => man.layers[k]);
   const audio = new AudioEngine();
   await audio.load();
+  // l'opzione «Nebbia» spenta: il mondo, la barca, il binocolo e il telone senza la nebbia resa
+  const senza = !save.options.fog;
   for (const [i, k] of keys.entries()) {
-    r.addLayer(await loadLayer(r.gl, man, k));
+    r.addLayer(await loadLayer(r.gl, man, k, senza));
     screens.loading((i + 1) / (keys.length + 1));
   }
-  const assets = await loadNightAssets(r.gl);
+  const assets = await loadNightAssets(r.gl, senza);
   screens.clear();
   const app = new App(stage, audio, new Sfx(audio), canvas, ui, assets, save, lang);
   app.begin();

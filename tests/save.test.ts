@@ -60,3 +60,9 @@ describe('Salvataggio: le immersioni all’alba', () => {
     expect(pendingDawn(d, 3)).toBeNull();
   });
 });
+
+describe('L’opzione «Nebbia»', () => {
+  it('di partenza è accesa', () => {
+    expect(defaultOptions().fog).toBe(true);
+  });
+});

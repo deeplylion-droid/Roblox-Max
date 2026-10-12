@@ -44,6 +44,8 @@ export class Stage {
   lampSick = 0;
   /** luminosità scelta nelle opzioni */
   brightness = 1;
+  /** l'opzione «Nebbia»: spenta, il panorama è quello di prima e il motore fa la sua nebbia di sempre */
+  fog = true;
 
   constructor(
     readonly renderer: Renderer,
@@ -74,7 +76,7 @@ export class Stage {
 
   landscapeGlows(extra: LightGlow[] = []): LightGlow[] {
     const lights = this.man.lights ?? {};
-    const atm = this.man.atmosfera?.glows;
+    const atm = this.fog ? this.man.atmosfera?.glows : undefined;
     const out: LightGlow[] = [];
     for (const g of GLOWS) {
       const p = lights[g.key];
@@ -101,7 +103,7 @@ export class Stage {
       sonar: null,
       sonarGain: 1,
       line: null,
-      fog: this.man.atmosfera?.fog,
+      fog: this.fog ? this.man.atmosfera?.fog : undefined,
       ...p,
     });
   }
