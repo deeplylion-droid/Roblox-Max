@@ -188,6 +188,98 @@ STADI_DEF = (('foxy0', 'lontano'), ('foxy1', 'vicino'))
 SCALA = {('scivoli', 'foxy0'): 1.9, ('scivoli', 'foxy1'): 3.5, ('relitto', 'foxy0'): 2.0, ('relitto', 'foxy1'): 2.6}
 
 
+# le luci dei posti (12 ottobre): fanno parte del posto (stanno anche nel vuoto) e illuminano anche lui. Energie in watt
+LUCI = {'lampione': 650.0, 'festone': 28.0, 'lanterna': 140.0}
+
+
+def luci_posti():
+    """Un lampione del parco ancora acceso alla base degli scivoli (lampadina vecchia, calda e giallo-verde), un festone
+    di lampadine lungo il bordo del tetto della torre (alcune accese, alcune spente), una lanterna accesa appesa
+    all'albero del relitto. Restituisce le posizioni delle luci (per i bagliori del motore)."""
+    from common import set_lightgroup
+    from geo import tube
+    from landmarks import emissive, painted, point_light
+    out = {}
+    ferro = painted('LampioneFerro', (0.05, 0.05, 0.05), rust=0.6, metal=0.4)
+    # il lampione, ai piedi della torre, un po' di lato rispetto a dove si ferma lui
+    g = Vector(env.surface_at(192.85, 25.5))     # due passi alla sua destra, un po' più verso la barca
+    top = g + Vector((0, 0, 4.2))
+    pole = tube('LampionePalo', [tuple(g - Vector((0, 0, 0.3))), tuple(top), tuple(top + Vector((0.55, 0, 0.15)))], 0.07, n=8, col='env')
+    pole.data.materials.append(ferro)
+    head = top + Vector((0.55, 0, 0.05))
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.16, location=tuple(head - Vector((0, 0, 0.12))), segments=12, ring_count=8)
+    bulb = bpy.context.object
+    bulb.name = 'LampioneLampadina'
+    bulb.data.materials.append(emissive('LampioneLuce', (1.0, 0.86, 0.42), 30.0))
+    li = point_light('LampioneLuce', tuple(head - Vector((0, 0, 0.3))), LUCI['lampione'], (1.0, 0.86, 0.45), radius=0.2)
+    for o in (pole, bulb, li):
+        set_lightgroup(o, 'ambient')
+    out['lampione'] = head - Vector((0, 0, 0.12))
+    # il festone lungo il bordo del tetto (il tetto è una piramide a base quadra larga 10 m, a 24 m sul terreno)
+    tx, ty, tz = env.surface_at(193.0, 45.0)
+    c = Vector((tx, ty, tz + 24.0 - 0.15))
+    corners = [c + Vector((5.0 * math.cos(math.pi / 4 + k * math.pi / 2), 5.0 * math.sin(math.pi / 4 + k * math.pi / 2), 0)) for k in range(4)]
+    rng = np.random.default_rng(12)
+    lampade, accese = [], []
+    for k in range(4):
+        a, b = corners[k], corners[(k + 1) % 4]
+        n = 9
+        for i in range(n):
+            t = (i + 0.5) / n
+            p = a.lerp(b, t) - Vector((0, 0, 0.45 * 4 * t * (1 - t)))      # il filo si affloscia fra gli angoli
+            lampade.append(p)
+            if rng.random() < 0.55:
+                accese.append(p)
+    for k in range(4):
+        a, b = corners[k], corners[(k + 1) % 4]
+        wire = [tuple(a.lerp(b, i / 12) - Vector((0, 0, 0.45 * 4 * (i / 12) * (1 - i / 12)))) for i in range(13)]
+        w = tube(f'FestoneFilo{k}', wire, 0.015, n=5, col='env')
+        w.data.materials.append(ferro)
+        set_lightgroup(w, 'ambient')
+    on_m = emissive('FestoneAccesa', (1.0, 0.78, 0.40), 25.0)
+    off_m = painted('FestoneSpenta', (0.20, 0.18, 0.15), rust=0.2, rough=0.3)
+    for i, p in enumerate(lampade):
+        bpy.ops.mesh.primitive_uv_sphere_add(radius=0.09, location=tuple(p - Vector((0, 0, 0.1))), segments=8, ring_count=6)
+        o = bpy.context.object
+        o.name = f'FestoneLampada{i}'
+        o.data.materials.append(on_m if p in accese else off_m)
+        set_lightgroup(o, 'ambient')
+    for i, p in enumerate(accese):
+        point_light(f'FestoneLuce{i}', tuple(p - Vector((0, 0, 0.2))), LUCI['festone'], (1.0, 0.80, 0.45), radius=0.08)
+    out['festone'] = [tuple(p) for p in accese]
+    # la lanterna appesa all'albero del relitto, sopra la tuga (chi l'ha accesa?)
+    mast = bpy.data.objects.get('WreckMast')
+    if mast:
+        bpy.context.view_layer.update()
+        pts = [mast.matrix_world @ Vector(cc) for cc in mast.bound_box]
+        base = min(pts, key=lambda v: v.z)
+        tip = max(pts, key=lambda v: v.z)
+        # appesa a un braccio di cima tesa dall'albero verso la tuga, sopra di lui
+        wt = wreck_house_top()
+        hang = base.lerp(tip, 0.55)
+        lp = hang.lerp(wt + Vector((0, 0, 2.6)), 0.6)
+        cord0 = tube('LanternaBraccio', [tuple(hang), tuple(lp + Vector((0, 0, 0.5)))], 0.012, n=4, col='env')
+        cord0.data.materials.append(ferro)
+        set_lightgroup(cord0, 'ambient')
+        hang = lp + Vector((0, 0, 0.5))
+        cord = tube('LanternaCorda', [tuple(hang), tuple(lp + Vector((0, 0, 0.18)))], 0.01, n=4, col='env')
+        cord.data.materials.append(ferro)
+        bpy.ops.mesh.primitive_cylinder_add(radius=0.11, depth=0.28, location=tuple(lp), vertices=10)
+        lan = bpy.context.object
+        lan.name = 'LanternaVetro'
+        lan.data.materials.append(emissive('LanternaLuce', (1.0, 0.62, 0.28), 18.0))
+        li = point_light('LanternaLuce', tuple(lp), LUCI['lanterna'], (1.0, 0.62, 0.30), radius=0.1)
+        for o in (cord, lan, li):
+            set_lightgroup(o, 'ambient')
+        out['lanterna'] = lp
+    for k, v in out.items():
+        if isinstance(v, Vector):
+            d = v - Vector(EYE)
+            print(f'luce {k}: xyz {tuple(round(x, 2) for x in v)}  dall\'occhio: giro {math.degrees(math.atan2(d.x, d.y)):.2f}°, '
+                  f'alzo {math.degrees(math.atan2(d.z, math.hypot(d.x, d.y))):.3f}°, {d.length:.0f} m', flush=True)
+    return out
+
+
 def water_ring(pos, k):
     """L'acqua attorno a chi sta in acqua fino alla vita: un anello basso d'increspature lucide e uno stretto di schiuma."""
     import sdf
@@ -294,10 +386,13 @@ def definitivo():
         fl = bpy.data.objects.get(f'MarinaFlood{k}')
         if fl:
             fl.data.energy *= 0.3
+    luci = luci_posti()
+    json.dump({k: ([list(map(float, p)) for p in v] if isinstance(v, list) else list(map(float, v))) for k, v in luci.items()},
+              open(os.path.join(out_dir, 'luci_posti.json'), 'w'), indent=1)
     sp = spots()
     before = set(bpy.data.objects)
     # il costume da lontano: fradicio e marcio, blu scuro e spento, grigiastro (la faccia resta pallida)
-    animatore.build('riposo', plush_name='PlushBino', plush_base=(0.065, 0.090, 0.150), soak=1.5)
+    animatore.build('riposo', plush_name='PlushBino', plush_base=(0.090, 0.120, 0.180), soak=1.5)
     fig = [o for o in bpy.data.objects if o not in before and o.type == 'MESH']
     for o in fig:
         set_lightgroup(o, 'ambient')
