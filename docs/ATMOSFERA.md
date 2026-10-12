@@ -113,11 +113,11 @@ Il mondo e la barca stanno in una notte. Il resto in un'altra.
 | --- | --- | --- |
 | Mondo | sessione dell'atmosfera, `claude/atmosfera` 8a9eb7b | 8192×2139, 256 campioni, 16 strisce |
 | Barca | catena di questa macchina | 256 campioni |
-| Binocolo: ingresso, statua, ruota (albergo, edicola, faro, paese in arrivo) | catena di questa macchina | 192 campioni |
+| Binocolo: ingresso, statua, ruota, albergo, edicola, faro, paese | catena di questa macchina | 192 campioni; ai bordi combaciano col mondo (0,93-1,03) |
 | Soggy al binocolo (scivoli, relitto), tutte e due le serie | sessione del Foxy, `claude/foxy` 1079fdf e 737f944 | con lampione, festone e lanterna |
 | Telone | catena di questa macchina | in arrivo |
 
-Controllato nel gioco: sei direzioni con la luce alta e spenta, i posti del binocolo installati, Soggy fermo, più
+Controllato nel gioco: sei direzioni con la luce alta e spenta, tutti i posti del binocolo, Soggy fermo, più
 vicino e via, l'opzione accesa e spenta a notte in corso. La grana che si vede sulla foschia chiara è quella della pellicola
 di sempre (`uGrain`), non del render.
 

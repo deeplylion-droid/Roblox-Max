@@ -4,28 +4,43 @@
    {
     "aspect": 1.7778,
     "file": "bino_albergo.webp",
+    "fog": 0,
     "hfov": 5.0,
     "key": "albergo",
     "pitch": 3.033,
-    "scale": 0.58,
+    "scale": 0.29,
+    "senza": {
+     "file": "bino_albergo_senza.webp",
+     "scale": 0.58
+    },
     "yaw": 124.749
    },
    {
     "aspect": 1.7778,
     "file": "bino_edicola.webp",
+    "fog": 0,
     "hfov": 10.0,
     "key": "edicola",
     "pitch": 1.896,
-    "scale": 0.54,
+    "scale": 0.35000000000000003,
+    "senza": {
+     "file": "bino_edicola_senza.webp",
+     "scale": 0.54
+    },
     "yaw": -73.671
    },
    {
     "aspect": 1.0,
     "file": "bino_faro.webp",
+    "fog": 0,
     "hfov": 3.2,
     "key": "faro",
     "pitch": 2.116,
-    "scale": 1.2000000000000002,
+    "scale": 0.25,
+    "senza": {
+     "file": "bino_faro_senza.webp",
+     "scale": 1.2000000000000002
+    },
     "yaw": 77.974
    },
    {
@@ -45,10 +60,15 @@
    {
     "aspect": 1.7778,
     "file": "bino_paese.webp",
+    "fog": 0,
     "hfov": 13.0,
     "key": "paese",
     "pitch": 3.144,
-    "scale": 1.4000000000000001,
+    "scale": 0.25,
+    "senza": {
+     "file": "bino_paese_senza.webp",
+     "scale": 1.4000000000000001
+    },
     "yaw": -37.972
    },
    {
