@@ -160,15 +160,18 @@ export const FINALE_TUOI: CinematicScript = {
     { t: 0, v: [0, -6, 80] },
     // lei, a sinistra, che chiama
     { t: 2.4, v: [-62, -7, 70], ease: 'smooth' },
-    { t: 3.6, v: [-60, -6, 68] },
-    // i figli attorno alla barca: Gulpy e Archie davanti alla prua, Lampy a destra
-    { t: 4.6, v: [-4, -4, 72], ease: 'smooth' },
-    { t: 5.8, v: [30, -5, 74], ease: 'smooth' },
-    // lei che torna giù da sola (dietro di lei, i figli fermi)
-    { t: 7.0, v: [-50, -6, 74], ease: 'smooth' },
-    { t: 9.4, v: [-44, -8, 72] },
+    { t: 3.4, v: [-60, -6, 68] },
+    // i figli attorno alla barca, che non la seguono: Gulpy e Archie davanti alla prua, poi Lampy a destra (panoramiche
+    // lente, con una sosta su ognuno)
+    { t: 4.9, v: [-4, -4, 72], ease: 'smooth' },
+    { t: 5.6, v: [0, -4, 72] },
+    { t: 6.8, v: [28, -5, 74], ease: 'smooth' },
+    { t: 7.2, v: [30, -5, 74] },
+    // stacco netto: lei che affonda da sola
+    { t: 7.21, v: [-52, -6, 72] },
+    { t: 10.0, v: [-48, -7, 72] },
     // l'alba: davanti alla prua, i figli scendono sotto la barca per seguirla
-    { t: 11.0, v: [4, -3, 80], ease: 'smooth' },
+    { t: 11.6, v: [4, -3, 80], ease: 'smooth' },
     { t: 14.0, v: [6, 2, 76], ease: 'smooth' },
   ],
   dawn: [
@@ -177,7 +180,8 @@ export const FINALE_TUOI: CinematicScript = {
     { t: 13.2, v: 1, ease: 'smooth' },
   ],
   creatures: {
-    madre: [{ t: 0.2, v: 0 }, { t: 2.8, v: 1, ease: 'smooth' }, { t: 6.2, v: 1 }, { t: 9.6, v: 0, ease: 'in' }],
+    // affonda piano dietro il pelo dell'acqua (lo strato scende e si taglia al galleggiamento, come le creature di notte)
+    madre: [{ t: 0.2, v: 0 }, { t: 2.8, v: 1, ease: 'smooth' }, { t: 7.0, v: 1 }, { t: 10.2, v: 0, ease: 'smooth' }],
     gulpy: [{ t: 3.3, v: 0 }, { t: 4.3, v: 1, ease: 'out' }, { t: 10.8, v: 1 }, { t: 12.2, v: 0, ease: 'in' }],
     archie: [{ t: 3.8, v: 0 }, { t: 4.9, v: 1, ease: 'out' }, { t: 11.0, v: 1 }, { t: 12.4, v: 0, ease: 'in' }],
     lampy: [{ t: 4.4, v: 0 }, { t: 5.4, v: 1, ease: 'out' }, { t: 11.2, v: 1 }, { t: 12.5, v: 0, ease: 'in' }],
@@ -231,13 +235,15 @@ export const FINALE_NESSUNO: CinematicScript = {
     { t: 0, v: [0, -6, 80] },
     // lei sale e ti guarda: l'occhio, da vicino
     { t: 2.6, v: [-64, -8, 62], ease: 'smooth' },
-    { t: 3.4, v: [-63, -8, 60] },
-    // i figli, uno dopo l'altro, fermi a fissarti: Gulpy, Archie, Lampy, Fangy
-    { t: 4.4, v: [-14, -5, 70], ease: 'smooth' },
-    { t: 5.6, v: [30, -5, 72], ease: 'smooth' },
-    { t: 6.9, v: [104, -14, 76], ease: 'smooth' },
-    // di nuovo lei, che non ha smesso di guardarti
-    { t: 8.0, v: [-60, -10, 62], ease: 'smooth' },
+    { t: 3.6, v: [-63, -8, 60] },
+    // i figli che affiorano e restano fermi a fissarti: Gulpy e Archie davanti alla prua, poi Archie e Lampy (due
+    // panoramiche lente, con una sosta)
+    { t: 5.0, v: [-6, -5, 74], ease: 'smooth' },
+    { t: 6.0, v: [-2, -5, 74] },
+    { t: 7.4, v: [38, -6, 74], ease: 'smooth' },
+    { t: 7.99, v: [40, -6, 74] },
+    // stacco netto: di nuovo lei, che non ha smesso di guardarti
+    { t: 8.0, v: [-60, -10, 62] },
     // la vista scende verso l'acqua accanto a lei, oltre il bordo (dal banco, più giù di così si vedrebbe solo
     // l'interno della fiancata)
     { t: 10.0, v: [-46, -13, 60], ease: 'smooth' },
