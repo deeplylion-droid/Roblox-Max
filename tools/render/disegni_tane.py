@@ -3,9 +3,9 @@ I disegni a pastelli delle cose da trovare nelle tane (DA APPROVARE, 12 ottobre)
 mano dei disegni dell'alba e di «Il ricordo». I soggetti non ripetono i cinque disegni dell'alba (la piscina, il
 tesoro di Robin, la festa di Archie, Lampy sott'acqua, Marco Polo):
 
-    gulpy   il menù dello Snack Shack, coi prezzi e i disegnini, e tutto cerchiato: «TUTTO!»
+    gulpy   il menù dello Snack Shack, coi disegnini e i prezzi, e tutto cerchiato: «!!!»
     hatch   il foglio della conta: i numeri da 1 a 10 scritti e riscritti, e in mezzo «10! CHI C'È C'È»
-    robin   gli scaffali dei premi della sala giochi, coi biglietti che costano: «VOGLIO TUTTO»
+    robin   gli scaffali dei premi della sala giochi, coi biglietti che costano, e lui che li vuole tutti: «!!!»
     archie  tutti i compleanni dell'anno: dodici torte, una per mese, con le candeline cancellate col nero (1999)
     fangy   io: lui con gli occhialini dipinti di nero, calcati fino a bucare la carta, e «IO»
 
@@ -30,7 +30,8 @@ W, H = P.W, P.H
 
 def gulpy():
     """Il menù dello Snack Shack (su un foglio a quadretti): ogni riga il disegnino e il prezzo, e alla fine un cerchio
-    rosso attorno a tutto con la freccia: «TUTTO!»."""
+    rosso attorno a tutto con la freccia e «!!!». Niente parole italiane (docs/LOCALIZZAZIONE.md): resta solo «HOT DOG»,
+    uguale in tutte le lingue; patatine, gelato e panino si riconoscono dal disegno (da approvare)."""
     P.foglio(201, 'quadretti')
     P.scrivi('rosso', 'MENU', 900, 190, 190, larg=26, press=1.4)
     righe = [('HOT DOG', '3000'), ('PATATINE', '2000'), ('GELATO', '1500'), ('PANINO', '4000')]
@@ -49,14 +50,15 @@ def gulpy():
             P.tondo('rosa', x, y - 60, 70, press=1.0)
         else:
             P.panino(x, y, 0.55)
-        P.scrivi('blu', cosa, 560, y, 96, larg=15, press=1.1)
+        if cosa == 'HOT DOG':
+            P.scrivi('blu', cosa, 560, y, 96, larg=15, press=1.1)
         P.scrivi('nero', prezzo, 1700, y, 100, larg=15, press=1.15)
     # il cerchio attorno a tutto, calcato due volte, e la freccia
     giro = P.cerchio(1200, 900, 1050, giri=1.9, schiaccia=0.62)
     P.tratto(P.strato('rosso'), giro, larg=22, press=1.5, trema=1.6)
     P.tratto(P.strato('rosso'), [(2050, 1450), (1900, 1330), (1860, 1420)], larg=20, press=1.4)
-    fine = P.scrivi('rosso', 'TUTTO!', 1560, 1560, 130, larg=22, press=1.5)
-    assert fine < W - 60, fine         # il «!» resta sul foglio
+    fine = P.scrivi('rosso', '!!!', 1720, 1560, 150, larg=24, press=1.6)
+    assert fine < W - 60, fine         # i «!» restano sul foglio
     return 'gulpy', dict(pieghe=(True, False), strappo=True, angolo=False, macchie=2)
 
 
@@ -85,7 +87,8 @@ def hatch():
 
 def robin():
     """Gli scaffali dei premi della sala giochi: l'orso enorme, la palla, la macchinina, ognuno col suo prezzo in
-    biglietti; lui piccolo davanti, i biglietti attorno alle braccia, e sopra «VOGLIO TUTTO»."""
+    biglietti; lui piccolo davanti, i biglietti attorno alle braccia, e sopra il fumetto «!!!» (prima «VOGLIO TUTTO»:
+    niente parole italiane nelle scene, docs/LOCALIZZAZIONE.md; da approvare)."""
     P.foglio(203, 'album')
     for y in (520, 980, 1440):
         P.colora('marrone', [(120, y), (2280, y - 10), (2280, y + 50), (120, y + 60)], press=0.85)
@@ -106,7 +109,7 @@ def robin():
     P.scrivi('rosso', '300', 1850, 880, 80, larg=13)
     P.bambino(1150, 1650, 520, maglia='verde', capelli='nero', espressione='sorriso', biglietti=True,
               mano_sx=(980, 1300), mano_dx=(1320, 1290))
-    P.fumetto('VOGLIO TUTTO', 1450, 1130, 60, verso=(-1, 1))
+    P.fumetto('!!!', 1450, 1130, 90, verso=(-1, 1))
     return 'robin', dict(pieghe=(False, True), strappo=False, angolo=False, macchie=3)
 
 
