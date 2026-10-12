@@ -116,3 +116,38 @@ describe('Immersioni: la tana vuota e l’aria', () => {
     expect(r.outOfAirOnLeave()).toBe(true);
   });
 });
+
+describe('Immersioni: le cose da trovare nelle tane (12 ottobre)', () => {
+  it('ogni tana ha la sua cosa da trovare: una voce del Diario di quel mostro, che non si pesca', async () => {
+    const { LORE } = await import('../src/game/config.ts');
+    for (const p of Object.values(DATA.places)) {
+      if (!p.den) continue;
+      expect(p.find, p.den).toBeDefined();
+      const l = LORE.find((x) => x.id === p.find!.lore);
+      expect(l?.den, p.den).toBe(p.den);
+    }
+  });
+
+  it('si prende una volta sola, va nel risultato, e quella già nel Diario non si offre più', () => {
+    const r = new DiveRun(DATA, 2, 1);
+    r.enter('grotta_grande');
+    r.enter('tana_gulpy');
+    expect(r.findHere()).toBe('den_gulpy');
+    expect(r.take()).toBe('den_gulpy');
+    expect(r.findHere()).toBeNull();
+    expect(r.take()).toBeNull();
+    expect(r.found).toEqual(['den_gulpy']);
+    const r2 = new DiveRun(DATA, 2, 1, ['den_gulpy']);
+    r2.enter('grotta_grande');
+    r2.enter('tana_gulpy');
+    expect(r2.findHere()).toBeNull();
+  });
+
+  it('nella tana vuota del mostro nuovo la cosa da trovare c’è lo stesso', () => {
+    const r = new DiveRun(DATA, 2, 1);
+    r.enter('grotta_grande');
+    r.enter('tana_robin');
+    expect(r.denState('robin')).toBe('empty');
+    expect(r.take()).toBe('den_robin');
+  });
+});

@@ -138,7 +138,8 @@ const IT = {
     loading: 'Ti infili le bombole…',
     ascend: 'Risali',
     hint: 'Guardati attorno. Clicca un passaggio per nuotarci.',
-    links: { cave: 'La grotta', back: 'Indietro', toCave: 'Torna alla grotta', ascend: 'Risali lungo la cima' } as Record<string, string>,
+    // find: DA APPROVARE (12 ottobre), il punto della cosa da trovare nelle tane
+    links: { cave: 'La grotta', back: 'Indietro', toCave: 'Torna alla grotta', ascend: 'Risali lungo la cima', find: 'Guarda' } as Record<string, string>,
     notes: { mother: 'Dal fondo, nel buio, respira qualcosa di enorme.' } as Record<string, string>,
     emptyDen: 'La tana è vuota. Chi ci dorme è già in giro.',
     blocked: 'Di là non si passa. Torni indietro.',
@@ -149,6 +150,8 @@ const IT = {
     offered: (who: string) => `Il pesce resta accanto a ${who}. Stanotte dormirà.`,
     noFish: 'Non hai pesci da lasciare: alle sei non ne avanzava nessuno.',
     alreadyFed: 'Il pesce l’hai già lasciato.',
+    // DA APPROVARE (12 ottobre): la didascalia quando prendi la cosa da trovare
+    found: (what: string) => `Nel Diario: ${what}.`,
   },
   journalTitle: 'Diario',
   journalEmpty: 'Non hai ancora ripescato niente. Il mare restituisce le cose solo a chi pesca.',
@@ -380,7 +383,8 @@ const EN: typeof IT = {
     loading: 'Strapping on the tanks…',
     ascend: 'Surface',
     hint: 'Look around. Click a passage to swim through it.',
-    links: { cave: 'The cave', back: 'Back', toCave: 'Back to the cave', ascend: 'Climb the anchor line' } as Record<string, string>,
+    // find: TO APPROVE (12 October), the spot of the thing to find in the dens
+    links: { cave: 'The cave', back: 'Back', toCave: 'Back to the cave', ascend: 'Climb the anchor line', find: 'Look' } as Record<string, string>,
     notes: { mother: 'Down in the dark, something enormous is breathing.' } as Record<string, string>,
     emptyDen: 'The den is empty. Whoever sleeps here is already out.',
     blocked: 'You can’t get through there. You turn back.',
@@ -391,6 +395,8 @@ const EN: typeof IT = {
     offered: (who: string) => `The fish stays beside ${who}. Tonight it will sleep.`,
     noFish: 'You have no fish to leave: none were left over at six.',
     alreadyFed: 'You already left the fish.',
+    // TO APPROVE (12 October)
+    found: (what: string) => `In the Journal: ${what}.`,
   },
   journalTitle: 'Journal',
   journalEmpty: 'You haven’t fished anything up yet. The sea only gives things back to those who fish.',
@@ -540,6 +546,35 @@ export const LORE_TEXT: Record<Lang, Record<string, { title: string; body: strin
       title: 'Pagina di un quaderno',
       body: 'Strappata dal quaderno di un pescatore. «La quota è dieci. Se non la porti, se ne prende un altro. Mio padre la portava, suo padre la portava. Stanotte tocca a me.»',
     },
+    // le cose da trovare nelle tane delle immersioni (12 ottobre): DA APPROVARE
+    den_gulpy: {
+      title: 'Disegno a pastelli',
+      body: 'Un bambino con una bocca più grande della faccia, davanti allo Snack Shack, e un panino più grande di lui. In alto, a lettere storte: «IO E IL PANINO». Estate 1997.',
+    },
+    den_molly: {
+      title: 'Foto del trampolino',
+      body: 'Una bambina in cima al trampolino, i braccioli arancioni, le braccia alzate verso chi la fotografa. Dietro, a penna: «GUARDAMI! – giugno 1997».',
+    },
+    den_hatch: {
+      title: 'Il foglio della conta',
+      body: 'I numeri da uno a dieci, scritti e riscritti a pastello finché non c’è più posto. In mezzo, calcato in rosso: «DIECI! CHI C’È C’È».',
+    },
+    den_robin: {
+      title: 'La lista',
+      body: 'Una pagina a righe: una scarpa, una macchinina, un paio di occhiali, un cappellino, un pallone, un braccialetto, i biglietti. Tutti con la crocetta. L’ultima riga dice solo «ANCORA».',
+    },
+    den_archie: {
+      title: 'Biglietto d’auguri',
+      body: '«TANTI AUGURI», e una torta con sette candeline: una è spenta, col filo di fumo. Maggio 1999. Non c’è scritto di chi era il compleanno.',
+    },
+    den_lampy: {
+      title: 'Braccialetto dell’ospedale',
+      body: 'Rosa, da neonata: «KG 3,1 – luglio 2003». Sul cartoncino, a penna, qualcuno ha aggiunto: «non lasciarla mai andare».',
+    },
+    den_fangy: {
+      title: 'Disegno a occhi bendati',
+      body: 'Scarabocchi che non si toccano mai, un pesce senza occhi, fatti senza guardare. In mezzo, calcato in rosso: «MARCO?». Nessuno ha scritto «POLO».',
+    },
   },
   en: {
     wristband: { title: 'Entry wristband', body: 'Faded fuchsia plastic: "MAMA MARINA’S SPLASHLAND · NIGHT SPLASH · 14·08·1997 · CHILD".' },
@@ -577,6 +612,35 @@ export const LORE_TEXT: Record<Lang, Record<string, { title: string; body: strin
     notebook: {
       title: 'Notebook page',
       body: 'Torn from a fisherman’s notebook. "The quota is ten. If you don’t bring it, she takes another. My father brought it, his father brought it. Tonight it’s my turn."',
+    },
+    // the things to find in the dens of the dives (12 October): TO APPROVE
+    den_gulpy: {
+      title: 'Crayon drawing',
+      body: 'A boy with a mouth bigger than his face, in front of the Snack Shack, and a sandwich bigger than he is. Across the top, in crooked letters: "ME AND THE SANDWICH". Summer 1997.',
+    },
+    den_molly: {
+      title: 'Diving board photo',
+      body: 'A girl at the top of the diving board, orange armbands, arms raised at whoever is taking the picture. On the back, in pen: "WATCH ME! – June 1997".',
+    },
+    den_hatch: {
+      title: 'The counting sheet',
+      body: 'The numbers one to ten, written over and over in crayon until there’s no room left. In the middle, pressed hard in red: "TEN! READY OR NOT".',
+    },
+    den_robin: {
+      title: 'The list',
+      body: 'A lined page: a shoe, a toy car, a pair of glasses, a cap, a ball, a bracelet, the tickets. Every one ticked off. The last line just says "MORE".',
+    },
+    den_archie: {
+      title: 'Birthday card',
+      body: '"HAPPY BIRTHDAY", and a cake with seven candles: one is out, with a thread of smoke. May 1999. It doesn’t say whose birthday it was.',
+    },
+    den_lampy: {
+      title: 'Hospital bracelet',
+      body: 'Pink, a newborn’s: "3.1 KG – July 2003". On the card, in pen, someone added: "never let her go".',
+    },
+    den_fangy: {
+      title: 'Blindfold drawing',
+      body: 'Scribbles that never meet, a fish with no eyes, drawn without looking. In the middle, pressed hard in red: "MARCO?". Nobody wrote "POLO".',
     },
   },
 };

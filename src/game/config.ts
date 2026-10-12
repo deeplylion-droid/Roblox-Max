@@ -96,6 +96,8 @@ export interface Species {
 export interface LoreItem {
   id: string;
   night: number;
+  /** trovata nella tana di questo mostro durante le immersioni (non si pesca): night è la notte in cui arriva */
+  den?: MonsterId;
 }
 
 /** Frammenti al massimo in una notte (deciso l'11 ottobre sera, coi dieci frammenti nuovi: il bilanciamento resta quello). */
@@ -115,6 +117,14 @@ export const LORE: LoreItem[] = [
   { id: 'clipping_seventh', night: 5 },
   { id: 'clipping_storm', night: 6 },
   { id: 'notebook', night: 6 },
+  // le cose da trovare nelle tane delle immersioni (12 ottobre, DA APPROVARE): una per tana, non si pescano
+  { id: 'den_gulpy', night: 1, den: 'gulpy' },
+  { id: 'den_molly', night: 1, den: 'molly' },
+  { id: 'den_hatch', night: 1, den: 'hatch' },
+  { id: 'den_robin', night: 2, den: 'robin' },
+  { id: 'den_archie', night: 3, den: 'archie' },
+  { id: 'den_lampy', night: 4, den: 'lampy' },
+  { id: 'den_fangy', night: 5, den: 'fangy' },
 ];
 
 export interface GulpyConfig {

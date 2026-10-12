@@ -264,6 +264,12 @@
     "pitch": -15,
     "yawRange": 30,
     "pitchRange": 4
+   },
+   "find": {
+    "lore": "den_gulpy",
+    "yaw": -35,
+    "pitch": -30,
+    "r": 6
    }
   },
   "tana_molly": {
@@ -358,6 +364,12 @@
     "pitch": -15,
     "yawRange": 30,
     "pitchRange": 4
+   },
+   "find": {
+    "lore": "den_molly",
+    "yaw": -35,
+    "pitch": -30,
+    "r": 6
    }
   },
   "tana_hatch": {
@@ -452,6 +464,12 @@
     "pitch": -15,
     "yawRange": 30,
     "pitchRange": 4
+   },
+   "find": {
+    "lore": "den_hatch",
+    "yaw": -35,
+    "pitch": -30,
+    "r": 6
    }
   },
   "tana_robin": {
@@ -546,6 +564,12 @@
     "pitch": -15,
     "yawRange": 30,
     "pitchRange": 4
+   },
+   "find": {
+    "lore": "den_robin",
+    "yaw": -35,
+    "pitch": -30,
+    "r": 6
    }
   },
   "tana_archie": {
@@ -640,6 +664,12 @@
     "pitch": -15,
     "yawRange": 30,
     "pitchRange": 4
+   },
+   "find": {
+    "lore": "den_archie",
+    "yaw": -35,
+    "pitch": -30,
+    "r": 6
    }
   },
   "tana_lampy": {
@@ -734,6 +764,12 @@
     "pitch": -15,
     "yawRange": 30,
     "pitchRange": 4
+   },
+   "find": {
+    "lore": "den_lampy",
+    "yaw": -35,
+    "pitch": -30,
+    "r": 6
    }
   },
   "tana_fangy": {
@@ -828,6 +864,12 @@
     "pitch": -15,
     "yawRange": 30,
     "pitchRange": 4
+   },
+   "find": {
+    "lore": "den_fangy",
+    "yaw": -35,
+    "pitch": -30,
+    "r": 6
    }
   }
  }

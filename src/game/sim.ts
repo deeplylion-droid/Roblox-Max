@@ -465,7 +465,7 @@ export class NightSim {
   }
 
   private nextCatch(): Catch {
-    const remaining = LORE.filter((l) => l.night <= this.cfg.night && !this.foundLore.has(l.id));
+    const remaining = LORE.filter((l) => !l.den && l.night <= this.cfg.night && !this.foundLore.has(l.id));
     const n = this.landedCount + 1;
     let lore: string | null = null;
     // al massimo LORE_PER_NIGHT frammenti per notte: ognuno prende il posto di un pesce, e il bilanciamento delle notti è

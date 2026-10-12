@@ -75,6 +75,9 @@ export interface DivePlace {
   acquaCotta?: boolean;
   /** suoni in loop del posto (la Madre che respira dal fondo della grotta grande): dove stanno, in gradi e metri */
   sounds?: { id: string; yaw: number; pitch: number; dist?: number; gain?: number }[];
+  /** la cosa da trovare (un disegno, una foto, un oggetto del bambino): una voce del Diario (LORE, con den). Si clicca
+   *  e va nel Diario; una volta trovata non si offre più */
+  find?: { lore: string; yaw: number; pitch: number; r: number };
   /** il mostro che dorme: dove si clicca per lasciargli il pesce, i suoi strati, da dove salgono le bolle */
   sleeper?: { yaw: number; pitch: number; r: number; layers?: DiveSprite[]; bubbles?: { yaw: number; pitch: number } };
   links: DiveLink[];
@@ -124,6 +127,8 @@ export class DiveRun {
   fed: NightMonster | null = null;
   /** pesci portati giù (al massimo uno) */
   fish: number;
+  /** le cose trovate in questa immersione (voci del Diario) */
+  readonly found: string[] = [];
 
   constructor(
     readonly data: DiveData,
@@ -131,6 +136,8 @@ export class DiveRun {
     readonly nextNight: number,
     /** pesci avanzati alle sei oltre la quota */
     spare: number,
+    /** le voci già nel Diario (le cose già trovate non si offrono più) */
+    private readonly known: readonly string[] = [],
   ) {
     this.place = data.start;
     this.fish = Math.min(1, Math.max(0, spare));
@@ -190,6 +197,20 @@ export class DiveRun {
    *  nella grotta si risale. */
   outOfAirOnLeave(): boolean {
     return this.airRunningOut();
+  }
+
+  /** La cosa da trovare nel posto in cui sei, se c'è e non è già nel Diario (né trovata in questa immersione). */
+  findHere(): string | null {
+    const f = this.current.find;
+    if (!f || this.known.includes(f.lore) || this.found.includes(f.lore)) return null;
+    return f.lore;
+  }
+
+  /** Prende la cosa da trovare del posto in cui sei: va nel Diario. */
+  take(): string | null {
+    const id = this.findHere();
+    if (id) this.found.push(id);
+    return id;
   }
 
   /** Lascia il pesce accanto al mostro della tana in cui sei. */

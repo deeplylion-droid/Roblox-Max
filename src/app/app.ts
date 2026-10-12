@@ -398,7 +398,7 @@ export class App {
     const fail = (e: unknown) => {
       // senza dati o panorami l'immersione non si fa: si va alla notte dopo
       console.error(e);
-      this.endDive(next, { fed: null, dens: [] });
+      this.endDive(next, { fed: null, dens: [], lore: [] });
     };
     loadDiveData()
       .then((data) => {
@@ -413,6 +413,7 @@ export class App {
           data,
           nextNight: next,
           spare,
+          known: this.save.lore,
           onEnd: (r) => this.endDive(next, r),
         });
         this.diving.start().catch(fail);
