@@ -52,8 +52,13 @@ del questionario:
 > `docs/concept/foxy_varianti.jpg` sul ramo `claude/foxy`): la **B «Fradicio»**, il costume gonfio d'acqua che cede,
 > curvo, la testa crollata di lato, dalle pinne sfondate le sue mani, la faccia gonfia spinta fuori dalla bocca e un
 > occhio da cartone che penzola. Le altre erano la A «Pupazzo» (il costume intero, lui in fondo al sorriso) e la C
-> «Sventrato» (la testa spaccata, lui scheletrico che esce fino al petto). **Il nome** lo sceglie l'utente: la sessione
-> propone Soggy («fradicio»), Grinny (il sorriso del costume) e Marty (il nome sul cartellino dell'animatore).
+> «Sventrato» (la testa spaccata, lui scheletrico che esce fino al petto). **Il nome è Soggy** («fradicio»), scelto
+> dall'utente il 12 ottobre fra le tre proposte (le altre erano Grinny, il sorriso del costume, e Marty, il nome sul
+> cartellino dell'animatore). Nel codice e nei file resta `foxy`.
+>
+> **Approvato dall'utente il 12 ottobre** (questionario del mattino): la variante B, le regole e i numeri, i testi, i
+> suoni e l'anteprima del jumpscare; **c'è anche nella notte extra**. **Da cambiare**: nel binocolo lo vuole **più
+> grande ed evidente, a discapito del realismo della distanza** (le viste si rifanno con l'animatore ingrandito).
 >
 > **Le viste del binocolo** col Foxy: per ogni posto due immagini con la stessa inquadratura di quella vuota (lui fermo,
 > lui più vicino), in `overlays.json` → `binocular.places[].foxy` (`bino_<posto>_foxy0.webp`, `_foxy1.webp`). Il motore
@@ -511,8 +516,8 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
 > ⚠️ **PROPOSTA DA APPROVARE** (11 ottobre, tutto quello che segue: regole, numeri, testi e schermata). La notte
 > extra si sblocca finendo l'ultima notte giocabile: oggi la quinta, quando la sesta uscirà dalla bozza la sesta.
 
-Come la *custom night* di FNAF: per ognuno dei sette mostri, e per **la Madre** (ottava, confermato dall'utente
-l'11 ottobre), si sceglie un **livello da 0 a 20**. A 0 non viene, a
+Come la *custom night* di FNAF: per ognuno dei sette mostri, per **la Madre** (ottava, confermato dall'utente
+l'11 ottobre) e per **Soggy**, il Foxy (nono, deciso dall'utente il 12 ottobre), si sceglie un **livello da 0 a 20**. A 0 non viene, a
 20 è feroce. Le regole che il giocatore ha imparato non cambiano mai (i dieci della conta di Hatch, i tre colpi di
 Lampy, il terzo rumore di Fangy): cambiano solo **quando arriva, quanto spesso torna e quanta pazienza ha**.
 
@@ -554,8 +559,21 @@ Lampy, il terzo rumore di Fangy): cambiano solo **quando arriva, quanto spesso t
 
   Le passate sono 1 + livello/5 (arrotondato: 2 dal 3, 3 dall'8, 4 dal 13, 5 dal 18); durate, avviso e tremito si
   sfumano. A 0 non viene. Il finale A della notte 6 (lei che si prende il secchio) nella notte extra non c'è.
+- **Soggy, il Foxy** (**deciso il 12 ottobre** che c'è, come nono livello; numeri da approvare): sta in uno dei due
+  posti del binocolo tutta la notte, quindi non ha pause fra una visita e l'altra. Il livello cambia quando compare,
+  quanto aspetta prima di sporgersi e di lasciare il posto (la sua pazienza), la corsa fino alla barca e quanto spesso
+  cambia posto:
+  - **1, calmo**: compare verso le 2:20 (1,8 ore), si sporge dopo 60 s senza guardarlo, lascia il posto dopo 110 s,
+    corre per 4 s, cambia posto una volta su dieci;
+  - **5, come la sua notte**: i numeri della notte 2 (un test lo controlla);
+  - **20, feroce**: compare nel primo quarto d'ora, si sporge dopo 30 s, lascia il posto dopo 54 s, corre per 2,6 s,
+    cambia posto quasi una volta su due. Lui non ha pause, quindi dal 10 al 20 va dritto al punto feroce.
+
+  Come nelle notti 2-5, il tempo passato col binocolo si ripaga tirando su i pesci più in fretta: quando c'è lui il
+  recupero è più svelto di un decimo (`FOXY_REEL`, decisione dell'utente: «se devi bilanciare, riduci il tempo
+  necessario per tirare su i pesci»). Con lui anche il finale speciale chiede di vincere con tutti e nove almeno a 10.
 - **Il finale speciale** (**confermato l'11 ottobre**): si vede solo **vincendo con tutti, Madre compresa, almeno a
-  10** (`extraEndingEarned()`); con impostazioni più facili all'alba c'è l'alba normale. Il finale vero è da fare:
+  10** (`extraEndingEarned()`; dal 12 ottobre anche Soggy); con impostazioni più facili all'alba c'è l'alba normale. Il finale vero è da fare:
   per ora dopo l'alba compare una **schermata segnaposto** (`Screens.extraEnding`, il titolo «Il finale della notte
   extra» e una riga che dice che è un segnaposto), poi i risultati. È diverso da quello della notte 6.
 - **Il resto della notte**: quota **10**; i pesci abboccano in fretta come nella quinta notte; la batteria è quella
@@ -564,7 +582,7 @@ Lampy, il terzo rumore di Fangy): cambiano solo **quando arriva, quanto spesso t
   lui (Robin con Molly, Hatch o Archie; Hatch con Gulpy, Lampy o Fangy; Lampy con Archie; Fangy con Archie o Robin).
   Gulpy, Molly e Hatch, che il gioco disegna in tutte le notti, a 0 restano semplicemente a casa.
 - **La schermata** (`docs/concept/notte7_livelli.jpg`): dal titolo, «Notte extra» (compare solo quando è sbloccata).
-  Otto schede in fila, una per mostro più la Madre: il nome, la sua regola in due parole, il livello grande con − e + (anche la
+  Nove schede in fila, una per mostro più la Madre e Soggy (nelle finestre più strette 5 + 4 centrate): il nome, la sua regola in due parole, il livello grande con − e + (anche la
   rotella sulla scheda), e sotto una parola: *non viene* (0), *calmo* (1-4), *come la sua notte* (5), *svelto* (6-14),
   *feroce* (15-20). Più è alto, più la scheda si tinge di rosso e il numero passa dall'ambra al rosso sangue; a 0 la
   scheda si spegne e il nome è barrato. Sotto, le preimpostazioni **Tutti a 0, Tutti a 5, Tutti a 10, Tutti a 20,
@@ -578,7 +596,8 @@ Lampy, il terzo rumore di Fangy): cambiano solo **quando arriva, quanto spesso t
   «Scegli chi viene stanotte. 0: non viene. 20: feroce.» / «Choose who comes tonight. 0: stays away. 20: ferocious.»;
   le regole sotto i nomi «sfamalo, guardala, nasconditi, luce in faccia, spegni la luce, non ferrare, stai zitto» /
   «feed him, watch her, hide, light in his face, light off, don't strike, stay quiet»; per la Madre «La Madre, non
-  muoverti» / «The Mother, don't move»; «Salpa» / «Cast off». Il finale segnaposto: «Il finale
+  muoverti» / «The Mother, don't move»; per Soggy «non perderlo di vista» / «don't lose sight of him» (12 ottobre, da
+  approvare); «Salpa» / «Cast off». Il finale segnaposto: «Il finale
   della notte extra» / «The end of the extra night» (con una riga che dice che è un segnaposto; il finale B vero si fa
   quando la Madre sarà renderizzata).
   La radio, corta: «Notte extra. Dieci pesci. / Stanotte vengono quelli che hai chiamato tu. / Buona pesca.» /
@@ -598,6 +617,18 @@ Lampy, il terzo rumore di Fangy): cambiano solo **quando arriva, quanto spesso t
   | **tutti a 10** (il minimo per il finale B) | 89% | 65% | 27% | la Madre, Lampy, la quota; il maldestro anche Archie |
   | tutti a 15 | 34% | 22% | 5% | la quota (non resta tempo per pescare), la Madre |
   | **tutti a 20** | **6,7%** | 2% | 0% | quasi sempre la quota; poi la Madre |
+
+  **Con Soggy** (12 ottobre, 200 partite per abilità, Soggy allo stesso livello degli altri, contro gli otto senza di
+  lui nella stessa prova): il recupero più svelto compensa il tempo al binocolo.
+
+  | Livelli | Esperto | Medio | Maldestro | Senza Soggy (stessa prova) |
+  |---|---|---|---|---|
+  | tutti a 5 | 98,5% | 76,5% | 43% | 98,5% · 77% · 39,5% |
+  | **tutti a 10** | 97% | 64,5% | 22,5% | 90% · 67,5% · 26% |
+  | **tutti a 20** | **12%** | 2% | 0% | 5,5% · 2,5% · 0% |
+
+  Soggy uccide il maldestro in poche partite (dal 4% a tutti a 5 al 10% a tutti a 20) e il medio a tutti a 20 (17%).
+  Tutti a 20 resta difficilissima ma possibile.
   | i sette a 20, la Madre a 0 | 10% | 7% | 3% | la quota, Lampy |
   | solo la Madre a 10 | 98% | 78% | 65% | la Madre |
   | solo la Madre a 20 | 97% | 69% | 45% | la Madre |

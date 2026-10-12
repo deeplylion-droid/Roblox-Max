@@ -92,7 +92,8 @@ const IT = {
   extraLocked: 'Finisci tutte le notti per sbloccarla.',
   extraPresets: { all0: 'Tutti a 0', all5: 'Tutti a 5', all10: 'Tutti a 10', all20: 'Tutti a 20', first3: 'I primi tre' },
   /** la regola di ogni mostro in due parole, sotto il nome */
-  extraRules: { gulpy: 'sfamalo', molly: 'guardala', hatch: 'nasconditi', robin: 'luce in faccia', archie: 'spegni la luce', lampy: 'non ferrare', fangy: 'stai zitto', mother: 'non muoverti' },
+  // la regola di Soggy (il Foxy) nella notte extra: DA APPROVARE (12 ottobre)
+  extraRules: { gulpy: 'sfamalo', molly: 'guardala', hatch: 'nasconditi', robin: 'luce in faccia', archie: 'spegni la luce', lampy: 'non ferrare', fangy: 'stai zitto', mother: 'non muoverti', foxy: 'non perderlo di vista' },
   extraMother: 'La Madre',
   // il finale speciale della notte extra: SEGNAPOSTO, il testo vero è da scrivere
   extraEndingTitle: 'Il finale della notte extra',
@@ -336,7 +337,7 @@ const EN: typeof IT = {
   extraStart: 'Cast off',
   extraLocked: 'Finish every night to unlock it.',
   extraPresets: { all0: 'All at 0', all5: 'All at 5', all10: 'All at 10', all20: 'All at 20', first3: 'The first three' },
-  extraRules: { gulpy: 'feed him', molly: 'watch her', hatch: 'hide', robin: 'light in his face', archie: 'light off', lampy: "don't strike", fangy: 'stay quiet', mother: "don't move" },
+  extraRules: { gulpy: 'feed him', molly: 'watch her', hatch: 'hide', robin: 'light in his face', archie: 'light off', lampy: "don't strike", fangy: 'stay quiet', mother: "don't move", foxy: "don't lose sight of him" },
   extraMother: 'The Mother',
   extraEndingTitle: 'The end of the extra night',
   extraEndingText: '(Placeholder: the special ending goes here; you only see it by winning with everyone at 10 or more.)',
