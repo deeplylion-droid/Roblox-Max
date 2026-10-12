@@ -54,7 +54,7 @@ Rifarle: `tools/render/atmosfera.py render dopo|prima ...` e poi `atmosfera.py c
 | Panorama del mondo in bozza (2048×535, 24 campioni, con la nebbia) | 4 min |
 | **Panorama del mondo finale (8192×2139, 128 campioni)** | **~5-6 h** |
 | Strato della barca (la nebbia fra l'occhio e la barca, vedi sotto) | ~2-3 h |
-| Mostri: ~15 strati fra pose e toppe, riquadri piccoli | ~3-4 h |
+| Mostri: ~15 strati fra pose e toppe, riquadri piccoli | ~3-4 h (13 ottobre: 1-7 min a strato, Gulpy 14 min in tutto) |
 | Binocolo (9 luoghi) | ~1-2 h |
 | Jumpscare (4) | ~1-2 h |
 
@@ -65,13 +65,13 @@ Il mondo e la barca stanno in una notte. Il resto in un'altra.
 1. **Strato della barca**: oggi si rende con l'ambiente invisibile alla camera, quindi anche la nebbia, e
    l'alone che sta davanti alla barca andrebbe perso. Va reso con la nebbia visibile e il mare e la costa in
    holdout. L'interno della barca prende comunque meno ambiente: va rifatto.
-2. **Mostri** (tutte le pose e le toppe di scena_creature.py e pose_animate.py): più bui dalla luna e
+2. **Mostri** (fatto in parte il 13 ottobre, vedi «Mostri e jumpscare con la nebbia») (tutte le pose e le toppe di scena_creature.py e pose_animate.py): più bui dalla luna e
    illuminati dalla lampara attraverso la nebbia. La nebbia davanti a un mostro a 3-7 m è poca, ma la luce
    cambia. Le facce restano visibili: Gulpy a 7 m si legge bene con la luce alta e bassa. Con la luce spenta
    restano gli occhi che accende il motore.
 3. **Binocolo** (binocolo.py): con la nebbia vera lungo la linea di vista, e la stessa luna legata ai luoghi.
    È lì che va il mostro nuovo da sorvegliare: conviene dargli una luce sua o un posto con la luna sopra.
-4. **Jumpscare**: per l'ambiente più buio. La nebbia a mezzo metro non conta, ma conviene lasciarla nella scena
+4. **Jumpscare** (vedi «Mostri e jumpscare con la nebbia»): per l'ambiente più buio. La nebbia a mezzo metro non conta, ma conviene lasciarla nella scena
    per l'alone della lampara dietro il mostro.
 5. **Vista da sotto il telone** (job tarp): l'ambiente più buio.
 6. Non vanno rifatti: catalogo, pesci, oggetti di scena senza mare.
@@ -87,10 +87,10 @@ Il mondo e la barca stanno in una notte. Il resto in un'altra.
   dentro le immagini, quindi il gioco tiene **due serie**. Le immagini con la nebbia hanno i nomi di sempre; quelle di
   prima diventano `<nome>_senza.webp` e stanno nelle voci `senza` (`layers.world.senza`, `layers.boat.senza` nel
   manifest; `binocular.places[].senza` e `tarp.senza` in `overlays.json`). Con l'opzione spenta il gioco carica la
-  serie senza nebbia e non usa la voce `atmosfera`. Si cambia anche a notte in corso: si scambiano solo il mondo, la
-  barca, i posti del binocolo e il telone (pochi megabyte). **Mostri e jumpscare sono gli stessi nelle due serie** (le
-  pose di adesso stanno bene anche sul panorama con la nebbia: provato con una bozza), quindi non si rifanno con
-  l'atmosfera. Un posto del Foxy (scivoli, relitto) cambia serie solo se ha anche le sue viste senza nebbia, se no
+  serie senza nebbia e non usa la voce `atmosfera`. Si cambia anche a notte in corso: si scambiano tutti gli strati
+  che hanno la voce `senza` (il mondo, la barca, i mostri e le loro toppe), i posti del binocolo, il telone e i
+  jumpscare che hanno `senza` (vedi «Mostri e jumpscare con la nebbia» più sotto). Uno strato o un jumpscare senza
+  la voce `senza` è uguale nelle due serie. Un posto del Foxy (scivoli, relitto) cambia serie solo se ha anche le sue viste senza nebbia, se no
   si vedrebbe quando arriva lui: dal 12 ottobre le ha tutte e due (sessione del Foxy).
 - **Mettere le immagini nuove nel gioco**: `tools/render/atmosfera_due_serie.py <cartella dei render> <repository>
   --mondo --barca --luoghi albergo,edicola,... --telone`. La prima volta sposta le immagini di adesso nella serie
@@ -132,6 +132,41 @@ chiari dell'intorno e più grandi di un pixel. Va rifatta su ogni mondo nuovo co
 Controllato nel gioco: sei direzioni con la luce alta e spenta, tutti i posti del binocolo, Soggy fermo, più
 vicino e via, l'opzione accesa e spenta a notte in corso. La grana che si vede sulla foschia chiara è quella della pellicola
 di sempre (`uGrain`), non del render.
+
+## Mostri e jumpscare con la nebbia (12-13 ottobre, ramo `claude/mostri-nebbia`, da approvare)
+
+Decisione dell'utente del 12 ottobre sera («Mostri nella nebbia»): chi gioca con la nebbia accesa vede anche i mostri
+e i jumpscare resi con l'atmosfera. Le immagini di prima restano la serie `senza`.
+
+- **Render**: le stesse pose, toppe e inquadrature, con `ATMOSFERA=1` (la baia più buia e la nebbia nella scena):
+  `ATMOSFERA=1 RENDER_OUT=<cartella> POSES=… jobs.py creature --quality final` (128 campioni). Con `POSES` le pose si
+  rendono in quell'ordine, una creatura alla volta, base e toppe insieme (le toppe prendono lo yaw della loro base
+  dallo stesso giro). La nebbia negli strati dei mostri è invisibile alla camera (come prima, `render_sprite` nasconde
+  l'ambiente): cambia la luce, la luna sui mostri è circa 0,4 di prima e la lampara uguale (la nebbia davanti a un
+  mostro a 3-7 m è poca, e quella lontana è già nel mondo).
+- **Jumpscare** (`jobs.py jumpscare`, `JS_SAMPLES=64`; la quota con `quota.py --finale`): stessi percorsi, camere,
+  fotogrammi e post-produzione del motore. La nebbia è nello sfondo e non nei fotogrammi della creatura (come già
+  faceva jumpscare.py). Nuovo: nello sfondo, fuori dalla barca, la lampara vale un quinto (`LAMPARA_MONDO`), come il
+  passo `lamp` del mondo nel gioco, se no tornava l'alone bianco. La copertura della barca viene da un render rapido
+  senza nebbia (4 campioni).
+- **Installazione**: `tools/render/mostri_due_serie.py <cartella dei render> <repository> --mostri gulpy,molly
+  --strati fish2,… --jumpscare gulpy,…`. Come atmosfera_due_serie.py: la prima volta i file di adesso diventano
+  `<nome>_senza.webp` (strati: `layers.<chiave>.senza.passes`; jumpscare: `jumpscares.<chi>.senza.frames`), poi
+  arrivano i file nuovi coi nomi di sempre. Prima di toccare qualcosa controlla tutto: si ferma se un riquadro o uno
+  yaw sono cambiati (una toppa spostata di un pixel non combacia più), se cambia il numero dei fotogrammi o se il
+  manifest dei render è più vecchio dei file (le scale). `--prova` dice cosa farebbe.
+- **Controllo**: `tools/render/confronta_serie.py <cartella> <chiavi>` (riquadro, alfa al pixel, rapporto della luce e
+  una tavola con la lampara spenta, bassa e alta sul mondo di ciascuna serie); `scripts/nebbia_mostri.mjs` (il visore,
+  che ora accetta `?senza`, e il cambio di serie a notte in corso).
+- **Nel motore**: `fogLayerKeys` e `layerSeries` (`assets.ts`) e `swapFog` (`app.ts`) scambiano ogni strato caricato
+  che ha `senza`; i jumpscare si caricano all'avvio nella serie dell'opzione e `swapFogAssets` (`overlays.ts`) li
+  scambia (la notte li legge a ogni fotogramma). Test in `tests/nebbia.test.ts`.
+
+### Rifatti con la nebbia (da approvare)
+
+| Cosa | Strati / fotogrammi | Note |
+| --- | --- | --- |
+| Gulpy | gulpy_sale, gulpy_pretende, gulpy_mascella_chiusa, gulpy_mascella_aperta | sagome uguali (2-9 pixel di bordo); luna 0,35-0,4 |
 
 ## Cosa cambiare nel motore (scritto prima del lavoro sul motore: vedi sopra)
 
