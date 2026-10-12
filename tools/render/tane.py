@@ -1264,7 +1264,7 @@ def dorme_fangy(info, fiato=0.0):
     """Raggomitolato sul letto, gli occhialini neri, le lucine del ventre quasi spente che respirano lentissime."""
     import fangy as fa
     c = info['letto']
-    o = (c[0] + 0.1, c[1], 0.78)
+    o = (c[0] + 0.1, c[1], 0.62)
     M = M_tana(o, yaw=_verso_occhio(o) - 70.0, roll=80.0, scale=1.25 * (1.0 + 0.02 * fiato))
     obs = fa.build(viewer=tuple(_loc(M, OCCHIO_T)), testa=-15.0, luci=0.12 + 0.1 * fiato)
     # gli anelli sull'acqua della posa in mare non servono

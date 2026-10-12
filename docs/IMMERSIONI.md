@@ -205,6 +205,39 @@ delle cose da trovare fatti con la stessa mano del disegno di «Il ricordo» (`t
 
 **Ancora da approvare**: le sette cose da trovare e i loro testi (in italiano e inglese, nel gioco).
 
+**Fatto per i finali (12 ottobre).** Arredi veri: gli armadi con le ante sui cardini, i riquadri, i pomelli e il
+legno gonfio e imbarcato; le sedie e la capanna di asciugamani di Hatch; il letto di Fangy con la testiera a
+colonnine, il materasso, il lenzuolo e il cuscino; lo sgabello; il trampolino vero di Molly (la tavola blu che si
+piega, il fulcro, la scaletta coi corrimano). Le pareti di ognuna: le piastrelle della piscina e il cartello «2,5 m –
+DEEP END» di Molly, i manifesti dello Snack Shack («ESTATE 1997») di Gulpy, i numeri e le tacche della conta col gesso
+di Hatch, il cartello «OGGETTI SMARRITI» e il cabinato dei biglietti rovesciato di Robin, le lucine della festa e il
+manifesto «MAGGIO 1999» di Archie, la carta da parati a fiori strappata e «BENVENUTA! – LUGLIO 2003» di Lampy, il
+cartello «MARCO? POLO!», il calendario «AGOSTO 2008» e il salvagente di Fangy. La macchia della torcia sulla sabbia è
+sfumata. Le pose: Gulpy disteso sul fianco sulla pila di paperelle, gli occhi chiusi (le palpebre abbassate sul
+bulbo) e la mascella appena aperta, un salvagente grande dove finisce il modello; Molly sotto una coperta di
+asciugamani a strisce tirata fino al mento, le mani che ne stringono l'orlo; Hatch rannicchiato in fondo
+all'armadio, le ginocchia al petto e le braccia attorno alle gambe (`tane.corpo_rannicchiato`). I disegni a pastelli
+(Gulpy, Hatch, Robin, Archie, Fangy) li fa `tools/render/disegni_tane.py` con le funzioni di `disegno_ricordo.py`.
+
+**Nel motore.** Ogni tana è un posto di `public/assets/img/immersioni.json` (il job `tane` lo aggiorna):
+
+- `pano`: la cameretta **vuota** (panorama parziale, 3640 × 1820 a qualità finale: 160° × 80°, da −55° a +25°;
+  per Lampy da −45° a +35°, perché dorme al soffitto), con l'acqua cotta (`acquaCotta`); vale anche come tana vuota
+  del mostro nuovo;
+- `frame`: lo sguardo a −15° (Lampy −5°), ±30° di lato, ±4° in su e in giù;
+- `sleeper.layers`: la posa del mostro (strato ritagliato con l'alfa, la stanza gli fa da maschera) e la toppa del
+  respiro (la stessa posa col fiato preso: la gola o il corpo appena gonfi, la mascella o la trombetta che si muovono,
+  le lucine di Fangy più accese), con `breath`, il periodo in secondi (Fangy 6,5, lentissimo); `sleeper.yaw/pitch/r`
+  dove si clicca per lasciare il pesce, `sleeper.bubbles` da dove salgono le bolle (sopra la testa);
+- `find`: la cosa da trovare (`lore`: la voce del Diario `den_<mostro>`, `yaw`, `pitch`, `r`). Nel gioco compare il
+  punto «Guarda»; cliccato, la cosa va nel **Diario** («Nel Diario: …») e non si offre più. Le sette voci stanno in
+  `LORE` (`src/game/config.ts`, con `den`): **non si pescano** di notte. I testi, in italiano e inglese, sono in
+  `src/i18n.ts` (`LORE_TEXT.den_*`, `dive.links.find`, `dive.found`), segnati **DA APPROVARE**.
+
+Regole e salvataggio: `DiveRun.findHere()` e `take()` (le voci già nel Diario non si offrono), `DiveResult.lore`,
+`afterDive` le aggiunge al Diario. Test in `tests/dive.test.ts`, `tests/save.test.ts`, `tests/sim.test.ts`. Il suono
+della cosa trovata per ora è quello delle bolle dell'erogatore, più piano (un suono suo è da fare).
+
 ## Il pesce e i finali
 
 Il pesce lasciato nelle tane decide anche **il finale della sesta notte** (approvato l'11 ottobre, vedi
