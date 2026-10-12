@@ -261,6 +261,7 @@ finisce, la risalita). I livelli nelle anteprime sono indicativi: il bilanciamen
 
 | id | durata | descrizione |
 |---|---|---|
+| `dive_found` | 1,8 s | La cosa trovata in una tana (un disegno, una foto, il cartoncino), che va nel Diario: non è un premio. La carta fradicia che si stacca dalla sabbia e si piega fra le dita, l'acqua spostata dalla mano; sotto, un gonfiore grave e sordo con un battito dentro, come se la stanza trattenesse il fiato; lontano, la roccia che geme un momento. Stereo, categoria `sfx`. |
 | `offer_fish` | 1,9 s | Il pesce lasciato accanto al mostro: la mano che lo lascia andare, il tonfo morbido e grave nella sabbia, lo sbuffo di granelli che si alza e ricade, la coda molle che ricade una volta, una bollicina. Categoria `sfx`. |
 | `sleep_gulpy` | 13 s, loop | Russa con la mascella che pende aperta: due russate enormi e bagnate (il fry della gola gigante, il palato molle che sbatte), e fuori dalla bocca spalancata bolle grosse e lente una dopo l'altra (75–190 Hz), le labbra molli che sbattono; una volta la paperella del collo che cigola quando il petto si gonfia. |
 | `sleep_molly` | 11,4 s, loop | Tre respiri piccoli di bambina dal naso, due o tre bollicine a ogni espiro; al secondo un mugolio nel sonno con sotto, appena, l'altra gola; i braccioli che stridono una volta. |

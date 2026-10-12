@@ -216,7 +216,9 @@ def strisce_material(name, c1, c2, passo=0.18, asse=0, melma=0.4):
         m, g = material(n)
         co = g.texcoord('Object')
         x = g.sep(co)[asse]
-        band = g.smoothstep(0.45, 0.55, g.math('PINGPONG', x, passo))
+        # PINGPONG va da 0 a passo: la soglia è a metà del passo (prima era fissa a 0,5 e con passi sotto 0,5 le
+        # strisce non comparivano: la coperta di Molly, le tende, le tovaglie erano di un colore solo)
+        band = g.smoothstep(0.45 * passo, 0.55 * passo, g.math('PINGPONG', x, passo))
         col = g.mix(band, c1, c2)
         sl = g.smoothstep(1.0 - melma, 1.0 - melma + 0.25, g.noise(co, scale=5.0, detail=8.0, rough=0.7, distortion=0.8).fac)
         col = g.mix(g.mul(sl, 0.8), col, g.mix(0.5, col, (0.035, 0.045, 0.02)))

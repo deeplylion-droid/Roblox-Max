@@ -231,6 +231,14 @@
     "gain": 0.8,
     "category": "sfx"
   },
+  "dive_found": {
+    "file": "dive_found.ogg",
+    "duration": 1.8,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.75,
+    "category": "sfx"
+  },
   "dive_swim_1": {
     "file": "dive_swim_1.ogg",
     "duration": 2.6,

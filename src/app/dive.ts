@@ -41,8 +41,8 @@ const SND = {
   airOut: 'dive_air_out',
   up: 'dive_up',
   offer: 'offer_fish',
-  /** una cosa trovata nella tana: per ora le bolle dell'erogatore, più piano (un suono suo è da fare) */
-  found: 'dive_bubbles',
+  /** una cosa trovata nella tana: la carta fradicia fra le dita, la stanza che trattiene il fiato (non un premio) */
+  found: 'dive_found',
 } as const;
 /** il respiro nel sonno (in loop) e i movimenti ogni tanto, per ogni mostro */
 const sleepSound = (who: NightMonster) => `sleep_${who}`;
@@ -523,7 +523,7 @@ export class Dive {
     if (this.hover === h) this.hover = null;
     const t = LORE_TEXT[this.d.lang][id];
     this.caption(this.S.dive.found(t?.title ?? ''), 5);
-    this.play(SND.found, { gain: 0.45 });
+    this.play(SND.found);
   }
 
   /** Segue un passaggio (o la risalita, o una cosa da guardare). */
