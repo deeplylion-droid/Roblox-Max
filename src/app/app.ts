@@ -1,17 +1,22 @@
 /**
- * Il gioco intero: avvertenza → titolo → intro della notte → notte → alba o game over.
+ * Il gioco intero: avvertenza → titolo → intro della notte → notte → alba o game over. All'alba di una notte vinta
+ * (dalla prima alla quinta) si può scendere con le bombole (l'immersione, src/app/dive.ts) prima della notte dopo.
  * Tiene il salvataggio, le opzioni e lo sfondo animato dei menu (la scena dalla barca).
  */
 import type { AudioEngine, Voice } from '../engine/audio.ts';
 import { EXTRA_NIGHT, NIGHTS, extraEndingEarned, extraNight, type MonsterId, type NightConfig } from '../game/config.ts';
 import { STRINGS, type Lang } from '../i18n.ts';
+import { Dive, loadDiveData, type DiveResult } from './dive.ts';
 import { Night, type NightAssets, type NightEnd } from './night.ts';
-import { writeSave, type Options, type SaveData } from './save.ts';
+import { afterDive, fedFor, newGame, pendingDawn, skipDawn, wonNight, writeSave, type Options, type SaveData } from './save.ts';
 import { Screens, setUiSound } from './screens.ts';
 import type { Sfx } from './sfx.ts';
 import type { Stage } from './stage.ts';
 
-type Mode = 'warning' | 'title' | 'intro' | 'night' | 'paused' | 'static' | 'end';
+type Mode = 'warning' | 'title' | 'intro' | 'night' | 'paused' | 'static' | 'end' | 'dive';
+
+/** Le immersioni all'alba si fanno dopo le notti dalla prima alla quinta (docs/IMMERSIONI.md). */
+const LAST_DIVE_NIGHT = 5;
 
 const isElectron = navigator.userAgent.includes('Electron');
 
@@ -24,6 +29,10 @@ const NIGHT_LIMIT = Number(import.meta.env.VITE_ULTIMA_NOTTE) || Infinity;
 
 /** ?bozze nell'indirizzo: si possono giocare anche le notti in bozza (prove; mai nelle build). */
 const DRAFTS = import.meta.env.DEV && new URLSearchParams(location.search).has('bozze');
+/** Dopo la notte n si può scendere con le bombole? (dalla prima alla quinta, se la notte dopo si gioca) */
+function canDive(n: number): boolean {
+  return n >= 1 && n <= LAST_DIVE_NIGHT && n < lastNight();
+}
 
 /** L'ultima notte giocabile (che esiste nel gioco e che questa build lascia giocare). */
 function lastNight(): number {
@@ -35,6 +44,8 @@ function lastNight(): number {
 export class App {
   private mode: Mode = 'warning';
   private night: Night | null = null;
+  /** l'immersione all'alba in corso */
+  private diving: Dive | null = null;
   readonly screens: Screens;
   private timer = 0;
   private lang: Lang;
@@ -117,8 +128,15 @@ export class App {
     }
     this.screens.title({
       canContinue: reached >= 2,
-      onNew: () => (forced === EXTRA_NIGHT ? this.extraNight() : this.intro(forced >= 1 && forced <= lastNight() ? forced : 1)),
-      onContinue: () => this.intro(reached),
+      onNew: () => {
+        if (forced === EXTRA_NIGHT) return this.extraNight();
+        // nuova partita: niente pesci, mostri sfamati e tane della partita di prima
+        newGame(this.save);
+        writeSave(this.save);
+        this.intro(forced >= 1 && forced <= lastNight() ? forced : 1);
+      },
+      // se il gioco era stato chiuso sullo schermo dell'alba, si riprende da lì (si può ancora scendere)
+      onContinue: () => (canDive(reached - 1) && pendingDawn(this.save, reached) ? this.dawnAgain(reached) : this.intro(reached)),
       onExtraNight: extraOpen ? () => this.extraNight() : null,
       onJournal: () => this.extras(),
       onOptions: () => this.options(() => this.title()),
@@ -224,6 +242,8 @@ export class App {
       assets: this.assets,
       night: this.nightNo,
       config: this.nightNo === EXTRA_NIGHT ? this.config(EXTRA_NIGHT) : undefined,
+      // il mostro sfamato all'alba dorme stanotte
+      fed: fedFor(this.save, this.nightNo),
       seed: (Date.now() & 0x7fffffff) >>> 0,
       onEnd: (r) => this.endNight(r),
       onPause: () => this.pause(),
@@ -287,10 +307,14 @@ export class App {
   private endNight(r: NightEnd): void {
     // i ritrovamenti restano anche se la notte va male
     for (const l of r.stats.lore) if (!this.save.lore.includes(l)) this.save.lore.push(l);
-    // la notte extra non sblocca niente (è fuori dal conto delle notti)
+    // la notte extra non sblocca niente (è fuori dal conto delle notti) e non ha un'alba con l'immersione
     const extra = this.nightNo === EXTRA_NIGHT;
-    if (r.kind === 'won' && !extra) this.save.night = Math.max(this.save.night, this.nightNo + 1);
+    // all'alba: i pesci oltre la quota (uno lo puoi portare giù nell'immersione); il mostro sfamato ha dormito
+    const spare = r.kind === 'won' && !extra ? Math.max(0, r.stats.bucket - NIGHTS[this.nightNo]!.quota) : 0;
+    if (r.kind === 'won' && !extra) wonNight(this.save, this.nightNo, spare);
     writeSave(this.save);
+    const next = this.nightNo + 1;
+    const diveOk = r.kind === 'won' && canDive(this.nightNo);
     const S = this.S;
     // un jumpscare (i figli, o la Madre che ti prende da sotto perché ti sei mosso): il segnale salta
     const jumpscare = r.kind === 'dead' && (r.js === true || r.killer !== 'mother' || r.cause === 'moved');
@@ -315,7 +339,9 @@ export class App {
         fed: r.stats.fed,
         lore: r.stats.lore.length,
         demoEnd: r.kind === 'won' && !extra && this.nightNo >= lastNight(),
-        onNext: r.kind === 'won' && !extra && this.nightNo < lastNight() ? () => this.intro(this.nightNo + 1) : null,
+        onNext: r.kind === 'won' && !extra && this.nightNo < lastNight() ? () => this.skipToNight(next) : null,
+        spare: r.kind === 'won' && !extra ? spare : undefined,
+        onDive: diveOk ? () => this.dive(next) : null,
         onWishlist: STEAM_URL ? () => window.open(STEAM_URL, '_blank') : null,
         onRetry: () => this.intro(),
         onMenu: () => this.title(),
@@ -340,6 +366,67 @@ export class App {
     } else show();
   }
 
+  // ───────────────────────── immersione all'alba ─────────────────────────
+
+  /** L'alba ripresa da «Continua» (il gioco era stato chiuso sullo schermo dei risultati): scendere o no. */
+  private dawnAgain(next: number): void {
+    this.mode = 'end';
+    this.screens.dawn({
+      spare: pendingDawn(this.save, next)?.spare ?? 0,
+      onDive: () => this.dive(next),
+      onNext: () => this.skipToNight(next),
+      onMenu: () => this.title(),
+    });
+  }
+
+  /** Alla notte dopo senza scendere: l'alba si chiude. */
+  private skipToNight(next: number): void {
+    skipDawn(this.save);
+    writeSave(this.save);
+    this.intro(next);
+  }
+
+  /** Scendi con le bombole prima della notte `next`, con i pesci avanzati alle sei (dal salvataggio dell'alba). */
+  private dive(next: number): void {
+    const spare = pendingDawn(this.save, next)?.spare ?? 0;
+    this.mode = 'dive';
+    this.screens.clear();
+    this.titleMusic(false);
+    const fail = (e: unknown) => {
+      // senza dati o panorami l'immersione non si fa: si va alla notte dopo
+      console.error(e);
+      this.endDive(next, { fed: null, dens: [] });
+    };
+    loadDiveData()
+      .then((data) => {
+        if (this.mode !== 'dive') return;
+        this.diving = new Dive({
+          stage: this.stage,
+          audio: this.audio,
+          ui: this.ui,
+          canvas: this.canvas,
+          lang: this.lang,
+          options: this.save.options,
+          data,
+          nextNight: next,
+          spare,
+          onEnd: (r) => this.endDive(next, r),
+        });
+        this.diving.start().catch(fail);
+      })
+      .catch(fail);
+  }
+
+  /** Risaliti: chi è stato sfamato dorme la notte dopo, le tane viste restano; poi la notte dopo. */
+  private endDive(next: number, r: DiveResult): void {
+    this.diving?.destroy();
+    this.diving = null;
+    // il pesce portato giù è rimasto lì o è tornato alla Madre: l'alba è finita
+    afterDive(this.save, next, r);
+    writeSave(this.save);
+    this.intro(next);
+  }
+
   private afterStatic: (() => void) | null = null;
   private music: Voice | null = null;
 
@@ -357,6 +444,13 @@ export class App {
         return;
       case 'paused':
         this.night!.render();
+        return;
+      case 'dive':
+        this.diving?.update(dt);
+        // l'immersione può finire dentro l'aggiornamento (la risalita): allora si disegna quello che viene dopo
+        if (this.mode === 'dive' && this.diving) this.diving.render();
+        else if (this.mode === 'dive') st.frame({ layers: [], fade: 0 });
+        else this.frame(0);
         return;
       case 'intro':
         this.timer -= dt;

@@ -1,0 +1,834 @@
+{
+ "_nota": "Le immersioni all'alba (docs/IMMERSIONI.md, «Il motore»): i posti, i passaggi fra un posto e l'altro (yaw e pitch in gradi nel panorama del posto, r = raggio cliccabile in gradi), le tane, i suoni dei posti. Sotto la barca e la grotta grande sono i render finali (tools/render/sotto_barca.py, grotte.py: le voci vengono da *_posto.json); le camerette e il mostro che dorme sono ancora SEGNAPOSTO (tools/immersioni_segnaposto.py). Solo la grotta grande è a 360°; sotto la barca e le camerette delle tane sono inquadrature fisse (frame). Aria (11 ottobre sera): due tane, la tana vuota non conta; uscendo dalla seconda si risale.",
+ "start": "sotto_barca",
+ "air": {
+  "maxDens": 2,
+  "emptyDenFree": true
+ },
+ "water": {
+  "fog": [
+   0.0015,
+   0.0055,
+   0.0065
+  ],
+  "fogDensity": 0.07,
+  "rayColor": [
+   0.05,
+   0.13,
+   0.14
+  ],
+  "snowColor": [
+   0.3,
+   0.34,
+   0.3
+  ],
+  "glowColor": [
+   0.035,
+   0.06,
+   0.055
+  ],
+  "torchAngle": 26,
+  "exposure": -0.4,
+  "fogDensityCooked": 0.012
+ },
+ "places": {
+  "sotto_barca": {
+   "_nota": "Sotto la barca (render finale, tools/render/sotto_barca.py): inquadratura fissa, panorama parziale; l'acqua torbida è già cotta nei passi di luce.",
+   "pano": {
+    "ambient": {
+     "file": "immersioni/sotto_barca_ambient.webp",
+     "scale": 0.65
+    },
+    "lantern": {
+     "file": "immersioni/sotto_barca_lantern.webp",
+     "scale": 0.25
+    },
+    "data": "immersioni/sotto_barca_data.webp"
+   },
+   "size": [
+    3640,
+    2162
+   ],
+   "latMin": -45.0,
+   "latMax": 50.0,
+   "lonMin": -80.0,
+   "lonMax": 80.0,
+   "yaw": 0,
+   "rays": 1.0,
+   "frame": {
+    "yaw": 0,
+    "pitch": 6.4,
+    "yawRange": 30,
+    "pitchRange": 6
+   },
+   "links": [
+    {
+     "to": "grotta_grande",
+     "yaw": 12.1,
+     "pitch": -14.5,
+     "r": 9.3,
+     "label": "cave"
+    },
+    {
+     "ascend": true,
+     "yaw": -6.6,
+     "pitch": 12.2,
+     "r": 7,
+     "label": "ascend"
+    }
+   ],
+   "acquaCotta": true
+  },
+  "grotta_grande": {
+   "_nota": "La grotta grande (render finale, tools/render/grotte.py): l'acqua torbida è già cotta nei passi di luce, come nelle anteprime approvate; la nebbia del motore qui va tenuta bassa.",
+   "pano": {
+    "ambient": {
+     "file": "immersioni/grotta_grande_ambient.webp",
+     "scale": 0.76
+    },
+    "lantern": {
+     "file": "immersioni/grotta_grande_lantern.webp",
+     "scale": 0.25
+    },
+    "data": "immersioni/grotta_grande_data.webp"
+   },
+   "size": [
+    8192,
+    4096
+   ],
+   "latMin": -90,
+   "latMax": 90,
+   "yaw": 0,
+   "look": {
+    "yaw": 0,
+    "pitch": -4
+   },
+   "rays": 0.25,
+   "links": [
+    {
+     "to": "sotto_barca",
+     "yaw": 162.0,
+     "pitch": 37.3,
+     "r": 14,
+     "label": "back"
+    },
+    {
+     "to": "tana_gulpy",
+     "yaw": -128.0,
+     "pitch": -5.1,
+     "r": 7.5
+    },
+    {
+     "to": "tana_molly",
+     "yaw": -88.0,
+     "pitch": 2.3,
+     "r": 6.3
+    },
+    {
+     "to": "tana_hatch",
+     "yaw": -48.0,
+     "pitch": -9.5,
+     "r": 4.0
+    },
+    {
+     "to": "tana_robin",
+     "yaw": 46.0,
+     "pitch": -6.1,
+     "r": 5.1
+    },
+    {
+     "to": "tana_archie",
+     "yaw": 88.0,
+     "pitch": 6.8,
+     "r": 8.7
+    },
+    {
+     "to": "tana_lampy",
+     "yaw": 128.0,
+     "pitch": 15.5,
+     "r": 8.3
+    },
+    {
+     "to": "tana_fangy",
+     "yaw": -160.0,
+     "pitch": -3.5,
+     "r": 6.4
+    },
+    {
+     "note": "mother",
+     "yaw": 0.0,
+     "pitch": -9.3,
+     "r": 15.1
+    }
+   ],
+   "acquaCotta": true,
+   "sounds": [
+    {
+     "id": "madre_breath",
+     "yaw": 0,
+     "pitch": -4,
+     "dist": 10,
+     "gain": 1
+    }
+   ]
+  },
+  "tana_gulpy": {
+   "_nota": "SEGNAPOSTO: la stessa cameretta per tutti, tinta col colore del mostro. Inquadratura fissa (deciso l'11 ottobre): un panorama parziale di 160° × 80°, lo sguardo si gira di 30° per parte.",
+   "den": "gulpy",
+   "pano": {
+    "ambient": {
+     "file": "immersioni/segnaposto/cameretta_ambient.webp",
+     "scale": 1
+    },
+    "lantern": {
+     "file": "immersioni/segnaposto/cameretta_lantern.webp",
+     "scale": 1
+    },
+    "data": "immersioni/segnaposto/cameretta_data.webp"
+   },
+   "size": [
+    1760,
+    880
+   ],
+   "latMin": -55,
+   "latMax": 25,
+   "yaw": 0,
+   "tint": [
+    0.62,
+    0.66,
+    0.72
+   ],
+   "rays": 0.12,
+   "sleeper": {
+    "yaw": 0,
+    "pitch": -27,
+    "r": 16,
+    "layers": [
+     {
+      "passes": {
+       "ambient": {
+        "file": "immersioni/segnaposto/dormiente_ambient.webp",
+        "scale": 1
+       },
+       "lantern": {
+        "file": "immersioni/segnaposto/dormiente_lantern.webp",
+        "scale": 1
+       }
+      },
+      "rect": [
+       550,
+       385,
+       1210,
+       770
+      ]
+     },
+     {
+      "passes": {
+       "ambient": {
+        "file": "immersioni/segnaposto/dormiente_respiro_ambient.webp",
+        "scale": 1
+       },
+       "lantern": {
+        "file": "immersioni/segnaposto/dormiente_respiro_lantern.webp",
+        "scale": 1
+       }
+      },
+      "rect": [
+       550,
+       385,
+       1210,
+       770
+      ],
+      "breath": 4.2
+     }
+    ],
+    "bubbles": {
+     "yaw": -15,
+     "pitch": -23
+    }
+   },
+   "links": [
+    {
+     "to": "grotta_grande",
+     "button": true,
+     "label": "toCave",
+     "yaw": 0,
+     "pitch": 0,
+     "r": 0
+    }
+   ],
+   "lonMin": -80,
+   "lonMax": 80,
+   "frame": {
+    "yaw": 0,
+    "pitch": -15,
+    "yawRange": 30,
+    "pitchRange": 4
+   }
+  },
+  "tana_molly": {
+   "_nota": "SEGNAPOSTO: la stessa cameretta per tutti, tinta col colore del mostro. Inquadratura fissa (deciso l'11 ottobre): un panorama parziale di 160° × 80°, lo sguardo si gira di 30° per parte.",
+   "den": "molly",
+   "pano": {
+    "ambient": {
+     "file": "immersioni/segnaposto/cameretta_ambient.webp",
+     "scale": 1
+    },
+    "lantern": {
+     "file": "immersioni/segnaposto/cameretta_lantern.webp",
+     "scale": 1
+    },
+    "data": "immersioni/segnaposto/cameretta_data.webp"
+   },
+   "size": [
+    1760,
+    880
+   ],
+   "latMin": -55,
+   "latMax": 25,
+   "yaw": 0,
+   "tint": [
+    0.85,
+    0.62,
+    0.78
+   ],
+   "rays": 0.12,
+   "sleeper": {
+    "yaw": 0,
+    "pitch": -27,
+    "r": 16,
+    "layers": [
+     {
+      "passes": {
+       "ambient": {
+        "file": "immersioni/segnaposto/dormiente_ambient.webp",
+        "scale": 1
+       },
+       "lantern": {
+        "file": "immersioni/segnaposto/dormiente_lantern.webp",
+        "scale": 1
+       }
+      },
+      "rect": [
+       550,
+       385,
+       1210,
+       770
+      ]
+     },
+     {
+      "passes": {
+       "ambient": {
+        "file": "immersioni/segnaposto/dormiente_respiro_ambient.webp",
+        "scale": 1
+       },
+       "lantern": {
+        "file": "immersioni/segnaposto/dormiente_respiro_lantern.webp",
+        "scale": 1
+       }
+      },
+      "rect": [
+       550,
+       385,
+       1210,
+       770
+      ],
+      "breath": 4.2
+     }
+    ],
+    "bubbles": {
+     "yaw": -15,
+     "pitch": -23
+    }
+   },
+   "links": [
+    {
+     "to": "grotta_grande",
+     "button": true,
+     "label": "toCave",
+     "yaw": 0,
+     "pitch": 0,
+     "r": 0
+    }
+   ],
+   "lonMin": -80,
+   "lonMax": 80,
+   "frame": {
+    "yaw": 0,
+    "pitch": -15,
+    "yawRange": 30,
+    "pitchRange": 4
+   }
+  },
+  "tana_hatch": {
+   "_nota": "SEGNAPOSTO: la stessa cameretta per tutti, tinta col colore del mostro. Inquadratura fissa (deciso l'11 ottobre): un panorama parziale di 160° × 80°, lo sguardo si gira di 30° per parte.",
+   "den": "hatch",
+   "pano": {
+    "ambient": {
+     "file": "immersioni/segnaposto/cameretta_ambient.webp",
+     "scale": 1
+    },
+    "lantern": {
+     "file": "immersioni/segnaposto/cameretta_lantern.webp",
+     "scale": 1
+    },
+    "data": "immersioni/segnaposto/cameretta_data.webp"
+   },
+   "size": [
+    1760,
+    880
+   ],
+   "latMin": -55,
+   "latMax": 25,
+   "yaw": 0,
+   "tint": [
+    1.0,
+    0.62,
+    0.38
+   ],
+   "rays": 0.12,
+   "sleeper": {
+    "yaw": 0,
+    "pitch": -27,
+    "r": 16,
+    "layers": [
+     {
+      "passes": {
+       "ambient": {
+        "file": "immersioni/segnaposto/dormiente_ambient.webp",
+        "scale": 1
+       },
+       "lantern": {
+        "file": "immersioni/segnaposto/dormiente_lantern.webp",
+        "scale": 1
+       }
+      },
+      "rect": [
+       550,
+       385,
+       1210,
+       770
+      ]
+     },
+     {
+      "passes": {
+       "ambient": {
+        "file": "immersioni/segnaposto/dormiente_respiro_ambient.webp",
+        "scale": 1
+       },
+       "lantern": {
+        "file": "immersioni/segnaposto/dormiente_respiro_lantern.webp",
+        "scale": 1
+       }
+      },
+      "rect": [
+       550,
+       385,
+       1210,
+       770
+      ],
+      "breath": 4.2
+     }
+    ],
+    "bubbles": {
+     "yaw": -15,
+     "pitch": -23
+    }
+   },
+   "links": [
+    {
+     "to": "grotta_grande",
+     "button": true,
+     "label": "toCave",
+     "yaw": 0,
+     "pitch": 0,
+     "r": 0
+    }
+   ],
+   "lonMin": -80,
+   "lonMax": 80,
+   "frame": {
+    "yaw": 0,
+    "pitch": -15,
+    "yawRange": 30,
+    "pitchRange": 4
+   }
+  },
+  "tana_robin": {
+   "_nota": "SEGNAPOSTO: la stessa cameretta per tutti, tinta col colore del mostro. Inquadratura fissa (deciso l'11 ottobre): un panorama parziale di 160° × 80°, lo sguardo si gira di 30° per parte.",
+   "den": "robin",
+   "pano": {
+    "ambient": {
+     "file": "immersioni/segnaposto/cameretta_ambient.webp",
+     "scale": 1
+    },
+    "lantern": {
+     "file": "immersioni/segnaposto/cameretta_lantern.webp",
+     "scale": 1
+    },
+    "data": "immersioni/segnaposto/cameretta_data.webp"
+   },
+   "size": [
+    1760,
+    880
+   ],
+   "latMin": -55,
+   "latMax": 25,
+   "yaw": 0,
+   "tint": [
+    1.0,
+    0.5,
+    0.45
+   ],
+   "rays": 0.12,
+   "sleeper": {
+    "yaw": 0,
+    "pitch": -27,
+    "r": 16,
+    "layers": [
+     {
+      "passes": {
+       "ambient": {
+        "file": "immersioni/segnaposto/dormiente_ambient.webp",
+        "scale": 1
+       },
+       "lantern": {
+        "file": "immersioni/segnaposto/dormiente_lantern.webp",
+        "scale": 1
+       }
+      },
+      "rect": [
+       550,
+       385,
+       1210,
+       770
+      ]
+     },
+     {
+      "passes": {
+       "ambient": {
+        "file": "immersioni/segnaposto/dormiente_respiro_ambient.webp",
+        "scale": 1
+       },
+       "lantern": {
+        "file": "immersioni/segnaposto/dormiente_respiro_lantern.webp",
+        "scale": 1
+       }
+      },
+      "rect": [
+       550,
+       385,
+       1210,
+       770
+      ],
+      "breath": 4.2
+     }
+    ],
+    "bubbles": {
+     "yaw": -15,
+     "pitch": -23
+    }
+   },
+   "links": [
+    {
+     "to": "grotta_grande",
+     "button": true,
+     "label": "toCave",
+     "yaw": 0,
+     "pitch": 0,
+     "r": 0
+    }
+   ],
+   "lonMin": -80,
+   "lonMax": 80,
+   "frame": {
+    "yaw": 0,
+    "pitch": -15,
+    "yawRange": 30,
+    "pitchRange": 4
+   }
+  },
+  "tana_archie": {
+   "_nota": "SEGNAPOSTO: la stessa cameretta per tutti, tinta col colore del mostro. Inquadratura fissa (deciso l'11 ottobre): un panorama parziale di 160° × 80°, lo sguardo si gira di 30° per parte.",
+   "den": "archie",
+   "pano": {
+    "ambient": {
+     "file": "immersioni/segnaposto/cameretta_ambient.webp",
+     "scale": 1
+    },
+    "lantern": {
+     "file": "immersioni/segnaposto/cameretta_lantern.webp",
+     "scale": 1
+    },
+    "data": "immersioni/segnaposto/cameretta_data.webp"
+   },
+   "size": [
+    1760,
+    880
+   ],
+   "latMin": -55,
+   "latMax": 25,
+   "yaw": 0,
+   "tint": [
+    0.95,
+    0.9,
+    0.4
+   ],
+   "rays": 0.12,
+   "sleeper": {
+    "yaw": 0,
+    "pitch": -27,
+    "r": 16,
+    "layers": [
+     {
+      "passes": {
+       "ambient": {
+        "file": "immersioni/segnaposto/dormiente_ambient.webp",
+        "scale": 1
+       },
+       "lantern": {
+        "file": "immersioni/segnaposto/dormiente_lantern.webp",
+        "scale": 1
+       }
+      },
+      "rect": [
+       550,
+       385,
+       1210,
+       770
+      ]
+     },
+     {
+      "passes": {
+       "ambient": {
+        "file": "immersioni/segnaposto/dormiente_respiro_ambient.webp",
+        "scale": 1
+       },
+       "lantern": {
+        "file": "immersioni/segnaposto/dormiente_respiro_lantern.webp",
+        "scale": 1
+       }
+      },
+      "rect": [
+       550,
+       385,
+       1210,
+       770
+      ],
+      "breath": 4.2
+     }
+    ],
+    "bubbles": {
+     "yaw": -15,
+     "pitch": -23
+    }
+   },
+   "links": [
+    {
+     "to": "grotta_grande",
+     "button": true,
+     "label": "toCave",
+     "yaw": 0,
+     "pitch": 0,
+     "r": 0
+    }
+   ],
+   "lonMin": -80,
+   "lonMax": 80,
+   "frame": {
+    "yaw": 0,
+    "pitch": -15,
+    "yawRange": 30,
+    "pitchRange": 4
+   }
+  },
+  "tana_lampy": {
+   "_nota": "SEGNAPOSTO: la stessa cameretta per tutti, tinta col colore del mostro. Inquadratura fissa (deciso l'11 ottobre): un panorama parziale di 160° × 80°, lo sguardo si gira di 30° per parte.",
+   "den": "lampy",
+   "pano": {
+    "ambient": {
+     "file": "immersioni/segnaposto/cameretta_ambient.webp",
+     "scale": 1
+    },
+    "lantern": {
+     "file": "immersioni/segnaposto/cameretta_lantern.webp",
+     "scale": 1
+    },
+    "data": "immersioni/segnaposto/cameretta_data.webp"
+   },
+   "size": [
+    1760,
+    880
+   ],
+   "latMin": -55,
+   "latMax": 25,
+   "yaw": 0,
+   "tint": [
+    0.8,
+    0.45,
+    0.9
+   ],
+   "rays": 0.12,
+   "sleeper": {
+    "yaw": 0,
+    "pitch": -27,
+    "r": 16,
+    "layers": [
+     {
+      "passes": {
+       "ambient": {
+        "file": "immersioni/segnaposto/dormiente_ambient.webp",
+        "scale": 1
+       },
+       "lantern": {
+        "file": "immersioni/segnaposto/dormiente_lantern.webp",
+        "scale": 1
+       }
+      },
+      "rect": [
+       550,
+       385,
+       1210,
+       770
+      ]
+     },
+     {
+      "passes": {
+       "ambient": {
+        "file": "immersioni/segnaposto/dormiente_respiro_ambient.webp",
+        "scale": 1
+       },
+       "lantern": {
+        "file": "immersioni/segnaposto/dormiente_respiro_lantern.webp",
+        "scale": 1
+       }
+      },
+      "rect": [
+       550,
+       385,
+       1210,
+       770
+      ],
+      "breath": 4.2
+     }
+    ],
+    "bubbles": {
+     "yaw": -15,
+     "pitch": -23
+    }
+   },
+   "links": [
+    {
+     "to": "grotta_grande",
+     "button": true,
+     "label": "toCave",
+     "yaw": 0,
+     "pitch": 0,
+     "r": 0
+    }
+   ],
+   "lonMin": -80,
+   "lonMax": 80,
+   "frame": {
+    "yaw": 0,
+    "pitch": -15,
+    "yawRange": 30,
+    "pitchRange": 4
+   }
+  },
+  "tana_fangy": {
+   "_nota": "SEGNAPOSTO: la stessa cameretta per tutti, tinta col colore del mostro. Inquadratura fissa (deciso l'11 ottobre): un panorama parziale di 160° × 80°, lo sguardo si gira di 30° per parte.",
+   "den": "fangy",
+   "pano": {
+    "ambient": {
+     "file": "immersioni/segnaposto/cameretta_ambient.webp",
+     "scale": 1
+    },
+    "lantern": {
+     "file": "immersioni/segnaposto/cameretta_lantern.webp",
+     "scale": 1
+    },
+    "data": "immersioni/segnaposto/cameretta_data.webp"
+   },
+   "size": [
+    1760,
+    880
+   ],
+   "latMin": -55,
+   "latMax": 25,
+   "yaw": 0,
+   "tint": [
+    0.4,
+    0.5,
+    0.9
+   ],
+   "rays": 0.12,
+   "sleeper": {
+    "yaw": 0,
+    "pitch": -27,
+    "r": 16,
+    "layers": [
+     {
+      "passes": {
+       "ambient": {
+        "file": "immersioni/segnaposto/dormiente_ambient.webp",
+        "scale": 1
+       },
+       "lantern": {
+        "file": "immersioni/segnaposto/dormiente_lantern.webp",
+        "scale": 1
+       }
+      },
+      "rect": [
+       550,
+       385,
+       1210,
+       770
+      ]
+     },
+     {
+      "passes": {
+       "ambient": {
+        "file": "immersioni/segnaposto/dormiente_respiro_ambient.webp",
+        "scale": 1
+       },
+       "lantern": {
+        "file": "immersioni/segnaposto/dormiente_respiro_lantern.webp",
+        "scale": 1
+       }
+      },
+      "rect": [
+       550,
+       385,
+       1210,
+       770
+      ],
+      "breath": 4.2
+     }
+    ],
+    "bubbles": {
+     "yaw": -15,
+     "pitch": -23
+    }
+   },
+   "links": [
+    {
+     "to": "grotta_grande",
+     "button": true,
+     "label": "toCave",
+     "yaw": 0,
+     "pitch": 0,
+     "r": 0
+    }
+   ],
+   "lonMin": -80,
+   "lonMax": 80,
+   "frame": {
+    "yaw": 0,
+    "pitch": -15,
+    "yawRange": 30,
+    "pitchRange": 4
+   }
+  }
+ }
+}

@@ -505,13 +505,25 @@ export class Screens {
     document.addEventListener('keydown', onKey);
   }
 
+  /** L'alba ripresa da «Continua» (immersioni): le sei passate, i pesci avanzati, scendere o andare alla notte dopo. */
+  dawn(o: { spare: number; onDive: () => void; onNext: () => void; onMenu: () => void }): void {
+    const S = this.S;
+    const stats = h('div', { class: 'stats' }, h('div', {}, h('span', {}, S.results.spare), h('b', {}, String(o.spare))));
+    const menu = h('div', { class: 'menu' }, button(S.dive.descend, o.onDive, 'start'), button(S.nextNight, o.onNext, 'start'), button(S.menu, o.onMenu, 'back'));
+    this.show(h('div', { class: 'screen dawn fade-in' }, h('h2', {}, `${S.sixAm} · ${S.survived}`), stats, menu));
+  }
+
   /** Statica tra il jumpscare e il game over. */
   /** Segnale perso dopo il jumpscare: la neve la disegna la scena (WebGL), sopra non c'è niente. */
   static(): void {
     this.clear();
   }
 
-  results(o: { won: boolean; text: string; caught: number; fed: number; lore: number; demoEnd: boolean; onNext?: (() => void) | null; onWishlist?: (() => void) | null; onRetry: () => void; onMenu: () => void }): void {
+  results(o: { won: boolean; text: string; caught: number; fed: number; lore: number; demoEnd: boolean; onNext?: (() => void) | null; onWishlist?: (() => void) | null; onRetry: () => void; onMenu: () => void;
+    /** pesci avanzati oltre la quota (immersioni) */
+    spare?: number;
+    /** scendere con le bombole prima della notte dopo (l'immersione è facoltativa) */
+    onDive?: (() => void) | null }): void {
     const S = this.S;
     const stats = h(
       'div',
@@ -520,8 +532,10 @@ export class Screens {
       h('div', {}, h('span', {}, S.results.fed), h('b', {}, String(o.fed))),
       h('div', {}, h('span', {}, S.results.lore), h('b', {}, String(o.lore))),
     );
+    if (o.won && o.spare !== undefined) stats.append(h('div', {}, h('span', {}, S.results.spare), h('b', {}, String(o.spare))));
     const menu = h('div', { class: 'menu' });
     if (!o.won) menu.append(button(S.retry, o.onRetry, 'start'));
+    if (o.won && o.onDive) menu.append(button(S.dive.descend, o.onDive, 'start'));
     if (o.won && o.onNext) menu.append(button(S.nextNight, o.onNext, 'start'));
     if (o.demoEnd && o.onWishlist) menu.append(button(S.wishlist, o.onWishlist, 'start'));
     menu.append(button(S.menu, o.onMenu, 'back'));

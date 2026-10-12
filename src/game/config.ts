@@ -701,6 +701,20 @@ export function extraNight(levels: ExtraLevels): NightConfig {
   };
 }
 
+/** La notte in cui arriva ogni mostro (uno nuovo per notte dalla seconda; deciso il 10 ottobre). */
+export const ARRIVAL: Record<NightMonster, number> = { gulpy: 1, molly: 1, hatch: 1, robin: 2, archie: 3, lampy: 4, fangy: 5 };
+
+/**
+ * Le immersioni all'alba (docs/IMMERSIONI.md): il pesce lasciato accanto a un mostro addormentato lo tiene a dormire
+ * tutta la notte dopo. Si può sfamare chi gira nella notte n, tranne il mostro nuovo di quella notte: la sua tana è
+ * vuota, è già in giro (deciso l'11 ottobre). La prima notte non c'è un'alba prima, quindi niente.
+ */
+export function canFeed(n: number, who: MonsterId): boolean {
+  // il Foxy non ha una tana
+  if (who === 'foxy') return false;
+  return n >= 2 && ARRIVAL[who] < n;
+}
+
 export function angleDiff(a: number, b: number): number {
   let d = (a - b) % 360;
   if (d > 180) d -= 360;

@@ -69,6 +69,10 @@ uniform sampler2D uBoat; // la barca: il suo alfa dice dov'era coperta la creatu
 uniform sampler2D uMask0, uMask1;
 uniform vec4 uMaskRect0, uMaskRect1;
 uniform vec2 uMaskK;
+// la torcia del sub (immersioni): il passo lanterna si accende solo nel cono attorno a uTorch.xyz (spazio dello
+// strato); uTorch.w = coseno del bordo del cono, 0 = niente torcia (il passo resta com'è)
+uniform vec4 uTorch;
+uniform vec3 uTint;      // tinta dello strato (1, 1, 1: nessuna)
 float maskOf(sampler2D m, vec4 r, float k, vec2 p) {
   if (k <= 0.0 || p.x < r.x || p.x > r.z || p.y < r.y || p.y > r.w) return 1.0;
   return 1.0 - k * (1.0 - texture(m, (p - r.xy) / (r.zw - r.xy)).a);
@@ -122,7 +126,17 @@ void main() {
   vec4 a = texture(uAmb, uv);
   vec3 c = uHas.x * dec(a, uScale.x) * uW.x;
   if (uHas.y > 0.5) c += dec(texture(uLamp, uv), uScale.y) * uW.y;
-  if (uHas.z > 0.5) c += dec(texture(uLant, uv), uScale.z) * uW.z;
+  if (uHas.z > 0.5) {
+    float tk = 1.0;
+    if (uTorch.w > 0.0) {
+      // x = angolo dal centro del fascio diviso il mezzo angolo del cono (circa): la luce cala morbida dal centro al
+      // bordo e oltre; fuori resta un filo di luce diffusa nell'acqua
+      float x = sqrt(max(0.0, 1.0 - dot(d, uTorch.xyz)) / max(1e-4, 1.0 - uTorch.w));
+      tk = 0.03 + 1.1 * exp(-2.2 * x * x);
+    }
+    c += dec(texture(uLant, uv), uScale.z) * uW.z * tk;
+  }
+  c *= uTint;
   float alpha = uAlpha > 0.5 ? a.a : 1.0;
   if (uHasData > 0.5) {
     // nebbia dalla distanza (mist = sqrt(d / 2500 m)); il cielo si schiarisce solo all'orizzonte
@@ -266,6 +280,104 @@ void main() {
     float a = acos(clamp(dot(d, uLightDir[i]), -1.0, 1.0));
     float rad = uLightCol[i].a;
     c += uLightCol[i].rgb * (exp(-pow(a / rad, 2.0)) + 0.25 * exp(-a / (rad * 6.0)));
+  }
+  frag = vec4(c, 0.0);
+}`;
+
+/**
+ * L'acqua delle immersioni all'alba, al posto dell'atmosfera della notte (si somma sopra il panorama): i raggi di
+ * luce che scendono dalla superficie, le particelle sospese che vanno alla deriva (accese dalla torcia), l'alone
+ * della torcia nell'acqua torbida, le colonne di bolle (i mostri che dormono) e, nelle dissolvenze fra un posto e
+ * l'altro, le bolle dell'erogatore che salgono davanti alla maschera. Spazio del mondo: z in alto.
+ */
+export const WATER_FS = /* glsl */ `#version 300 es
+precision highp float;
+in vec2 vUv;
+out vec4 frag;
+${RAY}
+${NOISE}
+uniform float uTime;
+uniform vec3 uTorchDir;     // dove punta la torcia (spazio del mondo)
+uniform float uTorchCos;    // coseno del bordo del cono
+uniform float uTorchOn;     // 0..1
+uniform vec3 uRayColor;     // i raggi dall'alto
+uniform float uRays;
+uniform vec3 uSnowColor;    // le particelle sospese
+uniform float uSnow;
+uniform vec3 uGlowColor;    // l'alone della torcia
+#define MAXB 4
+uniform int uBubCount;
+uniform vec4 uBub[MAXB];    // sorgenti di bolle: direzione, intensità
+uniform float uBurst;       // 0..1: le bolle dell'erogatore davanti alla maschera (dissolvenza)
+uniform float uAspect;
+
+float torchK(vec3 d) {
+  float x = sqrt(max(0.0, 1.0 - dot(d, uTorchDir)) / max(1e-4, 1.0 - uTorchCos));
+  return uTorchOn * exp(-2.2 * x * x);
+}
+
+/** Un anello di bolla (bordo chiaro, dentro quasi vuoto). */
+float bubble(float dist, float r) {
+  float ring = smoothstep(r, r * 0.82, dist) - 0.75 * smoothstep(r * 0.78, r * 0.45, dist);
+  return max(ring, 0.0);
+}
+
+void main() {
+  vec3 d = viewRay(vUv);
+  float lon = atan(d.x, d.y);
+  vec3 c = vec3(0.0);
+  // raggi: fasce che ondeggiano piano, più forti guardando in su; e il chiarore della superficie in alto
+  float up = smoothstep(-0.3, 0.95, d.z);
+  float shafts = vnoise(vec2(lon * 9.0 + uTime * 0.07, 0.5)) * vnoise(vec2(lon * 23.0 - uTime * 0.11, 3.1));
+  shafts = shafts * shafts * 3.0 * (0.75 + 0.25 * sin(uTime * 0.6 + lon * 4.0));
+  c += uRayColor * uRays * (shafts * up * up + 0.6 * pow(max(d.z, 0.0), 6.0));
+  // la torcia nell'acqua torbida
+  float tk = torchK(d);
+  float ang = acos(clamp(dot(d, uTorchDir), -1.0, 1.0));
+  c += uGlowColor * uTorchOn * (0.10 * exp(-ang * ang / 0.08) + 0.05 * tk);
+  // particelle sospese: tre strati di celle nello spazio, alla deriva (una per cella, non tutte le celle)
+  for (int i = 0; i < 3; i++) {
+    float fi = float(i);
+    float sc = 26.0 + fi * 19.0;
+    vec3 p = d * sc + vec3(sin(uTime * 0.11 + fi) * 0.8, cos(uTime * 0.07 + fi * 2.0) * 0.8, uTime * (0.10 + 0.05 * fi));
+    vec3 cell = floor(p);
+    float h0 = hash12(cell.xy + cell.z * 17.13 + fi * 3.7);
+    if (h0 > 0.35) continue;
+    vec3 jit = vec3(hash12(cell.yz + 4.1), hash12(cell.zx + 9.3), hash12(cell.xy + 2.7));
+    vec3 center = cell + 0.2 + 0.6 * jit;
+    float dist = length(p - center);
+    float r = 0.05 + 0.05 * hash12(cell.xz + 7.7);
+    float dotv = smoothstep(r, r * 0.3, dist);
+    c += uSnowColor * uSnow * dotv * (0.12 + 1.6 * tk) * (1.0 - 0.25 * fi);
+  }
+  // colonne di bolle che salgono dalle sorgenti
+  for (int b = 0; b < MAXB; b++) {
+    if (b >= uBubCount) break;
+    vec3 s = normalize(uBub[b].xyz);
+    if (dot(d, s) < 0.8) continue;
+    vec3 rt = normalize(cross(s, vec3(0.0, 0.0, 1.0)) + vec3(1e-4, 0.0, 0.0));
+    vec3 ut = cross(rt, s);
+    vec2 q = vec2(dot(d, rt), dot(d, ut));
+    for (int k = 0; k < 6; k++) {
+      float fk = float(k);
+      float ph = fract(uTime * (0.18 + 0.05 * hash12(vec2(fk, 1.0))) + hash12(vec2(fk, 2.0 + float(b))));
+      vec2 bp = vec2((hash12(vec2(fk, 3.0)) - 0.5) * 0.03 + sin(ph * 11.0 + fk) * 0.008, ph * 0.45);
+      float r = 0.004 + 0.006 * hash12(vec2(fk, 4.0));
+      c += vec3(0.5, 0.7, 0.75) * uBub[b].w * bubble(length(q - bp), r) * (1.0 - ph) * (0.3 + tk);
+    }
+  }
+  // le bolle dell'erogatore: salgono davanti alla maschera (spazio dello schermo)
+  if (uBurst > 0.01) {
+    for (int l = 0; l < 2; l++) {
+      float fl = float(l);
+      vec2 g = vec2(vUv.x * uAspect * (9.0 + fl * 7.0), vUv.y * (9.0 + fl * 7.0) - uTime * (2.2 + fl * 1.3));
+      vec2 cell = floor(g);
+      if (hash12(cell + fl * 11.0) > 0.55) continue;
+      vec2 ctr = cell + 0.25 + 0.5 * vec2(hash12(cell + 1.3), hash12(cell + 5.1));
+      ctr.x += sin(uTime * 3.0 + cell.y) * 0.08;
+      float r = 0.18 + 0.2 * hash12(cell + 8.8);
+      c += vec3(0.55, 0.75, 0.8) * uBurst * bubble(length(g - ctr), r) * (0.6 - 0.2 * fl);
+    }
   }
   frag = vec4(c, 0.0);
 }`;

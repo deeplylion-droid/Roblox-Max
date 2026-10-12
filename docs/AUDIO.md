@@ -11,7 +11,7 @@ Rigenerazione: `tools/.venv/bin/python tools/audio/generate.py [id...] [--spectr
 - `dsp.py`: mattoni (filtri, rumori periodici, voce a formanti, riverberi, limitatore, misure).
 - `instruments.py`: modelli di medio livello (acqua: bolle, gocce, schizzi, colpi d'onda; legno; corpi bagnati; campane e lamelle; respiri, gabbiani, balene).
 - `creatures.py`: modelli dei versi (voce irregolare con jitter e shimmer variabili, diplofonia, fry, ruvidità da urlo; gola bagnata, saliva, deglutizioni; ossa, denti, masticazione; nocche, unghie, passi bagnati, gomma; compressione e saturazione per bande degli urli).
-- `sounds/`: un modulo per tema (`ambience`, `world`, `fishing`, `gulpy`, `molly`, `hatch`, `robin`, `archie`, `lampy`, `fangy`, `madre`, `finali`, `music`, `ui`); ogni id si registra con `@sound(...)` o `register(...)`.
+- `sounds/`: un modulo per tema (`ambience`, `world`, `fishing`, `gulpy`, `molly`, `hatch`, `robin`, `archie`, `lampy`, `fangy`, `immersioni`, `madre`, `finali`, `music`, `ui`); ogni id si registra con `@sound(...)` o `register(...)`.
 - `master.py`: pulizia, livello (RMS "attivo"), limitatore, codifica Vorbis e verifica sul file decodificato (lunghezza, picco, giunzione del loop).
 
 ## Regole tecniche
@@ -224,6 +224,62 @@ nanna di `madre.py`). `madre_dawn` (24 s) resta per ora, ma per la cinematica c'
 
 **Ascolti di prova** (mp3 in `docs/concept/suoni/`): `finale_A_breve.mp3` (con l'alba del gioco che entra alla fine),
 `finale_nessuno.mp3`, `finale_tuoi.mp3`.
+
+## Immersioni (11 ottobre) — DA APPROVARE
+
+Proposta per le immersioni all'alba (`docs/IMMERSIONI.md`), tutta **da approvare**: modulo `sounds/immersioni.py`.
+Sott'acqua l'orecchio sente ovattato: gli acuti calano ma non spariscono (i versi tengono un filo di bollicine e di
+schiocchi, per l'HRTF). Le bolle sono profonde: quasi nessuna salita di tono, niente «bloop» da cartone. Il mare sopra
+e il letto della grotta stanno sotto i 700 Hz: niente fruscio a banda larga. I mostri dormono e **non parlano**: solo
+fiato, bolle e le loro cose (la paperella, i braccioli, l'esca, il tamburo, la trombetta, la ventosa, le conchiglie).
+Ascolti di prova in `docs/concept/suoni/`: `immersione_gulpy.mp3` (scendi, la grotta grande con la Madre in fondo,
+nuoti fino a Gulpy che russa, gli lasci il pesce, si gira nel sonno, torni, l'avviso dell'aria, risali all'alba),
+`immersione_sette_tane.mp3` (le sette tane una dopo l'altra, 14 s ciascuna, con il mostro che si muove a metà),
+`immersione_erogatore.mp3` (il respiro calmo, accelerato col playbackRate, l'avviso, il respiro affannato, l'aria che
+finisce, la risalita). I livelli nelle anteprime sono indicativi: il bilanciamento vero lo fa il motore.
+
+**L'ambiente e l'erogatore** (stereo)
+
+| id | durata | descrizione |
+|---|---|---|
+| `amb_dive` | 48 s, loop | La grotta sott'acqua: il silenzio pesante dell'acqua (un letto grave e scurissimo), il mare lontano sopra che respira con l'onda lunga (6 cicli da 8 s), la grotta che rimbomba piano quando la risacca entra dall'imboccatura (risonanze a 38 e 57 Hz, tre colpi sordi), sassolini che rotolano giù per la roccia, il crepitio rado dei gamberetti, due volte la roccia che geme lontano, una volta un rottame di scivolo che la corrente fa toccare sulla pietra. Categoria `amb`. |
+| `dive_breath` | 5,2 s, loop | Il respiro calmo nell'erogatore (11–12 al minuto): dentro lo scatto della leva e il sibilo della valvola a domanda, fuori il borbottio della membrana di scarico e la colonna di bolle che sale accanto alle orecchie e si allontana. Il gioco lo accelera col `playbackRate` quando l'aria cala (fino a ~1,3 regge). |
+| `dive_breath_fast` | 3 s, loop | Il respiro affannato ad aria bassa (20 al minuto): l'inspiro corto che tira duro (il sibilo stretto e balbettante), l'espiro di colpo con un'esplosione di bolle. Da incrociare con `dive_breath` dopo l'avviso. |
+
+**Le dissolvenze** (stereo, categoria `sfx`)
+
+| id | durata | descrizione |
+|---|---|---|
+| `dive_down` | 8 s | La discesa: ci si lascia cadere all'indietro dalla barca (il tonfo già ovattato), la nuvola di bolle che ti avvolge, il silenzio pesante che arriva, il primo respiro nell'erogatore (a 2,3 s), le orecchie che si compensano (due schiocchi sordi), il mare sopra sempre più lontano, la cima dell'ancora che sfrega sulla mano. |
+| `dive_swim_1`, `_2` | 2,6 s | La nuotata fra un posto e l'altro: tre colpi di pinne lenti (l'acqua spinta via, la pala che flette), il corpo che fende l'acqua, un espiro con le bolle che scivolano lungo le orecchie (prima o dopo, nelle due varianti). |
+| `dive_bubbles` | 1,4 s | Per i tagli secchi: un espiro forte e la nuvola di bolle che passa davanti alla maschera da sinistra a destra. |
+| `dive_air_low` | 2,4 s | L'avviso dell'aria: due colpetti del dito sul vetro del manometro, l'ago che trema e si assesta (due tic), poi un respiro che tira duro (la valvola sibila stretta e balbetta, la membrana cigola). Non è un bip: il manometro è un ago come quello del voltmetro. |
+| `dive_air_out` | 2,8 s | L'aria che finisce: un ultimo inspiro che dà poco e poi niente, la membrana che si incolla con uno schiocco di gomma (due tentativi a vuoto), lo scarico che borbotta l'ultima aria. Poi `dive_up`. |
+| `dive_up` | 7,6 s | La risalita: due soffi del gav, i colpi di pinne verso la luce, l'espiro lungo con le bolle che salgono con te, il mare sopra che si avvicina e si schiarisce; a 5,2 s la testa rompe il pelo dell'acqua: il mondo che si riapre, le gocce, il boccaglio sputato, un respiro grande nell'aria dell'alba, le onde contro la barca. |
+
+**Le tane** (mono, si spazializzano; i respiri sono loop da suonare in continuo, i movimenti ogni tanto sopra)
+
+| id | durata | descrizione |
+|---|---|---|
+| `offer_fish` | 1,9 s | Il pesce lasciato accanto al mostro: la mano che lo lascia andare, il tonfo morbido e grave nella sabbia, lo sbuffo di granelli che si alza e ricade, la coda molle che ricade una volta, una bollicina. Categoria `sfx`. |
+| `sleep_gulpy` | 13 s, loop | Russa con la mascella che pende aperta: due russate enormi e bagnate (il fry della gola gigante, il palato molle che sbatte), e fuori dalla bocca spalancata bolle grosse e lente una dopo l'altra (75–190 Hz), le labbra molli che sbattono; una volta la paperella del collo che cigola quando il petto si gonfia. |
+| `sleep_molly` | 11,4 s, loop | Tre respiri piccoli di bambina dal naso, due o tre bollicine a ogni espiro; al secondo un mugolio nel sonno con sotto, appena, l'altra gola; i braccioli che stridono una volta. |
+| `sleep_hatch` | 12 s, loop | Due respiri lunghi dalle narici grandi (un'aspirata lenta e bagnata), le branchie che sbattono piano sotto la mascella con qualche bolla; l'esca che si accende e si spegne piano due volte (lo scatto del contatto, la bobina che fischia fioca), i denti di vetro che si toccano una volta, il legno dell'armadio che geme. |
+| `sleep_robin` | 10,2 s, loop | Respira col tamburo della vescica natatoria, piano e lento (fusa d'acqua, un «rrr» sordo a ogni espiro), le branchie che soffiano bollicine; due volte le zampette che si muovono nel sonno e ticchettano sul bottino (gomma, latta) con i biglietti fradici; una volta, dal naso, l'ombra della risatina. |
+| `sleep_archie` | 12,6 s, loop | Due respiri: dentro un soffio fra i denti e la carta della trombetta che si riavvolge; fuori la trombetta che si srotola un poco (un filo di fiato nell'ancia, un ronzio nasale debole che s'inceppa e cala), la carta fradicia che si stende, le bolle dalla punta; il corpo che stringe e scivola sul tavolo, il tavolo che scricchiola. |
+| `sleep_lampy` | 9 s, loop | Tre respiri piccoli e veloci da neonata; a ogni respiro la ventosa che si riassesta sul soffitto (un risucchio umido) e una fila di sette bollicine dalle fessure delle branchie; la giostrina della culla che la corrente fa ticchettare piano. |
+| `sleep_fangy` | 14 s, loop | Due respiri lentissimi del mastino (dentro un fiato lungo e grave dal muso, fuori un soffio fra le zanne che gorgoglia e lascia salire le bolle); l'acqua mossa dal respiro fa toccare le conchiglie appese, che tintinnano piano; le lucine del ventre quasi spente, un ronzio freddo appena percettibile che respira. |
+| `stir_gulpy` | 3 s | Si gira sul materasso di salvagenti: la gomma che cigola sotto il peso, la mascella molle che sbatte (uno schiocco d'osso sordo), uno sbuffo russato che s'interrompe, una bollona. |
+| `stir_molly` | 3 s | Stringe i braccioli: la plastica che stride, il corpo che si rannicchia, un piagnucolio piccolo a bocca chiusa (con l'altra gola) che si spegne in un sospiro con le bollicine. |
+| `stir_hatch` | 3 s | Si muove nell'armadio: le ante che sbattono piano, il legno che geme, l'esca che si accende di colpo e il chip che prova una nota sola, calante; un'annusata lunga. |
+| `stir_robin` | 2,8 s | Si sistema sul bottino: il mucchio che frana un poco (scarpe di gomma, un giocattolo di latta, i biglietti), un gracidio corto e assonnato. |
+| `stir_archie` | 3 s | Stringe le spire attorno al tavolo: la pelle che scivola, il tavolo che scricchiola, un palloncino che strofina, la trombetta che si srotola di scatto con un «prrt» sfiatato e le bolle. |
+| `stir_lampy` | 2,8 s | La ventosa che molla un attimo dal soffitto (lo schiocco), il corpo che ondeggia sopra la culla, il bacio risucchiato con cui si riattacca, un versetto da neonata ovattato, la giostrina che gira. |
+| `stir_fangy` | 3,2 s | Alza il testone come se avesse sentito qualcosa: il collo che si torce nell'acqua, le conchiglie che tintinnano tutte insieme, un'annusata secca, le zanne che si toccano, un fiato lungo che gorgoglia e la testa che si riposa. |
+| `madre_breath` | 24 s, loop | Dal fondo della grotta grande (proposta di `IMMERSIONI.md`): qualcosa di gigantesco respira, un respiro solo in 24 s. Dentro, l'acqua della grotta risucchiata verso il buio (una corrente grave, i sassolini e la sabbia che scorrono verso l'apertura); fuori, la spinta lenta che torna indietro, bolle enormi e gravissime dal buio, e quasi sotto la soglia il lamento della voce più grande che ci sia. |
+
+Note per il motore: nei loop delle tane il respiro parte entro il primo mezzo secondo (in `sleep_archie` dopo 1,3 s: il
+loop comincia nella pausa); `rms` attivi: respiri −26…−23 dBFS, movimenti −21 dBFS, ambiente −28 dBFS.
 
 ## Musica e stinger (stereo) — DA APPROVARE
 

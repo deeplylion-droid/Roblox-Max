@@ -1,0 +1,84 @@
+{
+ "_nota": "La grotta grande (render finale, tools/render/grotte.py): l'acqua torbida è già cotta nei passi di luce, come nelle anteprime approvate; la nebbia del motore qui va tenuta bassa.",
+ "pano": {
+  "ambient": {
+   "file": "immersioni/grotta_grande_ambient.webp",
+   "scale": 0.76
+  },
+  "lantern": {
+   "file": "immersioni/grotta_grande_lantern.webp",
+   "scale": 0.25
+  },
+  "data": "immersioni/grotta_grande_data.webp"
+ },
+ "size": [
+  8192,
+  4096
+ ],
+ "latMin": -90,
+ "latMax": 90,
+ "yaw": 0,
+ "look": {
+  "yaw": 0,
+  "pitch": -4
+ },
+ "rays": 0.25,
+ "links": [
+  {
+   "to": "sotto_barca",
+   "yaw": 162.0,
+   "pitch": 37.3,
+   "r": 14,
+   "label": "back"
+  },
+  {
+   "to": "tana_gulpy",
+   "yaw": -128.0,
+   "pitch": -5.1,
+   "r": 7.5
+  },
+  {
+   "to": "tana_molly",
+   "yaw": -88.0,
+   "pitch": 2.3,
+   "r": 6.3
+  },
+  {
+   "to": "tana_hatch",
+   "yaw": -48.0,
+   "pitch": -9.5,
+   "r": 4.0
+  },
+  {
+   "to": "tana_robin",
+   "yaw": 46.0,
+   "pitch": -6.1,
+   "r": 5.1
+  },
+  {
+   "to": "tana_archie",
+   "yaw": 88.0,
+   "pitch": 6.8,
+   "r": 8.7
+  },
+  {
+   "to": "tana_lampy",
+   "yaw": 128.0,
+   "pitch": 15.5,
+   "r": 8.3
+  },
+  {
+   "to": "tana_fangy",
+   "yaw": -160.0,
+   "pitch": -3.5,
+   "r": 6.4
+  },
+  {
+   "note": "mother",
+   "yaw": 0.0,
+   "pitch": -9.3,
+   "r": 15.1
+  }
+ ],
+ "acquaCotta": true
+}

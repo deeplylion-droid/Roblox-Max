@@ -7,6 +7,14 @@
     "gain": 0.8,
     "category": "amb"
   },
+  "amb_dive": {
+    "file": "amb_dive.ogg",
+    "duration": 48.0,
+    "loop": true,
+    "channels": 2,
+    "gain": 0.8,
+    "category": "amb"
+  },
   "amb_drone": {
     "file": "amb_drone.ogg",
     "duration": 24.0,
@@ -149,6 +157,78 @@
     "loop": false,
     "channels": 1,
     "gain": 0.6,
+    "category": "sfx"
+  },
+  "dive_air_low": {
+    "file": "dive_air_low.ogg",
+    "duration": 2.4,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.8,
+    "category": "sfx"
+  },
+  "dive_air_out": {
+    "file": "dive_air_out.ogg",
+    "duration": 2.8,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.8,
+    "category": "sfx"
+  },
+  "dive_breath": {
+    "file": "dive_breath.ogg",
+    "duration": 5.2,
+    "loop": true,
+    "channels": 2,
+    "gain": 0.6,
+    "category": "sfx"
+  },
+  "dive_breath_fast": {
+    "file": "dive_breath_fast.ogg",
+    "duration": 3.0,
+    "loop": true,
+    "channels": 2,
+    "gain": 0.65,
+    "category": "sfx"
+  },
+  "dive_bubbles": {
+    "file": "dive_bubbles.ogg",
+    "duration": 1.4,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.7,
+    "category": "sfx"
+  },
+  "dive_down": {
+    "file": "dive_down.ogg",
+    "duration": 8.0,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.8,
+    "category": "sfx"
+  },
+  "dive_swim_1": {
+    "file": "dive_swim_1.ogg",
+    "duration": 2.6,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.7,
+    "category": "sfx"
+  },
+  "dive_swim_2": {
+    "file": "dive_swim_2.ogg",
+    "duration": 2.6,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.7,
+    "category": "sfx"
+  },
+  "dive_up": {
+    "file": "dive_up.ogg",
+    "duration": 7.6,
+    "loop": false,
+    "channels": 2,
+    "gain": 0.8,
     "category": "sfx"
   },
   "fangy_approach": {
@@ -623,6 +703,14 @@
     "gain": 0.85,
     "category": "mon"
   },
+  "madre_breath": {
+    "file": "madre_breath.ogg",
+    "duration": 24.0,
+    "loop": true,
+    "channels": 1,
+    "gain": 0.8,
+    "category": "mon"
+  },
   "madre_dawn": {
     "file": "madre_dawn.ogg",
     "duration": 24.0,
@@ -823,6 +911,14 @@
     "gain": 0.7,
     "category": "mus"
   },
+  "offer_fish": {
+    "file": "offer_fish.ogg",
+    "duration": 1.9,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.85,
+    "category": "sfx"
+  },
   "plop": {
     "file": "plop.ogg",
     "duration": 0.4,
@@ -919,6 +1015,62 @@
     "gain": 0.8,
     "category": "sfx"
   },
+  "sleep_archie": {
+    "file": "sleep_archie.ogg",
+    "duration": 12.6,
+    "loop": true,
+    "channels": 1,
+    "gain": 0.7,
+    "category": "mon"
+  },
+  "sleep_fangy": {
+    "file": "sleep_fangy.ogg",
+    "duration": 14.0,
+    "loop": true,
+    "channels": 1,
+    "gain": 0.7,
+    "category": "mon"
+  },
+  "sleep_gulpy": {
+    "file": "sleep_gulpy.ogg",
+    "duration": 13.0,
+    "loop": true,
+    "channels": 1,
+    "gain": 0.7,
+    "category": "mon"
+  },
+  "sleep_hatch": {
+    "file": "sleep_hatch.ogg",
+    "duration": 12.0,
+    "loop": true,
+    "channels": 1,
+    "gain": 0.7,
+    "category": "mon"
+  },
+  "sleep_lampy": {
+    "file": "sleep_lampy.ogg",
+    "duration": 9.0,
+    "loop": true,
+    "channels": 1,
+    "gain": 0.7,
+    "category": "mon"
+  },
+  "sleep_molly": {
+    "file": "sleep_molly.ogg",
+    "duration": 11.4,
+    "loop": true,
+    "channels": 1,
+    "gain": 0.7,
+    "category": "mon"
+  },
+  "sleep_robin": {
+    "file": "sleep_robin.ogg",
+    "duration": 10.2,
+    "loop": true,
+    "channels": 1,
+    "gain": 0.7,
+    "category": "mon"
+  },
   "sonar_blip": {
     "file": "sonar_blip.ogg",
     "duration": 0.15,
@@ -982,6 +1134,62 @@
     "channels": 2,
     "gain": 0.7,
     "category": "sfx"
+  },
+  "stir_archie": {
+    "file": "stir_archie.ogg",
+    "duration": 3.0,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.8,
+    "category": "mon"
+  },
+  "stir_fangy": {
+    "file": "stir_fangy.ogg",
+    "duration": 3.2,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.8,
+    "category": "mon"
+  },
+  "stir_gulpy": {
+    "file": "stir_gulpy.ogg",
+    "duration": 3.0,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.8,
+    "category": "mon"
+  },
+  "stir_hatch": {
+    "file": "stir_hatch.ogg",
+    "duration": 3.0,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.8,
+    "category": "mon"
+  },
+  "stir_lampy": {
+    "file": "stir_lampy.ogg",
+    "duration": 2.8,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.8,
+    "category": "mon"
+  },
+  "stir_molly": {
+    "file": "stir_molly.ogg",
+    "duration": 3.0,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.8,
+    "category": "mon"
+  },
+  "stir_robin": {
+    "file": "stir_robin.ogg",
+    "duration": 2.8,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.8,
+    "category": "mon"
   },
   "tarp_in": {
     "file": "tarp_in.ogg",
