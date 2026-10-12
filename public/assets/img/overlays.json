@@ -35,7 +35,7 @@
     "hfov": 6.0,
     "key": "ingresso",
     "pitch": 2.373,
-    "scale": 6.0,
+    "scale": 5.6,
     "senza": {
      "file": "bino_ingresso_senza.webp",
      "scale": 6.0
@@ -112,7 +112,7 @@
     "hfov": 4.2,
     "key": "statua",
     "pitch": 2.198,
-    "scale": 5.300000000000001,
+    "scale": 1.4,
     "senza": {
      "file": "bino_statua_senza.webp",
      "scale": 5.300000000000001

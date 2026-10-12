@@ -46,6 +46,16 @@ def keep_old(fn: str) -> str:
     return new
 
 
+def scale_scritte(manifest: Path, files) -> None:
+    """Le scale dei file nuovi stanno nel manifest della cartella dei render, che i job scrivono solo alla fine (il
+    binocolo dopo tutti i posti): un file più nuovo del suo manifest ha ancora la scala del render di prima, e si
+    vedrebbe chiaro o scuro il doppio (è successo il 12 ottobre con la statua)."""
+    t = manifest.stat().st_mtime
+    nuovi = [f.name for f in files if f.stat().st_mtime > t + 120]
+    if nuovi:
+        raise SystemExit(f'{manifest.name} è più vecchio di {", ".join(nuovi)}: le scale non sono ancora scritte, aspetta la fine del job')
+
+
 def load(p: Path):
     return json.load(open(p))
 
@@ -68,6 +78,7 @@ for key, on in (('world', a.mondo), ('boat', a.barca)):
             senza['data'] = keep_old(e['data'])
         e['senza'] = senza
     r = rman['layers'][key]
+    scale_scritte(src / 'manifest.json', [src / p['file'] for p in r['passes'].values()])
     for p in r['passes'].values():
         shutil.copy2(src / p['file'], img / p['file'])
     if r.get('data'):
@@ -86,6 +97,7 @@ if luoghi or a.telone:
     rplaces = {p['key']: p for p in rov['binocular']['places']}
     for k in luoghi:
         p, r = places[k], rplaces[k]
+        scale_scritte(src / 'overlays.json', [src / r['file']])
         if p.get('foxy'):
             raise SystemExit(f'{k}: è un posto del Foxy, le sue viste senza nebbia vanno fatte a parte')
         if 'senza' not in p:
@@ -95,6 +107,7 @@ if luoghi or a.telone:
         print('binocolo', k, 'scala', r['scale'], '· senza', p['senza']['file'])
     if a.telone:
         t, r = ov['tarp'], rov['tarp']
+        scale_scritte(src / 'overlays.json', [src / r['base']['file'], src / r['glow']['file']])
         if 'senza' not in t:
             t['senza'] = {'base': {**t['base'], 'file': keep_old(t['base']['file'])}, 'glow': {**t['glow'], 'file': keep_old(t['glow']['file'])}}
         for g in ('base', 'glow'):

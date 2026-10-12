@@ -2550,7 +2550,7 @@
     "ambient": {
      "file": "world_ambient.webp",
      "res": 1.0,
-     "scale": 0.39
+     "scale": 0.25
     },
     "lamp": {
      "file": "world_lamp.webp",
@@ -2569,6 +2569,26 @@
     8192,
     2139
    ],
+   "senza": {
+    "data": "world_data_senza.webp",
+    "passes": {
+     "ambient": {
+      "file": "world_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.39
+     },
+     "lamp": {
+      "file": "world_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "world_lantern_senza.webp",
+      "res": 0.5,
+      "scale": 0.25
+     }
+    }
+   },
    "space": "world",
    "yaw": 0.0
   }
