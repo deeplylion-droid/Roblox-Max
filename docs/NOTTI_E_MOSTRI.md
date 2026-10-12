@@ -39,9 +39,21 @@ del questionario:
 
 ### Il Foxy nel gioco (logica, notte fra l'11 e il 12 ottobre; branch `claude/foxy-gioco`)
 
-> **Provvisorio finché non arrivano i render** (la tavola con le tre varianti, il modello, le viste del binocolo, il
-> jumpscare) e il nome: per ora nel binocolo si vedono **due occhi rossi** nel suo posto, il jumpscare è un buio con la
-> scossa, il suono del posto vuoto è un tonfo lontano. **Da approvare**: i testi (sotto) e i numeri.
+> **Provvisorio finché non arrivano i render** (il modello, le viste del binocolo, il jumpscare) e il nome: per ora nel
+> binocolo si vedono **due occhi rossi** nel suo posto, il jumpscare è un buio con la scossa. **I suoni** (12 ottobre, da
+> approvare; `docs/AUDIO.md`, «L'animatore») sono i file `foxy_near` (si sporge), `foxy_leave` (lascia il posto e corre
+> verso la barca, finisce sul salto) e `js_foxy` (l'abbraccio); senza i file restano i ripieghi. **Da approvare**: i testi (sotto) e i numeri.
+>
+> **La variante** (notte fra l'11 e il 12 ottobre, scelta da me col via libera dell'utente; tavola
+> `docs/concept/foxy_varianti.jpg` sul ramo `claude/foxy`): la **B «Fradicio»**, il costume gonfio d'acqua che cede,
+> curvo, la testa crollata di lato, dalle pinne sfondate le sue mani, la faccia gonfia spinta fuori dalla bocca e un
+> occhio da cartone che penzola. Le altre erano la A «Pupazzo» (il costume intero, lui in fondo al sorriso) e la C
+> «Sventrato» (la testa spaccata, lui scheletrico che esce fino al petto). **Il nome** lo sceglie l'utente: la sessione
+> propone Soggy («fradicio»), Grinny (il sorriso del costume) e Marty (il nome sul cartellino dell'animatore).
+>
+> **Le viste del binocolo** col Foxy: per ogni posto due immagini con la stessa inquadratura di quella vuota (lui fermo,
+> lui più vicino), in `overlays.json` → `binocular.places[].foxy` (`bino_<posto>_foxy0.webp`, `_foxy1.webp`). Il motore
+> le mostra al posto della vista vuota secondo lo stadio; finché non ci sono restano gli occhi rossi.
 
 - **Dove sta**: in uno di due posti del binocolo, la **torre degli scivoli** alle spalle (−167°, 460 m) e il
   **relitto** davanti alla prua (14°, 170 m), da dove salta in acqua e arriva alla barca. Li ha proposti la sessione

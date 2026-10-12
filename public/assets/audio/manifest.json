@@ -335,6 +335,22 @@
     "gain": 0.6,
     "category": "sfx"
   },
+  "foxy_leave": {
+    "file": "foxy_leave.ogg",
+    "duration": 3.2,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.9,
+    "category": "mon"
+  },
+  "foxy_near": {
+    "file": "foxy_near.ogg",
+    "duration": 2.2,
+    "loop": false,
+    "channels": 1,
+    "gain": 0.5,
+    "category": "mon"
+  },
   "glass_break": {
     "file": "glass_break.ogg",
     "duration": 1.7,
@@ -562,6 +578,14 @@
   "js_fangy": {
     "file": "js_fangy.ogg",
     "duration": 1.6,
+    "loop": false,
+    "channels": 2,
+    "gain": 1.0,
+    "category": "mon"
+  },
+  "js_foxy": {
+    "file": "js_foxy.ogg",
+    "duration": 2.0,
     "loop": false,
     "channels": 2,
     "gain": 1.0,

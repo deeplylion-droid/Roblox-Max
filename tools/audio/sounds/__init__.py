@@ -11,7 +11,7 @@ from typing import Callable
 
 from dsp import SR
 
-MODULES = ('ambience', 'world', 'fishing', 'gulpy', 'molly', 'hatch', 'robin', 'archie', 'lampy', 'fangy', 'immersioni', 'music', 'madre', 'finali', 'ui')
+MODULES = ('ambience', 'world', 'fishing', 'gulpy', 'molly', 'hatch', 'robin', 'archie', 'lampy', 'fangy', 'foxy', 'immersioni', 'music', 'madre', 'finali', 'ui')
 
 
 @dataclass

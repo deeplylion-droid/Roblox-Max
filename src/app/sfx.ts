@@ -48,6 +48,8 @@ export class Sfx {
   private rockLoop: Voice | null = null;
   private toyLoop: Voice | null = null;
   private fangyLoop: Voice | null = null;
+  /** la corsa dell'animatore verso la barca (foxy_leave): il jumpscare la tronca */
+  private foxyRun: Voice | null = null;
 
   constructor(private audio: AudioEngine) {}
 
@@ -252,7 +254,8 @@ export class Sfx {
     this.rockLoop?.stop(0.4);
     this.toyLoop?.stop(0.4);
     this.fangyLoop?.stop(0.4);
-    this.rockLoop = this.toyLoop = this.fangyLoop = null;
+    this.foxyRun?.stop(0.06);
+    this.rockLoop = this.toyLoop = this.fangyLoop = this.foxyRun = null;
   }
 
   // ───────────────────────── Robin (notte 2) ─────────────────────────
@@ -586,6 +589,39 @@ export class Sfx {
    *  risolve, il mare che si calma e il primo gabbiano. */
   motherDawn(): Voice | null {
     return this.audio.play('madre_dawn');
+  }
+
+  // ───────────────────────── l'animatore (il Foxy, notti 2-5) ─────────────────────────
+  // I suoi suoni sono i file foxy_* e js_foxy (docs/AUDIO.md); se mancano, il ripiego coi file di scena.
+
+  /**
+   * Si sporge verso di te mentre non lo guardi: laggiù, appena udibile, l'acqua che esce tutta insieme dal costume
+   * fradicio e l'occhio di plastica che batte. Nessun ripiego: senza il file resta il silenzio (c'è la didascalia).
+   */
+  foxyNear(pos: Vec3): void {
+    this.playAny('foxy_near', { pos, spread: 0.03 });
+  }
+
+  /**
+   * Lascia il posto e corre verso la barca: il tonfo laggiù, poi le bracciate fradice sempre più vicine. Il file
+   * finisce con lo slancio fuori dall'acqua: la velocità lo adatta a `run` (i secondi prima del salto), così il
+   * jumpscare arriva sulla sua fine.
+   */
+  foxyLeave(pos: Vec3, run: number): void {
+    this.foxyRun?.stop(0.1);
+    const len = this.audio.manifest['foxy_leave']?.duration ?? 3.2;
+    const rate = Math.max(0.88, Math.min(1.12, len / Math.max(0.5, run)));
+    this.foxyRun = this.audio.play('foxy_leave', { pos, rate });
+    if (this.foxyRun) return;
+    // ripiego: un tonfo lontano, poi qualcosa che corre sull'acqua (schizzi sempre più vicini)
+    this.audio.play('splash_big', { pos, gain: 0.45, rate: 1.25, lowpass: 1400 });
+    const steps = Math.max(3, Math.floor((run - 0.8) / 0.35));
+    for (let i = 0; i < steps; i++) {
+      const u = (i + 1) / steps;
+      this.later(800 + (run - 1.1) * 1000 * Math.sqrt(u), () =>
+        this.audio.play(i % 2 ? 'splash_s1' : 'splash_s2', { pos, gain: 0.15 + 0.45 * u, rate: 0.8, lowpass: 900 + 5000 * u }),
+      );
+    }
   }
 
   // ───────────────────────── jumpscare ─────────────────────────
