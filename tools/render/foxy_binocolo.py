@@ -189,7 +189,7 @@ SCALA = {('scivoli', 'foxy0'): 1.9, ('scivoli', 'foxy1'): 3.5, ('relitto', 'foxy
 
 
 # le luci dei posti (12 ottobre): fanno parte del posto (stanno anche nel vuoto) e illuminano anche lui. Energie in watt
-LUCI = {'lampione': 650.0, 'festone': 28.0, 'lanterna': 140.0}
+LUCI = {'lampione': 2500.0, 'festone': 60.0, 'festone_vicine': 60.0, 'lanterna': 140.0}
 
 
 def luci_posti():
@@ -201,12 +201,20 @@ def luci_posti():
     from landmarks import emissive, painted, point_light
     out = {}
     ferro = painted('LampioneFerro', (0.05, 0.05, 0.05), rust=0.6, metal=0.4)
-    # il lampione, ai piedi della torre, un po' di lato rispetto a dove si ferma lui
-    g = Vector(env.surface_at(192.85, 25.5))     # due passi alla sua destra, un po' più verso la barca
+    # il lampione, ai piedi della torre, a un paio di metri da dove si ferma lui (di lato e un po' verso la barca: gli
+    # prende di lato la faccia, la spalla e il davanti del costume); alto 4,2 m: lui ingrandito è piegato e la faccia gli
+    # sta a circa 5 m, la luce gliela prende di lato e un po' da sotto
+    sp = spots()
+    sv = sp['scivoli']['vicino'][0]
+    t_eye = Vector((EYE[0] - sv.x, EYE[1] - sv.y, 0)).normalized()
+    t_side = Vector((-t_eye.y, t_eye.x, 0))
+    gx = sv + t_side * 2.4 + t_eye * 3.2
+    g = Vector((gx.x, gx.y, sv.z))
     top = g + Vector((0, 0, 4.2))
-    pole = tube('LampionePalo', [tuple(g - Vector((0, 0, 0.3))), tuple(top), tuple(top + Vector((0.55, 0, 0.15)))], 0.07, n=8, col='env')
+    arm = Vector((sv.x - g.x, sv.y - g.y, 0)).normalized() * 0.8      # il braccio verso di lui
+    pole = tube('LampionePalo', [tuple(g - Vector((0, 0, 0.3))), tuple(top), tuple(top + arm + Vector((0, 0, 0.15)))], 0.07, n=8, col='env')
     pole.data.materials.append(ferro)
-    head = top + Vector((0.55, 0, 0.05))
+    head = top + arm + Vector((0, 0, 0.05))
     bpy.ops.mesh.primitive_uv_sphere_add(radius=0.16, location=tuple(head - Vector((0, 0, 0.12))), segments=12, ring_count=8)
     bulb = bpy.context.object
     bulb.name = 'LampioneLampadina'
@@ -246,6 +254,24 @@ def luci_posti():
         set_lightgroup(o, 'ambient')
     for i, p in enumerate(accese):
         point_light(f'FestoneLuce{i}', tuple(p - Vector((0, 0, 0.2))), LUCI['festone'], (1.0, 0.80, 0.45), radius=0.08)
+    # due lampadine accese che pendono dal filo vicino a dove sta lui da fermo (luce calda da sotto e di lato)
+    st = sp['scivoli']['lontano'][0]
+    s_eye = Vector((EYE[0] - st.x, EYE[1] - st.y, 0)).normalized()
+    s_side = Vector((-s_eye.y, s_eye.x, 0))
+    for i, sd in enumerate((-1, 1)):
+        q = st + s_eye * 1.1 + s_side * sd * 1.3 + Vector((0, 0, 0.9))
+        # il filo più vicino del festone, da cui pende
+        att = min(lampade, key=lambda v: (v - q).length) + Vector((0, 0, 0.05))
+        cv = tube(f'FestonePendente{i}', [tuple(att), tuple(q + Vector((0, 0, 0.12)))], 0.012, n=4, col='env')
+        cv.data.materials.append(ferro)
+        bpy.ops.mesh.primitive_uv_sphere_add(radius=0.10, location=tuple(q), segments=8, ring_count=6)
+        o = bpy.context.object
+        o.name = f'FestonePendenteLampada{i}'
+        o.data.materials.append(on_m)
+        for x in (cv, o):
+            set_lightgroup(x, 'ambient')
+        point_light(f'FestonePendenteLuce{i}', tuple(q - Vector((0, 0, 0.15))), LUCI['festone_vicine'], (1.0, 0.80, 0.45), radius=0.08)
+        accese.append(q)
     out['festone'] = [tuple(p) for p in accese]
     # la lanterna appesa all'albero del relitto, sopra la tuga (chi l'ha accesa?)
     mast = bpy.data.objects.get('WreckMast')
