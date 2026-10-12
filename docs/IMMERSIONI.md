@@ -190,10 +190,20 @@ strato sopra, con la toppa del respiro che si dissolve.
 | **Lampy** | La culla con la copertina, la giostrina di pesciolini appesa alla volta, la vaschetta da bagno, le cuffie a fiori appese alla parete. | Attaccata con la ventosa al soffitto sopra la culla, a testa in giù; dorme a occhi aperti. | **Il braccialetto dell'ospedale** da neonata («KG 3,1»), con scritto «non lasciarla mai andare». |
 | **Fangy** | Il letto con il lenzuolo, decine di conchiglie appese ai fili tutt'attorno, le bende per terra, gli occhialini dipinti di nero sullo sgabello, il cartello «MARCO? POLO!» e i tubi galleggianti. | Raggomitolato sul fianco sul letto, gli occhialini neri, le lucine del ventre quasi spente. | **Un disegno fatto a occhi bendati**: scarabocchi che non si toccano, e in mezzo «MARCO?». |
 
-**Da approvare**: l'aspetto delle camerette, gli arredi, le pose, le sette cose da trovare e i loro testi. Gli anni:
-le camerette di Molly, Gulpy e Hatch sono del 1997 (la Night Splash); per gli altri ho seguito i ritagli di giornale
-già approvati (Archie 1999, Lampy 2003, Fangy 2008), quindi le loro cose non sono del 1997; Robin non ha una data
-(nella sua cameretta non ce n'è nessuna): **da confermare**.
+**Deciso dall'utente (12 ottobre)**, guardate le due tavole: l'idea va avanti. Le camerette dei mostri arrivati
+dopo il 1997 sono **del loro anno**, come nei ritagli: Archie 1999, Lampy 2003, Fangy 2008 (Molly, Gulpy e Hatch
+1997, la Night Splash; Robin senza data). **Hatch** non sta in piedi rigido nell'armadio (sembrava appeso): è
+**rannicchiato in fondo all'armadio, le ginocchia al petto**, come un bambino nascosto a nascondino.
+
+Correzioni per i finali (dalla sessione che coordina, 12 ottobre): Gulpy addormentato davvero, disteso sulla pila di
+paperelle, occhi chiusi, mascella rilassata; Molly (il modello ha solo testa e mani) sotto una coperta di
+asciugamani e braccioli, con fuori solo la testa e le mani; niente più scatole negli arredi (armadi con le ante, le
+maniglie e il legno gonfio, lo sgabello, il letto col materasso e le lenzuola, il trampolino vero); ogni cameretta si
+riconosce dall'ingresso anche dalle pareti (le piastrelle della piscina di Molly, la carta da parati a fiori strappata
+di Lampy, le lucine della festa di Archie...); la macchia della torcia sulla sabbia più morbida; i disegni a pastelli
+delle cose da trovare fatti con la stessa mano del disegno di «Il ricordo» (`tools/render/disegno_ricordo.py`).
+
+**Ancora da approvare**: le sette cose da trovare e i loro testi (in italiano e inglese, nel gioco).
 
 ## Il pesce e i finali
 
