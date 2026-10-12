@@ -74,12 +74,13 @@ export class Stage {
 
   landscapeGlows(extra: LightGlow[] = []): LightGlow[] {
     const lights = this.man.lights ?? {};
+    const atm = this.man.atmosfera?.glows;
     const out: LightGlow[] = [];
     for (const g of GLOWS) {
       const p = lights[g.key];
-      if (!p) continue;
-      const k = g.anim(this.time);
-      out.push({ dir: norm(p), color: [g.color[0] * k, g.color[1] * k, g.color[2] * k], radius: g.radius });
+      if (!p || atm?.off?.includes(g.key)) continue;
+      const k = g.anim(this.time) * (atm?.gain ?? 1);
+      out.push({ dir: norm(p), color: [g.color[0] * k, g.color[1] * k, g.color[2] * k], radius: g.radius * (atm?.radius ?? 1) });
     }
     return out.concat(extra).slice(0, 16);
   }
@@ -100,6 +101,7 @@ export class Stage {
       sonar: null,
       sonarGain: 1,
       line: null,
+      fog: this.man.atmosfera?.fog,
       ...p,
     });
   }

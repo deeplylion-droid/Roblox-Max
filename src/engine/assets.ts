@@ -52,6 +52,14 @@ export interface Manifest {
     sheer?: number[];
   };
   lights?: Record<string, Vec3>;
+  /** l'atmosfera resa nel panorama (la nebbia volumetrica di docs/ATMOSFERA.md): senza, il motore fa come prima */
+  atmosfera?: {
+    /** la nebbia di distanza del motore sopra al panorama: quasi niente, perché è già dentro */
+    fog: { color: Vec3; density: number };
+    /** i bagliori delle luci del paesaggio, che nella nebbia fanno un alone morbido: più deboli (gain) e più larghi
+     *  (radius), e niente bagliore per le luci spente nel render (off, le chiavi di GLOWS in stage.ts) */
+    glows?: { gain: number; radius: number; off?: string[] };
+  };
 }
 
 export interface LoadedLayer {
