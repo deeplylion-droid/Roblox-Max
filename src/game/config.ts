@@ -320,11 +320,13 @@ export const NIGHTS: Record<number, NightConfig> = {
     ],
     minGapBetweenStarts: 6,
     // Gulpy un po' più raro (prova dell'utente: «appare troppo spesso, togliendoti pesci dalla quota»): +20% di pausa tra
-    // una visita e l'altra. Giocatori simulati dopo questo e la tolleranza allo strappo (npm run sim -- 1 300):
-    // esperto 100%, medio 96%, maldestro 86% (prima 100/92/73)
+    // una visita e l'altra. Dopo la pesca più corta la notte era di nuovo troppo facile (prova dell'utente del 12
+    // ottobre: «leggermente troppo facile», nella prima notte non c'è Soggy): Molly e Hatch tornano un 15% più spesso
+    // (tolgono tempo alla pesca, non pesci). Giocatori simulati (npm run sim -- 1 300): esperto 100%, medio 92%,
+    // maldestro 73%, di nuovo vicino all'obiettivo del maldestro al 75% (prima 100/96/86)
     gulpy: { firstAt: 1 * H + 6, cooldown: [82, 125], rise: 7, climb: 6, patience: 8, eat: 4.5 },
-    molly: { firstAt: 2 * H + 8, cooldown: [43, 70], knock: 5, attention: 4.2, neglectMax: 8, tantrumMax: 6.5 },
-    hatch: { firstAt: 3 * H + 6, cooldown: [52, 79], calls: 10, callInterval: 1.1, search: [8, 10.5] },
+    molly: { firstAt: 2 * H + 8, cooldown: [37, 60], knock: 5, attention: 4.2, neglectMax: 8, tantrumMax: 6.5 },
+    hatch: { firstAt: 3 * H + 6, cooldown: [44, 67], calls: 10, callInterval: 1.1, search: [8, 10.5] },
     hideTime: 0.7,
     unhideTime: 0.6,
   },
@@ -563,12 +565,12 @@ const EXTRA_ANCHORS: Record<Anchored, { calm: Num; debut: Num; fierce: Num }> = 
   },
   molly: {
     calm: { firstAt: 3 * H, cooldown: [69, 112], knock: 5, attention: 4.2, neglectMax: 8.5, tantrumMax: 7 },
-    debut: { firstAt: 2 * H + 8, cooldown: [43, 70], knock: 5, attention: 4.2, neglectMax: 8, tantrumMax: 6.5 },
+    debut: { firstAt: 2 * H + 8, cooldown: [37, 60], knock: 5, attention: 4.2, neglectMax: 8, tantrumMax: 6.5 },
     fierce: { firstAt: 0.4 * H, cooldown: [34, 54], knock: 4, attention: 4.5, neglectMax: 6.5, tantrumMax: 5.2 },
   },
   hatch: {
     calm: { firstAt: 3.8 * H, cooldown: [83, 126], calls: 10, callInterval: 1.15, search: [7.5, 10] },
-    debut: { firstAt: 3 * H + 6, cooldown: [52, 79], calls: 10, callInterval: 1.1, search: [8, 10.5] },
+    debut: { firstAt: 3 * H + 6, cooldown: [44, 67], calls: 10, callInterval: 1.1, search: [8, 10.5] },
     fierce: { firstAt: 0.6 * H, cooldown: [35, 55], calls: 10, callInterval: 0.9, search: [9, 12] },
   },
   robin: {
