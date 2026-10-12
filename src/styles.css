@@ -168,6 +168,19 @@ html, body {
 .dawn { background: radial-gradient(ellipse at center, rgba(40,28,20,.45), rgba(5,8,13,.92)); }
 .dawn h2 { color: var(--amber); }
 .stats { display: flex; gap: 34px; margin: 6px 0 4px; }
+/* ── i disegni a pastelli dell'alba (12 ottobre, da approvare): il foglio bagnato accanto ai risultati, e nel Diario ── */
+.alba-disegno { flex-direction: row; gap: clamp(20px, 4vw, 64px); padding: 0 4vw; }
+.alba-disegno .colonna { display: flex; flex-direction: column; align-items: center; min-width: 0; max-width: min(48vw, 680px); max-height: 100vh; overflow-y: auto; }
+.disegno { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 12px; flex-shrink: 1; min-width: 0; }
+.disegno img { display: block; max-width: min(44vw, 780px); max-height: 72vh; transform: rotate(-2.2deg); filter: drop-shadow(0 14px 22px rgba(0,0,0,.65)); user-select: none; }
+.disegno figcaption { color: var(--dim); font-size: calc(16px * var(--ts)); letter-spacing: .05em; font-style: italic; max-width: 42vw; }
+.journal .sezione { font-family: 'Limelight', serif; font-weight: normal; color: var(--amber); margin: 0; }
+.disegni { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px 18px; margin-bottom: 8px; }
+.disegno.piccolo img { max-width: 100%; max-height: none; transform: rotate(-1.4deg); filter: drop-shadow(0 6px 10px rgba(0,0,0,.6)); }
+.disegno.piccolo:nth-child(2n) img { transform: rotate(1.6deg); }
+.disegno.piccolo figcaption { font-size: calc(14px * var(--ts)); font-style: normal; max-width: none; }
+.disegno.locked .vuoto { width: 100%; aspect-ratio: 2400 / 1697; border: 1px dashed var(--dim); display: flex; align-items: center; justify-content: center; color: var(--dim); font-family: 'Limelight', serif; font-size: 40px; opacity: .6; }
+
 .stats div { display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .stats span { font-size: calc(14px * var(--ts)); letter-spacing: .25em; text-transform: uppercase; color: var(--dim); }
 .stats b { font-family: 'Limelight', serif; font-weight: normal; font-size: 30px; }

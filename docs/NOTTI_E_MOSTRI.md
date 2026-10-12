@@ -71,6 +71,39 @@ simulazione, le regole e il bilanciamento non cambiano.
 - Le anteprime (la scena col suono e Gulpy vivo) le ho mandate in chat il 12 ottobre. **Da fare**: la sagoma nella
   nebbia (serve un render, dopo l'atmosfera).
 
+### I disegni a pastelli (12 ottobre, ramo `claude/ricordo-disegno`)
+
+L'utente ha proposto di sostituire la foto del 1997 di «Il ricordo» con un disegno a pastelli a cera «molto bambino e
+stilizzato», e l'ha approvato. Poi ha chiesto di metterne altri 4 o 5 nel gioco, lasciando a me la scelta di dove,
+«per non incasinare nulla». Li genera tutti `tools/render/pastelli.py`, con la stessa mano: la grana della carta, la
+cera che si posa solo sulle sporgenze, i tratti tremolanti, il colore a zig-zag fuori dai bordi, le scritte in
+stampatello con la S girata.
+
+- **«Il ricordo»** (il finale B della notte extra, **approvato**): la sera della Night Splash, davanti all'ingresso di
+  Splashland, quattro bambini per mano. Tre hanno la faccia cancellata da uno scarabocchio nero (sotto si intravede
+  ancora il sorriso), e a ognuno ho lasciato una sola cosa che dice chi era: i braccioli a Molly, il salvagente a
+  paperella a Gulpy, il giocattolo luminoso a Hatch. Il quarto, intatto, col berretto e la canna col pesciolino, sei tu.
+  Nel lago c'è la cosa con un occhio solo. La data è quella del braccialetto, «14-8-97»; nella prima versione
+  approvata c'era per sbaglio il 26 luglio. La scena sul banco all'alba la fa la sessione dei finali.
+- **I disegni dell'alba** (*da approvare*): all'alba di ogni notte vinta, dalla prima alla quinta, sul banco c'è un
+  disegno bagnato dei bambini di quella notte, com'erano prima della Madre. Si vede nella schermata delle sei, accanto
+  ai risultati (anche quando l'alba si riprende da «Continua»), e poi resta nel **Diario**: in cima, la pagina
+  «Disegni», con i posti vuoti per quelli che mancano. «Il ricordo», l'ultimo, è il disegno in cui ci sei anche tu.
+  1. «La piscina» (notte 1): Gulpy allo Snack Shack col panino gigante, «HO FAME!»; Molly sul trampolino coi
+     braccioli, «GUARDAMI!»; gli occhi di Hatch nel tunnel dello scivolo, col suo giocattolo che brilla, «TROVAMI!».
+  2. «Il mio tesoro» (notte 2): Robin sotto gli scivoli, col mucchio delle cose prese agli altri bambini e i biglietti
+     della sala giochi attorno alle braccia; la torcia di un grande lo becca in faccia.
+  3. «Tanti auguri» (notte 3): la torta con le candeline, la festeggiata che piange, e Archie con la trombetta che le
+     spegne tutte.
+  4. «Sott'acqua» (notte 4): la piscina vista di lato; sopra, un bambino che si sbraccia, «AIUTO!»; sotto, con la
+     cuffia a fiori, la bambina che gli tira le gambe ridendo, «AH AH AH» (Lampy).
+  5. «Marco Polo» (notte 5): in mezzo alla piscina lui con gli occhialini dipinti di nero, a braccia aperte,
+     «MARCO!»; attorno gli altri, «POLO!» (Fangy).
+- **Dove stanno**:
+  - i disegni: `public/assets/img/disegni/pastelli_<nome>.webp`, 1600 px, con la trasparenza dei bordi strappati;
+  - il codice: `src/app/disegni.ts` (quale notte, quale disegno), `Screens.results`, `Screens.dawn` e `Screens.journal`.
+  Le regole, la pesca e i frammenti non cambiano: i disegni non si pescano e non contano.
+
 ### Il Foxy nel gioco (logica, notte fra l'11 e il 12 ottobre; branch `claude/foxy-gioco`)
 
 > **I render sono arrivati** (12 ottobre: il modello, le viste del binocolo di scivoli e relitto, il jumpscare, sotto);

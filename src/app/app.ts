@@ -3,6 +3,7 @@
  * (dalla prima alla quinta) si può scendere con le bombole (l'immersione, src/app/dive.ts) prima della notte dopo.
  * Tiene il salvataggio, le opzioni e lo sfondo animato dei menu (la scena dalla barca).
  */
+import { DISEGNI_ALBA, disegnoAlba, disegniTrovati } from './disegni.ts';
 import type { AudioEngine, Voice } from '../engine/audio.ts';
 import { EXTRA_NIGHT, NIGHTS, extraEndingEarned, extraNight, type MonsterId, type NightConfig } from '../game/config.ts';
 import { STRINGS, type Lang } from '../i18n.ts';
@@ -188,7 +189,8 @@ export class App {
 
   private extras(): void {
     this.screens.extras({
-      onJournal: () => this.screens.journal(this.save.lore, () => this.extras()),
+      onJournal: () =>
+        this.screens.journal(this.save.lore, () => this.extras(), { all: Object.values(DISEGNI_ALBA), found: disegniTrovati(this.save.night) }),
       onCatalog: () =>
         this.screens.catalog({
           caught: this.save.catalog,
@@ -366,6 +368,8 @@ export class App {
         // i pesci avanzati servono solo se all'alba si può scendere
         spare: diveOk ? spare : undefined,
         onDive: diveOk ? () => this.dive(next) : null,
+        // il disegno a pastelli sul banco, all'alba delle notti 1-5
+        drawing: r.kind === 'won' && !extra ? disegnoAlba(this.nightNo) : null,
         // finita l'ultima notte (la sesta), si apre la notte extra (i titoli di coda non ci sono ancora)
         onExtra: r.kind === 'won' && !extra && this.nightNo >= lastNight() && NIGHT_LIMIT === Infinity ? () => this.extraNight() : null,
         onWishlist: STEAM_URL ? () => window.open(STEAM_URL, '_blank') : null,
@@ -399,6 +403,7 @@ export class App {
     this.mode = 'end';
     this.screens.dawn({
       spare: pendingDawn(this.save, next)?.spare ?? 0,
+      drawing: disegnoAlba(next - 1),
       onDive: () => this.dive(next),
       onNext: () => this.skipToNight(next),
       onMenu: () => this.title(),

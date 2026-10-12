@@ -153,6 +153,13 @@ const IT = {
   journalTitle: 'Diario',
   journalEmpty: 'Non hai ancora ripescato niente. Il mare restituisce le cose solo a chi pesca.',
   journalLocked: '???',
+  // i disegni a pastelli dell'alba (12 ottobre, da approvare)
+  drawings: {
+    found: 'Sul banco, bagnato, c’è un disegno.',
+    title: 'Disegni',
+    locked: 'Non l’hai ancora trovato.',
+    names: { piscina: 'La piscina', tesoro: 'Il mio tesoro', compleanno: 'Tanti auguri', sottacqua: 'Sott’acqua', marcopolo: 'Marco Polo' } as Record<string, string>,
+  },
   catalogTitle: 'Catalogo',
   catalogHint: 'Le specie che non hai ancora preso restano sagome.',
   bookIndex: 'Indice',
@@ -418,6 +425,12 @@ const EN: typeof IT = {
   journalTitle: 'Journal',
   journalEmpty: 'You haven’t fished anything up yet. The sea only gives things back to those who fish.',
   journalLocked: '???',
+  drawings: {
+    found: 'On the bench, soaking wet, there’s a drawing.',
+    title: 'Drawings',
+    locked: 'You haven’t found it yet.',
+    names: { piscina: 'The pool', tesoro: 'My treasure', compleanno: 'Happy birthday', sottacqua: 'Underwater', marcopolo: 'Marco Polo' } as Record<string, string>,
+  },
   catalogTitle: 'Catalogue',
   catalogHint: 'Species you haven’t caught yet stay silhouettes.',
   bookIndex: 'Contents',
