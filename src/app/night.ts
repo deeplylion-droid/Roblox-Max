@@ -2202,12 +2202,13 @@ export class Night {
 
   /** Il suggerimento durante un'abboccata: nelle notti di Lampy si aspetta il secondo colpo del campanellino, poi si
    *  dice di ferrare se è un pesce e di non ferrare se è lei (quello che sente chi ascolta il ritmo). */
-  private biteHint(): string {
+  /** Il suggerimento dell'abboccata: «ferra» solo col tutorial (`tut`); la regola di Lampy (tre colpi uguali) sempre. */
+  private biteHint(tut: boolean): string {
     const sim = this.sim;
     const l = sim.cfg.lampy;
-    if (!l) return this.hintText('hook');
+    if (!l) return tut ? this.hintText('hook') : '';
     if (sim.fishing.fake) return sim.lampy?.holding && sim.lampy.beats >= 2 ? this.hintText('lampy') : '';
-    return sim.time - this.biteAt >= LAMPY_FIRST_BEAT + l.beat ? this.hintText('hook') : '';
+    return tut && sim.time - this.biteAt >= LAMPY_FIRST_BEAT + l.beat ? this.hintText('hook') : '';
   }
 
   /** Di quanto è sotto il pelo dell'acqua una creatura in mare (r = 1 tutta fuori): a r = 0 la cima è scesa fino
@@ -2991,25 +2992,28 @@ export class Night {
     hud.hover(label, this.mouse.x * innerWidth, this.mouse.y * innerHeight);
     hud.showTurn(sim.hide === 'out' && !this.js && !this.finished && this.mouse.inside && !pad.active && this.mouse.y > 0.88);
     hud.setVisible(!this.js);
-    // suggerimenti della prima notte
+    // i suggerimenti. Quelli della pesca e dei comandi della prima notte (lanciare, ferrare, recuperare, guardarsi
+    // attorno, il pesce a Gulpy, il telone) sono il tutorial: solo nella notte 1, o sempre con l'opzione «Tutorial
+    // sempre attivo» (prova dell'utente del 12 ottobre). Le regole dei mostri delle notti dopo restano
+    const tut = this.nightNo === 1 || this.d.options.tutorial;
     let hint = '';
     if (!this.finished && !this.js) {
       const mo = sim.mother;
       if (mo && (mo.state === 'passing' || (mo.state === 'approaching' && mo.stateTime > 3.5 - this.motherSkip))) hint = this.hintText('mother');
-      else if (sim.hide === 'in') hint = this.hintText('unhide');
+      else if (sim.hide === 'in') hint = tut ? this.hintText('unhide') : '';
       else if (sim.fangy?.listening) hint = this.hintText('fangy');
-      else if (sim.hatch.state === 'counting') hint = this.hintText('hide');
-      else if (sim.gulpy.canBeFed && sim.fish > 0) hint = sim.facing(YAW.bow, VIEW.bowHalfAngle) ? this.hintText('throw') : '';
+      else if (sim.hatch.state === 'counting') hint = tut ? this.hintText('hide') : '';
+      else if (sim.gulpy.canBeFed && sim.fish > 0) hint = tut && sim.facing(YAW.bow, VIEW.bowHalfAngle) ? this.hintText('throw') : '';
       else if (sim.robin?.present && !sim.blackout) hint = this.hintText('robin');
       else if (sim.archie?.state === 'inhaling' && sim.lamp > 0) hint = this.hintText('archie');
       else if (sim.archie?.state === 'waiting') hint = this.hintText('archieWait');
       else if (sim.foxy?.state === 'gone' && this.bino > 0.5) hint = this.hintText('foxyGone');
       else if (sim.foxy && sim.foxy.stage !== null && !sim.foxy.everSeen) hint = this.hintText('foxy');
-      else if (f.phase === 'bite') hint = this.biteHint();
-      else if (f.phase === 'reeling') hint = this.hintText('reel');
+      else if (f.phase === 'bite') hint = this.biteHint(tut);
+      else if (f.phase === 'reeling') hint = tut ? this.hintText('reel') : '';
       else if (sim.molly.present || sim.gulpy.present) hint = '';
-      else if (f.phase === 'idle' && sim.facing(YAW.rod, VIEW.rodHalfAngle) && sim.landedCount < 2) hint = this.hintText('cast');
-      else if (sim.time < 25 && !sim.facing(YAW.rod, VIEW.rodHalfAngle)) hint = pad.active ? pad.glyphs(S.pad.look) : S.look;
+      else if (tut && f.phase === 'idle' && sim.facing(YAW.rod, VIEW.rodHalfAngle) && sim.landedCount < 2) hint = this.hintText('cast');
+      else if (tut && sim.time < 25 && !sim.facing(YAW.rod, VIEW.rodHalfAngle)) hint = pad.active ? pad.glyphs(S.pad.look) : S.look;
     }
     hud.hint(hint);
     // la radio: i sottotitoli spariscono da soli se non c'è chiamata in corso

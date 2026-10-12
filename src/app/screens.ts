@@ -165,6 +165,7 @@ export class Screens {
     toggle(S.captionsOption, 'captions');
     toggle(S.reduceFlash, 'reduceFlash');
     toggle(S.fogOption, 'fog');
+    toggle(S.tutorialOption, 'tutorial');
     // qualità grafica: sui PC più deboli la scena si disegna a risoluzione ridotta (l'interfaccia resta nitida)
     const steps = [1, 0.75, 0.5];
     const qLabel = (v: number) => S.qualityLevels[Math.max(0, steps.indexOf(v))]!;

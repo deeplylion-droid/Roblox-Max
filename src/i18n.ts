@@ -134,6 +134,8 @@ const IT = {
   captionsOption: 'Didascalie',
   reduceFlash: 'Riduci lampi e scosse',
   fogOption: 'Nebbia',
+  // prova dell'utente del 12 ottobre: i suggerimenti della pesca solo nella prima notte, se no con questa opzione
+  tutorialOption: 'Tutorial sempre attivo',
   sensitivity: 'Sensibilità della rotazione',
   paused: 'Pausa',
   resume: 'Riprendi',
@@ -421,6 +423,7 @@ const EN: typeof IT = {
   captionsOption: 'Captions',
   reduceFlash: 'Reduce flashes and shaking',
   fogOption: 'Fog',
+  tutorialOption: 'Tutorial always on',
   sensitivity: 'Look sensitivity',
   paused: 'Paused',
   resume: 'Resume',

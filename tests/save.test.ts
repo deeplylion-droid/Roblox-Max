@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { afterDive, chooseEnding, defaultOptions, fedFor, newGame, pendingDawn, skipDawn, wonNight, type SaveData } from '../src/app/save.ts';
+import { describe, expect, it, vi } from 'vitest';
+import { afterDive, chooseEnding, defaultOptions, fedFor, loadSave, newGame, pendingDawn, skipDawn, wonNight, type SaveData } from '../src/app/save.ts';
 import type { MonsterId } from '../src/game/config.ts';
 import { extraLevels } from '../src/game/config.ts';
 
@@ -72,8 +72,23 @@ describe('Salvataggio: le immersioni all’alba', () => {
 });
 
 describe('L’opzione «Nebbia»', () => {
-  it('di partenza è accesa', () => {
-    expect(defaultOptions().fog).toBe(true);
+  it('di partenza è spenta, come «Tutorial sempre attivo»', () => {
+    expect(defaultOptions().fog).toBe(false);
+    expect(defaultOptions().tutorial).toBe(false);
+  });
+
+  it('i salvataggi di quando era accesa di partenza la ritrovano spenta; dopo, resta come la si lascia', () => {
+    const store = new Map<string, string>();
+    vi.stubGlobal('localStorage', { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, v) });
+    try {
+      store.set('splashland.save.v1', JSON.stringify({ ...save(), options: { ...defaultOptions(), fog: true } }));
+      expect(loadSave().options.fog).toBe(false);
+      store.set('splashland.save.v1', JSON.stringify({ ...save(), rev: 1, options: { ...defaultOptions(), fog: true } }));
+      expect(loadSave().options.fog).toBe(true);
+      expect(loadSave().options.tutorial).toBe(false);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });
 

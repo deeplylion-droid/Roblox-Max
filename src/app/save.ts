@@ -17,8 +17,12 @@ export interface Options {
   quality: number;
   /** dimensione dei testi dell'interfaccia: 1 normale, 1,2 grande, 1,4 molto grande (la variabile CSS --ts) */
   textSize: number;
-  /** la nebbia resa nel panorama (docs/ATMOSFERA.md); spenta, le immagini di prima (opzione decisa il 12 ottobre) */
+  /** la nebbia resa nel panorama (docs/ATMOSFERA.md); spenta, le immagini di prima (opzione decisa il 12 ottobre;
+   *  spenta di partenza dalla prova dell'utente della sera) */
   fog: boolean;
+  /** i suggerimenti della pesca e dei comandi della prima notte anche nelle notti dopo (di partenza solo nella notte 1:
+   *  prova dell'utente del 12 ottobre) */
+  tutorial: boolean;
 }
 
 export interface CatalogEntry {
@@ -28,6 +32,9 @@ export interface CatalogEntry {
 
 export interface SaveData {
   version: 1;
+  /** revisione delle opzioni: 1 = la nebbia spenta di partenza (12 ottobre sera; prima era accesa di partenza, quindi
+   *  i salvataggi più vecchi la spengono una volta) */
+  rev?: number;
   lang: Lang | null;
   /** ultima notte sbloccata */
   night: number;
@@ -64,13 +71,14 @@ export const NESSUNO_DIVES = 3;
 const isMonster = (x: unknown): x is MonsterId => typeof x === 'string' && Object.hasOwn(ARRIVAL, x);
 
 const KEY = 'splashland.save.v1';
+const OPTIONS_REV = 1;
 
 export function defaultOptions(): Options {
-  return { master: 0.9, music: 0.7, sfx: 0.9, brightness: 1, subtitles: true, captions: false, reduceFlash: false, sensitivity: 1, quality: 1, textSize: 1, fog: true };
+  return { master: 0.9, music: 0.7, sfx: 0.9, brightness: 1, subtitles: true, captions: false, reduceFlash: false, sensitivity: 1, quality: 1, textSize: 1, fog: false, tutorial: false };
 }
 
 function fresh(): SaveData {
-  return { version: 1, lang: null, night: 1, extra: extraLevels(5), lore: [], catalog: {}, options: defaultOptions(), dawn: null, fed: null, dens: [], dawns: {} };
+  return { version: 1, rev: OPTIONS_REV, lang: null, night: 1, extra: extraLevels(5), lore: [], catalog: {}, options: defaultOptions(), dawn: null, fed: null, dens: [], dawns: {} };
 }
 
 export function loadSave(): SaveData {
@@ -79,14 +87,18 @@ export function loadSave(): SaveData {
     if (!raw) return fresh();
     const d = JSON.parse(raw) as Partial<SaveData>;
     const f = fresh();
+    const options = { ...f.options, ...(d.options ?? {}) };
+    // la nebbia era accesa di partenza: chi non l'ha mai toccata se la ritrova spenta, come i giocatori nuovi
+    if ((d.rev ?? 0) < 1) options.fog = false;
     return {
       version: 1,
+      rev: OPTIONS_REV,
       lang: d.lang === 'it' || d.lang === 'en' ? d.lang : null,
       night: typeof d.night === 'number' ? d.night : 1,
       extra: Object.fromEntries(EXTRA_IDS.map((m) => [m, clampLevel(Number((d.extra as Partial<ExtraLevels> | undefined)?.[m] ?? f.extra[m]))])) as ExtraLevels,
       lore: Array.isArray(d.lore) ? d.lore.filter((x) => typeof x === 'string') : [],
       catalog: d.catalog && typeof d.catalog === 'object' ? d.catalog : {},
-      options: { ...f.options, ...(d.options ?? {}) },
+      options,
       dawn: d.dawn && typeof d.dawn.night === 'number' && typeof d.dawn.spare === 'number' ? { night: d.dawn.night, spare: d.dawn.spare } : null,
       fed: d.fed && typeof d.fed.night === 'number' && isMonster(d.fed.who) ? { night: d.fed.night, who: d.fed.who } : null,
       dens: Array.isArray(d.dens) ? d.dens.filter(isMonster) : [],
