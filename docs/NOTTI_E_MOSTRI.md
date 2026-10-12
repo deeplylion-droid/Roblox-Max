@@ -43,8 +43,11 @@ del questionario:
 > jumpscare) e il nome: per ora nel binocolo si vedono **due occhi rossi** nel suo posto, il jumpscare è un buio con la
 > scossa, il suono del posto vuoto è un tonfo lontano. **Da approvare**: i testi (sotto) e i numeri.
 
-- **Dove sta**: in uno di due posti del binocolo, la **torre degli scivoli** (−167°) e l'**albergo Miramare**
-  (125°), tutti e due alle spalle della barca, uno per parte (provvisori: li sceglie la tavola).
+- **Dove sta**: in uno di due posti del binocolo, la **torre degli scivoli** alle spalle (−167°, 460 m) e il
+  **relitto** davanti alla prua (14°, 170 m), da dove salta in acqua e arriva alla barca. Li ha proposti la sessione
+  del Foxy con la tavola e li ho scelti io stanotte (l'utente mi ha dato il via): l'albergo Miramare, a 885 m, lo
+  avrebbe fatto di pochi pixel. Uno davanti e uno dietro: il relitto si controlla senza voltarsi, per gli scivoli
+  bisogna girarsi.
 - **Come si muove**: ogni volta che lo guardi col binocolo il suo tempo riparte da zero. Trascurato, dopo `lean`
   secondi **si sporge** verso di te; dopo `leave` secondi **lascia il posto** (il posto è vuoto: sta arrivando) e dopo
   `run` secondi **salta sulla barca**: jumpscare immediato. Si muove solo quando non lo guardi: guardato mentre è
@@ -60,23 +63,25 @@ del questionario:
   | 5 | 00:30 circa | 36 | 66 | 3 | 35% |
 
 - **Il bot** lo controlla quando tocca e non c'è niente di più urgente (non mentre recupera un pesce o ferra): si volta
-  di scatto, alza il binocolo sul posto dove l'ha visto l'ultima volta, e se lì non c'è guarda nell'altro. Ogni quanto
+  (di scatto se il posto è alle spalle), alza il binocolo sul posto dove l'ha visto l'ultima volta, e se lì non c'è
+  guarda nell'altro. Ogni quanto
   dipende dall'abilità, in frazioni di `leave` (esperto 0,45-0,6; medio 0,5-0,75; maldestro 0,55-0,9); visto sporto,
   il controllo dopo arriva prima. Ogni controllo costa tempo di pesca: per questo cresce anche la quota mancata.
 - **Bilanciamento: il recupero più veloce** (indicazione dell'utente, 11 ottobre sera: «se devi bilanciare, riduci il
   tempo necessario per tirare su i pesci»). Il tempo passato col binocolo si ripaga tirando su i pesci più in fretta:
   `reelMul` per notte (2: ×1,10; 3: ×1,06; 4: ×1,15; 5: ×1,08). Le regole del Foxy e le quote non cambiano.
-- **Simulazioni** (esperto / medio / maldestro; 200 partite le prime due colonne, 400 l'ultima):
+- **Simulazioni** (esperto / medio / maldestro; 200 partite le prime due colonne, 400 le ultime due):
 
-  | Notte | prima del Foxy | col Foxy | col Foxy e il recupero più veloce |
-  |---|---|---|---|
-  | 2 | 100 / 91 / 64,5% | 99 / 78,5 / 45% | 100 / 94 / 64% |
-  | 3 | 100 / 76 / 46,5% | 99,5 / 69,5 / 31% | 100 / 79 / 44% |
-  | 4 | 96,5 / 74 / 51% | 94 / 63,5 / 31% | 99 / 74,5 / 51% |
-  | 5 | 95 / 76,5 / 53% | 93 / 73 / 38% | 97,5 / 79 / 50% |
+  | Notte | prima del Foxy | col Foxy | col Foxy e il recupero più veloce | idem, col relitto al posto dell'albergo |
+  |---|---|---|---|---|
+  | 2 | 100 / 91 / 64,5% | 99 / 78,5 / 45% | 100 / 94 / 64% | 99,8 / 94 / 66,5% |
+  | 3 | 100 / 76 / 46,5% | 99,5 / 69,5 / 31% | 100 / 79 / 44% | 100 / 80 / 45% |
+  | 4 | 96,5 / 74 / 51% | 94 / 63,5 / 31% | 99 / 74,5 / 51% | 98,5 / 78 / 51% |
+  | 5 | 95 / 76,5 / 53% | 93 / 73 / 38% | 97,5 / 79 / 50% | 98 / 80,5 / 52,5% |
 
   Le percentuali tornano quelle di prima: il Foxy aggiunge tensione, non sconfitte. Chi si dimentica di lui muore
-  per lui (il maldestro: 6-12% delle partite) invece che per la quota.
+  per lui (il maldestro: dal 5,5% delle partite nella notte 2 al 12% nella 5) invece che per la quota. Col relitto
+  davanti i numeri restano quelli: il costo vero di un controllo è il tempo col binocolo alzato, non il voltarsi.
 - **Testi** (da approvare): suggerimento «Col binocolo (B): non perderlo di vista» finché non lo trovi la prima volta,
   «Il posto è vuoto» se lo guardi quando se n'è andato; didascalie «laggiù, qualcosa si sporge», «qualcosa corre
   sull'acqua»; game over **«Lo spettacolo finiva sempre con un abbraccio.»** (faceva lo spettacolo di Mama Marina).

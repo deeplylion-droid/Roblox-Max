@@ -263,8 +263,7 @@ export class Bot {
       this.foxyLook = this.foxyBelief;
       this.foxyTried = 0;
       this.foxyHold = -1;
-      // i posti stanno alle spalle: ci si volta di scatto (S) e si punta il binocolo
-      this.foxyTurn = 0.35 + 0.15;
+      this.foxyTurn = this.snapTo(f.places[this.foxyLook]!.yaw);
     }
     const p = f.places[this.foxyLook]!;
     if (this.foxyTurn > 0) {
@@ -299,6 +298,7 @@ export class Bot {
       this.foxyTried++;
       this.foxyLook = (this.foxyLook + 1) % f.places.length;
       this.foxyHold = -1;
+      this.foxyTurn = this.snapTo(f.places[this.foxyLook]!.yaw);
       return true;
     }
     // non c'è da nessuna parte: sta arrivando, e non c'è niente da fare
@@ -306,6 +306,11 @@ export class Bot {
     this.foxyLook = -1;
     this.bino = null;
     return false;
+  }
+
+  /** Un posto alle spalle si raggiunge voltandosi di scatto (S): mezzo secondo. Uno davanti girando lo sguardo. */
+  private snapTo(yaw: number): number {
+    return Math.abs(angleDiff(this.yaw, yaw)) > 90 ? 0.35 + 0.15 : 0;
   }
 
   private bino: { yaw: number; pitch: number; fov: number } | null = null;

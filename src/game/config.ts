@@ -41,12 +41,13 @@ export const YAW = {
 
 /**
  * I posti dove sta il Foxy, quelli che si guardano col binocolo (direzione dall'occhio, gradi; le viste in
- * overlays.json → binocular). Provvisori: li sceglie la tavola del Foxy (11 ottobre sera); per ora la torre degli
- * scivoli e l'albergo Miramare, tutti e due alle spalle della barca, uno per parte.
+ * overlays.json → binocular): la torre degli scivoli alle spalle (460 m) e il relitto davanti alla prua (170 m), da
+ * dove salta in acqua e arriva alla barca. Scelti con la tavola del Foxy (notte fra l'11 e il 12 ottobre): l'albergo
+ * Miramare, a 885 m, lo avrebbe fatto di pochi pixel.
  */
 export const FOXY_PLACES: { id: string; yaw: number; pitch: number }[] = [
   { id: 'scivoli', yaw: -167, pitch: 1.8 },
-  { id: 'albergo', yaw: 124.7, pitch: 3.0 },
+  { id: 'relitto', yaw: 13.955, pitch: 0.42 },
 ];
 
 export const VIEW = {
