@@ -967,6 +967,55 @@ def job_sotto(q):
     post.save_png(pv, os.path.join(CACHE, q.name, 'sotto_barca_pano.png'))
 
 
+def tavola(nomi_file, size, out, cols=4, titoli=None):
+    """Mette insieme le immagini in una tavola (cols per riga) col titolo di ognuna; cancella le immagini."""
+    from PIL import Image, ImageDraw, ImageFont
+    W, H = size
+    rows = (len(nomi_file) + cols - 1) // cols
+    sheet = Image.new('RGB', (W * cols, H * rows), (8, 10, 12))
+    font = ImageFont.truetype(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fonts', 'Limelight-Regular.ttf'), max(14, H // 14))
+    dr = ImageDraw.Draw(sheet)
+    for k, path in enumerate(nomi_file):
+        im = Image.open(path).resize((W, H))
+        x, y = (k % cols) * W, (k // cols) * H
+        sheet.paste(im, (x, y))
+        if titoli:
+            dr.text((x + 12, y + 8), titoli[k], fill=(230, 220, 200), font=font)
+        os.remove(path)
+    sheet.save(out, quality=88)
+    log('tavola', out)
+
+
+def job_tane_anteprime(q):
+    """Le anteprime delle tane (da approvare): docs/concept/tane_camerette.jpg (le sette camerette vuote viste
+    dall'ingresso, con la torcia) e docs/concept/tane_pose.jpg (i sette mostri addormentati da vicino). TANE=gulpy,molly
+    per farne solo alcune (le tavole si fanno quando ci sono tutte e sette)."""
+    import tane
+    chi_tutti = [c for c in os.environ.get('TANE', ','.join(tane.ORDINE)).split(',') if c]
+    s = q.persp_scale
+    size = (round(960 * s), round(540 * s))
+    for chi in chi_tutti:
+        reset_scene()
+        info = tane.build_tana(chi)
+        tgt = (tane.OCCHIO_T[0], tane.OCCHIO_T[1] + 10.0, tane.OCCHIO_T[2] + 10.0 * math.tan(math.radians(tane.PITCH_T)))
+        grotte_vista(q, f'tane_cameretta_{chi}', tane.OCCHIO_T, tgt, 15.0, size, torcia=True, esposizione=0.5, cono=70.0)
+        obs = tane.mostro(chi, info)
+        P = world_bbox([o for o in obs if o.type == 'MESH'])
+        c = (P.min(0) + P.max(0)) / 2
+        r = float(np.linalg.norm(P.max(0) - P.min(0))) / 2
+        d = np.array(tane.OCCHIO_T) - c
+        d[2] = max(d[2], 0.3)
+        d /= np.linalg.norm(d)
+        pos = c + d * max(2.2, r * 2.0)
+        grotte_vista(q, f'tane_posa_{chi}', tuple(pos), tuple(c), 24.0, size, torcia=True, esposizione=0.5, cono=60.0)
+    fatte = [os.path.join(CONCEPT, f'tane_cameretta_{c}.jpg') for c in tane.ORDINE]
+    if all(os.path.exists(f) for f in fatte):
+        tit = [c.capitalize() for c in tane.ORDINE]
+        tavola(fatte, size, os.path.join(CONCEPT, 'tane_camerette.jpg'), titoli=tit)
+        tavola([os.path.join(CONCEPT, f'tane_posa_{c}.jpg') for c in tane.ORDINE], size,
+               os.path.join(CONCEPT, 'tane_pose.jpg'), titoli=tit)
+
+
 def job_grotte(q):
     """Il panorama a 360° della grotta grande per il motore delle immersioni (docs/IMMERSIONI.md, «Come si aggiungono i
     posti veri»): sfera intera (latitudine da −90° a 90°, larghezza = quella della qualità, altezza la metà), passi
@@ -1043,7 +1092,7 @@ def job_grotte(q):
         post.save_png(v, os.path.join(CACHE, q.name, f'grotta_vista_{nome}.png'))
 
 
-JOBS = {'grotte': job_grotte, 'sotto': job_sotto, 'sotto_anteprima': job_sotto_anteprima, 'grotte_ricomponi': job_grotte_ricomponi, 'grotte_anteprime': job_grotte_anteprime, 'grotte_tane': job_grotte_tane,
+JOBS = {'grotte': job_grotte, 'tane_anteprime': job_tane_anteprime, 'sotto': job_sotto, 'sotto_anteprima': job_sotto_anteprima, 'grotte_ricomponi': job_grotte_ricomponi, 'grotte_anteprime': job_grotte_anteprime, 'grotte_tane': job_grotte_tane,
         'world': job_world, 'boat': job_boat, 'props': job_props, 'creature': job_creature, 'reencode': job_reencode, 'tarp': job_tarp, 'jumpscare': job_jumpscare, 'binocolo': job_binocolo, 'bordo': job_bordo, 'pelo': job_pelo}
 
 
