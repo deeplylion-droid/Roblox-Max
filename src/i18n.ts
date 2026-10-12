@@ -909,3 +909,16 @@ export function detectLang(): Lang {
   const l = (navigator.language || 'en').slice(0, 2).toLowerCase();
   return l === 'it' ? 'it' : 'en';
 }
+
+/**
+ * Le immagini con scritte (prova dell'utente del 12 ottobre: «stai attento alle immagini e ai testi nelle immagini»;
+ * e prima del lancio il gioco potrebbe uscire in altre lingue). L'originale è in italiano (`nome.webp`); ogni lingua
+ * tradotta ha accanto `nome_<lingua>.webp`. `langs` sono le lingue che hanno la loro versione: una lingua che non ce
+ * l'ha prende quella inglese, se c'è, se no l'originale. L'elenco di tutte le immagini con scritte, e come rifarle in
+ * un'altra lingua, è in docs/LOCALIZZAZIONE.md.
+ */
+export function localizedImage(path: string, lang: string, langs: readonly string[]): string {
+  if (lang === 'it') return path;
+  const pick = langs.includes(lang) ? lang : langs.includes('en') ? 'en' : null;
+  return pick ? path.replace(/\.(\w+)$/, `_${pick}.$1`) : path;
+}

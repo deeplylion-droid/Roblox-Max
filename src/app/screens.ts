@@ -21,8 +21,8 @@ export function h<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<s
 }
 
 /** Un disegno a pastelli (disegni.ts): il foglio un po' storto con l'ombra, e la didascalia. */
-function drawingFigure(id: string, caption: string, cls = 'disegno'): HTMLElement {
-  const img = h('img', { src: disegnoSrc(id), alt: caption, draggable: 'false' });
+function drawingFigure(id: string, caption: string, lang: Lang, cls = 'disegno'): HTMLElement {
+  const img = h('img', { src: disegnoSrc(id, lang), alt: caption, draggable: 'false' });
   return h('figure', { class: cls }, img, h('figcaption', {}, caption));
 }
 
@@ -83,6 +83,8 @@ function pageKey<T extends HTMLElement>(b: T, key: Extract<PadButton, 'LB' | 'RB
 
 export class Screens {
   private current: HTMLElement | null = null;
+  /** da chiamare quando la schermata se ne va (gli ascoltatori messi fuori da lei, come i tasti dell'annuncio) */
+  private offScreen: (() => void) | null = null;
 
   constructor(
     private root: HTMLElement,
@@ -94,6 +96,8 @@ export class Screens {
   }
 
   clear(): void {
+    this.offScreen?.();
+    this.offScreen = null;
     this.current?.remove();
     this.current = null;
   }
@@ -136,6 +140,44 @@ export class Screens {
     menu.append(button(S.extras, o.onJournal), button(S.options, o.onOptions));
     if (o.onQuit) menu.append(button(S.quit, o.onQuit));
     this.show(h('div', { class: 'screen title fade-in' }, h('h1', {}, S.title), menu, h('div', { class: 'build' }, __BUILD__)));
+  }
+
+  /**
+   * L'annuncio con cui il pescatore ha trovato il lavoro (dopo «Nuova partita»): esce dal buio e si avvicina piano,
+   * portando il punto (fx, fy), in frazioni dell'immagine, verso il centro. Un clic, un tasto o un tasto del controller
+   * lo saltano (`onSkip`); annuncioOut lo spegne.
+   */
+  annuncio(a: { src: string; fx: number; fy: number; seconds: number; onSkip: () => void }): void {
+    const img = h('img', { src: a.src, alt: '', draggable: 'false' });
+    const foglio = h('div', { class: 'foglio' }, img);
+    const el = this.show(h('div', { class: 'screen annuncio' }, foglio));
+    // da tutta l'immagine a 1,25 volte; il punto fa sei decimi della strada verso il centro, senza mai scoprire i bordi
+    const s = 1.25;
+    const lim = ((s - 1) / 2) * 100;
+    const t = (f: number) => Math.max(-lim, Math.min(lim, (f - 0.5) * (0.4 - s) * 100));
+    img.animate([{ transform: 'none' }, { transform: `translate(${t(a.fx)}%, ${t(a.fy)}%) scale(${s})` }], {
+      duration: a.seconds * 1000,
+      easing: 'cubic-bezier(.3, 0, .7, 1)',
+      fill: 'forwards',
+    });
+    foglio.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 900, easing: 'ease-out', fill: 'both' });
+    const skip = (e: Event) => {
+      e.preventDefault();
+      a.onSkip();
+    };
+    addEventListener('keydown', skip);
+    el.addEventListener('pointerdown', skip);
+    this.offScreen = () => removeEventListener('keydown', skip);
+  }
+
+  /** L'annuncio si spegne nel buio in `seconds` (da quanto era acceso, se lo si salta mentre compare). */
+  annuncioOut(seconds: number): void {
+    const f = this.current?.querySelector<HTMLElement>('.foglio');
+    if (!f || f.dataset.via) return;
+    f.dataset.via = '1';
+    const o = Number(getComputedStyle(f).opacity);
+    for (const x of f.getAnimations()) x.cancel();
+    f.animate([{ opacity: o }, { opacity: 0 }], { duration: seconds * 1000 * Math.max(0.3, o), easing: 'ease-in', fill: 'forwards' });
   }
 
   intro(night: number, quota: number): void {
@@ -328,7 +370,7 @@ export class Screens {
       const grid = h('div', { class: 'disegni' });
       for (const id of drawings.all) {
         const name = S.drawings.names[id] ?? id;
-        if (drawings.found.includes(id)) grid.append(drawingFigure(id, name, 'disegno piccolo'));
+        if (drawings.found.includes(id)) grid.append(drawingFigure(id, name, this.lang, 'disegno piccolo'));
         else grid.append(h('figure', { class: 'disegno piccolo locked' }, h('div', { class: 'vuoto' }, '?'), h('figcaption', {}, S.drawings.locked)));
       }
       list.append(h('h3', { class: 'sezione' }, S.drawings.title), grid);
@@ -603,7 +645,7 @@ export class Screens {
     if (!drawing) return h('div', { class: cls }, ...parts);
     const S = this.S;
     const name = S.drawings.names[drawing] ?? drawing;
-    return h('div', { class: `${cls} alba-disegno` }, drawingFigure(drawing, `${S.drawings.found} «${name}»`), h('div', { class: 'colonna' }, ...parts));
+    return h('div', { class: `${cls} alba-disegno` }, drawingFigure(drawing, `${S.drawings.found} «${name}»`, this.lang), h('div', { class: 'colonna' }, ...parts));
   }
 
   /** Statica tra il jumpscare e il game over. */
