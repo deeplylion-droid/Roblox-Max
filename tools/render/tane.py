@@ -421,7 +421,7 @@ def armadio(name, pos, ang, w=1.3, d=0.62, h=2.2, ante=(105.0, 70.0), mat=None, 
     for sx, a in ((-1, ante[0]), (1, ante[1])):
         wd = w / 2 - 0.01
         hinge = Vector((sx * w / 2, -d / 2, 0))
-        R = Matrix.Rotation(math.radians(-sx * a), 4, 'Z')
+        R = Matrix.Rotation(math.radians(sx * a), 4, 'Z')      # l'anta si apre verso il davanti (−y)
         anta = []
         anta.append(scatola(name + 'Anta', (wd, 0.035, h - 0.16), (-sx * wd / 2, 0, h / 2), mat=mat))
         for zz in (0.32, 0.68):                                     # i riquadri in rilievo
@@ -787,7 +787,7 @@ def tana_hatch():
     _lg(o)
     for sgn in (-1, 1):
         telo('Asciugamano', (2.5, 1.2), (c[0] - sgn * 0.45 * uy, c[1] + sgn * 0.45 * ux, 0.5),
-             rot=(sgn * math.radians(-58), 0, a), mat=tel, onde=0.04, seed=4 + sgn)
+             rot=(sgn * math.radians(-58), 0, a), mat=tel, onde=0.11, giu=0.08, seed=4 + sgn)
     # i numeri della conta col gesso sulle pareti, da 1 a 10 tutt'attorno, e il «10» enorme sopra l'armadio in fondo
     gesso = grotte.semplice('THGesso', (0.75, 0.74, 0.70), rough=0.9)
     for k in range(10):
