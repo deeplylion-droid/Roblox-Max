@@ -328,9 +328,9 @@ def definitivo():
         for suf, (lin, mi) in outs.items():
             rgb8 = np.asarray(post.encode_light_pass(lin, scale))
             a8 = np.clip(mi * 255 + 0.5, 0, 255).astype(np.uint8)
-            # senza perdita: il vuoto e le versioni con l'animatore devono combaciare pixel per pixel fuori dalla sagoma
-            # (la compressione con perdita cambia un po' tutta l'immagine se cambia un riquadro)
-            post.save_webp(Image.fromarray(np.dstack([rgb8, a8]), 'RGBA'), os.path.join(OUT_IMG, f'bino_{luogo}{suf}.webp'), lossless=True)
+            # con perdita (qualità 90): lo scambio fra gli stadi avviene solo col binocolo abbassato o puntato altrove,
+            # quindi le minime differenze della compressione fuori dalla sagoma non si vedono (12 ottobre)
+            post.save_webp(Image.fromarray(np.dstack([rgb8, a8]), 'RGBA'), os.path.join(OUT_IMG, f'bino_{luogo}{suf}.webp'), quality=90)
         d = Vector(target) - Vector(EYE)
         entries.append({'key': luogo, 'file': f'bino_{luogo}.webp', 'scale': scale,
                         'yaw': round(math.degrees(math.atan2(d.x, d.y)), 3),
