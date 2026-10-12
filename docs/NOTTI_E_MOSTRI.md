@@ -666,9 +666,46 @@ immersioni all'alba (`docs/IMMERSIONI.md`; durante le notti Gulpy va sfamato per
 è **approvata** (11 ottobre), con le impronte più scure e bagnate perché si leggano anche fuori dal riflesso del sole.
 
 La **notte 7** ha il suo finale, **B «Il ricordo»** (con impostazioni difficili; sopra), anche lui come cinematica
-breve. **Da fare**: il «regista» delle cinematiche nel motore; i render del molo all'alba e dell'edicola da vicino con
-la tua foto; le immagini della Madre; i suoni dei due finali segreti e un taglio più corto del finale all'alba
-(`madre_dawn` oggi dura 24 s). Si fanno dopo la notte 6 e le immersioni, da cui dipendono.
+breve. Fatti: il «regista» delle cinematiche, i render del molo e dell'edicola, i suoni dei due finali segreti e il
+taglio più corto del finale all'alba (`madre_dawn_breve`), le due cinematiche segrete e i titoli di coda (sotto, da
+approvare). **Da fare**: il finale B (la foto da approvare, sotto).
+
+### I finali segreti nel gioco
+
+> **Da approvare** (12 ottobre, ramo `claude/finali-gioco`): le due cinematiche, i titoli di coda e i loro testi.
+> Le clip col suono per l'approvazione stanno in `docs/concept/clip/`.
+
+- **Quale finale** (`chooseEnding` in `src/app/save.ts`, provato in `tests/save.test.ts`): il salvataggio ricorda,
+  alba per alba (`dawns`, la chiave è la notte appena vinta, 1-5), se sei sceso e se hai lasciato il pesce a
+  qualcuno. «I tuoi» se un pesce l'hai lasciato **a ogni alba dalla prima alla quinta**; «Nessuno» se sei sceso
+  **almeno tre volte** e **non hai mai lasciato un pesce**; il finale A in tutti gli altri casi (anche mai sceso).
+  Rigiocando una notte la sua alba si riscrive; «Nuova partita» le azzera; un'immersione che non parte (dati mancanti)
+  conta come un'alba senza discesa. In sviluppo `?finale=tuoi|nessuno|A` lo forza (prove e registrazioni).
+- **Le cinematiche** (`src/app/cinematic.ts`, `FINALE_TUOI` e `FINALE_NESSUNO`, provate in `tests/cinematic.test.ts`),
+  sui tempi dei loro suoni (`docs/AUDIO.md`):
+  - **«I tuoi»** (21 s): la Madre sale a sinistra e chiama (0-3 s); i figli affiorano attorno alla barca e non la
+    seguono, mentre lei richiama più forte (3-6 s); lei torna giù da sola (6-10 s); i figli restano, poi scendono
+    sotto la barca mentre sorge il sole (10-13 s); un attimo di buio e, quando la barca tocca il molo (14,6 s),
+    l'ultima inquadratura del molo con le impronte, che si avvicina piano alle impronte mentre si sentono i passetti;
+    «Non sei tornato da solo.»
+  - **«Nessuno»** (21,6 s): la Madre sale e ti guarda (0-3 s); i figli affiorano uno dopo l'altro e restano fermi a
+    fissarti (3-8 s); di nuovo lei, poi la vista scende verso l'acqua e la lampara muore (8-10 s); il buio con la ninna
+    nanna (10-15 s); a 15 s il taglio netto sull'edicola, dove il mare e i rumori della barca si spengono, e la vista
+    si avvicina piano alla Polaroid; «Non hai mai dato niente ai suoi piccoli. Adesso sei uno di loro.»
+- **Il regista** ha due cose nuove: l'**ultima inquadratura** (`still`: l'immagine renderizzata a tutto schermo, la
+  dissolvenza, lo zoom e il punto al centro nel tempo; si disegna con l'esposizione del suo render al posto di quella
+  della notte, più la sola luminosità delle opzioni) e l'evento **`quiet`** (il taglio su un altro posto spegne il
+  mare, il vento e gli scricchiolii).
+- **I titoli di coda** (`Screens.credits`, DA APPROVARE, i nomi sono un segnaposto in `src/i18n.ts`): dopo ognuno dei
+  tre finali della notte 6, su un fondo nero salgono il titolo, i ruoli coi nomi e «Grazie per aver giocato.», con la
+  ninna nanna del titolo; Esc, Invio o un clic li saltano. Poi i risultati, con l'avviso della notte extra.
+- **Il finale B «Il ricordo»** (la notte 7): **proposta della foto da approvare**
+  (`docs/concept/finali_ricordo_foto_anteprima.jpg`, `finali.foto_1997`): una stampa del 1997 della sera della Night
+  Splash, davanti all'ingresso di Splashland con lo striscione; quattro bambini col flash, tre coi volti sbiaditi fino
+  al bianco come le foto dell'edicola, il quarto nitido col berretto e una canna da pesca giocattolo (sei tu); la data
+  arancione della macchinetta. La Madre la lascia bagnata sul banco di prua, all'alba: la cinematica (come il finale
+  A, con la foto sul banco) e l'ultima inquadratura si fanno dopo l'approvazione della foto. Oggi è ancora il
+  segnaposto `Screens.extraEnding`.
 
 ### Le ultime inquadrature dei due finali segreti
 
