@@ -903,7 +903,7 @@ def tana_archie():
         o = tube('Piede', [(c[0], c[1], 0.05), (c[0] + 0.45 * math.cos(a), c[1] + 0.45 * math.sin(a), 0.02)], 0.035, n=8, col=COL)
         o.data.materials.append(legn)
         _lg(o)
-    telo('Tovaglia', (2.2, 2.2), (c[0], c[1], 0.81), mat=tov, onde=0.02, giu=0.2, seed=7)
+    tovaglia_tonda('Tovaglia', (c[0], c[1], 0.815), 1.0, 0.55, tov)
     rosa = grotte.plastica('TATorta', (0.70, 0.45, 0.50), melma=0.4)
     for k, (dx, dy) in enumerate(((-0.4, 0.1), (0.38, -0.15), (0.0, 0.5))):
         o = lathe('Torta', [(0.24, 0.0), (0.25, 0.12), (0.2, 0.13), (0.2, 0.2), (0.0, 0.21)], n=28, col=COL, close_bottom=True)
@@ -946,6 +946,35 @@ def tana_archie():
     trov = (c[0] - 0.55, c[1] - 0.6, 0.85)
     foglio('Trovato', disegno('archie'), (0.36, 0.26), trov, (math.radians(4), 0, math.radians(15)), curva=0.004)
     return {'trovato': trov, 'letto': tuple(c)}
+
+
+def tovaglia_tonda(name, centro, r_tavolo, caduta, mat, seed=7):
+    """Una tovaglia tonda che copre il tavolo e ricade tutt'attorno a pieghe (anelli concentrici: piana sul tavolo,
+    poi giù per caduta metri, con le onde delle pieghe che crescono verso l'orlo)."""
+    rr = np.random.default_rng(seed)
+    na, nr = 96, 30
+    fasi = rr.uniform(0, 6.28, 3)
+    V_, Fc = [(centro[0], centro[1], centro[2] + 0.004)], []
+    for j in range(1, nr + 1):
+        t = j / nr
+        rad = (r_tavolo + 0.04) * min(t / 0.6, 1.0) + max(0.0, t - 0.6) / 0.4 * 0.08
+        for i in range(na):
+            a = 2 * math.pi * i / na
+            giu = max(0.0, (t - 0.6) / 0.4)
+            pieg = giu * (0.05 * math.sin(a * 11 + fasi[0]) + 0.025 * math.sin(a * 23 + fasi[1]))
+            z = centro[2] + 0.004 - caduta * giu ** 1.2
+            V_.append((centro[0] + (rad + pieg) * math.cos(a), centro[1] + (rad + pieg) * math.sin(a), z))
+    for i in range(na):
+        Fc.append((0, 1 + i, 1 + (i + 1) % na))
+    for j in range(nr - 1):
+        for i in range(na):
+            a0 = 1 + j * na + i
+            a1 = 1 + j * na + (i + 1) % na
+            Fc.append((a0, a0 + na, a1 + na))
+            Fc.append((a0, a1 + na, a1))
+    ob = grotte.mesh_obj(name, np.array(V_), np.array(Fc))
+    ob.data.materials.append(mat)
+    return ob
 
 
 def tana_lampy():
