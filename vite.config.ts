@@ -16,9 +16,14 @@ function buildId(): string {
 }
 
 // base relativa: la stessa build funziona nel browser, in Electron (file://) e come demo statica.
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   base: './',
-  define: { __BUILD__: JSON.stringify(buildId()) },
+  define: {
+    __BUILD__: JSON.stringify(buildId()),
+    // le scorciatoie di prova (src/app/prove.ts): sempre in sviluppo e nei test, nelle build solo con
+    // VITE_SCORCIATOIE=1; altrimenti è «false» già nel codice e il minificatore toglie tutto quello che la usa
+    __SCORCIATOIE__: JSON.stringify(command === 'serve' || process.env.VITE_SCORCIATOIE === '1'),
+  },
   build: {
     outDir: 'dist',
     assetsInlineLimit: 0,
@@ -26,4 +31,4 @@ export default defineConfig({
     chunkSizeWarningLimit: 2000,
   },
   server: { host: true },
-});
+}));

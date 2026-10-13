@@ -544,6 +544,24 @@ export class NightSim {
     return true;
   }
 
+  // ───────── prove (le scorciatoie delle build di prova, src/app/prove.ts; mai in quelle per il pubblico) ─────────
+
+  /** La notte vinta adesso, come alle sei con la quota piena (vuoto nelle build per il pubblico). */
+  provaVinci(): void {
+    if (!__SCORCIATOIE__ || !this.playing) return;
+    this.fish = Math.max(this.fish, this.cfg.quota);
+    this.time = this.nightLength;
+    this.hour = NIGHT_HOURS;
+    this.endOfNight();
+  }
+
+  /** La morte per mano di chi, col suo jumpscare: la Madre con «moved» ti prende da sotto, senza causa è la quota
+   *  mancata alle sei (vuoto nelle build per il pubblico). */
+  provaMorte(killer: MonsterId | 'mother', cause?: MotherCause): void {
+    if (!__SCORCIATOIE__ || !this.playing) return;
+    this.die(killer, cause);
+  }
+
   private die(killer: MonsterId | 'mother', cause?: MotherCause): void {
     this.outcome = cause ? { kind: 'dead', killer, cause } : { kind: 'dead', killer };
     this.emit({ t: 'dead', killer });

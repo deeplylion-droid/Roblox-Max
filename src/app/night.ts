@@ -499,6 +499,11 @@ export class Night {
     return this.finished;
   }
 
+  /** In pausa (il menu della pausa o le opzioni aperte). */
+  get inPausa(): boolean {
+    return this.paused;
+  }
+
   setPaused(p: boolean): void {
     this.paused = p;
     this.held.clear();

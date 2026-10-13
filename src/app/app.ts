@@ -14,6 +14,7 @@ import { Night, type NightAssets, type NightEnd } from './night.ts';
 import { swapFogAssets } from './overlays.ts';
 import { badge, pad } from './pad.ts';
 import { PadNav } from './padnav.ts';
+import { JUMPSCARE_TASTI, notteDelTasto } from './prove.ts';
 import { afterDive, chooseEnding, fedFor, newGame, pendingDawn, skipDawn, wonNight, writeSave, type Ending, type Options, type SaveData } from './save.ts';
 import { Screens, setUiSound } from './screens.ts';
 import type { Sfx } from './sfx.ts';
@@ -166,16 +167,33 @@ export class App {
     const reached = Math.min(this.save.current, lastNight());
     // la notte extra si sblocca finendo l'ultima notte giocabile (sarà la sesta, la Madre)
     const extraOpen = this.save.night > lastNight() || forced === EXTRA_NIGHT;
-    // Alt + numero sul titolo: comincia da quella notte (per provare le notti dopo la prima nelle build di prova;
-    // la demo arriva solo alla prima)
-    if (!this.nightKeys) {
+    // le scorciatoie delle build di prova (prove.ts). Sul titolo, Alt + numero: comincia da quella notte (la demo arriva
+    // solo alla prima; Alt+7 la notte extra). Durante la notte, Alt+V: vinta adesso; Alt+Maiusc + numero: il jumpscare
+    // di quel mostro, con la sua morte, come nel gioco. Nelle build per il pubblico __SCORCIATOIE__ è «false» già nel
+    // codice e questo blocco non c'è.
+    if (__SCORCIATOIE__ && !this.nightKeys) {
       this.nightKeys = (e: KeyboardEvent) => {
-        const n = Number(e.key);
-        if (this.mode !== 'title' || !e.altKey || !((n >= 1 && n <= lastNight()) || n === EXTRA_NIGHT)) return;
+        if (!e.altKey) return;
+        if (this.mode === 'title' && !e.shiftKey) {
+          const n = notteDelTasto(e.code);
+          if (!((n >= 1 && n <= lastNight()) || n === EXTRA_NIGHT)) return;
+          e.preventDefault();
+          // Alt+7: la schermata dei livelli della notte extra
+          if (n === EXTRA_NIGHT) this.extraNight();
+          else this.intro(n);
+          return;
+        }
+        const night = this.night;
+        if (this.mode !== 'night' || !night || night.over || night.inPausa) return;
+        if (e.code === 'KeyV' && !e.shiftKey) {
+          e.preventDefault();
+          night.sim.provaVinci();
+          return;
+        }
+        const js = e.shiftKey ? JUMPSCARE_TASTI[e.code] : undefined;
+        if (!js) return;
         e.preventDefault();
-        // Alt+7: la schermata dei livelli della notte extra
-        if (n === EXTRA_NIGHT) this.extraNight();
-        else this.intro(n);
+        night.sim.provaMorte(js.killer, js.cause);
       };
       addEventListener('keydown', this.nightKeys);
     }

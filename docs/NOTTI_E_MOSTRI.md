@@ -192,6 +192,30 @@ Soggy. / Col binocolo. Non perderlo di vista.» (EN: «Soggy is in the park. / B
 - **Il binocolo** smette di essere un easter egg: dalla notte 2 serve per sopravvivere (non si alza sotto il telone,
   col sonar aperto o con un pesce in canna; mentre lo guardi non vedi la barca, e Molly non si sente guardata).
 
+## Le scorciatoie di prova (13 ottobre)
+
+Richiesta dell'utente del 13 ottobre: oltre alle combinazioni per avviare le notti, quelle per vincere la notte e per
+far partire ogni jumpscare, **da togliere nella build per il pubblico**. Codice: `src/app/prove.ts` (i tasti),
+`App.title` (il blocco che li registra), `NightSim.provaVinci` / `provaMorte` (la vittoria e la morte passano per la
+simulazione, quindi seguono la strada vera del gioco: alba, finali, salvataggio, game over, «Riprova»).
+
+| Dove | Tasti | Cosa fa |
+|---|---|---|
+| Titolo | **Alt + 1…6** | comincia da quella notte (la demo arriva solo alla prima) |
+| Titolo | **Alt + 7** | la schermata dei livelli della notte extra |
+| Notte | **Alt + V** | la notte vinta adesso, come alle sei con la quota piena (alla sesta parte il finale) |
+| Notte | **Alt + Maiusc + 1…0** | il jumpscare e la morte: 1 Gulpy, 2 Molly, 3 Hatch, 4 Robin, 5 Archie, 6 Lampy, 7 Fangy, 8 il Foxy, 9 la Madre (ti prende da sotto), 0 la quota mancata |
+
+I numeri sono quelli della fila sopra le lettere: contano i tasti (il codice `Digit1`…), non il carattere, quindi
+vanno anche sulle tastiere dove i numeri vogliono il Maiusc. In pausa e a notte finita non fanno niente.
+
+**Quando ci sono.** In sviluppo (`npx vite`) e nei test sempre. Nelle build ci sono solo con `VITE_SCORCIATOIE=1`.
+L'opzione «scorciatoie» del workflow build è **accesa di base** quando la build si lancia a mano. **Per la build che
+va al pubblico va spenta**; nelle build dei tag di versione (`v*`) gli input non ci sono e le scorciatoie mancano
+sempre. Senza, `__SCORCIATOIE__` (`vite.config.ts`) è «false» già nel codice: il minificatore toglie il blocco
+dei tasti e l'elenco dei jumpscare, e i due metodi di prova della simulazione restano vuoti (provato: nella build
+senza scorciatoie non ci sono né `KeyV` né `Digit9`, e c'è `provaVinci(){}`).
+
 ## Il piano delle notti
 
 | Notte | Novità |
