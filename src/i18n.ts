@@ -626,7 +626,7 @@ export const LORE_TEXT: Record<Lang, Record<string, { title: string; body: strin
     // le cose da trovare nelle tane delle immersioni (12 ottobre): DA APPROVARE
     den_gulpy: {
       title: 'Il menù dello Snack Shack',
-      body: 'Disegnato a pastelli su un foglio a quadretti: hot dog 3000, patatine 2000, gelato 1500, panino 4000, ognuno col suo disegnino. Poi un cerchio rosso attorno a tutto, ripassato due volte, e la freccia: «TUTTO!». Estate 1997.',
+      body: 'Disegnato a pastelli su un foglio a quadretti: «HOT DOG» 3000, poi solo i disegnini coi prezzi: le patatine 2000, il gelato 1500, il panino 4000. Poi un cerchio rosso attorno a tutto, ripassato due volte, la freccia e tre punti esclamativi, calcati. Estate 1997.',
     },
     den_molly: {
       title: 'Foto del trampolino',
@@ -638,7 +638,7 @@ export const LORE_TEXT: Record<Lang, Record<string, { title: string; body: strin
     },
     den_robin: {
       title: 'I premi della sala giochi',
-      body: 'Gli scaffali dei premi disegnati a pastelli: l’orso enorme (5000 biglietti), la palla, la macchinina, la scatola rosa. Davanti, piccolo, un bambino con le strisce dei biglietti attorno alle braccia. Nella nuvoletta: «VOGLIO TUTTO».',
+      body: 'Gli scaffali dei premi disegnati a pastelli: l’orso enorme (5000 biglietti), la palla, la macchinina, la scatola rosa. Davanti, piccolo, un bambino con le strisce dei biglietti attorno alle braccia. Nella nuvoletta, tre punti esclamativi.',
     },
     den_archie: {
       title: 'Tutti i compleanni',
@@ -693,7 +693,7 @@ export const LORE_TEXT: Record<Lang, Record<string, { title: string; body: strin
     // the things to find in the dens of the dives (12 October): TO APPROVE
     den_gulpy: {
       title: 'The Snack Shack menu',
-      body: 'Drawn in crayon on squared paper: hot dog 3000, fries 2000, ice cream 1500, sandwich 4000, each with its little drawing. Then a red circle around everything, gone over twice, and the arrow: "ALL OF IT!". Summer 1997.',
+      body: 'Drawn in crayon on squared paper: "HOT DOG" 3000, then just little drawings with prices: fries 2000, ice cream 1500, a sandwich 4000. Then a red circle around everything, gone over twice, the arrow and three exclamation marks, pressed hard. Summer 1997.',
     },
     den_molly: {
       title: 'Diving board photo',
@@ -705,7 +705,7 @@ export const LORE_TEXT: Record<Lang, Record<string, { title: string; body: strin
     },
     den_robin: {
       title: 'The arcade prizes',
-      body: 'The prize shelves drawn in crayon: the giant bear (5000 tickets), the ball, the toy car, the pink box. In front, small, a boy with strips of tickets wrapped round his arms. In the speech bubble: "I WANT IT ALL".',
+      body: 'The prize shelves drawn in crayon: the giant bear (5000 tickets), the ball, the toy car, the pink box. In front, small, a boy with strips of tickets wrapped round his arms. In the speech bubble, three exclamation marks.',
     },
     den_archie: {
       title: 'All the birthdays',

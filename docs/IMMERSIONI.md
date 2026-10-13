@@ -182,10 +182,10 @@ strato sopra, con la toppa del respiro che si dissolve.
 
 | Tana | Cosa c'è (proposta) | Come dorme (proposta) | La cosa da trovare (diario) |
 |---|---|---|---|
-| **Gulpy** | Lo Snack Shack rimontato a sinistra (bancone rosso, tenda a strisce, l'insegna, lo scaffale delle merendine), carte di merendine dappertutto, i cestini del pranzo, una pila di salvagenti a paperella. | Accasciato sulla pila di salvagenti, la schiena all'indietro, la mascella che pende aperta. | **Il menù dello Snack Shack** a pastelli, coi prezzi e i disegnini, tutto cerchiato in rosso: «TUTTO!». |
+| **Gulpy** | Lo Snack Shack rimontato a sinistra (bancone rosso, tenda a strisce, l'insegna, lo scaffale delle merendine), carte di merendine dappertutto, i cestini del pranzo, una pila di salvagenti a paperella. | Accasciato sulla pila di salvagenti, la schiena all'indietro, la mascella che pende aperta. | **Il menù dello Snack Shack** a pastelli, coi disegnini e i prezzi (resta scritto solo «HOT DOG»), tutto cerchiato in rosso con «!!!» (prima «TUTTO!»; da approvare). |
 | **Molly** | Il trampolino con la scaletta, gli specchi ossidati appoggiati alle pareti, le medaglie appese, la corsia galleggiante della piscina tirata da parete a parete, braccioli ed elastici rosa sulla sabbia. | Su un fianco sulla sabbia, abbracciata ai braccioli; un occhio chiuso, quello che scivola via socchiuso. | Una **foto**: lei in cima al trampolino con i braccioli, le braccia alzate («GUARDAMI! – giugno 1997»). |
 | **Hatch** | Tre armadi con le ante spalancate, una capanna di asciugamani tra due sedie, i numeri della conta scritti col gesso sulle pareti. | In piedi, curvo, chiuso dentro l'armadio grande in fondo, la bocca chiusa, il pesciolino luminoso acceso. | **Il foglio della conta**: i numeri da 1 a 10 scritti e riscritti, e in mezzo «10!» (che si legge nel gioco ed è uguale in tutte le lingue) e sotto, piccolo, «CHI C'È C'È». |
-| **Robin** | Un mucchio di cose rubate (scarpe, palline, giocattoli, secchielli) avvolto nelle strisce dei biglietti. | Disteso sul mucchio come un granchio sul bottino, gli occhi chiusi. | **I premi della sala giochi** a pastelli: l'orso da 5000 biglietti, la palla, la macchinina; lui davanti: «VOGLIO TUTTO». |
+| **Robin** | Un mucchio di cose rubate (scarpe, palline, giocattoli, secchielli) avvolto nelle strisce dei biglietti. | Disteso sul mucchio come un granchio sul bottino, gli occhi chiusi. | **I premi della sala giochi** a pastelli: l'orso da 5000 biglietti, la palla, la macchinina; lui davanti, nel fumetto «!!!» (prima «VOGLIO TUTTO»; da approvare). |
 | **Archie** | La festa: il tavolo tondo con la tovaglia, tre torte con le candeline spente, i cappellini sparsi, i palloncini che galleggiano legati al tavolo, lo striscione «HAPPY BIRTHDAY» (uguale in italiano e in inglese, deciso il 12 ottobre sera). | Avvolto in spire attorno al tavolo, la testa appoggiata sul bordo; a ogni respiro la trombetta si srotola un poco. | **Tutti i compleanni** del 1999: dodici torte, una per mese, con le fiammelle cancellate col nero. |
 | **Lampy** | La culla con la copertina, la giostrina di pesciolini appesa alla volta, la vaschetta da bagno, le cuffie a fiori appese alla parete. | Attaccata con la ventosa al soffitto sopra la culla, a testa in giù; dorme a occhi aperti. | **Il braccialetto dell'ospedale** da neonata («KG 3,1»), con scritto «non lasciarla mai andare». |
 | **Fangy** | Il letto con il lenzuolo, decine di conchiglie appese ai fili tutt'attorno, le bende per terra, gli occhialini dipinti di nero sullo sgabello, il cartello «MARCO? POLO!» e i tubi galleggianti. | Raggomitolato sul fianco sul letto, gli occhialini neri, le lucine del ventre quasi spente. | **«IO»**: lui disegnato con gli occhialini ripassati col nero finché la cera luccica. |
@@ -248,8 +248,11 @@ sopra). Poi, una tana alla volta:
   parco o neutre, così non si rifà un render per lingua): Gulpy «ICE CREAM / SUMMER 1997» e «FRIES»; Hatch «10!» nel
   foglio della conta (e «CHI C'È C'È» con l'accento: la È è in `pastelli.py`), il Diario cita «10!»; Robin «LOST &
   FOUND»; nel sorgente, per i render futuri, Archie «PARTY / MAY 1999», Lampy «WELCOME! / JULY 2003», Fangy «EYES
-  CLOSED!» e «AUGUST». I disegni a pastelli tengono le loro parole («MENU», «TUTTO!», «VOGLIO TUTTO», «IO»): nel gioco
-  sono piccoli e non si leggono; il «!» di «TUTTO!» ora sta sul foglio.
+  CLOSED!» e «AUGUST». Anche i disegni a pastelli delle tane ancora da rifare
+  perdono le parole italiane (da approvare): il menu di Gulpy tiene «MENU» e «HOT DOG», il resto sono disegnini e
+  prezzi, e al posto di «TUTTO!» c'è «!!!»; il fumetto di Robin dice «!!!» invece di «VOGLIO TUTTO». Il Diario
+  descrive i disegni come sono. Restano, nelle tane già fatte e illeggibili nel gioco, «IO» di Fangy e le iniziali
+  dei mesi di Archie.
 - **Molly**: la foto è caduta sulla sabbia davanti al trampolino (sopra la tavola, all'altezza degli occhi, si vedeva
   di taglio), con «6 / 1997»; la coperta ha le strisce. Le strisce non comparivano in nessun telo
   (`strisce_material`: la soglia era fissa a 0,5 e il passo più corto): ora sì anche negli asciugamani di Hatch, e nella
