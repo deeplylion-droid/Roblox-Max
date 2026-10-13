@@ -353,15 +353,15 @@
     },
     {
      "file": "js_foxy_01.webp",
-     "scale": 0.54
+     "scale": 0.53
     },
     {
      "file": "js_foxy_02.webp",
-     "scale": 0.61
+     "scale": 0.6
     },
     {
      "file": "js_foxy_03.webp",
-     "scale": 0.62
+     "scale": 0.61
     },
     {
      "file": "js_foxy_04.webp",
@@ -369,7 +369,7 @@
     },
     {
      "file": "js_foxy_05.webp",
-     "scale": 0.65
+     "scale": 0.64
     },
     {
      "file": "js_foxy_06.webp",
@@ -379,7 +379,43 @@
      "file": "js_foxy_07.webp",
      "scale": 0.6900000000000001
     }
-   ]
+   ],
+   "senza": {
+    "frames": [
+     {
+      "file": "js_foxy_00_senza.webp",
+      "scale": 0.54
+     },
+     {
+      "file": "js_foxy_01_senza.webp",
+      "scale": 0.54
+     },
+     {
+      "file": "js_foxy_02_senza.webp",
+      "scale": 0.61
+     },
+     {
+      "file": "js_foxy_03_senza.webp",
+      "scale": 0.62
+     },
+     {
+      "file": "js_foxy_04_senza.webp",
+      "scale": 0.62
+     },
+     {
+      "file": "js_foxy_05_senza.webp",
+      "scale": 0.65
+     },
+     {
+      "file": "js_foxy_06_senza.webp",
+      "scale": 0.63
+     },
+     {
+      "file": "js_foxy_07_senza.webp",
+      "scale": 0.6900000000000001
+     }
+    ]
+   }
   },
   "gulpy": {
    "aspect": 1.7778,
