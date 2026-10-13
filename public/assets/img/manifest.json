@@ -2088,6 +2088,25 @@
     4479,
     1708
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "molly_destra_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "molly_destra_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "molly_destra_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
    "space": "boat",
    "yaw": 76.3251
   },
@@ -2116,6 +2135,25 @@
     4367,
     1391
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "molly_destra_primo_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "molly_destra_primo_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "molly_destra_primo_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
    "space": "boat",
    "yaw": 76.3251
   },
@@ -2144,6 +2182,25 @@
     4368,
     1399
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "molly_destra_secondo_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "molly_destra_secondo_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "molly_destra_secondo_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
    "space": "boat",
    "yaw": 76.3251
   },
@@ -2174,7 +2231,7 @@
     "lantern": {
      "file": "molly_sinistra_lantern.webp",
      "res": 1.0,
-     "scale": 0.48
+     "scale": 0.54
     }
    },
    "rect": [
@@ -2183,6 +2240,25 @@
     4448,
     1657
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "molly_sinistra_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "molly_sinistra_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "molly_sinistra_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.48
+     }
+    }
+   },
    "space": "boat",
    "yaw": -59.0895
   },
@@ -2202,7 +2278,7 @@
     "lantern": {
      "file": "molly_sinistra_primo_lantern.webp",
      "res": 1.0,
-     "scale": 0.37
+     "scale": 0.38
     }
    },
    "rect": [
@@ -2211,6 +2287,25 @@
     4312,
     1338
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "molly_sinistra_primo_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "molly_sinistra_primo_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "molly_sinistra_primo_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.37
+     }
+    }
+   },
    "space": "boat",
    "yaw": -59.0895
   },
@@ -2230,7 +2325,7 @@
     "lantern": {
      "file": "molly_sinistra_secondo_lantern.webp",
      "res": 1.0,
-     "scale": 0.39
+     "scale": 0.4
     }
    },
    "rect": [
@@ -2239,6 +2334,25 @@
     4313,
     1346
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "molly_sinistra_secondo_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "molly_sinistra_secondo_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "molly_sinistra_secondo_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.39
+     }
+    }
+   },
    "space": "boat",
    "yaw": -59.0895
   },

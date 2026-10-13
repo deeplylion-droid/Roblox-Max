@@ -167,6 +167,7 @@ e i jumpscare resi con l'atmosfera. Le immagini di prima restano la serie `senza
 | Cosa | Strati / fotogrammi | Note |
 | --- | --- | --- |
 | Gulpy | gulpy_sale, gulpy_pretende, gulpy_mascella_chiusa, gulpy_mascella_aperta | sagome uguali (2-9 pixel di bordo); luna 0,35-0,4 |
+| Molly | molly_destra, molly_sinistra e le quattro toppe degli occhi | sagome uguali (1-10 pixel di bordo); luna 0,36-0,4 |
 
 ## Cosa cambiare nel motore (scritto prima del lavoro sul motore: vedi sopra)
 
