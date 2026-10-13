@@ -13,6 +13,7 @@ mare nasconde la parte sott'acqua.
     robin_secchio    Robin steso sul bordo sinistro verso prua, il braccio lunghissimo nel secchio (notte 2)
     robin_strizza    toppa di robin_secchio: la sola testa, che strizza gli occhi nella luce della lampara
     robin_chiusi     toppa di robin_secchio: la sola testa a occhi chiusi (il battito di ciglia)
+    robin_ritirata_1..6  la ritirata di Robin scacciato dalla luce, oltre il bordo (fotogrammi interi, stesso yaw)
     archie_soffia    Archie che sale dal mare a destra della lampara, il collo dritto, la testa piegata sul vetro
                      con la trombetta puntata (notte 3; la trombetta arrotolata)
     archie_fiato     toppa di archie_soffia: la testa con la gola gonfia, il risucchio prima di soffiare
@@ -139,6 +140,10 @@ def hatch_conta():
 # che passano davanti alla testa la coprono come nello strato principale.
 ROBIN_TESTA = ('RobinHead', 'RobinEye*', 'RobinLid*', 'RobinThroat', 'RobinTeeth', 'RobinSlime')
 ROBIN_TOPPA = {'visibili': ROBIN_TESTA, 'occhi': False, 'yaw_di': 'robin_secchio'}
+# i fotogrammi della ritirata: Robin intero, con lo yaw della posa (i pixel combaciano con robin_secchio) e senza occhi
+# nel manifest (fugge con gli occhi strizzati: al buio non brillano)
+ROBIN_FUGA = {'occhi': False, 'yaw_di': 'robin_secchio'}
+ROBIN_FOTOGRAMMI = 6     # quanti sono (ROBIN_RITIRATA, più sotto)
 
 # La testa di Archie nelle toppe: la pelle della testa, gli occhi, i denti, la bava e la trombetta (bocchino, carta e
 # piuma). La trombetta che si srotola lascia vuoto il posto dove nello strato principale c'era la spirale: nella toppa
@@ -162,6 +167,9 @@ POSES = {
     # sbatte le palpebre
     'robin_strizza': (lambda: robin_secchio(palpebre=0.75, aggrotta=1.0), 'boat', True, ROBIN_TOPPA),
     'robin_chiusi': (lambda: robin_secchio(palpebre=1.0, aggrotta=0.0), 'boat', True, ROBIN_TOPPA),
+    # scacciato, si ritira oltre il bordo (13 ottobre): i fotogrammi della fuga, nella stessa inquadratura della posa
+    **{f'robin_ritirata_{k}': ((lambda k=k: robin_ritirata(k)), 'boat', True, ROBIN_FUGA)
+       for k in range(1, ROBIN_FOTOGRAMMI + 1)},
     # notte 3: Archie accanto alla lampara; prima di soffiare prende fiato e la gola si gonfia (toppa)
     'archie_soffia': (lambda: archie_soffia(), 'boat', True),
     'archie_fiato': (lambda: archie_soffia(fiato=1.0), 'boat', True, ARCHIE_TOPPA),
@@ -260,6 +268,104 @@ def robin_secchio(palpebre=0.0, aggrotta=0.0):
     M, kw = robin_posa()
     LAST_M['robin_secchio'] = M
     return place(ro.build(**kw, palpebre=palpebre, aggrotta=aggrotta), M)
+
+
+# La ritirata di Robin (scelta dell'utente del 13 ottobre): scacciato dalla luce, se ne va oltre il bordo invece di
+# svanire. Robin ha mezzo corpo dentro la barca (la testa, il braccio nel secchio, le zampe sul banco e sul
+# capodibanda): il motore non può ritirarlo a mano come le mani di Gulpy e Molly, quindi la fuga è resa, fotogramma per
+# fotogramma, nella stessa inquadratura della posa (stesso yaw: i pixel combaciano con robin_secchio). Prima il braccio
+# esce dal secchio (il pesce ricade dentro) e si raccoglie sul petto, poi il corpo scivola fuori sopra il capodibanda e
+# la testa va giù dietro il bordo, per ultime le zampe e la mano che si tiene al bordo mollano e lo seguono. Nell'ultimo
+# fotogramma niente sta più davanti alla barca: da lì il gioco lo fa scendere dietro lo scafo come sempre. Gli occhi
+# restano strizzati (fugge dalla luce) e i baffi lunghi restano indietro. Ogni fotogramma:
+#   fuori, su   di quanto si è spostato il corpo (metri, verso il mare e in alto): il corpo scivola, non gira
+#   braccio     0 la mano sopra il secchio, 1 raccolta davanti al petto (prima si alza, poi torna indietro)
+#   zampe       0 dove sono nella posa, 1 aggrappate al corpo che cade (passando sopra il capodibanda)
+#   presa       0 la mano sul capodibanda, 1 lasciata (passando sopra il bordo)
+#   baffi       (verso, giù, lunghi): verso 'secchio', 'dentro' (restano indietro mentre la testa va fuori) o 'lungo'
+#   pesce       quanto è ricaduto nel secchio il pesce rubato (None: nella mano o già dentro)
+ROBIN_RITIRATA = [
+    dict(fuori=0.04, su=0.02, braccio=0.30, zampe=0.0, presa=0.0, baffi=('secchio', 0.85, 1.0), pesce=0.5),
+    dict(fuori=0.16, su=0.05, braccio=0.65, zampe=0.0, presa=0.0, baffi=('dentro', 0.35, 0.9), pesce=None),
+    dict(fuori=0.34, su=0.07, braccio=1.0, zampe=0.10, presa=0.0, baffi=('dentro', 0.15, 0.8), pesce=None),
+    dict(fuori=0.56, su=0.02, braccio=1.0, zampe=0.35, presa=0.35, baffi=('dentro', -0.2, 0.7), pesce=None),
+    dict(fuori=0.72, su=-0.22, braccio=1.0, zampe=0.70, presa=0.75, baffi=('lungo', -0.5, 0.6), pesce=None),
+    dict(fuori=0.80, su=-0.55, braccio=1.0, zampe=1.0, presa=1.0, baffi=('lungo', -0.6, 0.6), pesce=None),
+]
+assert len(ROBIN_RITIRATA) == ROBIN_FOTOGRAMMI
+ROBIN_FUORI = np.array((-1.0, 0.0, 0.0), F)    # verso il mare, dal capodibanda di sinistra
+ROBIN_RACCOLTO = (0.16, -0.20, 0.06)            # la mano raccolta, rispetto alla spalla del braccio lungo (locale)
+
+
+def _lungo_la(punti, t):
+    """Il punto a frazione t (0..1) della spezzata 'punti' (per lunghezza)."""
+    P = np.array(punti, F)
+    s = np.concatenate([[0.0], np.cumsum(np.linalg.norm(np.diff(P, axis=0), axis=1))])
+    u = float(np.clip(t, 0.0, 1.0)) * s[-1]
+    return np.array([np.interp(u, s, P[:, k]) for k in range(3)], F)
+
+
+def _scavalca(p0, p1, alto=0.10):
+    """La strada di una zampa (o della mano) da p0 a p1 passando sopra il capodibanda di sinistra: prima si alza,
+    poi passa sopra il bordo, poi va dove deve. Così non passa mai attraverso il legno."""
+    p0, p1 = np.array(p0, F), np.array(p1, F)
+    y = float(p0[1])
+    xg, zg = gunwale_at(y, -1)
+    su = np.array((max(float(p0[0]), xg + 0.04), y, max(float(p0[2]), zg) + alto), F)
+    sopra = np.array((xg - 0.06, y, zg + alto), F)
+    return [p0, su, sopra, p1]
+
+
+def robin_ritirata(k, palpebre=0.75, aggrotta=1.0):
+    """Il fotogramma k (1..len(ROBIN_RITIRATA)) della ritirata di Robin, nella stessa posa di robin_secchio da cui
+    parte, con gli occhi strizzati."""
+    import robin as ro
+    from mathutils import Matrix, Vector
+    M, kw = robin_posa()
+    f = ROBIN_RITIRATA[k - 1]
+    W = lambda m, p: np.array(m @ Vector(tuple(map(float, p))), F)
+    d = ROBIN_FUORI * f['fuori'] + np.array((0.0, 0.0, f['su']), F)
+    Mk = Matrix.Translation(tuple(map(float, d))) @ M
+    Mi = Mk.inverted()
+    loc = lambda p: tuple(float(v) for v in W(Mi, p))
+    # il braccio: la mano si alza sopra il secchio, poi torna verso il petto
+    fist0 = W(M, kw['reach'])
+    alto = fist0 + np.array((0.0, 0.0, 0.16), F)
+    raccolto = W(Mk, np.array(ro.SPALLA[1], F) + np.array(ROBIN_RACCOLTO, F))
+    b = f['braccio']
+    fist = _lungo_la([fist0, alto], b / 0.3) if b <= 0.3 else _lungo_la([alto, raccolto], (b - 0.3) / 0.7)
+    # le zampe: dove sono nella posa finché non tocca a loro, poi vanno col corpo passando sopra il bordo
+    feet = []
+    for p in kw['feet']:
+        p0, p1 = W(M, p), W(Mk, p)
+        fuori = float(p0[0]) < gunwale_at(float(p0[1]), -1)[0] - 0.02
+        strada = [p0, p1] if fuori else _scavalca(p0, p1)
+        feet.append(loc(_lungo_la(strada, f['zampe'])))
+    g0, g1 = W(M, kw['grip']), W(Mk, kw['grip'])
+    grip = loc(_lungo_la(_scavalca(g0, g1, alto=0.07), f['presa']))
+    reach = loc(fist)
+    # il capo libero dei biglietti: nel secchio finché la mano ci sta sopra, poi pende sotto il polso
+    capo = None
+    if b > 0.3:
+        capo = tuple(np.array(reach, F) + np.array((0.05, 0.04, -0.20), F))
+    verso, giu, lunghi = f['baffi']
+    lg = np.array(kw['lungo'], F)
+    dentro = np.array((lg[1], -lg[0], 0.0), F)
+    if dentro[1] > 0:
+        dentro = -dentro
+    vv = {'secchio': np.array(kw['bucket'], F) - np.array(ro.HEAD, F), 'dentro': dentro, 'lungo': lg}[verso]
+    pesce = None
+    if f['pesce'] is not None:
+        # ricade nel secchio a testa in giù: la coda appena sopra il bordo, quasi tutto già dentro
+        bx, by, bz = boat.BUCKET_POS
+        coda = np.array((bx - 0.04, by - 0.04, bz + 0.285 + 0.30 * (1.0 - f['pesce'])), F)
+        pesce = (loc(coda), tuple(W(Mi.to_3x3().to_4x4(), (0.1, 0.05, -1.0))))
+    sposta = Mi @ M
+    rit = {'capo': capo, 'baffi': (tuple(vv), giu, lunghi), 'pesce': pesce,
+           'fisso': lambda p: np.array(sposta @ Vector(tuple(map(float, p))), F)}
+    kw = dict(kw, reach=reach, feet=feet, grip=grip)
+    LAST_M[f'robin_ritirata_{k}'] = Mk
+    return place(ro.build(**kw, fish=False, palpebre=palpebre, aggrotta=aggrotta, ritirata=rit), Mk)
 
 
 # ───────────────────────── notte 3 ─────────────────────────

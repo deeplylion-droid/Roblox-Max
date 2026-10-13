@@ -630,8 +630,9 @@ def job_creature(q):
                 yaw = yaw_center(dense_points(meshes))
                 log(f'{key}: lo strato {base} non c\'è, centro dalla creatura intera', round(yaw, 4))
         rect_objs = scegli(vis, opts['riquadro']) if opts.get('riquadro') else None
+        # CAMPIONI=n per le anteprime veloci (i finali restano coi campioni della qualità)
         entry = render_sprite(q, key, vis, space=space, sea=sea, extra=extra or None, holdout=masks, yaw=yaw,
-                              rect_objs=rect_objs)
+                              rect_objs=rect_objs, samples=campioni(q))
         fatti[key] = entry['yaw']
         if not base:
             # dove il mare la taglia (le toppe usano quella dello strato su cui vanno)

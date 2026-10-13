@@ -27,6 +27,7 @@ import { Sonar } from './sonar.ts';
 import { VIVO_DI, Vivi } from './vivi.ts';
 import { Paura } from './paura.ts';
 import { Rod } from './rod.ts';
+import { ROBIN_FUGA_KEY, robinFrame, robinFugaFrames, robinStep } from './ritirata.ts';
 import { ROD_COLORS } from './rod_colori.ts';
 import type { Stage } from './stage.ts';
 
@@ -329,10 +330,12 @@ export class Night {
   private reelByPad = false;
   private hoverTarget: Target = null;
   // stato visivo (morbido)
-  private v = { gSale: 0, gRise: 0, gPret: 0, mR: 0, mL: 0, hRise: 0, robin: 0, robinFear: 0, robinBlink: 0,
+  private v = { gSale: 0, gRise: 0, gPret: 0, mR: 0, mL: 0, hRise: 0, robin: 0, robinGo: 1, robinFear: 0, robinBlink: 0,
     gJaw: 0, gJawPhase: 0, gJawAmp: 0, mBlink1: 0, mBlink2: 0, hMouth: 0, hMouthT: 99, aRise: 0, aHornT: 0, aHornHalf: 0, aHornFull: 0, aFiato: 0, lRise: 0, lMouth: 0, lMouthT: 0, lClimb: 0,
     fRise: 0, fBow: 0, fStern: 0, fHead: 0, fHeadT: 1, fFlash: 0, fBreath: 0, fApp: 0, fRow: 0, mCalm: 0, mLift: 0, mdRise: 0, tarp: 0, toy: 0, toyX: -1, dawn: 0, rock: 0, dark: 0 };
   private gulpyDive = 0;
+  /** i fotogrammi della ritirata di Robin nel manifest (0: svanisce come prima; ritirata.ts) */
+  private robinFuga = 0;
   /** quando è cominciata l'abboccata in corso (per il suggerimento nelle notti di Lampy) */
   private biteAt = -1;
   private js: { killer: MonsterId | 'mother' | 'quota'; t: number; yaw: number; scream: Voice | null } | null = null;
@@ -434,6 +437,7 @@ export class Night {
     this.bowAt = dirPos(L[POSE.gulpyPretende]?.yaw ?? -20, 2.8, 6);
     if (L[POSE.mollyRight]) YAW.mollyRight = L[POSE.mollyRight]!.yaw;
     if (L[POSE.mollyLeft]) YAW.mollyLeft = L[POSE.mollyLeft]!.yaw;
+    this.robinFuga = robinFugaFrames((k) => !!L[k]);
     const st = d.stage;
     st.view.yaw = st.view.targetYaw = 12;
     st.view.hfov = 90;
@@ -1621,11 +1625,11 @@ export class Night {
     v.fFlash = Math.max(0, v.fFlash - dt / 1.1);
     v.fBreath += dt / FANGY_BREATH[Math.min(FANGY_BREATH.length - 1, fg?.heard ?? 0)]!;
 
-    // Robin: sale dal mare sul bordo mentre arriva e ruba; scacciato scivola giù in mare. La luce in faccia cresce
-    // mentre lo scacci, e se ne va ancora abbagliato
+    // Robin: sale dal mare sul bordo mentre arriva e ruba; scacciato si ritira oltre il bordo (i fotogrammi della
+    // ritirata) e scivola giù in mare. La luce in faccia cresce mentre lo scacci, e se ne va ancora abbagliato
     const rb = sim.robin;
     const robinT = rb && (rb.present || rb.state === 'attack') ? 1 : 0;
-    v.robin = toward(v.robin, robinT, 1.2, 0.7, dt);
+    ({ p: v.robin, go: v.robinGo } = robinStep(v.robin, v.robinGo, robinT, dt, this.robinFuga));
     const fearT = rb ? (rb.state === 'fleeing' ? 1 : rb.present ? rb.fear : 0) : 0;
     v.robinFear = approach(v.robinFear, fearT, 10, dt);
     v.robinBlink = this.blinker('robin', dt, [2.5, 6]);
@@ -1690,7 +1694,10 @@ export class Night {
       if (!this.d.assets.jumpscares[this.js.killer]) {
         if (this.js.killer === 'gulpy') v.gPret = 1;
         else if (this.js.killer === 'hatch') v.hRise = 1;
-        else if (this.js.killer === 'robin') v.robin = 1;
+        else if (this.js.killer === 'robin') {
+          v.robin = 1;
+          v.robinGo = 0;
+        }
         else if (this.js.killer === 'archie') v.aRise = 1;
         else if (this.js.killer === 'lampy') v.lRise = 1;
         else if (this.js.killer === 'fangy') v.fRise = 1;
@@ -2150,9 +2157,15 @@ export class Night {
     const light: [number, number, number] = [1, 1, 1 + 2.2 * f];
     const squint = smooth01(f * 1.6);
     // per Robin le mani che mollano la presa non bastano: dentro la barca ha mezzo corpo (testa, braccio nel secchio,
-    // zampe) e ritirandolo tutto a mano si spezzerebbe in pezzi. Quello che sta sopra la barca svanisce sul posto ma in
-    // un lampo (tre o quattro fotogrammi), finché non c'è un'animazione renderizzata della ritirata
+    // zampe) e ritirandolo tutto a mano si spezzerebbe in pezzi. Scacciato si ritira oltre il bordo coi fotogrammi
+    // renderizzati della fuga (ritirata.ts), con gli occhi strizzati; nell'ultimo niente sta più davanti alla barca e
+    // da lì scende dietro lo scafo. Senza i fotogrammi, quello che sta sopra la barca svanisce in un lampo
     const robin = { p: v.robin, hands: 0.92, out: -0.45, handsStay: true, recoil, light };
+    const fuga = robinFrame(v.robinGo, this.robinFuga);
+    if (fuga > 0) {
+      out.push({ key: ROBIN_FUGA_KEY(fuga), ...robin });
+      return out;
+    }
     out.push({ key: POSE.robin, ...robin });
     out.push({ key: POSE.robinSquint, ...robin, opacity: squint });
     // ogni tanto sbatte gli occhi (non quando li strizza nella luce)

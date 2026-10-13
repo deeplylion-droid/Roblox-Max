@@ -240,17 +240,19 @@ def testa(turn, pitch, viewer):
     return preso['fr'], preso['hf'], preso['cut'], preso['attrs'], pezzi
 
 
-def baffi(fr, verso):
+def baffi(fr, verso, giu=1.0, lunghi=1.0):
     """I baffi del pesce gatto, con le radici della tavola: i due lunghi dagli angoli della bocca scendono e
     piegano verso il secchio ('verso': orizzontale), come se il pesce lo sentissero col gusto; i quattro corti
-    sotto il mento pendono e piegano appena."""
+    sotto il mento pendono e piegano appena. Nella ritirata (scena_creature.robin_ritirata) i baffi lunghi restano
+    indietro: 'giu' scala quanto scendono (negativo: salgono, la testa va giù più in fretta di loro), 'lunghi' quanto
+    si allungano verso 'verso'. A 1 e 1 sono quelli di sempre."""
     verso = orizz(verso)
     bb, pts = [], []
     for s in (-1, 1):
         r = fr.pt((s * 0.118, -0.104, -0.034))
         p = [r, r + fr.dir((s * 0.040, -0.045, 0.0)) + V(0, 0, -0.035)]
         for a_, b_ in ((0.025, 0.075), (0.05, 0.08), (0.065, 0.07), (0.07, 0.05), (0.06, 0.025), (0.035, -0.012)):
-            p.append(p[-1] + verso * a_ + V(0, 0, -b_))
+            p.append(p[-1] + verso * (a_ * lunghi) + V(0, 0, -b_ * giu))
         f, cp = T.tubo(p, 0.0085, 0.0022, n=6)
         bb.append(f)
         pts.append(cp)
@@ -563,7 +565,7 @@ def biglietti(A, P):
     scavalca il capodibanda accanto alla mano e scende lungo la fiancata di dentro."""
     sh, e1, e2, wr = A['lungo']
     sh2, el2, wr2 = A['altro']
-    bk = V(*P['bucket'])
+    bk = V(*P.get('capo') or P['bucket'])           # dove pende il capo libero (nella ritirata non è più nel secchio)
     C = curve_braccia(A)
     out_P, out_W = [], []
 
@@ -619,6 +621,19 @@ def giu_pesce(A, P):
     return unit(V(0, 0, -1) + orizz(V(*P['bucket']) - A['fist']) * 0.25)
 
 
+def pesce_caduto(P, coda, giu):
+    """Il pesce che Robin lascia cadere nel secchio scappando (coda, giu: dove sta la coda e il verso verso la
+    testa, coordinate locali): lo stesso pesce di pesce_rubato, che scivola dentro."""
+    import boat
+    view = orizz(V(*P['viewer']) - V(*coda))
+    dorso = unit(np.cross(view, V(0, 0, 1)))
+    obs = T.pesce('StolenFish', V(*coda), unit(V(*giu)), L=PESCE_L, dorso=tuple(dorso))
+    obs[0].data.materials[0] = boat.fish_material()
+    for o in obs:
+        o.name = o.name.replace('Eye', 'Occhio')
+    return obs
+
+
 def pesce_rubato(A, P):
     """Il pesce appena tirato fuori dal secchio, preso per la coda: pende a testa in giù sopra la bocca del
     secchio, col fianco verso il pescatore. Ha la pelle dei pesci del secchio (boat.fish_material), argentata a
@@ -636,9 +651,11 @@ def pesce_rubato(A, P):
     return obs
 
 
-def melma(A, P, pesce=True):
+def melma(A, P, pesce=True, fisso=None):
     """Melma vera (rossa): gocce dalle dita e dal pesce, una pozza sul capodibanda sotto la pancia, colature
-    che pendono dallo spigolo di dentro del bordo."""
+    che pendono dallo spigolo di dentro del bordo. fisso: per la ritirata (Robin si sposta, la pozza e le colature
+    restano sulla barca) porta i punti della posa di gioco dove sono ora, in coordinate locali; senza, restano lì."""
+    fisso = fisso or (lambda p: p)
     rng = np.random.default_rng(21)
     fili, gocce = [], []
     for _, pts in A['rays']:
@@ -654,8 +671,9 @@ def melma(A, P, pesce=True):
     # sotto la pancia: colature dallo spigolo di dentro del capodibanda
     c = V(0, 0, GUN)
     for t in (-0.10, -0.03, 0.06):
-        gocce.append((c + lg * t + dn * 0.046 + V(0, 0, -0.012), rng.uniform(0.04, 0.09)))
+        gocce.append((fisso(c + lg * t + dn * 0.046 + V(0, 0, -0.012)), rng.uniform(0.04, 0.09)))
     obs = [T.bava('RobinSlimeDrops', fili=fili, gocce=gocce)]
+    c = fisso(c)
     pool = D.ellipsoid_rot(c + V(0, 0, 0.0005), (0.16, 0.034, 0.0025), np.stack([lg, dn, V(0, 0, 1)], axis=1).astype(F))
     obs.append(T.fine('RobinSlimePool', pool, [np.array([c - 0.18, c + 0.18], F)], T.melma_rossa(), pad=0.02, res=0.0012))
     return obs
@@ -663,7 +681,8 @@ def melma(A, P, pesce=True):
 
 # ───────────────────────── costruzione ─────────────────────────
 
-def build(viewer=None, bucket=None, reach=None, feet=None, grip=None, lungo=None, fish=True, palpebre=0.0, aggrotta=0.0):
+def build(viewer=None, bucket=None, reach=None, feet=None, grip=None, lungo=None, fish=True, palpebre=0.0, aggrotta=0.0,
+          ritirata=None):
     """Robin nella posa del secchio, in coordinate locali. viewer: dove guardano gli occhi e verso cui si gira la
     testa; bucket: il centro della bocca del secchio; reach: dove la mano stringe il pesce; feet: le punte
     delle sei zampe (tre per lato: davanti, in mezzo, dietro; prima il lato −X); grip: dove l'altra mano si
@@ -671,7 +690,10 @@ def build(viewer=None, bucket=None, reach=None, feet=None, grip=None, lungo=None
     pesce. Gli occhi sono gli oggetti 'RobinEye0' e 'RobinEye1'.
     Le espressioni: palpebre = 0 gli occhi aperti, 1 chiusi (le palpebre 'RobinLid0' e 'RobinLid1', della pelle,
     scendono sugli occhi; vedi palpebre_obj); aggrotta = 0..1 le arcate sopra gli occhi scendono aggrottate (nella
-    pelle della testa, 'RobinHead'; vedi arcate_moto). A 0 non si aggiunge e non si sposta niente."""
+    pelle della testa, 'RobinHead'; vedi arcate_moto). A 0 non si aggiunge e non si sposta niente.
+    ritirata: i fotogrammi della fuga (scena_creature.robin_ritirata), un dizionario con 'capo' (dove pende il capo
+    libero dei biglietti), 'baffi' ((verso, giu, lunghi), vedi baffi()), 'pesce' (None, o (coda, giu) del pesce che
+    cade nel secchio) e 'fisso' (vedi melma()). Senza: la posa di sempre."""
     P = dict(POSA)
     for k, v in (('viewer', viewer), ('bucket', bucket), ('reach', reach), ('feet', feet), ('grip', grip), ('lungo', lungo)):
         if v is not None:
@@ -685,7 +707,11 @@ def build(viewer=None, bucket=None, reach=None, feet=None, grip=None, lungo=None
     pitch = -max(-5.0, min(22.0, elev * 0.85))
     fr, hf, cut, attrs, obs = testa(turn, pitch, vw)
     occhi = [o for o in obs if o.name.split('.')[0] in ('RobinEye0', 'RobinEye1')]
-    obs.append(baffi(fr, V(*P['bucket']) - HEAD))
+    R = ritirata or {}
+    if R.get('capo') is not None:
+        P['capo'] = R['capo']
+    bv, bg, bl = R.get('baffi') or (V(*P['bucket']) - HEAD, 1.0, 1.0)
+    obs.append(baffi(fr, V(*bv), giu=bg, lunghi=bl))
     f = sdf.subtract(corpo(hf, A), sdf.union(T.gills(), cut), k=0.005)
     a = attributi(fr, A)
     a.update(attrs)
@@ -702,9 +728,11 @@ def build(viewer=None, bucket=None, reach=None, feet=None, grip=None, lungo=None
         obs.insert(0, ob)
     obs += ventagli()
     obs += biglietti(A, P)
-    if fish:
+    if R.get('pesce') is not None:
+        obs += pesce_caduto(P, *R['pesce'])
+    elif fish:
         obs += pesce_rubato(A, P)
-    obs += melma(A, P, pesce=fish)
+    obs += melma(A, P, pesce=fish, fisso=R.get('fisso'))
     if palpebre > 0:
         obs += palpebre_obj(fr, occhi, palpebre, a)
     return obs
