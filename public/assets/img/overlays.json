@@ -675,7 +675,43 @@
      "file": "js_madre_07.webp",
      "scale": 0.25
     }
-   ]
+   ],
+   "senza": {
+    "frames": [
+     {
+      "file": "js_madre_00_senza.webp",
+      "scale": 0.25
+     },
+     {
+      "file": "js_madre_01_senza.webp",
+      "scale": 0.25
+     },
+     {
+      "file": "js_madre_02_senza.webp",
+      "scale": 0.25
+     },
+     {
+      "file": "js_madre_03_senza.webp",
+      "scale": 0.25
+     },
+     {
+      "file": "js_madre_04_senza.webp",
+      "scale": 0.25
+     },
+     {
+      "file": "js_madre_05_senza.webp",
+      "scale": 0.25
+     },
+     {
+      "file": "js_madre_06_senza.webp",
+      "scale": 0.25
+     },
+     {
+      "file": "js_madre_07_senza.webp",
+      "scale": 0.25
+     }
+    ]
+   }
   },
   "molly": {
    "aspect": 1.7778,
