@@ -172,6 +172,7 @@ e i jumpscare resi con l'atmosfera. Le immagini di prima restano la serie `senza
 | Robin | robin_secchio, robin_strizza, robin_chiusi | sagome uguali (1-15 pixel); luna 0,4-0,5 |
 | Archie | archie_soffia, archie_fiato, archie_trombetta_mezza, archie_trombetta_tutta | sagome uguali (0-2 pixel); luna 0,55-0,6 |
 | Lampy | lampy_lenza, lampy_bocca_chiusa, lampy_bocca_aperta | sagome uguali (2-4 pixel); luna 0,5-0,55 |
+| Fangy | fangy_ascolta, fangy_testa_prua, fangy_testa_poppa | sagome uguali (3 pixel); luna 0,25-0,4, lanterna 1,2-1,35; a luce spenta lo mostrano le lucine del motore (posizioni invariate) |
 
 ## Cosa cambiare nel motore (scritto prima del lavoro sul motore: vedi sopra)
 

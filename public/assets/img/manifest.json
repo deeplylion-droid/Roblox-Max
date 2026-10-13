@@ -753,6 +753,25 @@
     4507,
     1717
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "fangy_ascolta_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "fangy_ascolta_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "fangy_ascolta_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
    "space": "world",
    "yaw": 111.7937
   },
@@ -1111,6 +1130,25 @@
     4507,
     1717
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "fangy_testa_poppa_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "fangy_testa_poppa_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "fangy_testa_poppa_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
    "space": "world",
    "yaw": 111.7937
   },
@@ -1469,6 +1507,25 @@
     4507,
     1717
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "fangy_testa_prua_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "fangy_testa_prua_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "fangy_testa_prua_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
    "space": "world",
    "yaw": 111.7937
   },
