@@ -742,8 +742,8 @@
    },
    "find": {
     "lore": "den_lampy",
-    "yaw": 3.2,
-    "pitch": -11.8,
+    "yaw": 3.4,
+    "pitch": -9.8,
     "r": 5
    },
    "acquaCotta": true
