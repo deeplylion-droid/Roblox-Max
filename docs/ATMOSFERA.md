@@ -183,6 +183,7 @@ e i jumpscare resi con l'atmosfera. Le immagini di prima restano la serie `senza
 | Jumpscare di Hatch | js_hatch_00..07 | stesse inquadrature; luce media 0,76-0,94 di prima |
 | Jumpscare di Archie | js_archie_00..07 | stesse inquadrature e movimento; luce media 0,28-0,57 di prima (lampara spenta: resta la luna, come nel mondo con la nebbia, 0,36); sfondo velato, montagne quasi nella nebbia, niente alone; Archie da vicino 0,55-0,57 |
 | Jumpscare di Lampy | js_lampy_00..07 | stesse inquadrature e movimento; luce media 0,60-0,65 di prima nei primi fotogrammi (quasi tutta lago e cielo velati), 0,90-1,01 da vicino; luna e riflessi più morbidi, niente alone |
+| Jumpscare di Fangy | js_fangy_00..07 (1920×1080, 64 campioni) | stesse inquadrature e movimento; luce media 0,76-0,79 di prima (la luna più bassa); sfondo velato, alone della lampara leggero, lucine e zanne leggibili |
 
 ## Cosa cambiare nel motore (scritto prima del lavoro sul motore: vedi sopra)
 

@@ -299,13 +299,49 @@
     },
     {
      "file": "js_fangy_06.webp",
-     "scale": 0.35000000000000003
+     "scale": 0.33
     },
     {
      "file": "js_fangy_07.webp",
-     "scale": 0.41000000000000003
+     "scale": 0.4
     }
-   ]
+   ],
+   "senza": {
+    "frames": [
+     {
+      "file": "js_fangy_00_senza.webp",
+      "scale": 0.25
+     },
+     {
+      "file": "js_fangy_01_senza.webp",
+      "scale": 0.25
+     },
+     {
+      "file": "js_fangy_02_senza.webp",
+      "scale": 0.25
+     },
+     {
+      "file": "js_fangy_03_senza.webp",
+      "scale": 0.25
+     },
+     {
+      "file": "js_fangy_04_senza.webp",
+      "scale": 0.25
+     },
+     {
+      "file": "js_fangy_05_senza.webp",
+      "scale": 0.25
+     },
+     {
+      "file": "js_fangy_06_senza.webp",
+      "scale": 0.35000000000000003
+     },
+     {
+      "file": "js_fangy_07_senza.webp",
+      "scale": 0.41000000000000003
+     }
+    ]
+   }
   },
   "foxy": {
    "aspect": 1.7778,
