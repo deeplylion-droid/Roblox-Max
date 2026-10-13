@@ -185,6 +185,10 @@ quando la pagina Steam ci sarà (`STEAM_URL` in `src/app/app.ts`), il pulsante d
 nella demo non c'è (nemmeno con le scorciatoie). Si costruisce dal workflow `build` con `ultima_notte` = 2 e le
 scorciatoie spente. Il piano dei passi è nella pagina «Splashland su Steam». Tutti gli asset sono generati da script nel repository (`tools/`).
 
+**La pagina Steam** (13 ottobre): le immagini (capsule, libreria, 8 screenshot), scelte e approvate dall'utente (Molly
+che si affaccia dal bordo, col logo al neon), e i testi da approvare (descrizioni in italiano e inglese, lingue,
+requisiti, questionario sui contenuti) sono in `steam/`, fuori dal gioco: vedi `steam/LEGGIMI.md` e `steam/PAGINA.md`.
+
 ### Controller e Steam Deck
 
 (12 ottobre, approvato il 13 ottobre.) Tutto il gioco si gioca col controller, senza mai toccare mouse o tastiera: la
