@@ -779,7 +779,7 @@
     },
     {
      "file": "js_robin_05.webp",
-     "scale": 5.2
+     "scale": 5.5
     },
     {
      "file": "js_robin_06.webp",
@@ -789,7 +789,43 @@
      "file": "js_robin_07.webp",
      "scale": 6.0
     }
-   ]
+   ],
+   "senza": {
+    "frames": [
+     {
+      "file": "js_robin_00_senza.webp",
+      "scale": 6.0
+     },
+     {
+      "file": "js_robin_01_senza.webp",
+      "scale": 6.0
+     },
+     {
+      "file": "js_robin_02_senza.webp",
+      "scale": 6.0
+     },
+     {
+      "file": "js_robin_03_senza.webp",
+      "scale": 6.0
+     },
+     {
+      "file": "js_robin_04_senza.webp",
+      "scale": 6.0
+     },
+     {
+      "file": "js_robin_05_senza.webp",
+      "scale": 5.2
+     },
+     {
+      "file": "js_robin_06_senza.webp",
+      "scale": 6.0
+     },
+     {
+      "file": "js_robin_07_senza.webp",
+      "scale": 6.0
+     }
+    ]
+   }
   }
  },
  "tarp": {
