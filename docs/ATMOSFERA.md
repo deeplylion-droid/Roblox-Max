@@ -151,9 +151,11 @@ e i jumpscare resi con l'atmosfera. Le immagini di prima restano la serie `senza
   senza nebbia (4 campioni). Poi lo sfondo si ripulisce (`_liscia_sfondo`, 13 ottobre, segnalazione sul jumpscare di
   Gulpy: il mare vicino sembrava una superficie granulosa arancio-grigia): fuori dalla barca i passi `lamp` e
   `lantern` prendono la media dell'intorno (mezzo grado, solo sui pixel fuori dalla barca), tranne i riflessi veri,
-  come liscia_nebbia.py col mondo; sulla barca una mediana 5×5. Si rifà senza rendere con `JS_RIPRENDI=1` (riusa
-  sfondo, copertura e fotogrammi della cache). Resta una grana fine sullo scafo (la nebbia davanti alla barca), da
-  sistemare. I fotogrammi nuovi sono 1920×1080; quelli della serie senza di Gulpy, Molly e Hatch erano 960×540.
+  come liscia_nebbia.py col mondo. Sulla barca la nebbia davanti allo scafo è la differenza con lo sfondo reso senza la
+  nebbia (`<chi>_bg_chiaro.exr`, 10 minuti): si liscia quella e si rimette sopra lo scafo pulito, così le coste restano
+  nitide. Con `JS_RIPRENDI=1` si rifà riusando sfondo, copertura e fotogrammi della cache (rende solo lo sfondo
+  chiaro, se manca); `tools/render/rimetti_jumpscare.py` rimette nel gioco i fotogrammi ricomposti quando la serie
+  senza c'è già. I fotogrammi nuovi sono 1920×1080; quelli della serie senza di Gulpy, Molly e Hatch erano 960×540.
 - **Installazione**: `tools/render/mostri_due_serie.py <cartella dei render> <repository> --mostri gulpy,molly
   --strati fish2,… --jumpscare gulpy,…`. Come atmosfera_due_serie.py: la prima volta i file di adesso diventano
   `<nome>_senza.webp` (strati: `layers.<chiave>.senza.passes`; jumpscare: `jumpscares.<chi>.senza.frames`), poi
