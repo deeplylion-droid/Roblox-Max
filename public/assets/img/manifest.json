@@ -2008,6 +2008,25 @@
     4215,
     919
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "lampy_bocca_aperta_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "lampy_bocca_aperta_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "lampy_bocca_aperta_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
    "space": "boat",
    "yaw": 44.2118
   },
@@ -2036,6 +2055,25 @@
     4215,
     892
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "lampy_bocca_chiusa_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "lampy_bocca_chiusa_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "lampy_bocca_chiusa_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
    "space": "boat",
    "yaw": 44.2118
   },
@@ -2075,6 +2113,25 @@
     4436,
     1065
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "lampy_lenza_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "lampy_lenza_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "lampy_lenza_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
    "space": "boat",
    "yaw": 44.2118
   },
