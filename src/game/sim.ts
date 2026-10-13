@@ -12,9 +12,49 @@ export type HideState = 'out' | 'goingIn' | 'in' | 'goingOut';
 
 /** Opzioni della notte che vengono da fuori (dall'alba prima). */
 export interface NightOptions {
-  /** il mostro sfamato all'alba (immersione): ha mangiato e dorme tutta la notte, non parte mai. Il mostro nuovo
-   *  della notte non si può sfamare (canFeed): in quel caso l'opzione non conta */
+  /** il mostro sfamato all'alba (immersione): ha mangiato e dorme tutta la notte, non arriva mai; la regia però lo
+   *  conta lo stesso (NightSim.fantasma). Il mostro nuovo della notte non si può sfamare (canFeed): in quel caso
+   *  l'opzione non conta */
   fed?: MonsterId | null;
+}
+
+/** Le creature che la regia fa partire (la Madre e il Foxy no). */
+type Creatura = Gulpy | Molly | Hatch | Robin | Archie | Lampy | Fangy;
+
+/** La creatura è «in scena» per la regia: chi non viene insieme a lei aspetta. */
+function inScena(m: Creatura | null): boolean {
+  if (!m) return false;
+  if (m instanceof Gulpy) return m.present || m.state === 'leaving';
+  if (m instanceof Molly) return m.state === 'knocking' || m.present;
+  if (m instanceof Archie) return m.present || m.state === 'diving';
+  if (m instanceof Lampy) return m.present || m.state === 'lurking';
+  if (m instanceof Fangy) return m.present || m.state === 'approaching';
+  return m.present;
+}
+
+/** La lenza del fantasma di Lampy (vedi NightSim.fantasma): fa la sua visita intera senza toccare quella vera. */
+const LENZA_SOGNATA: LampyLine = { waiting: true, held: true, grab: () => true, release: () => {} };
+
+/** Una creatura nuova per la notte, con la sua pausa fra una visita e l'altra (null se stanotte non c'è). */
+function nuovaCreatura(who: MonsterId, cfg: NightConfig): { m: Creatura; pausa: [number, number] } | null {
+  switch (who) {
+    case 'gulpy':
+      return { m: new Gulpy(cfg.gulpy), pausa: cfg.gulpy.cooldown };
+    case 'molly':
+      return { m: new Molly(cfg.molly), pausa: cfg.molly.cooldown };
+    case 'hatch':
+      return { m: new Hatch(cfg.hatch), pausa: cfg.hatch.cooldown };
+    case 'robin':
+      return cfg.robin ? { m: new Robin(cfg.robin), pausa: cfg.robin.cooldown } : null;
+    case 'archie':
+      return cfg.archie ? { m: new Archie(cfg.archie), pausa: cfg.archie.cooldown } : null;
+    case 'lampy':
+      return cfg.lampy ? { m: new Lampy(cfg.lampy), pausa: cfg.lampy.cooldown } : null;
+    case 'fangy':
+      return cfg.fangy ? { m: new Fangy(cfg.fangy), pausa: cfg.fangy.cooldown } : null;
+    case 'foxy':
+      return null;
+  }
 }
 
 /**
@@ -77,6 +117,19 @@ export class NightSim {
   private world: WorldView;
   /** il mostro sfamato all'alba, che stanotte dorme (NightOptions.fed) */
   readonly asleep: MonsterId | null;
+  /**
+   * Il mostro che dorme conta lo stesso per la regia (deciso dall'utente il 13 ottobre: «il mostro rimosso viene
+   * comunque conteggiato nei tempi di spawn, ma durante il suo tempo non arriva»). Una sua copia che non si vede e
+   * non si sente segue i suoi tempi: parte quando partirebbe lui (e dopo di lei gli altri aspettano la solita pausa),
+   * tiene lontani quelli che non vengono insieme a lui, e finita la visita se ne va. Al pescatore non fa niente:
+   * quando arriverebbe a prenderlo se ne va e basta. Così la notte ha lo stesso ritmo, con i suoi arrivi vuoti; prima
+   * gli altri si prendevano i suoi turni (sfamare Archie nella notte 4 faceva arrivare Lampy più spesso).
+   */
+  private readonly fantasma: Creatura | null;
+  /** la sua pausa fra una visita e l'altra (la stessa del mostro vero) */
+  private readonly fantasmaPausa: [number, number] = [0, 0];
+  /** il mondo per il fantasma: lo stesso, ma quello che fa non si sente e la regia lo lascia partire */
+  private readonly fantasmaWorld: WorldView;
 
   constructor(
     readonly cfg: NightConfig,
@@ -127,6 +180,15 @@ export class NightSim {
         this.lastStart = this.time;
       },
     };
+    // il fantasma legge lo stesso mondo (anche i campi che update() aggiorna a ogni passo), ma non si sente e la regia
+    // lo fa partire con le regole di tutti
+    const fw = Object.create(this.world) as WorldView;
+    fw.emit = () => {};
+    fw.mayStart = (who) => this.mayStart(who, false, true);
+    this.fantasmaWorld = fw;
+    const sogno = this.asleep ? nuovaCreatura(this.asleep, cfg) : null;
+    this.fantasma = sogno?.m ?? null;
+    if (sogno) this.fantasmaPausa = sogno.pausa;
   }
 
   get hidden(): boolean {
@@ -355,6 +417,7 @@ export class NightSim {
     this.archie?.update(dt, w);
     this.lampy?.update(dt, w, this.lampyLine);
     this.fangy?.update(dt, w);
+    if (this.fantasma) this.updateFantasma(dt, this.fantasma);
     if (this.mother) this.updateMother(dt, w);
     this.foxy?.update(dt, w);
     // il mulinello mentre recuperi (Fangy)
@@ -438,6 +501,26 @@ export class NightSim {
     this.archie?.retreat(w);
     this.lampy?.retreat(w, this.lampyLine);
     this.fangy?.retreat(w);
+    // anche il fantasma del mostro che dorme
+    const g = this.fantasma;
+    if (g instanceof Molly) g.retreat();
+    else if (g instanceof Lampy) g.retreat(this.fantasmaWorld, LENZA_SOGNATA);
+    else g?.retreat(this.fantasmaWorld);
+  }
+
+  /** Il fantasma del mostro che dorme fa la sua visita (vedi fantasma). */
+  private updateFantasma(dt: number, g: Creatura): void {
+    const fw = this.fantasmaWorld;
+    if (g instanceof Hatch) g.update(dt, fw, { hidden: this.hidden });
+    // nel secchio del fantasma non c'è niente da rubare: la visita dura la salita e il primo tentativo
+    else if (g instanceof Robin) g.update(dt, fw, { fish: 0, take: () => {} });
+    else if (g instanceof Lampy) g.update(dt, fw, LENZA_SOGNATA);
+    else g.update(dt, fw);
+    // quando arriverebbe a prenderti se ne va, come dopo una visita
+    if (g.state === 'attack') {
+      g.state = 'away';
+      g.timer = this.rng.range(this.fantasmaPausa[0], this.fantasmaPausa[1]) / this.activity;
+    }
   }
 
   /**
@@ -507,30 +590,31 @@ export class NightSim {
 
   /** la creatura è "in scena" (per le regole di esclusione della regia) */
   active(who: MonsterId): boolean {
+    // il Foxy sta nel suo posto per tutta la notte: non ferma gli altri
+    if (who === 'foxy') return false;
+    // il mostro che dorme: conta il suo fantasma
+    if (who === this.asleep) return inScena(this.fantasma);
     switch (who) {
       case 'gulpy':
-        return this.gulpy.present || this.gulpy.state === 'leaving';
+        return inScena(this.gulpy);
       case 'molly':
-        return this.molly.state === 'knocking' || this.molly.present;
+        return inScena(this.molly);
       case 'hatch':
-        return this.hatch.present;
+        return inScena(this.hatch);
       case 'robin':
-        return this.robin?.present ?? false;
+        return inScena(this.robin);
       case 'archie':
-        return (this.archie?.present ?? false) || this.archie?.state === 'diving';
+        return inScena(this.archie);
       case 'lampy':
-        return (this.lampy?.present ?? false) || this.lampy?.state === 'lurking';
+        return inScena(this.lampy);
       case 'fangy':
-        return (this.fangy?.present ?? false) || this.fangy?.state === 'approaching';
-      case 'foxy':
-        // sta nel suo posto per tutta la notte: non ferma gli altri
-        return false;
+        return inScena(this.fangy);
     }
   }
 
-  private mayStart(who: MonsterId, ignoreGap = false): boolean {
-    // sfamato all'alba: dorme nella sua tana tutta la notte
-    if (who === this.asleep) return false;
+  private mayStart(who: MonsterId, ignoreGap = false, fantasma = false): boolean {
+    // sfamato all'alba: dorme nella sua tana tutta la notte (parte solo il suo fantasma, con le regole di tutti)
+    if (who === this.asleep && !fantasma) return false;
     if (!ignoreGap && this.time - this.lastStart < this.cfg.minGapBetweenStarts) return false;
     for (const [a, b] of this.cfg.exclusive) {
       if (who === a && this.active(b)) return false;

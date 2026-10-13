@@ -1173,6 +1173,68 @@ describe('Immersioni all’alba: il mostro sfamato', () => {
     expect(started(ev, 'molly') || started(ev, 'robin')).toBe(true);
   });
 
+  it('il suo tempo resta (13 ottobre): il fantasma parte quando partirebbe lui, ma non si vede e non si sente', () => {
+    for (const who of ['gulpy', 'molly', 'hatch', 'robin', 'archie', 'lampy', 'fangy'] as const) {
+      const base = ['archie', 'lampy', 'fangy'].includes(who) ? { ...NIGHTS[5]!, night: 6 } : NIGHTS[3]!;
+      const cfg = { ...base, foxy: undefined } as NightConfig;
+      for (const m of ['gulpy', 'molly', 'hatch', 'robin', 'archie', 'lampy', 'fangy'] as const) {
+        const c = (cfg as unknown as Record<string, { firstAt: number } | undefined>)[m];
+        if (m !== who && c) (cfg as unknown as Record<string, unknown>)[m] = { ...c, firstAt: 1e9 };
+      }
+      // quando entra in scena per la regia la prima volta, e se si è mai visto davvero
+      const first = (fed: typeof who | null) => {
+        const sim = new NightSim(cfg, 11, [], { fed });
+        let at = -1;
+        let seen = false;
+        const ev = run(sim, HOUR_SECONDS * 3, (s) => {
+          s.fish = 99;
+          if (at < 0 && s.active(who)) at = s.time;
+          if ((s[who] as { present: boolean }).present) seen = true;
+        });
+        return { at, seen, ev };
+      };
+      const real = first(null);
+      const ghost = first(who);
+      expect(real.at, who).toBeGreaterThan(0);
+      expect(ghost.at, who).toBeCloseTo(real.at, 1);
+      expect(ghost.seen, who).toBe(false);
+      expect(ghost.ev.filter((e) => e.t === who), who).toEqual([]);
+    }
+  });
+
+  it('chi non viene insieme a lui aspetta, e dopo il suo arrivo vuoto c’è la solita pausa', () => {
+    // notte 3: Robin non viene insieme a Hatch, Molly e Archie
+    const cfg = NIGHTS[3]!;
+    const sim = new NightSim(cfg, 21, [], { fed: 'robin' });
+    const bot = new Bot(sim, SKILLS.expert!, 21);
+    const partner = (e: GameEvent) =>
+      (e.t === 'hatch' && (e as { e?: string }).e === 'count') || (e.t === 'molly' && (e as { e?: string }).e === 'knock') ||
+      (e.t === 'archie' && (e as { e?: string }).e === 'rise');
+    const anyStart = (e: GameEvent) => partner(e) || (e.t === 'gulpy' && (e as { e?: string }).e === 'rise');
+    let ghostStarts = 0;
+    let lastGhostStart = -1e9;
+    let was = false;
+    let together = 0;
+    let tooSoon = 0;
+    for (let i = 0; i < 200000 && sim.playing; i++) {
+      bot.step(1 / 30);
+      sim.update(1 / 30);
+      const ev = sim.drainEvents();
+      const now = sim.active('robin');
+      if (now && !was) {
+        ghostStarts++;
+        lastGhostStart = sim.time;
+      }
+      // la prima chiamata di Hatch e il primo colpo di Molly si ripetono: conta solo la partenza (il primo)
+      if (now && was && ev.some(partner)) together++;
+      if (ev.some(anyStart) && sim.time - lastGhostStart < cfg.minGapBetweenStarts - 1e-6 && sim.time > lastGhostStart) tooSoon++;
+      was = now;
+    }
+    expect(ghostStarts).toBeGreaterThan(0);
+    expect(together).toBe(0);
+    expect(tooSoon).toBe(0);
+  });
+
   it('il mostro nuovo della notte non si può sfamare: l’opzione non conta', () => {
     const sim = new NightSim({ ...NIGHTS[2]!, foxy: undefined }, 3, [], { fed: 'robin' });
     expect(sim.asleep).toBeNull();

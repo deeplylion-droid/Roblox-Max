@@ -310,7 +310,8 @@ salvataggio deve quindi ricordare, alba per alba, se sei sceso e se hai lasciato
 - **Render**: il panorama a 360° della grotta grande, l'inquadratura fissa sotto la barca (11 ottobre sera), sette camerette come
   inquadrature fisse larghe abbastanza da girarle di 30° per parte, sette pose addormentate con le loro toppe.
 - **Suoni**: l'ambiente sott'acqua, l'erogatore, il respiro nel sonno di ognuno, le conchiglie di Fangy.
-- **Simulazione**: il mostro sfamato non parte; il bot sfama il più pericoloso; si ribilanciano le notti.
+- **Simulazione**: il mostro sfamato non arriva, ma la regia conta i suoi tempi (il fantasma, 13 ottobre); il bot
+  sfama il più pericoloso.
 
 ## In che ordine
 
@@ -372,17 +373,39 @@ salvataggio deve quindi ricordare, alba per alba, se sei sceso e se hai lasciato
 
 ### La simulazione
 
-- `NightSim` ha un'opzione `fed` (il quarto argomento, `NightOptions`): il mostro sfamato **non parte mai** in tutta
-  la notte (la regia non lo lascia partire, e il sonar non lo annuncia); gli altri vengono come sempre.
+- `NightSim` ha un'opzione `fed` (il quarto argomento, `NightOptions`): il mostro sfamato **non arriva mai** in tutta
+  la notte (non si vede, non si sente, il sonar non lo annuncia, non fa niente al pescatore); gli altri vengono come
+  sempre.
+- **La regia lo conta lo stesso** (deciso dall'utente il 13 ottobre: «il mostro rimosso viene comunque conteggiato
+  nei tempi di spawn, ma durante il suo tempo non arriva»). Una sua copia invisibile, il **fantasma**
+  (`NightSim.fantasma`), segue i suoi tempi: parte quando partirebbe lui, dopo di lei gli altri aspettano la solita
+  pausa (`minGapBetweenStarts`), chi non viene insieme a lui (`exclusive`) aspetta che finisca la sua visita, e
+  quando arriverebbe a prenderti se ne va e basta. Così la notte ha lo stesso ritmo di quella con lui, con i suoi
+  arrivi vuoti; prima gli altri si prendevano i suoi turni. Le notti senza nessuno sfamato non cambiano.
 - `canFeed(notte, mostro)` in `src/game/config.ts`: si sfama chi gira nella notte, **tranne il mostro nuovo** di
   quella notte (la sua tana è vuota); se gli si passa il nuovo, l'opzione non conta. `ARRIVAL` dice in che notte
   arriva ognuno.
 - `npm run sim -- <notte> <partite> --sfama`: per ogni abilità il bot gioca la notte senza aiuti, poi la rigioca
   sfamando il mostro che lo uccide più spesso (se lo uccide solo la quota mancata, Gulpy, che si mangia i pesci).
-  L'effetto è **grande** (200 partite): notte 2, il medio passa dall'81% al 100% e il maldestro dal 58% al 100%
-  sfamando Molly; notte 4, il medio dal 73% all'83% sfamando Gulpy. Attenzione: sfamare un mostro cambia la regia
-  (le coppie che non vengono insieme), e nella quarta notte il maldestro che sfama Archie va **peggio** (dal 51% al
-  45%: Lampy viene più spesso). Le notti si dovranno **ribilanciare** quando le immersioni saranno approvate.
+  Con il fantasma (13 ottobre, 300 partite per abilità, prima → dopo):
+
+  | Notte | Chi | Senza pesce | Sfamato, prima | Sfamato, col fantasma |
+  |---|---|---|---|---|
+  | 2 | medio, Gulpy | 93,7% | 98,3% | 99,0% |
+  | 2 | maldestro, Gulpy | 65,0% | 94,7% | 94,7% |
+  | 3 | maldestro, Gulpy | 44,3% | 81,0% | 81,7% |
+  | 4 | medio, Gulpy | 77,0% | 76,7% | 78,7% |
+  | 4 | maldestro, Archie | 51,7% | **48,3%** | 50,3% |
+  | 5 | medio, Lampy | 81,0% | 90,0% | 93,3% |
+  | 5 | maldestro, Lampy | 53,7% | 70,7% | 63,0% |
+  | 6 | medio, Lampy | 74,0% | 79,7% | 78,0% |
+  | 6 | maldestro, Lampy | 37,7% | 49,3% | 46,3% |
+
+  Sfamare non fa più andare **peggio** (nella quarta notte il maldestro che sfamava Archie perdeva di più: Lampy
+  veniva al suo posto). Nella quinta il maldestro che sfama Lampy vince un po' meno di prima (63% invece di 71%, ma
+  sempre più del 54% senza pesce): ora gli arrivi si accalcano come nella notte vera quando Lampy se ne va, e il
+  Foxy, che il maldestro guarda poco, lo prende più spesso. Gulpy resta il pesce che conta di più: si mangia i pesci
+  della quota.
 
 ### Il salvataggio
 
@@ -471,5 +494,5 @@ sono i segnaposto). Dopo la decisione delle inquadrature fisse: `immersioni_prov
 - I render veri (le grotte le sta facendo un altro lavoro; le camerette e le pose addormentate sono da approvare),
   e le bombole sulla barca all'alba (oggi solo il tasto).
 - Le scoperte delle tane nel diario.
-- Il ribilanciamento delle notti col mostro sfamato; il prototipo con la tana di Gulpy per rivedere l'acqua e i
-  cerchietti.
+- Il prototipo con la tana di Gulpy per rivedere l'acqua e i cerchietti. (Il mostro sfamato ora conta nella regia
+  senza arrivare: vedi «La simulazione».)
