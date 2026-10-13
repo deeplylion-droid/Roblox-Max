@@ -354,7 +354,7 @@ export class Screens {
   }
 
   /**
-   * I titoli di coda, dopo i finali della notte 6: su un fondo nero salgono piano il titolo, «Un gioco di Ettore» e il
+   * I titoli di coda, dopo i finali della notte 6: su un fondo nero salgono piano il titolo, «Un gioco di Ettore Canu» e il
    * ringraziamento (una riga sola, scelta dell'utente del 12 ottobre sera); poi `onDone`. Esc, Invio, Spazio o un
    * clic li saltano.
    * La durata segue la lunghezza (circa 2,6 s a riga), così coi nomi veri resta lo stesso passo.

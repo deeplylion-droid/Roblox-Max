@@ -2,7 +2,7 @@
  * Il Catalogo dei pesci: circa cento specie, tutte ispirate a pesci veri del Mediterraneo e degli abissi,
  * trasformate in cinque famiglie (vedi docs/GDD.md, «Il Catalogo dei pesci»).
  *
- * ⚠️ PROPOSTA DA APPROVARE (notte del 9 ottobre): nomi, descrizioni, rarità e condizioni sono una bozza.
+ * Approvata il 13 ottobre la proposta della notte del 9 ottobre: nomi, descrizioni, rarità e condizioni.
  * docs/CATALOGO.md si rigenera da qui: `npm run catalog`. Le descrizioni inglesi (scritte la notte del 12 ottobre)
  * sono approvate dall'utente il 13 ottobre (se manca quella inglese il gioco mostra quella italiana).
  */
@@ -382,7 +382,7 @@ export const FISH: FishSpecies[] = [
     'It remembers every slaughter, one by one. It only surfaces when the sea is red, and tonight, around the boat, it is.'),
 ];
 
-/** I primi cinque renderizzati, uno per famiglia (da approvare). */
+/** I primi cinque renderizzati, uno per famiglia (approvati il 13 ottobre). */
 export const FISH_PROTOTYPES = ['sgombrato', 'orrata', 'salpa_sfasata', 'trigliocchi', 'barracruda'];
 
 export const FISH_BY_ID: Record<string, FishSpecies> = Object.fromEntries(FISH.map((s) => [s.id, s]));

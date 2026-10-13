@@ -74,11 +74,11 @@ sessione delle grotte (`tools/render/tane.py`, `tools/render/disegni_tane.py`).
 | Lampy | «BENVENUTA! / LUGLIO 2003» | WELCOME! / JULY 2003; il cartoncino della culla «3100 g – 7 / 2003» |
 | Molly | — | la foto sulla sabbia, «6 / 1997» |
 
-Tutte rifatte la notte del 12-13 ottobre e guardate come il giocatore (scelte da approvare: le scritte inglesi o
-neutre e i «!!!»). Il Diario (`LORE_TEXT` in `src/i18n.ts`) descrive ogni cosa da trovare com'è disegnata, in ogni
-lingua. Restano, ma non si leggono nel gioco: il manifesto di Archie dice ancora «FESTA / MAGGIO 1999» nelle immagini
-(nel sorgente è già «PARTY / MAY 1999»); la tana di Fangy non è stata rifatta (nel sorgente «EYES CLOSED!» e «AUGUST»);
-nei disegni già renderizzati l'«IO» di Fangy e le iniziali italiane dei mesi di Archie, piccoli.
+Tutte rifatte la notte del 12-13 ottobre e guardate come il giocatore (scelte approvate il 13 ottobre: le scritte
+inglesi o neutre e i «!!!»). Il Diario (`LORE_TEXT` in `src/i18n.ts`) descrive ogni cosa da trovare com'è disegnata,
+in ogni lingua. Restano, ma non si leggono nel gioco: il manifesto di Archie dice ancora «FESTA / MAGGIO 1999» nelle
+immagini (nel sorgente è già «PARTY / MAY 1999»); la tana di Fangy non è stata rifatta (nel sorgente «EYES CLOSED!» e
+«AUGUST»); nei disegni già renderizzati l'«IO» di Fangy e le iniziali italiane dei mesi di Archie, piccoli.
 
 ### Numeri e date neutri (decisione dell'utente del 13 ottobre)
 

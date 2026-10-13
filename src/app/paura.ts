@@ -1,6 +1,6 @@
 /**
  * Il cuore del pescatore e la tensione nella musica («più paura», idee approvate dall'utente il 12 ottobre; i numeri
- * sono da approvare). Un solo numero, il pericolo (0..1, lo calcola la notte dagli stati dei mostri), guida:
+ * il 13 ottobre). Un solo numero, il pericolo (0..1, lo calcola la notte dagli stati dei mostri), guida:
  * - il battito (cuore_*): dal pericolo 0,15 in su, da 66 a 132 battiti al minuto, sempre più forte; sotto il telone
  *   si sente di più (fuori è tutto ovattato, lui no: è dentro la testa);
  * - il respiro (fiato_*): sempre più corto; quando devi stare immobile (la Madre che passa sotto, Hatch che cerca)

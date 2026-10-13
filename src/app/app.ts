@@ -23,8 +23,8 @@ import type { Stage } from './stage.ts';
 type Mode = 'warning' | 'title' | 'annuncio' | 'intro' | 'night' | 'paused' | 'static' | 'end' | 'dive';
 
 /**
- * L'annuncio dopo «Nuova partita», come l'«Help Wanted» di FNAF (richiesta dell'utente del 12 ottobre; scelto il
- * volantino del parco, da approvare): 3-4 s con una zoomata lenta, si salta col clic. Lo fa tools/render/annuncio.py.
+ * L'annuncio dopo «Nuova partita», come l'«Help Wanted» di FNAF (richiesta dell'utente del 12 ottobre; scelto dall'utente
+ * il volantino del parco): 3-4 s con una zoomata lenta, si salta col clic. Lo fa tools/render/annuncio.py.
  */
 const ANNUNCIO = {
   src: 'assets/img/annuncio/volantino.webp',

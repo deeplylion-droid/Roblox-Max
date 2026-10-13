@@ -2,6 +2,11 @@
 
 Versione 0.1 — obiettivo del primo traguardo: **Notte 1 completa e rifinita** (vertical slice).
 
+> **13 ottobre: approvato tutto il resto.** Con la pagina «Approvazioni di Splashland» l'utente ha approvato tutte le
+> voci che i documenti davano ancora da approvare (86: suoni, jumpscare e mostri con la nebbia, tane, grotte, notti,
+> finali, interfaccia, testi, binocolo, Catalogo). L'unica nota è sui titoli di coda, che ora hanno una riga sola:
+> «Un gioco di Ettore Canu» (la nota: «Metti solo un gioco di Ettore Canu»).
+
 ## 1. Il gioco in una frase
 
 Horror in prima persona a inquadratura fissa (alla *Five Nights at Freddy's*): sei il pescatore di turno in mezzo alla baia. Devi riempire il secchio con la **quota di pesci** entro le 6:00 per sfamare **la Madre**, mentre i suoi figli salgono a bordo: sono i bambini spariti a **Splashland**, il parco acquatico abbandonato alle tue spalle, rapiti da lei e trasformati in mostri. Ognuno vuole qualcosa di diverso.
@@ -34,7 +39,7 @@ Horror in prima persona a inquadratura fissa (alla *Five Nights at Freddy's*): s
 
 Col controller (e sullo Steam Deck) si gioca tutto: la tabella è in «Controller e Steam Deck» (§14).
 
-- **Binocolo — easter egg** (fatto, da approvare): lo alzi con `B` o tenendo premuto il tasto destro; la vista si stringe nei due cerchi e zooma forte (rotella: due livelli di zoom) sui luoghi dell'orizzonte, renderizzati a parte ad alta risoluzione (`tools/render/binocolo.py`: ingresso di Splashland, statua di Mama Marina, ruota panoramica, scivoli, albergo Miramare, edicola votiva, relitto, faro, paese). Le mani tremano appena, ma compensano buona parte del dondolio della barca (così a zoom massimo il dettaglio resta nel cerchio). Mentre guardi nel binocolo non vedi la barca, e **Molly non si sente guardata**. Non si può alzare sotto il telone, col sonar aperto o con un pesce in canna. Non serve a superare la notte: è un easter egg. Alcuni dettagli di lore si vedono solo così, e restano **criptici al massimo** (proposta in `LORE.md`, «Il binocolo»).
+- **Binocolo — easter egg** (fatto, approvato il 13 ottobre): lo alzi con `B` o tenendo premuto il tasto destro; la vista si stringe nei due cerchi e zooma forte (rotella: due livelli di zoom) sui luoghi dell'orizzonte, renderizzati a parte ad alta risoluzione (`tools/render/binocolo.py`: ingresso di Splashland, statua di Mama Marina, ruota panoramica, scivoli, albergo Miramare, edicola votiva, relitto, faro, paese). Le mani tremano appena, ma compensano buona parte del dondolio della barca (così a zoom massimo il dettaglio resta nel cerchio). Mentre guardi nel binocolo non vedi la barca, e **Molly non si sente guardata**. Non si può alzare sotto il telone, col sonar aperto o con un pesce in canna. Non serve a superare la notte: è un easter egg. Alcuni dettagli di lore si vedono solo così, e restano **criptici al massimo** (proposta in `LORE.md`, «Il binocolo», approvata il 13 ottobre).
 
 ## 4. Struttura della notte
 
@@ -50,7 +55,7 @@ Col controller (e sullo Steam Deck) si gioca tutto: la tabella è in «Controlle
 1. **Lancio** (`Spazio` o clic sulla canna): la canna si alza all'indietro caricandosi e scatta in avanti, e la cima per inerzia resta indietro e poi frusta. **La canna la disegna il motore** (dal 10 ottobre, dopo la seconda prova: «le animazioni della canna fanno ancora cagare»): il fusto si piega in continuo con una fisica a molla (`src/app/rod.ts`), all'abboccata dà gli strattoni, in recupero si curva secondo la tensione e scatta quando il pesce tira, quando il filo si spezza schizza su e vibra; il manico e il mulinello restano un render. Il **galleggiante** (con la luce chimica della pesca di notte) vola in arco e cade al largo davanti alla canna, col tonfo, uno schizzo e i cerchi sull'acqua; poi il filo si posa (10 ottobre, dalla prova dell'utente: «un'animazione soddisfacente per il lancio»).
 2. **Attesa**: il tempo prima dell'abboccata dipende dalla lampara.
 3. **Abboccata**: suona il **campanellino** in punta alla canna (come nella pesca notturna vera), la punta si piega e il galleggiante va sotto. Hai circa 2 s per ferrare (2,15 s), altrimenti il pesce si mangia l'esca.
-4. **Recupero**: tieni premuto per riavvolgere; il galleggiante si avvicina fino al bordo. La tensione sale mentre recuperi e quando il pesce strattona. A tensione piena il filo regge ancora un attimo, mentre la barra trema di rosso: se molli in tempo si salva, se no **la lenza si spezza** (il galleggiante resta in acqua). L'attimo si accorcia nelle prime notti: **mezzo secondo** la prima, 0,35 s la seconda, poi 0,2 s (mai zero: la barra che trema deve sempre lasciare il tempo di mollare). In tutte le notti il pesce da solo non spezza il filo. La barra è larga 520 px (raddoppiata il 10 ottobre, su richiesta). Se la tensione scende a zero **il pesce si slama**. Mentre recuperi lo sguardo resta bloccato sulla canna. (Tolleranza allo strappo dal 10 ottobre, dalla prova dell'utente: «si va subito in rosso e il pesce scappa in una frazione di secondo»; sfumata nelle prime notti su sua proposta, da approvare.)
+4. **Recupero**: tieni premuto per riavvolgere; il galleggiante si avvicina fino al bordo. La tensione sale mentre recuperi e quando il pesce strattona. A tensione piena il filo regge ancora un attimo, mentre la barra trema di rosso: se molli in tempo si salva, se no **la lenza si spezza** (il galleggiante resta in acqua). L'attimo si accorcia nelle prime notti: **mezzo secondo** la prima, 0,35 s la seconda, poi 0,2 s (mai zero: la barra che trema deve sempre lasciare il tempo di mollare). In tutte le notti il pesce da solo non spezza il filo. La barra è larga 520 px (raddoppiata il 10 ottobre, su richiesta). Se la tensione scende a zero **il pesce si slama**. Mentre recuperi lo sguardo resta bloccato sulla canna. (Tolleranza allo strappo dal 10 ottobre, dalla prova dell'utente: «si va subito in rosso e il pesce scappa in una frazione di secondo»; sfumata nelle prime notti su sua proposta, approvata il 13 ottobre.)
 5. **Cattura**: il gioco ti **mostra il pesce** che hai preso (render, nome, una riga di descrizione) e lo registra nel **Catalogo**. Poi finisce nel secchio. Ogni tanto, al posto del pesce, sale **un oggetto**: sono i frammenti di lore (vedi `LORE.md`).
 
 ### Il Catalogo dei pesci
@@ -60,8 +65,8 @@ Col controller (e sullo Steam Deck) si gioca tutto: la tabella è in «Controlle
 - La rarità e le specie disponibili dipendono dalla notte, dall'ora e dal livello della lampara: alcuni pesci abboccano solo al buio, altri solo quando una creatura è vicina.
 - Le specie diverse hanno anche un comportamento diverso al recupero (strattoni più o meno forti e frequenti).
 - Il Catalogo resta tra una partita e l'altra: è un obiettivo di collezione e un motivo per rigiocare le notti.
-- **Come lo facciamo**: prima la lista dei nomi (circa cento) da approvare, poi un primo gruppo di 5 pesci renderizzati, poi tutti gli altri.
-- **Stato** (notte del 9 ottobre, tutto da approvare): la lista completa è in `CATALOGO.md` (fonte: `src/game/catalog.ts`); i 5 prototipi, uno per famiglia (Sgombrato, Orrata, Salpa Sfasata, Trigliocchi, Barracruda), sono renderizzati con `tools/render/pesci.py` (immagini in `docs/concept/pesci/`). Nel gioco le specie abboccano già dalla lista secondo notte, lampara, ora e creature vicine; alla cattura compare la scheda del pesce (figura se c'è, nome, famiglia, rarità, peso, la riga del Catalogo, «Nuova specie» la prima volta); il Catalogo si consulta da **Extra → Catalogo** (con `?catalogo=tutto` si vedono tutte le voci). **È un libro** (10 ottobre, richiesta: «un libro con sfondo e pagine, non la sovraimpressione»; da approvare): aperto sul banco della barca alla luce della lanterna (sfondo renderizzato, `tools/render/catalogo.py`: tavole verniciate, la cima arrotolata, gli ami, la matita, le tacche incise), copertina di cuoio, carta vecchia (`tools/carta.py`). Prima doppia pagina: frontespizio e indice; poi una doppia pagina per famiglia: a sinistra le foto delle specie attaccate col nastro (sagome a matita per quelle non ancora prese), a destra la scheda della specie scelta con foto, specie vera, timbri di famiglia e rarità, descrizione, peso, come tira al recupero, quando abbocca, volte prese e record. Le pagine si girano davvero (frecce, angoli delle pagine, segnalibri colorati per famiglia) con il suono della carta (`ui_page`).
+- **Come lo facciamo**: prima la lista dei nomi (circa cento, approvata il 13 ottobre), poi un primo gruppo di 5 pesci renderizzati, poi tutti gli altri.
+- **Stato** (notte del 9 ottobre; tutto approvato il 13 ottobre): la lista completa è in `CATALOGO.md` (fonte: `src/game/catalog.ts`); i 5 prototipi, uno per famiglia (Sgombrato, Orrata, Salpa Sfasata, Trigliocchi, Barracruda), sono renderizzati con `tools/render/pesci.py` (immagini in `docs/concept/pesci/`). Nel gioco le specie abboccano già dalla lista secondo notte, lampara, ora e creature vicine; alla cattura compare la scheda del pesce (figura se c'è, nome, famiglia, rarità, peso, la riga del Catalogo, «Nuova specie» la prima volta); il Catalogo si consulta da **Extra → Catalogo** (con `?catalogo=tutto` si vedono tutte le voci). **È un libro** (10 ottobre, richiesta: «un libro con sfondo e pagine, non la sovraimpressione»; approvato il 13 ottobre): aperto sul banco della barca alla luce della lanterna (sfondo renderizzato, `tools/render/catalogo.py`: tavole verniciate, la cima arrotolata, gli ami, la matita, le tacche incise), copertina di cuoio, carta vecchia (`tools/carta.py`). Prima doppia pagina: frontespizio e indice; poi una doppia pagina per famiglia: a sinistra le foto delle specie attaccate col nastro (sagome a matita per quelle non ancora prese), a destra la scheda della specie scelta con foto, specie vera, timbri di famiglia e rarità, descrizione, peso, come tira al recupero, quando abbocca, volte prese e record. Le pagine si girano davvero (frecce, angoli delle pagine, segnalibri colorati per famiglia) con il suono della carta (`ui_page`).
 - **Le famiglie** (render per famiglia, un foglio per l'approvazione e poi i finali): **glitchati approvati** il 10 ottobre così come sono (foglio `docs/concept/pesci/famiglia_glitchati.jpg`, 19 specie più la Salpa Sfasata). Nell'Alaccia Registrata Sopra la festa registrata sotto porta la data della Night Splash, **14.08.1997** (richiesta: «cambia la data»). **Scheletrici, zombi, corrotti e sanguinanti approvati** il 10 ottobre (fogli `docs/concept/pesci/famiglia_*.jpg`). Sullo Sciarrano Scrivano l'ultima data, quella di stanotte, è senza anno (richiesta: il gioco non ha un anno preciso). **Tutte e cento le specie hanno il render finale nel gioco** (10 ottobre, 20 per famiglia: `tools/render/pesci.py --elenco`).
 
 ## 6. La lampara
@@ -161,11 +166,11 @@ prima notte). Il piano dei passi è nella pagina «Splashland su Steam». Tutti 
 
 ### Controller e Steam Deck
 
-(12 ottobre, da approvare.) Tutto il gioco si gioca col controller, senza mai toccare mouse o tastiera: la notte, le
-immersioni all'alba, la pausa, le cinematiche e tutti i menu. Gamepad API del browser con la **mappatura standard**:
-controller Xbox, PlayStation e lo **Steam Deck** (tramite Steam Input, che lo presenta come un controller Xbox). Il
-controller si legge una volta per fotogramma (`src/app/pad.ts`); tastiera e mouse restano come sono, e il controller non
-ha bisogno del puntatore (niente pointer lock: il gioco non lo usa).
+(12 ottobre, approvato il 13 ottobre.) Tutto il gioco si gioca col controller, senza mai toccare mouse o tastiera: la
+notte, le immersioni all'alba, la pausa, le cinematiche e tutti i menu. Gamepad API del browser con la
+**mappatura standard**: controller Xbox, PlayStation e lo **Steam Deck** (tramite Steam Input, che lo presenta come un
+controller Xbox). Il controller si legge una volta per fotogramma (`src/app/pad.ts`); tastiera e mouse restano come
+sono, e il controller non ha bisogno del puntatore (niente pointer lock: il gioco non lo usa).
 
 **La notte**
 
@@ -196,7 +201,7 @@ girano le pagine; lo stick destro scorre il diario. In basso a destra la legenda
 **Gli aiuti a schermo** seguono l'ultimo comando: se è venuto dal controller i suggerimenti dicono i suoi tasti («RT per
 lanciare», «A per uscire dal telone»), scritti come sono stampati sul controller (✕ ○ □ △ L1 R1 L2 R2 per PlayStation,
 L1 R1 L2 R2 sullo Steam Deck); se è venuto da tastiera o mouse, quelli di prima. I testi nuovi sono in `src/i18n.ts`
-(`pad`), da approvare.
+(`pad`), approvati il 13 ottobre.
 
 **La vibrazione** (dove il controller ce l'ha): breve all'abboccata, forte ai jumpscare; si spegne con «Riduci lampi e
 scosse».
@@ -218,4 +223,4 @@ col controller finto senza toccare mouse o tastiera).
 | 4 | **Lampy** (non ferrare le abboccate finte). |
 | 5 | **Fangy** (stare zitti). |
 | 6 | **La Madre**, il finale: tutti e sette i mostri; il sonar mostra un'ombra enorme; immobilità totale. |
-| 7 | Notte extra con livelli di aggressività personalizzabili (proposta da approvare in `NOTTI_E_MOSTRI.md`, «Notte 7 · La notte extra»). |
+| 7 | Notte extra con livelli di aggressività personalizzabili (proposta approvata il 13 ottobre, in `NOTTI_E_MOSTRI.md`, «Notte 7 · La notte extra»). |

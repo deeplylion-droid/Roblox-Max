@@ -36,7 +36,7 @@ const GLOWS: GlowDef[] = [
   { key: 'wheelBulb', color: [1.0, 0.75, 0.4], radius: 0.002, anim: (t) => (Math.sin(t * 4.1) > 0.7 ? 0.0 : 0.8) },
   { key: 'hotelWindow', color: [1.0, 0.7, 0.35], radius: 0.002, anim: (t) => (Math.floor(t / 7) % 5 === 3 ? 0.0 : 0.5) },
   { key: 'marina', color: [0.5, 0.9, 0.8], radius: 0.03, anim: () => 0.04 },
-  // le luci attorno a Soggy (render della sessione del Foxy, tools/render/foxy_binocolo.py; da approvare): il lampione
+  // le luci attorno a Soggy (render della sessione del Foxy, tools/render/foxy_binocolo.py; approvate il 13 ottobre): il lampione
   // alla base degli scivoli, che ogni tanto perde un colpo; le due lampadine che pendono dal tetto della torre vicino a
   // lui, che si spengono e si riaccendono ognuna per conto suo; la lanterna del relitto, che trema come una fiamma.
   // Posizioni e colori dalla scena (cache/foxy/bino_def/luci_posti.json): nel render le lampadine sono fisse, lo

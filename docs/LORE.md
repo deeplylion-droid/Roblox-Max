@@ -87,7 +87,7 @@ Nessun dialogo dei mostri: solo versi. L'unica eccezione è la conta di Hatch (t
 
 ## Il binocolo — dettagli che si vedono solo così
 
-> ⚠️ **PROPOSTA DA APPROVARE** (scritta di notte): si toglie o si cambia tutto quello che non convince. Sono nei render dei luoghi del binocolo (`tools/render/binocolo.py`), troppo piccoli per vedersi a occhio nudo.
+> **Approvata il 13 ottobre** la proposta scritta di notte. Sono nei render dei luoghi del binocolo (`tools/render/binocolo.py`), troppo piccoli per vedersi a occhio nudo.
 
 | Luogo | Dettaglio | Perché è lì (solo per noi, mai spiegato nel gioco) |
 |---|---|---|

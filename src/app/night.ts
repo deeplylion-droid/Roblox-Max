@@ -1176,7 +1176,7 @@ export class Night {
         }
         break;
       case 'foxy': {
-        // il Foxy (grafica provvisoria finché non arrivano i render; i suoni sono i file foxy_*, da approvare)
+        // il Foxy (i suoni sono i file foxy_*, approvati il 13 ottobre)
         const at = this.sim.foxy?.places[e.place ?? 0];
         switch (e.e) {
           case 'lean':
@@ -1896,7 +1896,7 @@ export class Night {
   /**
    * Il pericolo di adesso (0..1) dagli stati dei mostri: quanto batte il cuore, quanto è corto il respiro, quanta
    * tensione nella musica. Al massimo (sopra PEAK) la musica tace: la Madre che passa, Hatch che cerca, il Foxy che
-   * corre verso la barca. Numeri da approvare.
+   * corre verso la barca. Numeri approvati il 13 ottobre.
    */
   private dangerNow(): number {
     const s = this.sim;
@@ -1948,7 +1948,7 @@ export class Night {
   }
 
   /**
-   * I falsi allarmi (più paura, idea approvata il 12 ottobre; da approvare i dettagli): rari e innocui, solo quando
+   * I falsi allarmi (più paura, idea approvata il 12 ottobre, i dettagli il 13 ottobre): rari e innocui, solo quando
    * è tutto calmo da almeno 20 s. I colpi sullo scafo di Molly, da un lato, senza nessuno; o un tonfo in acqua
    * dietro di te. Il cuore sussulta (il pericolo sale per un momento e torna giù piano).
    */

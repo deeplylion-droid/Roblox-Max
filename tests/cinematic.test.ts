@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { FINALE_A, FINALE_B, FINALE_NESSUNO, FINALE_TUOI, stillFrame, textAt, type CinematicScript } from '../src/app/cinematic.ts';
+import { LANGS, STRINGS } from '../src/i18n.ts';
 
 const audio = JSON.parse(readFileSync('public/assets/audio/manifest.json', 'utf8')) as Record<string, { duration: number }>;
 const overlays = JSON.parse(readFileSync('public/assets/img/overlays.json', 'utf8')) as { endings?: Record<string, unknown> };
@@ -39,8 +40,7 @@ describe('Le cinematiche dei finali', () => {
       }
       const line = s.text![0]!;
       expect(line.t).toBeGreaterThan(s.still!.t);
-      expect(textAt(s, line.t + 0.1, 'it')).toBe(line.it);
-      expect(textAt(s, line.t + 0.1, 'en')).toBe(line.en);
+      for (const lang of LANGS) expect(textAt(s, line.t + 0.1, lang)).toBe(STRINGS[lang][line.key]);
     }
   });
 

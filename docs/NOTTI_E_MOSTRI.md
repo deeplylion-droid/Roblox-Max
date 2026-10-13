@@ -39,9 +39,9 @@ del questionario:
   sette bambini. Arriva **dalla notte 2**. Sta in uno o due dei posti che si guardano col binocolo: ogni volta che
   lo guardi il suo tempo riparte; se lo trascuri, quando alzi il binocolo il posto è vuoto, poi salta sulla barca e
   c'è il jumpscare immediato. Il binocolo diventa uno strumento vero (finora era un easter egg). Prima la tavola
-  con le varianti, i nomi e i posti, da approvare.
+  con le varianti, i nomi e i posti, approvata il 12 ottobre.
 
-### Più paura nel gioco (12 ottobre, ramo `claude/paura`; le idee sono approvate, i dettagli da approvare)
+### Più paura nel gioco (12 ottobre, ramo `claude/paura`; le idee sono approvate, i dettagli approvati il 13 ottobre)
 
 Dal questionario del 12 ottobre l'utente ha scelto tutte e quattro le idee. Sono solo nel presentatore: la
 simulazione, le regole e il bilanciamento non cambiano.
@@ -106,13 +106,15 @@ stampatello con la S girata.
 
 ### Il Foxy nel gioco (logica, notte fra l'11 e il 12 ottobre; branch `claude/foxy-gioco`)
 
-**La radio della notte 2 lo annuncia** (prova dell'utente del 12 ottobre, DA APPROVARE), dopo Robin: «Al parco c'è
-Soggy. / Col binocolo. Non perderlo di vista.» (EN: «Soggy is in the park. / Binoculars. Don't lose sight of him.»)
+**La radio della notte 2 lo annuncia** (prova dell'utente del 12 ottobre, **approvata il 13 ottobre**), dopo Robin:
+«Al parco c'è Soggy. / Col binocolo. Non perderlo di vista.» (EN: «Soggy is in the park. / Binoculars. Don't lose
+sight of him.»)
 
 > **I render sono arrivati** (12 ottobre: il modello, le viste del binocolo di scivoli e relitto, il jumpscare, sotto);
-> dove manca una vista col Foxy restano i **due occhi rossi** nel suo posto. **I suoni** (12 ottobre, da
-> approvare; `docs/AUDIO.md`, «L'animatore») sono i file `foxy_near` (si sporge), `foxy_leave` (lascia il posto e corre
-> verso la barca, finisce sul salto) e `js_foxy` (l'abbraccio); senza i file restano i ripieghi. **Da approvare**: i testi (sotto) e i numeri.
+> dove manca una vista col Foxy restano i **due occhi rossi** nel suo posto. **I suoni** (12 ottobre, approvati;
+> `docs/AUDIO.md`, «L'animatore») sono i file `foxy_near` (si sporge), `foxy_leave` (lascia il posto e corre verso
+> la barca, finisce sul salto) e `js_foxy` (l'abbraccio); senza i file restano i ripieghi. **Approvati il 12 ottobre**
+> anche i testi (sotto) e i numeri.
 >
 > **La variante** (notte fra l'11 e il 12 ottobre, scelta da me col via libera dell'utente; tavola
 > `docs/concept/foxy_varianti.jpg` sul ramo `claude/foxy`): la **B «Fradicio»**, il costume gonfio d'acqua che cede,
@@ -186,9 +188,10 @@ Soggy. / Col binocolo. Non perderlo di vista.» (EN: «Soggy is in the park. / B
   Le percentuali tornano quelle di prima: il Foxy aggiunge tensione, non sconfitte. Chi si dimentica di lui muore
   per lui (il maldestro: dal 5,5% delle partite nella notte 2 al 12% nella 5) invece che per la quota. Col relitto
   davanti i numeri restano quelli: il costo vero di un controllo è il tempo col binocolo alzato, non il voltarsi.
-- **Testi** (da approvare): suggerimento «Col binocolo (B): non perderlo di vista» finché non lo trovi la prima volta,
-  «Il posto è vuoto» se lo guardi quando se n'è andato; didascalie «laggiù, qualcosa si sporge», «qualcosa corre
-  sull'acqua»; game over **«Lo spettacolo finiva sempre con un abbraccio.»** (faceva lo spettacolo di Mama Marina).
+- **Testi** (approvati il 12 ottobre): suggerimento «Col binocolo (B): non perderlo di vista» finché non lo trovi la
+  prima volta, «Il posto è vuoto» se lo guardi quando se n'è andato; didascalie «laggiù, qualcosa si sporge»,
+  «qualcosa corre sull'acqua»; game over **«Lo spettacolo finiva sempre con un abbraccio.»** (faceva lo spettacolo di
+  Mama Marina).
 - **Il binocolo** smette di essere un easter egg: dalla notte 2 serve per sopravvivere (non si alza sotto il telone,
   col sonar aperto o con un pesce in canna; mentre lo guardi non vedi la barca, e Molly non si sente guardata).
 
@@ -331,18 +334,19 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
   trema e si ritrae, la faccia si accende di luce calda e **strizza gli occhi** (la lampara gli sta dietro, da
   sola gli illuminerebbe solo la schiena).
 - **La ritirata oltre il bordo** (scelta dell'utente del 13 ottobre; anteprima approvata dalla sessione principale,
-  render finali da approvare): prima quello che stava sopra la barca svaniva in tre o quattro fotogrammi, perché Robin
-  ha mezzo corpo dentro la barca e le mani che mollano la presa di Gulpy e Molly con lui lo spezzavano in pezzi. Ora la
-  fuga è resa: sei fotogrammi interi, `robin_ritirata_1..6` (`scena_creature.robin_ritirata`, `ROBIN_RITIRATA`),
-  nella stessa inquadratura di `robin_secchio` (stesso yaw, voce `base`), con gli occhi strizzati. Il braccio esce dal
-  secchio e il pesce ricade dentro (1), la mano torna verso il petto (2-3), il corpo scivola fuori sopra il capodibanda
-  e la testa va giù dietro il bordo (3-5), per ultime le zampe e la mano che si tiene al bordo (4-6); la pozza di melma
-  resta sul legno. Nell'ultimo fotogramma niente sta più davanti alla barca e da lì riprende la discesa di sempre dietro
-  lo scafo. Nel motore (`src/app/ritirata.ts`, test in `tests/ritirata.test.ts`): la fuga dura 0,42 s a tagli netti
-  (~16 fotogrammi al secondo, rapida ma continua), poi la discesa di 0,7 s, dentro gli 1,6 s della fuga del gioco;
-  quando torna sale nell'ultimo fotogramma e la fuga va all'indietro in 0,6 s fino al braccio nel secchio. Senza i
-  fotogrammi nel manifest fa come prima. Controllo: nessuna compenetrazione nuova col legno rispetto alla posa (BVH fra
-  Robin e la barca, fotogramma per fotogramma); anteprima `docs/concept/robin_ritirata_anteprima.jpg`.
+  render finali approvati il 13 ottobre): prima quello che stava sopra la barca svaniva in tre o quattro fotogrammi,
+  perché Robin ha mezzo corpo dentro la barca e le mani che mollano la presa di Gulpy e Molly con lui lo spezzavano in
+  pezzi. Ora la fuga è resa: sei fotogrammi interi, `robin_ritirata_1..6` (`scena_creature.robin_ritirata`,
+  `ROBIN_RITIRATA`), nella stessa inquadratura di `robin_secchio` (stesso yaw, voce `base`), con gli occhi strizzati.
+  Il braccio esce dal secchio e il pesce ricade dentro (1), la mano torna verso il petto (2-3), il corpo scivola fuori
+  sopra il capodibanda e la testa va giù dietro il bordo (3-5), per ultime le zampe e la mano che si tiene al bordo
+  (4-6); la pozza di melma resta sul legno. Nell'ultimo fotogramma niente sta più davanti alla barca e da lì riprende
+  la discesa di sempre dietro lo scafo. Nel motore (`src/app/ritirata.ts`, test in `tests/ritirata.test.ts`): la fuga
+  dura 0,42 s a tagli netti (~16 fotogrammi al secondo, rapida ma continua), poi la discesa di 0,7 s, dentro gli 1,6 s
+  della fuga del gioco; quando torna sale nell'ultimo fotogramma e la fuga va all'indietro in 0,6 s fino al braccio
+  nel secchio. Senza i fotogrammi nel manifest fa come prima. Controllo: nessuna compenetrazione nuova col legno
+  rispetto alla posa (BVH fra Robin e la barca, fotogramma per fotogramma); anteprima
+  `docs/concept/robin_ritirata_anteprima.jpg`.
 
 ### Notte 3 · Archie — *SPEGNERE LA LUCE*
 
@@ -553,44 +557,45 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
   statua coi pesciolini in grembo. Il **jumpscare** viene da sotto con la **bocca** spalancata e i **fanoni come le
   sbarre di un lettino** (dalla sagoma A).
 
-- **Il modello** (**da approvare**, fatto l'11 ottobre sera; `tools/render/madre.py`, ramo `claude/madre-modello`):
-  una balena di una trentina di metri (dal muso alla coda 33 m), la testa grande come quella della mascotte, con la
-  fronte tonda come i beluga e la gola a pieghe come le balenottere. La pelle è **bianco latte**, liscia e bagnata, con
-  la stessa melma degli altri mostri (chiazze lucide, colature, ristagni nelle pieghe, gocce che colano dalle palpebre
-  e dal mento). Sopra c'è ancora la **vernice della mascotte** (i colori di `mascot.py`): il blu sul dorso e sulla
-  testa, la pancia crema sulla mandibola e sotto il corpo, le guance rosa, il sorriso rosso scuro. La vernice è
-  screpolata e **si stacca a grandi croste** di un paio di metri, con l'orlo frastagliato, alzato e sporco d'alga, e
-  sotto si vede il bianco. Il **sorriso dipinto** continua la linea della bocca e sale fino **sotto l'occhio**.
-  L'**occhio** è grande quanto la barca (4,4 m, ne resta fuori una calotta larga quasi 4 m), azzurro come quello della
-  mascotte ma vero: il bianco lattiginoso con le venuzze, la pupilla nera grande, bagnato; sta nell'orbita sotto una
-  palpebra pesante e gira verso il pescatore. Sopra, **tre ciglia da cartone animato** nere e lucide. Sullo sfiatatoio il
-  **ciuffo d'acqua** a ombrello come quello della statua. In bocca i **fanoni sono le sbarre di un lettino**: tonde,
-  dritte e in fila lungo i due lati del palato, verniciate di bianco e scheggiate (sotto, il corno scuro), unite in fondo
-  da un corrimano; a bocca chiusa stanno piegate dentro la mandibola. Sotto, le **due pinne ripiegate sul ventre**
-  stringono **i suoi piccoli** (quattro bambini rannicchiati), come la statua coi pesciolini in grembo.
-  `build(bocca=…)` apre la mandibola (fino a 62°), `build(viewer=…)` gira gli occhi.
-  - **La tavola della testa** (anteprima a pochi campioni, `docs/concept/madre_testa.jpg`, **da approvare**): tutta fuori
-    dall'acqua, la fronte e l'occhio dalla barca, l'occhio con le ciglia, il sorriso e la guancia, le croste sulla
-    fronte, la bocca spalancata coi fanoni.
-  - **La posa di gioco** `madre_sale` (anteprima a pochi campioni, `docs/concept/madre_posa.jpg`, **da approvare**;
-    `scena_creature.madre_posa`): sale accanto alla barca a sinistra; il centro dell'occhio sta a 55° dalla prua, a
-    6,8 m dall'occhio del pescatore e 1 m sopra il mare (la calotta a circa 3,4 m dal bordo), e guarda il pescatore;
-    il muso va verso prua, sott'acqua, e il corpo scende verso poppa. Fuori escono la fronte (fino a 5,7 m sul mare) e
-    l'occhio. Vista dall'occhio come le altre pose, di notte con la lampara e all'alba (l'alba dell'anteprima è
-    provvisoria: cielo caldo dietro a sinistra, il sole basso). **Render finale fatto** (notte fra l'11 e il 12
-    ottobre: l'utente ha dato a me il via per scegliere): è fra le pose del gioco (`POSES`), con la cima della sagoma
-    nel manifest (`tools/render/cima.py`) perché le luci lontane che ha dietro, come la candela dell'edicola, non si
-    vedano attraverso di lei.
+- **Il modello** (**approvato il 13 ottobre**, fatto l'11 ottobre sera; `tools/render/madre.py`, ramo
+  `claude/madre-modello`): una balena di una trentina di metri (dal muso alla coda 33 m), la testa grande come quella
+  della mascotte, con la fronte tonda come i beluga e la gola a pieghe come le balenottere. La pelle è
+  **bianco latte**, liscia e bagnata, con la stessa melma degli altri mostri (chiazze lucide, colature, ristagni nelle
+  pieghe, gocce che colano dalle palpebre e dal mento). Sopra c'è ancora la **vernice della mascotte** (i colori di
+  `mascot.py`): il blu sul dorso e sulla testa, la pancia crema sulla mandibola e sotto il corpo, le guance rosa, il
+  sorriso rosso scuro. La vernice è screpolata e **si stacca a grandi croste** di un paio di metri, con l'orlo
+  frastagliato, alzato e sporco d'alga, e sotto si vede il bianco. Il **sorriso dipinto** continua la linea della
+  bocca e sale fino **sotto l'occhio**. L'**occhio** è grande quanto la barca (4,4 m, ne resta fuori una calotta larga
+  quasi 4 m), azzurro come quello della mascotte ma vero: il bianco lattiginoso con le venuzze, la pupilla nera
+  grande, bagnato; sta nell'orbita sotto una palpebra pesante e gira verso il pescatore. Sopra,
+  **tre ciglia da cartone animato** nere e lucide. Sullo sfiatatoio il **ciuffo d'acqua** a ombrello come quello della
+  statua. In bocca i **fanoni sono le sbarre di un lettino**: tonde, dritte e in fila lungo i due lati del palato,
+  verniciate di bianco e scheggiate (sotto, il corno scuro), unite in fondo da un corrimano; a bocca chiusa stanno
+  piegate dentro la mandibola. Sotto, le **due pinne ripiegate sul ventre** stringono **i suoi piccoli** (quattro
+  bambini rannicchiati), come la statua coi pesciolini in grembo. `build(bocca=…)` apre la mandibola (fino a 62°),
+  `build(viewer=…)` gira gli occhi.
+  - **La tavola della testa** (anteprima a pochi campioni, `docs/concept/madre_testa.jpg`,
+    **approvata il 13 ottobre**): tutta fuori dall'acqua, la fronte e l'occhio dalla barca, l'occhio con le ciglia, il
+    sorriso e la guancia, le croste sulla fronte, la bocca spalancata coi fanoni.
+  - **La posa di gioco** `madre_sale` (anteprima a pochi campioni, `docs/concept/madre_posa.jpg`,
+    **approvata il 13 ottobre**; `scena_creature.madre_posa`): sale accanto alla barca a sinistra; il centro
+    dell'occhio sta a 55° dalla prua, a 6,8 m dall'occhio del pescatore e 1 m sopra il mare (la calotta a circa 3,4 m
+    dal bordo), e guarda il pescatore; il muso va verso prua, sott'acqua, e il corpo scende verso poppa. Fuori escono
+    la fronte (fino a 5,7 m sul mare) e l'occhio. Vista dall'occhio come le altre pose, di notte con la lampara e
+    all'alba (l'alba dell'anteprima è provvisoria: cielo caldo dietro a sinistra, il sole basso).
+    **Render finale fatto** (notte fra l'11 e il 12 ottobre: l'utente ha dato a me il via per scegliere): è fra le
+    pose del gioco (`POSES`), con la cima della sagoma nel manifest (`tools/render/cima.py`) perché le luci lontane
+    che ha dietro, come la candela dell'edicola, non si vedano attraverso di lei.
   - **Il jumpscare dal basso** (anteprima, otto fotogrammi a pochi campioni,
-    `docs/concept/jumpscare/js_madre_fotogrammi.jpg`, **da approvare**; `jumpscare.py`, `ATTACKS['madre']`): la barca
-    è sbalzata (sollevata di 90 cm, inclinata a sinistra, la prua su) e la vista si inclina con lei; da sinistra,
-    bassa e mezza sott'acqua, sale la bocca spalancata con l'apertura verso di te e ti viene addosso: negli ultimi
-    fotogrammi sei dentro, col palato rosso sopra, la lingua sotto, la gola nera in fondo e ai due lati i fanoni in fila
-    come le sbarre di un lettino, col corrimano. (Venendo dritta da sotto, il palato passava davanti agli occhi: per
-    questo arriva da un lato.) Gli altri jumpscare non cambiano: in `jumpscare.py` si aggiungono solo la voce `madre` e
-    la sua camera, che si inclina con la barca.
+    `docs/concept/jumpscare/js_madre_fotogrammi.jpg`, **approvato il 13 ottobre**; `jumpscare.py`,
+    `ATTACKS['madre']`): la barca è sbalzata (sollevata di 90 cm, inclinata a sinistra, la prua su) e la vista si
+    inclina con lei; da sinistra, bassa e mezza sott'acqua, sale la bocca spalancata con l'apertura verso di te e ti
+    viene addosso: negli ultimi fotogrammi sei dentro, col palato rosso sopra, la lingua sotto, la gola nera in fondo
+    e ai due lati i fanoni in fila come le sbarre di un lettino, col corrimano. (Venendo dritta da sotto, il palato
+    passava davanti agli occhi: per questo arriva da un lato.) Gli altri jumpscare non cambiano: in `jumpscare.py` si
+    aggiungono solo la voce `madre` e la sua camera, che si inclina con la barca.
   - **Render finali** (notte fra l'11 e il 12 ottobre, scelti da me col via libera dell'utente): la posa e il
-    jumpscare (otto fotogrammi a 10 al secondo). L'utente li vede domattina e può ancora cambiarli.
+    jumpscare (otto fotogrammi a 10 al secondo). **Approvati dall'utente il 13 ottobre.**
 - **Giocabile** dalla notte del 12 ottobre (prima era in bozza, finché non c'era il suo aspetto): il gioco la propone
   dopo la quinta.
 - **Come si gioca**: tornano tutti e sette i mostri e la regia ne manda di più insieme (è la notte più dura). Quota 10
@@ -626,8 +631,9 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
 > **Tutti a 20** (questionario dell'11 ottobre): **difficilissima ma possibile**, il traguardo da raccontare (come il
 > 20/20/20/20 di FNAF): un giocatore bravissimo deve poterla vincere.
 
-> ⚠️ **PROPOSTA DA APPROVARE** (11 ottobre, tutto quello che segue: regole, numeri, testi e schermata). La notte
-> extra si sblocca finendo l'ultima notte giocabile: oggi la quinta, quando la sesta uscirà dalla bozza la sesta.
+> **Approvata il 13 ottobre** la proposta dell'11 ottobre (tutto quello che segue: regole, numeri, testi e schermata).
+> La notte extra si sblocca finendo l'ultima notte giocabile: oggi la quinta, quando la sesta uscirà dalla bozza la
+> sesta.
 
 Come la *custom night* di FNAF: per ognuno dei sette mostri, per **la Madre** (ottava, confermato dall'utente
 l'11 ottobre) e per **Soggy**, il Foxy (nono, deciso dall'utente il 12 ottobre), si sceglie un **livello da 0 a 20**. A 0 non viene, a
@@ -664,7 +670,8 @@ Lampy, il terzo rumore di Fangy): cambiano solo **quando arriva, quanto spesso t
     Madre, i frammenti nuovi con il tetto di due per notte) i numeri sono gli stessi: 6,7% su 300, 7,3% su 600 seed.
 - **La Madre** (**confermato l'11 ottobre** che c'è, come ottavo livello): è la stessa della notte 6 (l'ombra enorme
   sul sonar, i figli che si zittiscono e tornano giù, l'immobilità totale mentre passa sotto la barca). Il suo livello
-  dice **quante volte passa, quanto dura ogni passata e quanto avvisa prima** (`extraMother()`, numeri da approvare):
+  dice **quante volte passa, quanto dura ogni passata e quanto avvisa prima** (`extraMother()`, numeri approvati
+  il 13 ottobre):
   - **1**: una passata sola, verso le 3, di 8 s, con 12 s di avviso e un tremito di 5° perdonato;
   - **10**: **esattamente come nella notte 6** (tre passate, verso le 2, le 4 e le 5:30, di 10, 15 e 20 s, 10 s di
     avviso, 4° di tremito; un test lo controlla);
@@ -672,10 +679,10 @@ Lampy, il terzo rumore di Fangy): cambiano solo **quando arriva, quanto spesso t
 
   Le passate sono 1 + livello/5 (arrotondato: 2 dal 3, 3 dall'8, 4 dal 13, 5 dal 18); durate, avviso e tremito si
   sfumano. A 0 non viene. Il finale A della notte 6 (lei che si prende il secchio) nella notte extra non c'è.
-- **Soggy, il Foxy** (**deciso il 12 ottobre** che c'è, come nono livello; numeri da approvare): sta in uno dei due
-  posti del binocolo tutta la notte, quindi non ha pause fra una visita e l'altra. Il livello cambia quando compare,
-  quanto aspetta prima di sporgersi e di lasciare il posto (la sua pazienza), la corsa fino alla barca e quanto spesso
-  cambia posto:
+- **Soggy, il Foxy** (**deciso il 12 ottobre** che c'è, come nono livello; numeri approvati il 13 ottobre): sta in uno
+  dei due posti del binocolo tutta la notte, quindi non ha pause fra una visita e l'altra. Il livello cambia quando
+  compare, quanto aspetta prima di sporgersi e di lasciare il posto (la sua pazienza), la corsa fino alla barca e
+  quanto spesso cambia posto:
   - **1, calmo**: compare verso le 2:20 (1,8 ore), si sporge dopo 60 s senza guardarlo, lascia il posto dopo 110 s,
     corre per 4 s, cambia posto una volta su dieci;
   - **5, come la sua notte**: i numeri della notte 2 (un test lo controlla);
@@ -705,12 +712,12 @@ Lampy, il terzo rumore di Fangy): cambiano solo **quando arriva, quanto spesso t
 - **La notte**: l'intro dice «Notte 7» con la quota; vincerla non sblocca niente e non cambia «Continua»; alla fine
   «Riprova» la rigioca con gli stessi livelli. Per le prove: `?notte=7` (Nuova partita apre la schermata dei livelli,
   e il pulsante compare anche se non è sbloccata) e **Alt+7** sul titolo.
-- **Testi** (italiano e inglese, in `src/i18n.ts`, segnati da approvare): il pulsante «Notte extra» / «Extra night»;
+- **Testi** (italiano e inglese, in `src/i18n.ts`, approvati il 13 ottobre): il pulsante «Notte extra» / «Extra night»;
   «Scegli chi viene stanotte. 0: non viene. 20: feroce.» / «Choose who comes tonight. 0: stays away. 20: ferocious.»;
   le regole sotto i nomi «sfamalo, guardala, nasconditi, luce in faccia, spegni la luce, non ferrare, stai zitto» /
   «feed him, watch her, hide, light in his face, light off, don't strike, stay quiet»; per la Madre «La Madre, non
-  muoverti» / «The Mother, don't move»; per Soggy «non perderlo di vista» / «don't lose sight of him» (12 ottobre, da
-  approvare); «Salpa» / «Cast off». Il finale B «Il ricordo»: sotto, «I finali
+  muoverti» / «The Mother, don't move»; per Soggy «non perderlo di vista» / «don't lose sight of him» (12 ottobre,
+  approvata il 13 ottobre); «Salpa» / «Cast off». Il finale B «Il ricordo»: sotto, «I finali
   segreti nel gioco» (il segnaposto di prima non c'è più).
   La radio, corta: «Notte extra. Dieci pesci. / Stanotte vengono quelli che hai chiamato tu. / Buona pesca.» /
   «Extra night. Ten fish. / Tonight the ones you called are coming. / Good fishing.»
@@ -785,8 +792,8 @@ col disegno a pastelli (sotto; i tre finali approvati il 12 ottobre).
 ### I finali segreti nel gioco
 
 > **Approvati il 12 ottobre** i tre finali, «I tuoi», «Nessuno» e «Il ricordo» (ramo `claude/finali-gioco`), per la
-> build di quella sera. La frase del finale B è stata tolta per scelta dell'utente. I titoli di coda restano coi nomi
-> segnaposto.
+> build di quella sera. La frase del finale B è stata tolta per scelta dell'utente. I titoli di coda hanno una riga
+> sola, «Un gioco di Ettore Canu» (approvati il 13 ottobre, vedi sotto).
 > Le clip col suono per l'approvazione stanno in `docs/concept/clip/`.
 
 - **Quale finale** (`chooseEnding` in `src/app/save.ts`, provato in `tests/save.test.ts`): il salvataggio ricorda,
@@ -812,10 +819,10 @@ col disegno a pastelli (sotto; i tre finali approvati il 12 ottobre).
   dissolvenza, lo zoom e il punto al centro nel tempo; si disegna con l'esposizione del suo render al posto di quella
   della notte, più la sola luminosità delle opzioni) e l'evento **`quiet`** (il taglio su un altro posto spegne il
   mare, il vento e gli scricchiolii).
-- **I titoli di coda** (`Screens.credits`, DA APPROVARE, i nomi sono un segnaposto in `src/i18n.ts`: «(nome da
-  decidere)» / «(name to be decided)»): dopo ognuno dei
-  tre finali della notte 6, su un fondo nero salgono il titolo, i ruoli coi nomi e «Grazie per aver giocato.», con la
-  ninna nanna del titolo; Esc, Invio o un clic li saltano. Poi i risultati, con l'avviso della notte extra.
+- **I titoli di coda** (`Screens.credits`; **approvati il 13 ottobre**, con la nota dell'utente
+  «Metti solo un gioco di Ettore Canu»): dopo ognuno dei tre finali della notte 6, su un fondo nero salgono il titolo,
+  poi una riga sola, «Un gioco di Ettore Canu» (in inglese «A game by Ettore Canu»), e «Grazie per aver giocato.»,
+  con la ninna nanna del titolo; Esc, Invio o un clic li saltano. Poi i risultati, con l'avviso della notte extra.
 - **Il finale B «Il ricordo»** (la notte 7; approvato il 12 ottobre, senza frase): al posto della foto del 1997 (provata
   coi bambini renderizzati, `tools/render/bambini.py` e `finali.foto_1997`, restano nel ramo ma non si usano) un
   **disegno a pastelli: idea dell'utente e approvato il 12 ottobre** (`docs/concept/ricordo_disegno.webp`, disegnato
@@ -838,8 +845,8 @@ col disegno a pastelli (sotto; i tre finali approvati il 12 ottobre).
 
 ### Le ultime inquadrature dei due finali segreti
 
-> **Da approvare** (11 ottobre): solo le anteprime, a pochi campioni (1600×900, 24 campioni); i render finali si
-> fanno dopo l'approvazione. Script: `tools/render/finali.py` (`tools/.venv/bin/python tools/render/finali.py
+> **Approvate l'11 ottobre** le anteprime, a pochi campioni (1600×900, 24 campioni); i render finali, fatti dopo
+> l'approvazione, sono nel gioco. Script: `tools/render/finali.py` (`tools/.venv/bin/python tools/render/finali.py
 > [molo|edicola] [--fast]`).
 
 Due immagini fisse, 16:9, che il motore mostra alla fine della cinematica con un lento movimento di camera. Nel
@@ -884,7 +891,7 @@ scala, proporzioni ed esposizione); il comando è lo stesso con `--finale`.
   (il pescatore, che nel gioco proietta solo l'ombra, qui si vede), passato in colori da Polaroid (neri slavati,
   grana, vignetta). La Polaroid è grande come una vera (8,8×10,7 cm).
 
-**Da decidere**: le impronte una per mostro come sopra; la Polaroid (cosa c'è nella foto, e lo spago con la molletta
-davanti all'edicola). Nell'anteprima del molo il paese non si vede (è alle spalle della camera): le impronte vanno
-verso di lui.
+**Approvate con le anteprime** (11 ottobre): le impronte una per mostro come sopra; la Polaroid (cosa c'è nella
+foto, e lo spago con la molletta davanti all'edicola). Nell'anteprima del molo il paese non si vede (è alle spalle
+della camera): le impronte vanno verso di lui.
 

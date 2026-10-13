@@ -117,7 +117,7 @@ export const LORE: LoreItem[] = [
   { id: 'clipping_seventh', night: 5 },
   { id: 'clipping_storm', night: 6 },
   { id: 'notebook', night: 6 },
-  // le cose da trovare nelle tane delle immersioni (12 ottobre, DA APPROVARE): una per tana, non si pescano
+  // le cose da trovare nelle tane delle immersioni (12 ottobre, approvate il 13): una per tana, non si pescano
   { id: 'den_gulpy', night: 1, den: 'gulpy' },
   { id: 'den_molly', night: 1, den: 'molly' },
   { id: 'den_hatch', night: 1, den: 'hatch' },
@@ -364,7 +364,7 @@ export const NIGHTS: Record<number, NightConfig> = {
   // contrario dalla luce. Dalla terza notte la tolleranza allo strappo è quella normale (FISHING.snapGrace).
   // Quota 11. Giocatori simulati (npm run sim -- 3 300): esperto 100%, medio 71%, maldestro 50% (la seconda notte
   // 100/81/58): un passo più dura. Il maldestro muore ad Archie quando riaccende troppo presto e non rispegne in
-  // tempo; impara un po' a ogni volta (bot.ts). Da approvare con la notte
+  // tempo; impara un po' a ogni volta (bot.ts). Approvata l'11 ottobre con la notte.
   3: {
     night: 3,
     quota: 11,
@@ -509,8 +509,8 @@ export function debutNight(who: MonsterId | 'mother'): number {
 
 // ───────────────────────── Notte 7: la notte extra ─────────────────────────
 // Come la «custom night» di FNAF: per ognuno dei sette mostri si sceglie un livello da 0 (non viene) a 20
-// (feroce). La config non sta in NIGHTS: si costruisce dai livelli con extraNight(). Da approvare con la notte
-// (docs/NOTTI_E_MOSTRI.md, «Notte 7 · La notte extra»).
+// (feroce). La config non sta in NIGHTS: si costruisce dai livelli con extraNight(). Approvata il 13 ottobre
+// con la notte (docs/NOTTI_E_MOSTRI.md, «Notte 7 · La notte extra»).
 
 /** il numero della notte extra (la 6 è il posto della Madre) */
 export const EXTRA_NIGHT = 7;
@@ -533,7 +533,7 @@ export function extraLevels(level: number): ExtraLevels {
   return { gulpy: level, molly: level, hatch: level, robin: level, archie: level, lampy: level, fangy: level, mother: level, foxy: level };
 }
 
-/** Le preimpostazioni della schermata (da approvare). */
+/** Le preimpostazioni della schermata (approvate il 13 ottobre). */
 export const EXTRA_PRESETS: { id: string; levels: ExtraLevels }[] = [
   { id: 'all0', levels: extraLevels(0) },
   { id: 'all5', levels: extraLevels(5) },
@@ -602,7 +602,7 @@ const EXTRA_ANCHORS: Record<Anchored, { calm: Num; debut: Num; fierce: Num }> = 
   },
   // il Foxy non torna a visite: sta nel suo posto tutta la notte. Il livello cambia quando compare e quanto aspetta
   // prima di sporgersi e di lasciare il posto (la sua pazienza), la corsa fino alla barca e quanto spesso cambia posto.
-  // Il punto «come la sua notte» è la notte 2 (da approvare)
+  // Il punto «come la sua notte» è la notte 2 (approvato il 13 ottobre)
   foxy: {
     calm: { firstAt: 1.8 * H, lean: 60, leave: 110, run: 4, swap: 0.1 },
     debut: { firstAt: 0.9 * H, lean: 46, leave: 85, run: 3.5, swap: 0.15 },
@@ -640,7 +640,7 @@ function monsterAt(who: Anchored, level: number): Num {
 /**
  * La Madre nella notte extra (confermato dall'utente l'11 ottobre): il suo livello dice quante volte passa sotto la
  * barca, quanto dura ogni passata e quanto avvisa prima. La meccanica è quella della notte 6 (MotherConfig). Numeri
- * da approvare:
+ * approvati il 13 ottobre:
  * - 0: non viene;
  * - 1: una passata sola, a metà notte, di 8 s, con più avviso (12 s) e un tremito in più perdonato;
  * - 10: esattamente come nella notte 6 (tre passate, verso le 2, le 4 e le 5:30, di 10, 15 e 20 s);
@@ -695,7 +695,7 @@ const NEVER = 1e9;
 const FOXY_REEL = 1.1;
 
 /**
- * La config della notte extra dai livelli dei sette mostri. Quota 10 (da approvare): la notte quinta ne chiede 11
+ * La config della notte extra dai livelli dei sette mostri. Quota 10 (approvata il 13 ottobre): la notte quinta ne chiede 11
  * coi suoi tre mostri radi; qui possono venire tutti insieme. I pesci abboccano in fretta come nella quinta notte,
  * la batteria è quella dalla notte 2 in poi, la regia tiene le esclusioni della quinta notte (chi chiede il
  * contrario dell'altro non viene insieme a lui).

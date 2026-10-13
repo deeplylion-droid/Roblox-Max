@@ -3,7 +3,7 @@
  * sintetizzati da tools/audio (categoria `mon`, con più varianti: gulpy_gurgle_1…4, molly_knock_1…3…):
  * ogni volta una variante a caso, mai la stessa due volte di fila, con piccole variazioni di intonazione e
  * di volume. Se un file manca (manifest vecchio, decodifica non ancora finita) resta il ripiego
- * sintetizzato al volo di prima. I versi sono DA APPROVARE (vedi docs/AUDIO.md).
+ * sintetizzato al volo di prima. I versi sono approvati (il 13 ottobre gli ultimi; vedi docs/AUDIO.md).
  */
 import type { Vec3 } from '../engine/assets.ts';
 import type { MonsterId } from '../game/config.ts';
@@ -568,7 +568,7 @@ export class Sfx {
   }
 
   // ───────────────────────── la Madre (notte 6) ─────────────────────────
-  // I file madre_* (docs/AUDIO.md, da approvare); finché mancano, ripieghi coi file di scena.
+  // I file madre_* (docs/AUDIO.md, approvati); finché mancano, ripieghi coi file di scena.
 
   /** Il suo richiamo lontano, dal fondo (mono: suona dove sta l'ombra sul sonar), mai lo stesso due volte di fila. */
   motherCall(pos: Vec3): void {

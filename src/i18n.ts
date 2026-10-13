@@ -47,7 +47,7 @@ const IT = {
     fangy: 'Fangy ascolta: niente rumori',
     // notte 6 (approvato l'11 ottobre: «immobilità totale»)
     mother: 'Non muoverti',
-    // il Foxy (11 ottobre sera, DA APPROVARE)
+    // il Foxy (11 ottobre sera, approvato il 13 ottobre)
     foxy: 'Col binocolo (B): non perderlo di vista',
     foxyGone: 'Il posto è vuoto',
   },
@@ -76,9 +76,10 @@ const IT = {
   // l'inglese è DA APPROVARE): la scritta alla fine della cinematica e sotto i risultati
   finaleTuoi: 'Non sei tornato da solo.',
   finaleNessuno: 'Non hai mai dato niente ai suoi piccoli. Adesso sei uno di loro.',
-  // i titoli di coda dopo i finali della notte 6: una riga sola (scelta dell'utente del 12 ottobre sera)
+  // i titoli di coda dopo i finali della notte 6: una riga sola (scelta dell'utente del 12 ottobre sera), col nome intero
+  // (13 ottobre: «Metti solo un gioco di Ettore Canu»)
   creditsTitle: 'SPLASHLAND IS CLOSED!',
-  credits: [['Un gioco di', 'Ettore']] as [string, string][],
+  credits: [['Un gioco di', 'Ettore Canu']] as [string, string][],
   creditsEnd: 'Grazie per aver giocato.',
   creditsSkip: 'Esc per saltare',
   quotaMissed: 'Quota mancata',
@@ -95,7 +96,7 @@ const IT = {
     lampy: 'Lampy ti ha tirato giù, per scherzo.',
     // notte 5 (approvata l'11 ottobre): giocava a Marco Polo a occhi chiusi e vinceva sempre
     fangy: '«Marco.» Hai risposto.',
-    // il Foxy (11 ottobre sera, DA APPROVARE): faceva lo spettacolo di Mama Marina, che finiva con un abbraccio
+    // il Foxy (11 ottobre sera, approvato il 13 ottobre): faceva lo spettacolo di Mama Marina, che finiva con un abbraccio
     foxy: 'Lo spettacolo finiva sempre con un abbraccio.',
     mother: 'Alle sei il secchio non era pieno. Stanotte la Madre si prenderà un altro bambino.',
     // notte 2 (approvato il 10 ottobre): la batteria è morta e la ninna nanna è finita prima delle sei
@@ -103,14 +104,14 @@ const IT = {
     // notte 6 (la frase proposta e approvata l'11 ottobre): ti sei mosso mentre la Madre passava sotto la barca
     moved: 'Mama Marina ama i suoi piccoli. Adesso anche te.',
   },
-  // notte 7, la notte extra coi livelli (DA APPROVARE: tutti i testi qui sotto)
+  // notte 7, la notte extra coi livelli (approvati il 13 ottobre tutti i testi qui sotto)
   extraNight: 'Notte extra',
   extraHelp: 'Scegli chi viene stanotte. 0: non viene. 20: feroce.',
   extraStart: 'Salpa',
   extraLocked: 'Finisci tutte le notti per sbloccarla.',
   extraPresets: { all0: 'Tutti a 0', all5: 'Tutti a 5', all10: 'Tutti a 10', all20: 'Tutti a 20', first3: 'I primi tre' },
   /** la regola di ogni mostro in due parole, sotto il nome */
-  // la regola di Soggy (il Foxy) nella notte extra: DA APPROVARE (12 ottobre)
+  // la regola di Soggy (il Foxy) nella notte extra: 12 ottobre, approvata il 13
   extraRules: { gulpy: 'sfamalo', molly: 'guardala', hatch: 'nasconditi', robin: 'luce in faccia', archie: 'spegni la luce', lampy: 'non ferrare', fangy: 'stai zitto', mother: 'non muoverti', foxy: 'non perderlo di vista' },
   extraMother: 'La Madre',
   extraLevelNames: ['non viene', 'calmo', 'come la sua notte', 'svelto', 'feroce'],
@@ -156,7 +157,7 @@ const IT = {
     loading: 'Ti infili le bombole…',
     ascend: 'Risali',
     hint: 'Guardati attorno. Clicca un passaggio per nuotarci.',
-    // find: DA APPROVARE (12 ottobre), il punto della cosa da trovare nelle tane
+    // find (12 ottobre, approvato il 13): il punto della cosa da trovare nelle tane
     links: { cave: 'La grotta', back: 'Indietro', toCave: 'Torna alla grotta', ascend: 'Risali lungo la cima', find: 'Guarda' } as Record<string, string>,
     notes: { mother: 'Dal fondo, nel buio, respira qualcosa di enorme.' } as Record<string, string>,
     emptyDen: 'La tana è vuota. Chi ci dorme è già in giro.',
@@ -168,7 +169,7 @@ const IT = {
     offered: (who: string) => `Il pesce resta accanto ${ad(who)} ${who}. Stanotte dormirà.`,
     noFish: 'Non hai pesci da lasciare: alle sei non ne avanzava nessuno.',
     alreadyFed: 'Il pesce l’hai già lasciato.',
-    // DA APPROVARE (12 ottobre): la didascalia quando prendi la cosa da trovare
+    // 12 ottobre, approvata il 13: la didascalia quando prendi la cosa da trovare
     found: (what: string) => `Nel Diario: ${what}.`,
   },
   journalTitle: 'Diario',
@@ -240,7 +241,7 @@ const IT = {
     bowEat: 'Gulpy mastica',
     bowLeave: 'tonfo in acqua a prua',
     knock: 'toc toc sullo scafo',
-    // il falso allarme (più paura, 12 ottobre): DA APPROVARE
+    // il falso allarme (più paura, 12 ottobre; approvato il 13)
     falseSplash: 'un tonfo in acqua, dietro di te',
     peek: 'Molly si affaccia',
     giggle: 'risatina',
@@ -286,7 +287,7 @@ const IT = {
     motherLullaby: 'una ninna nanna, sotto la barca',
     motherPass: 'qualcosa di enorme passa sotto la barca',
     motherLeave: 'si allontana',
-    // il Foxy (11 ottobre sera, DA APPROVARE)
+    // il Foxy (11 ottobre sera, approvato il 13 ottobre)
     foxyLean: 'laggiù, qualcosa si sporge',
     foxyLeave: 'qualcosa corre sull’acqua',
   },
@@ -294,7 +295,7 @@ const IT = {
   hatchReady: 'Chi c’è c’è, chi non c’è non c’è!',
   hatchName: 'Hatch',
   kg: 'kg',
-  // i comandi col controller (12 ottobre, DA APPROVARE: tutti i testi qui sotto). {A}, {RT}… diventano i tasti del
+  // i comandi col controller (12 ottobre; approvati il 13 tutti i testi qui sotto). {A}, {RT}… diventano i tasti del
   // controller in uso (A o ✕, RT o R2…: src/app/pad.ts)
   pad: {
     pressAny: 'Premi un tasto',
@@ -377,7 +378,7 @@ const EN: typeof IT = {
   finaleTuoi: "You didn't come back alone.",
   finaleNessuno: 'You never gave her little ones anything. Now you are one of them.',
   creditsTitle: 'SPLASHLAND IS CLOSED!',
-  credits: [['A game by', 'Ettore']] as [string, string][],
+  credits: [['A game by', 'Ettore Canu']] as [string, string][],
   creditsEnd: 'Thank you for playing.',
   creditsSkip: 'Esc to skip',
   quotaMissed: 'Quota missed',
@@ -634,7 +635,7 @@ export const LORE_TEXT: Record<Lang, Record<string, { title: string; body: strin
       title: 'Pagina di un quaderno',
       body: 'Strappata dal quaderno di un pescatore. «La quota è dieci. Se non la porti, se ne prende un altro. Mio padre la portava, suo padre la portava. Stanotte tocca a me.»',
     },
-    // le cose da trovare nelle tane delle immersioni (12 ottobre): DA APPROVARE
+    // le cose da trovare nelle tane delle immersioni (12 ottobre, approvate il 13)
     den_gulpy: {
       title: 'Il menù dello Snack Shack',
       body: 'Disegnato a pastelli su un foglio a quadretti: «HOT DOG» 3000, poi solo i disegnini coi prezzi: le patatine 2000, il gelato 1500, il panino 4000. Poi un cerchio rosso attorno a tutto, ripassato due volte, la freccia e tre punti esclamativi, calcati. Estate 1997.',
@@ -764,7 +765,7 @@ export const RADIO_NIGHT1: Record<Lang, RadioLine[]> = {
 
 /** La chiamata della seconda notte (la batteria e Robin), accorciata e più criptica: approvata il 10 ottobre. Le due
  *  battute su Soggy (prova dell'utente del 12 ottobre: «all'inizio della notte 2 una linea di dialogo che ti avverte»)
- *  sono DA APPROVARE. */
+ *  sono approvate il 13 ottobre. */
 export const RADIO_NIGHT2: Record<Lang, RadioLine[]> = {
   it: [
     { at: 0.0, text: 'Seconda notte. Dieci pesci.' },
@@ -850,7 +851,7 @@ export const RADIO_NIGHT5: Record<Lang, RadioLine[]> = {
   ],
 };
 
-/** La chiamata della notte extra (DA APPROVARE): non spiega niente, le regole le sai già. */
+/** La chiamata della notte extra (approvata il 13 ottobre): non spiega niente, le regole le sai già. */
 export const RADIO_NIGHT7: Record<Lang, RadioLine[]> = {
   it: [
     { at: 0.0, text: 'Notte extra. Dieci pesci.' },
@@ -905,6 +906,9 @@ export const RADIO_FINALE: Record<Lang, RadioLine[]> = {
 
 /** La chiamata alla radio di ogni notte. */
 export const RADIO: Record<number, Record<Lang, RadioLine[]>> = { 1: RADIO_NIGHT1, 2: RADIO_NIGHT2, 3: RADIO_NIGHT3, 4: RADIO_NIGHT4, 5: RADIO_NIGHT5, 6: RADIO_NIGHT6, 7: RADIO_NIGHT7 };
+
+/** La forma dei testi dell'interfaccia (quella italiana): ogni lingua la deve riempire tutta. */
+export type Testi = typeof IT;
 
 export const STRINGS: Record<Lang, typeof IT> = { it: IT, en: EN };
 

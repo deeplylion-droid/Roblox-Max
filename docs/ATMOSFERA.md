@@ -101,11 +101,11 @@ Il mondo e la barca stanno in una notte. Il resto in un'altra.
   Il 12 ottobre le prime viste sono entrate con le scale del render di prima, e la statua si vedeva 3,8 volte più
   chiara, col bordo del riquadro staccato dal mondo. Ora l'installatore si ferma se il manifest della cartella dei
   render è più vecchio dei file da installare.
-- **Le luci attorno a Soggy** (`stage.ts`, da approvare): lampione, lanterna e le due lampadine che pendono dal tetto
-  della torre hanno un bagliore del motore solo nel binocolo, con un loro sfarfallio (nel render sono fisse).
-  Posizioni e colori vengono dalla scena del Foxy (`luci_posti.json`) e stanno nel codice (`GlowDef.pos`), perché il
-  render del mondo riscrive le luci del manifest. Col binocolo alzato le luci lontane dall'inquadratura restano fuori
-  dal conto dei 16 bagliori.
+- **Le luci attorno a Soggy** (`stage.ts`, approvate il 13 ottobre): lampione, lanterna e le due lampadine che pendono
+  dal tetto della torre hanno un bagliore del motore solo nel binocolo, con un loro sfarfallio (nel render sono
+  fisse). Posizioni e colori vengono dalla scena del Foxy (`luci_posti.json`) e stanno nel codice (`GlowDef.pos`),
+  perché il render del mondo riscrive le luci del manifest. Col binocolo alzato le luci lontane dall'inquadratura
+  restano fuori dal conto dei 16 bagliori.
 
 ### Installato il 12 ottobre (ramo `claude/atmosfera-motore`)
 
@@ -133,7 +133,7 @@ Controllato nel gioco: sei direzioni con la luce alta e spenta, tutti i posti de
 vicino e via, l'opzione accesa e spenta a notte in corso. La grana che si vede sulla foschia chiara è quella della pellicola
 di sempre (`uGrain`), non del render.
 
-## Mostri e jumpscare con la nebbia (12-13 ottobre, ramo `claude/mostri-nebbia`, da approvare)
+## Mostri e jumpscare con la nebbia (12-13 ottobre, ramo `claude/mostri-nebbia`, approvati il 13 ottobre)
 
 Decisione dell'utente del 12 ottobre sera («Mostri nella nebbia»): chi gioca con la nebbia accesa vede anche i mostri
 e i jumpscare resi con l'atmosfera. Le immagini di prima restano la serie `senza`.
@@ -172,7 +172,7 @@ e i jumpscare resi con l'atmosfera. Le immagini di prima restano la serie `senza
   che ha `senza`; i jumpscare si caricano all'avvio nella serie dell'opzione e `swapFogAssets` (`overlays.ts`) li
   scambia (la notte li legge a ogni fotogramma). Test in `tests/nebbia.test.ts`.
 
-### Rifatti con la nebbia (da approvare)
+### Rifatti con la nebbia (tutti approvati il 13 ottobre)
 
 | Cosa | Strati / fotogrammi | Note |
 | --- | --- | --- |

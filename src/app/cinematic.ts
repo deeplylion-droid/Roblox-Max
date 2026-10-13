@@ -38,8 +38,8 @@ export interface CinematicScript {
   /** il buio a tutto schermo, 0..1 (dissolvenze) */
   black?: Key<number>[];
   sounds?: { t: number; id: string; gain?: number; loop?: boolean; fadeIn?: number }[];
-  /** le scritte, al centro in basso */
-  text?: { t: number; dur: number; it: string; en: string }[];
+  /** le scritte, al centro in basso: la frase dei testi del gioco (STRINGS), in ogni lingua */
+  text?: { t: number; dur: number; key: 'finaleTuoi' | 'finaleNessuno' }[];
   events?: { t: number; e: CineEvent }[];
   /** l'ultima inquadratura: un'immagine ferma a tutto schermo da `t`, con la dissolvenza `fade` (0 = taglio netto) e un
    *  lento movimento di camera: zoom e il punto dell'immagine al centro dello schermo (x, y da in alto a sinistra, 0..1) */
@@ -89,7 +89,7 @@ export function stillFrame(s: CinematicScript, t: number): { key: EndingStill; a
 /** La scritta da mostrare all'istante t (vuota se nessuna). */
 export function textAt(s: CinematicScript, t: number, lang: Lang): string {
   const x = (s.text ?? []).find((x) => t >= x.t && t < x.t + x.dur);
-  return x ? x[lang] : '';
+  return x ? STRINGS[lang][x.key] : '';
 }
 
 /**
@@ -189,7 +189,7 @@ export const FINALE_B: CinematicScript = {
 };
 
 /**
- * Il finale segreto «I tuoi» (da approvare), sui tempi del suono `finale_tuoi` (18 s): all'alba la Madre sale a sinistra e
+ * Il finale segreto «I tuoi» (approvato il 13 ottobre), sui tempi del suono `finale_tuoi` (18 s): all'alba la Madre sale a sinistra e
  * canta per richiamare i figli (0-3 s); loro affiorano attorno alla barca ma non la seguono, e lei richiama più forte
  * (4-6 s); torna giù da sola col suo lamento (6-10 s); i figli restano, poi scendono sotto la barca e la seguono mentre
  * sorge il sole e si rema verso il porto (10-14 s); la barca tocca il molo (14,6 s) e l'ultima inquadratura è il molo
@@ -260,11 +260,11 @@ export const FINALE_TUOI: CinematicScript = {
     { t: 0.01, id: 'finale_tuoi' },
     { t: 10.5, id: 'amb_dawn', loop: true, fadeIn: 3, gain: 0.7 },
   ],
-  text: [{ t: 16.2, dur: 4.4, it: STRINGS.it.finaleTuoi, en: STRINGS.en.finaleTuoi }],
+  text: [{ t: 16.2, dur: 4.4, key: 'finaleTuoi' }],
 };
 
 /**
- * Il finale segreto «Nessuno» (da approvare), sui tempi del suono `finale_nessuno` (18 s): all'alba la Madre sale
+ * Il finale segreto «Nessuno» (approvato il 13 ottobre), sui tempi del suono `finale_nessuno` (18 s): all'alba la Madre sale
  * accanto alla barca e si ferma a guardarti, non il secchio (0-3 s); i figli affiorano attorno uno dopo l'altro e
  * restano fermi a fissarti (3-8 s); la vista scende verso l'acqua e la lampara muore (8-10 s); nel buio la ninna nanna
  * canticchiata (10-15 s); a 15 s, taglio netto: l'edicola dello scoglio con le foto dei bambini scomparsi e fra loro
@@ -341,6 +341,6 @@ export const FINALE_NESSUNO: CinematicScript = {
     { t: 15.0, e: 'quiet' },
   ],
   text: [
-    { t: 17.2, dur: 4.0, it: STRINGS.it.finaleNessuno, en: STRINGS.en.finaleNessuno },
+    { t: 17.2, dur: 4.0, key: 'finaleNessuno' },
   ],
 };

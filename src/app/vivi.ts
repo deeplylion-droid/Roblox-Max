@@ -1,5 +1,5 @@
 /**
- * Le creature vive («più paura», idea approvata dall'utente il 12 ottobre; i numeri sono da approvare): mentre
+ * Le creature vive («più paura», idea approvata dall'utente il 12 ottobre; i numeri il 13 ottobre): mentre
  * aspettano respirano (lo strato si allunga e si accorcia piano attorno alla base) e, quando le guardi, ogni tanto la
  * testa scatta (un colpo di rotazione, un attimo fermo, e torna). Chi è appena uscito dall'acqua gocciola. Solo il
  * presentatore: la simulazione e le regole non cambiano.
@@ -18,7 +18,7 @@ export interface Vivo {
   wet: boolean;
 }
 
-/** I numeri di ognuno (da approvare). La Madre respira piano e non scatta. */
+/** I numeri di ognuno (approvati il 13 ottobre). La Madre respira piano e non scatta. */
 export const VIVI: Record<string, Vivo> = {
   gulpy: { amp: 0.011, hz: 0.24, twitch: 0.07, neck: 0.62, wet: true },
   mollyR: { amp: 0.008, hz: 0.31, twitch: 0.06, neck: 0.5, wet: true },

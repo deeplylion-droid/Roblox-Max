@@ -1,6 +1,6 @@
 # SPLASHLAND IS CLOSED! — Il Catalogo dei pesci
 
-> ⚠️ **PROPOSTA DA APPROVARE.** Nomi, descrizioni, rarità e condizioni sono una bozza scritta di notte: si cambia tutto quello che non convince. Il file si rigenera da `src/game/catalog.ts` con `npm run catalog`.
+> **Approvata il 13 ottobre** la proposta scritta di notte: nomi, descrizioni, rarità e condizioni. Il file si rigenera da `src/game/catalog.ts` con `npm run catalog`.
 
 Cento specie, tutte ispirate a pesci veri del Mediterraneo e degli abissi, venti per famiglia. Ogni voce ha il nome italiano e quello inglese (un gioco di parole diverso per ogni lingua), la specie vera, la rarità, quando abbocca, come combatte al recupero, il peso e una riga inquietante. Le descrizioni inglesi, scritte la notte del 12 ottobre, sono approvate dall'utente il 13 ottobre.
 
