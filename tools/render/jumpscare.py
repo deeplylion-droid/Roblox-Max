@@ -503,12 +503,28 @@ def _lampara_fuori_barca(out_dir, who, W, H, coll_objects, renderable, riprendi)
     return np.clip(post.read_exr(exr)['alpha'], 0.0, 1.0)
 
 
-def _liscia_sfondo(bg, barca, hfov):
+def _sfondo_senza_nebbia(out_dir, who, W, H, samples, riprendi):
+    """Lo sfondo senza la nebbia (stessa camera e stessi campioni, molto più veloce): sulla barca dice com'è lo scafo
+    senza la grana della nebbia che ha davanti (vedi _liscia_sfondo)."""
+    import post
+    exr = os.path.join(out_dir, f'{who}_bg_chiaro.exr')
+    if not (riprendi and os.path.exists(exr)):
+        neb = bpy.data.objects.get('Nebbia')
+        if neb:
+            neb.hide_render = True
+        render(exr, samples, (W, H), data_passes=())
+        if neb:
+            neb.hide_render = False
+    return post.read_exr(exr)
+
+
+def _liscia_sfondo(bg, barca, chiaro, hfov):
     """La luce delle lampade nella nebbia dello sfondo, ripulita come liscia_nebbia.py fa col mondo (13 ottobre: sul
     mare vicino la nebbia illuminata usciva dal denoiser a chiazze arancio-grigie, come una superficie granulosa). Fuori
     dalla barca i passi lamp e lantern prendono la media del loro intorno (mezzo grado, solo sui pixel fuori dalla barca,
-    così la barca non sbava), tranne i riflessi veri, molto più chiari dell'intorno; sulla barca una mediana 5×5 toglie
-    i puntini della nebbia davanti allo scafo senza sfocare le coste. barca: la copertura della barca (0..1)."""
+    così la barca non sbava), tranne i riflessi veri, molto più chiari dell'intorno. Sulla barca la nebbia davanti allo
+    scafo è la differenza con lo sfondo senza nebbia (chiaro): si liscia quella, che nel vero è liscia, e si rimette
+    sopra lo scafo pulito, così le coste restano nitide. barca: la copertura della barca (0..1)."""
     from scipy.ndimage import median_filter
     import liscia_nebbia as ln
     ppd = bg['lamp'].shape[1] / hfov
@@ -522,7 +538,8 @@ def _liscia_sfondo(bg, barca, hfov):
         tieni = np.clip((r - 1.8) / 1.0, 0.0, 1.0)
         tieni = (tieni * tieni * (3 - 2 * tieni))[..., None]
         mondo = base * (1 - tieni) + lin * tieni
-        scafo = np.stack([median_filter(lin[..., c], size=5, mode='nearest') for c in range(3)], axis=-1)
+        pulito = chiaro[g][..., :3].astype(np.float32) if g in chiaro else np.zeros_like(lin)
+        scafo = pulito + ln.media(lin - pulito, 0.25 * ppd, barca.astype(np.float32))
         b = barca[..., None]
         bg[g] = scafo * b + mondo * (1 - b)
     return bg
@@ -574,6 +591,7 @@ def run(q, who, post_mod, overlays_path, build_scene, coll_objects, renderable):
     if os.environ.get('ATMOSFERA'):
         # prima di rimettere la creatura e le maschere: la copertura della sola barca
         barca = _lampara_fuori_barca(out_dir, who, W, H, coll_objects, renderable, riprendi)
+        chiaro = _sfondo_senza_nebbia(out_dir, who, W, H, samples, riprendi)
         k_lamp = barca + LAMPARA_MONDO * (1.0 - barca)
     for o in meshes:
         o.hide_render = False
@@ -595,7 +613,7 @@ def run(q, who, post_mod, overlays_path, build_scene, coll_objects, renderable):
     if os.environ.get('ATMOSFERA') and 'lamp' in bg:
         # con la nebbia, fuori dalla barca la luce della lampara vale un quinto, come il passo lamp del mondo nel gioco
         # (docs/ATMOSFERA.md, «L'alone della luce più leggero»: diffusa nella nebbia faceva un alone bianco)
-        bg = _liscia_sfondo(bg, barca, math.degrees(2 * math.atan(bpy.context.scene.camera.data.sensor_width / 2 / bpy.context.scene.camera.data.lens)))
+        bg = _liscia_sfondo(bg, barca, chiaro, math.degrees(2 * math.atan(bpy.context.scene.camera.data.sensor_width / 2 / bpy.context.scene.camera.data.lens)))
         bg['lamp'] = bg['lamp'][..., :3] * k_lamp[..., None]
     bg_lin = sum(bg[g][..., :3] for g in ('ambient', 'lamp', 'lantern') if g in bg)
     frames = []
