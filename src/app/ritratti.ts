@@ -7,7 +7,7 @@
 import { MONSTERS, type MonsterId, type NightConfig } from '../game/config.ts';
 
 /** I mostri che hanno il loro ritratto (renderizzato), nell'ordine in cui si incontrano. */
-export const RITRATTI: readonly MonsterId[] = ['gulpy', 'molly', 'hatch', 'robin'];
+export const RITRATTI: readonly MonsterId[] = ['gulpy', 'molly', 'hatch', 'robin', 'archie', 'lampy', 'fangy'];
 /** Al primo avvio, quando non hai ancora incontrato nessuno (scelta dell'utente). */
 export const PRIMO_RITRATTO: MonsterId = 'molly';
 

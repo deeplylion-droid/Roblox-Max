@@ -10,6 +10,10 @@ import type { CatalogEntry, Options } from './save.ts';
 const FISH_SHAPE =
   '<svg viewBox="0 0 120 60" aria-hidden="true"><path d="M6 30 C 24 8, 64 6, 86 26 L 112 10 L 104 30 L 112 50 L 86 34 C 64 54, 24 52, 6 30 Z"/></svg>';
 
+/** Il logo del menu principale (tools/render/logo.py): l'insegna al neon, e lo stesso quadro con la S spenta che si
+ *  riaccende un attimo. */
+export const LOGO = { insegna: 'assets/img/logo/logo.webp', tremolio: 'assets/img/logo/logo_tremolio.webp' };
+
 export function h<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string, string> = {}, ...kids: (Node | string)[]): HTMLElementTagNameMap[K] {
   const e = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
@@ -187,7 +191,33 @@ export class Screens {
     if (o.onExtraNight) menu.append(button(S.extraNight, o.onExtraNight));
     menu.append(button(S.extras, o.onJournal), button(S.options, o.onOptions));
     if (o.onQuit) menu.append(button(S.quit, o.onQuit));
-    this.show(this.conRitratto('screen title fade-in', [h('h1', {}, S.title), menu, h('div', { class: 'build' }, __BUILD__)], true));
+    this.show(this.conRitratto('screen title fade-in', [this.logo(S.title), menu, h('div', { class: 'build' }, __BUILD__)], true));
+  }
+
+  /**
+   * Il titolo: l'insegna al neon (scelta dell'utente del 13 ottobre; il risultato è da approvare), col titolo scritto
+   * per chi legge lo schermo. Ogni 7-16 s la S spenta prova a riaccendersi: tre colpi corti (acceso, spento, acceso) e
+   * si rispegne. Come gli scatti del ritratto, non con «Riduci lampi e scosse».
+   */
+  private logo(title: string): HTMLElement {
+    const tremolio = h('img', { class: 'tremolio', src: LOGO.tremolio, alt: '', draggable: 'false' });
+    const el = h('h1', { class: 'logo' }, h('img', { class: 'insegna', src: LOGO.insegna, alt: title, draggable: 'false' }), tremolio);
+    if (!this.ritratto?.scatta) return el;
+    const colpi = [70, 60, 120];
+    const next = () => window.setTimeout(() => trema(0), 7000 + Math.random() * 9000);
+    const trema = (i: number) => {
+      if (!el.isConnected) return;
+      if (i === colpi.length) {
+        tremolio.classList.remove('on');
+        next();
+        return;
+      }
+      tremolio.classList.toggle('on', i % 2 === 0);
+      window.setTimeout(() => trema(i + 1), colpi[i]);
+    };
+    // (quando la schermata se ne va, il prossimo colpo trova il logo staccato e si ferma)
+    next();
+    return el;
   }
 
   /**

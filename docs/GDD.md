@@ -131,13 +131,21 @@ Avvertenza (jumpscare, luci, cuffie consigliate; la ninna nanna al carillon part
 
 **Il menu principale col ritratto** (scelta dell'utente del 13 ottobre, fra due proposte con le anteprime: la A «Il
 ritratto», come il titolo di FNAF; il risultato è da approvare). A destra, da vicino, uno dei bambini-mostro alla luce
-della barca, nella sua posa di gioco; a sinistra, sul buio, il titolo su due righe in alto e le voci in basso. Il
+della barca, nella sua posa di gioco; a sinistra, sul buio, il logo in alto e le voci in basso. Il
 ritratto respira piano e ogni 6-13 secondi ha uno scatto: due fotogrammi col segnale disturbato (il quadro sobbalza, i
 colori si separano, la faccia viene avanti) e un soffio di statica; con «Riduci lampi e scosse» niente scatti. Si
 vedono solo i mostri già incontrati (quelli delle notti cominciate, `seen` nel salvataggio); al primo avvio Molly
 (scelta dell'utente); a ogni avvio uno diverso dall'ultima volta. Lo stesso ritratto sta dietro a «Nuova partita?» e
-agli Extra. I ritratti li fa `tools/render/ritratti.py` (render da 1920×1080 dal modello del gioco, con una luce calda
-da sotto e un controluce freddo), il gioco li mostra in `src/app/ritratti.ts`.
+agli Extra. I ritratti (uno per ognuno dei sette: Gulpy, Molly, Hatch, Robin, Archie, Lampy, Fangy) li fa
+`tools/render/ritratti.py` (render da 1920×1080 dal modello del gioco, con una luce calda da sotto e un controluce
+freddo), il gioco li mostra in `src/app/ritratti.ts`.
+
+**Il logo** (scelta dell'utente del 13 ottobre fra tre proposte, l'insegna al neon, il cartello sbarrato e il pastello;
+senza «MAMA MARINA'S», richiesta dell'utente; il risultato è da approvare). Al posto del titolo scritto, l'insegna al
+neon del parco: SPLASHLAND in tubi rosa col carattere del parco (Limelight), con la S in mezzo e la N spente come
+sull'insegna dell'ingresso, la raggiera arancione dietro (due raggi spenti) e sotto «is closed!» in corsivo rosso,
+storto, tutto acceso. Ogni 7-16 secondi la S spenta prova a riaccendersi (tre colpi corti, poi si rispegne); con
+«Riduci lampi e scosse» no. È uguale in tutte le lingue (il titolo non si traduce). Lo fa `tools/render/logo.py`.
 
 ## 11. Opzioni e accessibilità
 

@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { RITRATTI, mostriDellaNotte, ritrattoSrc, scegliRitratto } from '../src/app/ritratti.ts';
 import { loadSave, meet } from '../src/app/save.ts';
+import { LOGO } from '../src/app/screens.ts';
 import { EXTRA_NIGHT, NIGHTS, extraLevels, extraNight } from '../src/game/config.ts';
 
 describe('Il ritratto del menu principale', () => {
@@ -26,6 +27,10 @@ describe('Il ritratto del menu principale', () => {
       const r = ritrattoSrc(m);
       for (const f of [r.calmo, ...r.scatti]) expect(existsSync(`public/${f}`), f).toBe(true);
     }
+  });
+
+  it('il logo sopra il ritratto: l’insegna al neon e il fotogramma della S che si riaccende (tools/render/logo.py)', () => {
+    for (const f of [LOGO.insegna, LOGO.tremolio]) expect(existsSync(`public/${f}`), f).toBe(true);
   });
 
   it('i file: il ritratto fermo e i due fotogrammi dello scatto', () => {

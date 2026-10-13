@@ -129,7 +129,14 @@ html, body {
   background: linear-gradient(90deg, rgba(0,0,0,.92) 0%, rgba(0,0,0,.72) 24%, rgba(0,0,0,0) 50%),
     repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px); }
 .title.con-ritratto > h1, .title.con-ritratto > h2, .title.con-ritratto > p, .title.con-ritratto > .menu { position: relative; }
-.title.con-ritratto h1 { font-size: clamp(36px, 5.6vw, 96px); line-height: 1.04; max-width: 7.4em; }
+/* il logo: l'insegna al neon (tools/render/logo.py; scelta dell'utente del 13 ottobre, il risultato è da approvare).
+   Attorno ai tubi l'immagine ha il bagliore: i margini negativi portano i tubi in alto dove stava il titolo scritto
+   e, col ritratto, a filo delle voci del menu. Sopra, il fotogramma con la S che si riaccende (screens.ts) */
+.title h1.logo { --logo: min(46vw, 86vh); position: relative; width: var(--logo); max-width: none; line-height: 0; margin: calc(var(--logo) * -0.044) 0 0; }
+.title.con-ritratto h1.logo { margin-left: calc(var(--logo) * -0.07); }
+.title h1.logo img { display: block; width: 100%; height: auto; }
+.title h1.logo .tremolio { position: absolute; inset: 0; visibility: hidden; }
+.title h1.logo .tremolio.on { visibility: visible; }
 .title.con-ritratto > p { padding: 0; max-width: min(calc(560px * var(--ts)), 44vw); }
 .title.con-ritratto .menu { align-items: flex-start; }
 .title.con-ritratto .menu button { padding-left: 0; }
@@ -137,6 +144,7 @@ html, body {
    uscivano sotto (tedesco, giapponese) */
 @media (max-height: 700px) {
   .title.con-ritratto { padding-block: 5vh; }
+  .title h1.logo { --logo: min(46vw, 70vh); }
   .title.con-ritratto > p { font-size: calc(16px * var(--ts)); max-width: min(calc(560px * var(--ts)), 52vw); }
   .title.con-ritratto .menu { margin-top: 12px; }
 }

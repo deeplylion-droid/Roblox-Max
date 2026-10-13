@@ -57,6 +57,7 @@ quello delle date resta stretto); il resto dallo scheletro di un font (vedi sott
 | `annuncio/volantino` | lo slogan «Mama Marina loves her little ones!» resta in inglese anche nella versione italiana, come il nome del parco |
 | tane | SNACK SHACK, DEEP END, SPLASHLAND, i numeri di Hatch, POLO!, 2008; Archie: HAPPY BIRTHDAY (era TANTI AUGURI, scelta dell'utente del 12 ottobre) |
 | `favicon.png` | la S al neon |
+| `logo/logo`, `logo/logo_tremolio` (il logo del menu principale) | SPLASHLAND, «is closed!»: è il titolo del gioco, che non si traduce |
 
 ### Le tane: l'italiano che si leggeva (revisione del 12 ottobre)
 

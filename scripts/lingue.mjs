@@ -113,6 +113,20 @@ await page.evaluate(async () => {
     }
     return bad;
   };
+  /** Il logo del titolo è un'immagine (__fuori non lo vede): i tubi accesi (le frazioni le stampa tools/render/logo.py;
+   *  sotto, fino in fondo all'immagine, c'è solo il bagliore) stanno nello schermo e non arrivano alle voci del menu. */
+  window.__logo = () => {
+    const img = document.querySelector('.title h1.logo .insegna');
+    const menu = document.querySelector('.title .menu');
+    if (!img || !menu) return ['h1.logo: manca il logo o il menu'];
+    const r = img.getBoundingClientRect();
+    const m = menu.getBoundingClientRect();
+    const bad = [];
+    const fondo = r.top + r.height * 0.86;
+    if (fondo > m.top) bad.push(`h1.logo arriva sulle voci del menu (${Math.round(fondo - m.top)} px)`);
+    if (r.left + r.width * 0.07 < -2 || r.left + r.width * 0.93 > innerWidth + 2 || r.top + r.height * 0.09 < -2) bad.push('h1.logo esce dallo schermo');
+    return bad;
+  };
   /** Le animazioni a metà (dissolvenze, il rullo dei titoli) portate alla fine, o ferme all'inizio se non finiscono. */
   window.__ferma = () => {
     for (const a of document.getAnimations()) {
@@ -365,7 +379,7 @@ for (const lang of langs) {
             const el = window.__schermate[n]();
             await document.fonts.ready;
             window.__ferma();
-            const extra = n === 'catalogo' ? window.__catalogo() : [];
+            const extra = n === 'catalogo' ? window.__catalogo() : n === 'titolo' ? window.__logo() : [];
             // il catalogo torna alla prima pagina per la foto
             if (n === 'catalogo') document.querySelector('.book-tabs .tab')?.click();
             return [...window.__fuori(el.parentElement ?? el), ...extra];
