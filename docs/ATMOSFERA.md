@@ -148,7 +148,12 @@ e i jumpscare resi con l'atmosfera. Le immagini di prima restano la serie `senza
   fotogrammi e post-produzione del motore. La nebbia è nello sfondo e non nei fotogrammi della creatura (come già
   faceva jumpscare.py). Nuovo: nello sfondo, fuori dalla barca, la lampara vale un quinto (`LAMPARA_MONDO`), come il
   passo `lamp` del mondo nel gioco, se no tornava l'alone bianco. La copertura della barca viene da un render rapido
-  senza nebbia (4 campioni).
+  senza nebbia (4 campioni). Poi lo sfondo si ripulisce (`_liscia_sfondo`, 13 ottobre, segnalazione sul jumpscare di
+  Gulpy: il mare vicino sembrava una superficie granulosa arancio-grigia): fuori dalla barca i passi `lamp` e
+  `lantern` prendono la media dell'intorno (mezzo grado, solo sui pixel fuori dalla barca), tranne i riflessi veri,
+  come liscia_nebbia.py col mondo; sulla barca una mediana 5×5. Si rifà senza rendere con `JS_RIPRENDI=1` (riusa
+  sfondo, copertura e fotogrammi della cache). Resta una grana fine sullo scafo (la nebbia davanti alla barca), da
+  sistemare. I fotogrammi nuovi sono 1920×1080; quelli della serie senza di Gulpy, Molly e Hatch erano 960×540.
 - **Installazione**: `tools/render/mostri_due_serie.py <cartella dei render> <repository> --mostri gulpy,molly
   --strati fish2,… --jumpscare gulpy,…`. Come atmosfera_due_serie.py: la prima volta i file di adesso diventano
   `<nome>_senza.webp` (strati: `layers.<chiave>.senza.passes`; jumpscare: `jumpscares.<chi>.senza.frames`), poi
@@ -179,7 +184,7 @@ e i jumpscare resi con l'atmosfera. Le immagini di prima restano la serie `senza
 | Fangy | fangy_ascolta, fangy_testa_prua, fangy_testa_poppa | sagome uguali (3 pixel); luna 0,25-0,4, lanterna 1,2-1,35; a luce spenta lo mostrano le lucine del motore (posizioni invariate) |
 | La Madre | madre_sale | sagoma uguale (4 pixel); luna 0,4 |
 | Pesci nel secchio | fish2, fish5, fish9 (`PROPS=fish jobs.py props`) | sagome uguali (0-4 pixel); luna 0,3, lampara 1,04-1,18 |
-| Jumpscare di Gulpy | js_gulpy_00..07 (1920×1080, 64 campioni) | stesse inquadrature e movimento; luce media 1,01-1,13 di prima; sfondo velato, alone della lampara leggero |
+| Jumpscare di Gulpy | js_gulpy_00..07 (1920×1080, 64 campioni) | stesse inquadrature e movimento; luce media 1,0-1,1 di prima; sfondo velato, alone della lampara leggero; il mare vicino ripulito dalla grana a chiazze del denoiser (13 ottobre: `_liscia_sfondo` in jumpscare.py, con ATMOSFERA=1, ricomposto con JS_RIPRENDI=1) |
 | Jumpscare di Molly | js_molly_00..07 | stesse inquadrature; luce media 0,76-1,0 di prima (la luna più bassa sul fianco della barca) |
 | Jumpscare di Hatch | js_hatch_00..07 | stesse inquadrature; luce media 0,76-0,94 di prima |
 | Jumpscare di Robin | js_robin_00..07 | stesse inquadrature e movimento; luce media 1,02-1,04 di prima; sfondo più velato e scuro, niente alone; un filo di grana nella nebbia sopra lo scafo (la copre la grana del nastro del motore) |
