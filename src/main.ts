@@ -9,6 +9,7 @@ import { loadSave } from './app/save.ts';
 import { Screens } from './app/screens.ts';
 import { Sfx } from './app/sfx.ts';
 import { Stage } from './app/stage.ts';
+import { ascoltaTastiera } from './app/tastiera.ts';
 import { loadLayer, loadManifest } from './engine/assets.ts';
 import { AudioEngine } from './engine/audio.ts';
 import { Renderer } from './engine/renderer.ts';
@@ -59,6 +60,8 @@ function loop(step: (dt: number) => void): void {
 
 async function boot(): Promise<void> {
   const params = new URLSearchParams(location.search);
+  // le lettere dei tasti a posizione fissa sulla tastiera di chi gioca (per i suggerimenti)
+  ascoltaTastiera();
   const save = loadSave();
   // una lingua salvata che il gioco non ha più (o non ha ancora): quella del sistema
   const lang = save.lang && LANGS.includes(save.lang) ? save.lang : detectLang();

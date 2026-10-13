@@ -127,9 +127,14 @@ meno riusciti, le specie vere senza un nome sicuro nella lingua, le scelte da co
 - **La voce della radio** (`src/engine/voice.ts`, 13 ottobre): la punteggiatura staccata con lo spazio, come in
   francese («Prêt ?»), non è più una sillaba; un nome latino attaccato a una particella coreana o giapponese
   («Gulpy는») si dice invece di restare muto.
-- **Da decidere**: la tastiera francese (AZERTY). I suggerimenti dicono W A S D e Q/E come nelle altre lingue (il
-  gioco legge la lettera premuta, quindi sono giusti), ma su quella tastiera quei tasti sono sparsi: si potrebbe
-  passare ai tasti fisici (ZQSD in Francia), con i suggerimenti che dicono i tasti della tastiera del giocatore.
+- **La tastiera francese (AZERTY)** (13 ottobre, fra le rifiniture scelte dall'utente): i tasti che contano per dove
+  stanno, sotto la mano sinistra (W A S D per voltarsi, Q ed E per la luce), si leggono per posizione
+  (`src/app/tastiera.ts`): su una tastiera francese sono Z Q S D e A/E, come in tutti i giochi. Gli altri (F, C, B,
+  Spazio, Tab) restano per la lettera, che su ogni tastiera latina sta lì. Nei testi quei tasti sono segnaposto
+  (`{KeyW}`, `{KeyQ}`…: vanno lasciati come sono, come quelli del controller) e i suggerimenti dicono le lettere della
+  tastiera di chi gioca: le chiede al browser (`navigator.keyboard`, che in Electron c'è) e le conferma ogni tasto
+  premuto; senza notizie dicono quelle americane. Con una tastiera che non scrive in latino (russa, greca) valgono le
+  lettere latine stampate sui tasti.
 
 **Come funziona** (preparato la notte del 12-13 ottobre)
 - **La lingua**: il pulsante della lingua nelle opzioni passa da una lingua all'altra (`LANGS`, ognuna col suo nome

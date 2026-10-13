@@ -40,13 +40,14 @@ await page.waitForFunction(() => window.__game?.step, null, { timeout: 300000 })
 
 // nella pagina: i moduli del gioco (gli stessi che usa lui) e il controllo delle scritte
 await page.evaluate(async () => {
-  const [I, C, G, D, H, P] = await Promise.all([
+  const [I, C, G, D, H, P, T] = await Promise.all([
     import('/src/i18n.ts'),
     import('/src/game/catalog.ts'),
     import('/src/game/config.ts'),
     import('/src/app/disegni.ts'),
     import('/src/app/hud.ts'),
     import('/src/app/pad.ts'),
+    import('/src/app/tastiera.ts'),
   ]);
   const app = window.__game.app;
   // la scena non serve (si guardano le scritte) e senza GPU disegnarla rallenta le foto
@@ -237,14 +238,14 @@ await page.evaluate(async () => {
     const hintEl = hud.root.querySelector('.hud-hint');
     const pads = new Set(Object.keys(s.pad.hints));
     for (const [k, v] of Object.entries(s.hints)) {
-      await prova(`suggerimento ${k}`, () => hud.hint(v), hintEl);
+      await prova(`suggerimento ${k}`, () => hud.hint(T.tastiText(v)), hintEl);
       hud.hint('');
       if (pads.has(k)) {
         await prova(`suggerimento ${k} (controller)`, () => hud.hint(P.pad.glyphs(s.pad.hints[k])), hintEl);
         hud.hint('');
       }
     }
-    for (const [k, v] of [['look', s.look], ['look (controller)', P.pad.glyphs(s.pad.look)], ['sonar', s.sonarHint], ['luce', s.lampHint]]) {
+    for (const [k, v] of [['look', T.tastiText(s.look)], ['look (controller)', P.pad.glyphs(s.pad.look)], ['sonar', s.sonarHint], ['luce', T.tastiText(s.lampHint)]]) {
       await prova(`suggerimento ${k}`, () => hud.hint(v), hintEl);
       hud.hint('');
     }

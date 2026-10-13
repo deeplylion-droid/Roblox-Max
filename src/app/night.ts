@@ -16,6 +16,7 @@ import { FISH_BY_ID } from '../game/catalog.ts';
 import { LORE_TEXT, RADIO, RADIO_FINALE, STRINGS, decimal, testiPesce, type Lang, type RadioLine } from '../i18n.ts';
 import { Hud } from './hud.ts';
 import { dualText, pad } from './pad.ts';
+import { tastiText, tasto } from './tastiera.ts';
 import type { Options } from './save.ts';
 import type { Sfx } from './sfx.ts';
 import { FINALE_A, FINALE_B, FINALE_NESSUNO, FINALE_TUOI, between, sample, stillFrame, textAt, type CinematicScript, type EndingStill } from './cinematic.ts';
@@ -541,7 +542,7 @@ export class Night {
     const c = this.d.canvas;
     this.on(window, 'keydown', (e) => this.keyDown(e as KeyboardEvent));
     this.on(window, 'keyup', (e) => {
-      const k = (e as KeyboardEvent).key.toLowerCase();
+      const k = tasto(e as KeyboardEvent);
       this.held.delete(k);
       if (k === ' ') this.sim.setReelHeld(this.reelHeld());
     });
@@ -600,7 +601,8 @@ export class Night {
   }
 
   private keyDown(e: KeyboardEvent): void {
-    const k = e.key.toLowerCase();
+    // W A S D e Q E per dove stanno (su una tastiera francese Z Q S D e A E), gli altri per la lettera (tastiera.ts)
+    const k = tasto(e);
     if (this.cine) {
       // la cinematica di un finale: Esc (o Invio, Spazio) la salta
       if (k === 'escape' || k === 'enter' || k === ' ') {
@@ -738,7 +740,7 @@ export class Night {
   /** Il suggerimento `k` coi tasti del controller, se è quello in uso (e se il testo ne parla). */
   private hintText(k: keyof (typeof STRINGS)['it']['hints']): string {
     const padText = pad.active ? this.S.pad.hints[k] : undefined;
-    return padText ? pad.glyphs(padText) : this.S.hints[k];
+    return padText ? pad.glyphs(padText) : tastiText(this.S.hints[k]);
   }
 
   /** Alza o abbassa il binocolo; alzandolo vicino a un luogo lo sguardo si centra su di lui. */
@@ -3085,7 +3087,7 @@ export class Night {
       else if (f.phase === 'reeling') hint = tut ? this.hintText('reel') : '';
       else if (sim.molly.present || sim.gulpy.present) hint = '';
       else if (tut && f.phase === 'idle' && sim.facing(YAW.rod, VIEW.rodHalfAngle) && sim.landedCount < 2) hint = this.hintText('cast');
-      else if (tut && sim.time < 25 && !sim.facing(YAW.rod, VIEW.rodHalfAngle)) hint = pad.active ? pad.glyphs(S.pad.look) : S.look;
+      else if (tut && sim.time < 25 && !sim.facing(YAW.rod, VIEW.rodHalfAngle)) hint = pad.active ? pad.glyphs(S.pad.look) : tastiText(S.look);
     }
     hud.hint(hint);
     // la radio: i sottotitoli spariscono da soli se non c'è chiamata in corso

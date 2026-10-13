@@ -20,6 +20,7 @@ import type { NightMonster as NightMonster } from '../game/config.ts';
 import { LORE_TEXT, STRINGS, type Lang } from '../i18n.ts';
 import { DiveRun, type DiveData, type DiveLink, type DivePano, type DivePlace } from './dive_run.ts';
 import { badge, dualText, pad } from './pad.ts';
+import { tasto } from './tastiera.ts';
 import type { Options } from './save.ts';
 import type { Stage } from './stage.ts';
 
@@ -494,12 +495,12 @@ export class Dive {
   private bind(): void {
     const c = this.d.canvas;
     this.on(window, 'keydown', (e) => {
-      const k = (e as KeyboardEvent).key.toLowerCase();
+      const k = tasto(e as KeyboardEvent);
       this.held.add(k);
       if (['a', 'd', 'w', 's', 'arrowleft', 'arrowright', 'arrowup', 'arrowdown'].includes(k)) this.edgeArmed = false;
       if (k === 'escape') this.closeConfirm();
     });
-    this.on(window, 'keyup', (e) => this.held.delete((e as KeyboardEvent).key.toLowerCase()));
+    this.on(window, 'keyup', (e) => this.held.delete(tasto(e as KeyboardEvent)));
     this.on(window, 'blur', () => this.held.clear());
     this.on(c, 'mousemove', (e) => {
       const m = e as MouseEvent;

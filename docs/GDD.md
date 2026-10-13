@@ -37,6 +37,9 @@ Horror in prima persona a inquadratura fissa (alla *Five Nights at Freddy's*): s
 | Pausa | | `Esc` |
 | Binocolo (easter egg) | tieni premuto il tasto destro | `B`; rotella: zoom |
 
+`W` `A` `S` `D` e `Q` `E` contano per dove stanno: su una tastiera francese (AZERTY) sono `Z` `Q` `S` `D` e `A` `E`, e i
+suggerimenti dicono le lettere della tastiera di chi gioca (13 ottobre, `src/app/tastiera.ts`).
+
 Col controller (e sullo Steam Deck) si gioca tutto: la tabella è in «Controller e Steam Deck» (§14).
 
 - **Binocolo — easter egg** (fatto, approvato il 13 ottobre): lo alzi con `B` o tenendo premuto il tasto destro; la vista si stringe nei due cerchi e zooma forte (rotella: due livelli di zoom) sui luoghi dell'orizzonte, renderizzati a parte ad alta risoluzione (`tools/render/binocolo.py`: ingresso di Splashland, statua di Mama Marina, ruota panoramica, scivoli, albergo Miramare, edicola votiva, relitto, faro, paese). Si alza in 0,3 s, con l'ingrandimento che cresce uniforme, e i luoghi ad alta risoluzione compaiono solo nell'ultimo tratto, quando riempiono il cerchio (prova dell'utente del 13 ottobre: prima ci metteva troppo, e durante la salita si vedeva il riquadro del luogo, con un'altra nebbia, dentro il mondo). Le mani tremano appena, ma compensano buona parte del dondolio della barca (così a zoom massimo il dettaglio resta nel cerchio). Mentre guardi nel binocolo non vedi la barca, e **Molly non si sente guardata**. Non si può alzare sotto il telone, col sonar aperto o con un pesce in canna. Non serve a superare la notte: è un easter egg. Alcuni dettagli di lore si vedono solo così, e restano **criptici al massimo** (proposta in `LORE.md`, «Il binocolo», approvata il 13 ottobre).
