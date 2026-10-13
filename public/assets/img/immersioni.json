@@ -466,11 +466,11 @@
    "pano": {
     "ambient": {
      "file": "immersioni/tana_robin_ambient.webp",
-     "scale": 0.36
+     "scale": 0.62
     },
     "lantern": {
      "file": "immersioni/tana_robin_lantern.webp",
-     "scale": 0.39
+     "scale": 0.4
     },
     "data": "immersioni/tana_robin_data.webp"
    },
@@ -483,25 +483,25 @@
    "yaw": 0,
    "rays": 0.12,
    "sleeper": {
-    "yaw": 8.8,
-    "pitch": -6.2,
-    "r": 13.4,
+    "yaw": 2.1,
+    "pitch": -6.3,
+    "r": 9.4,
     "layers": [
      {
       "passes": {
        "ambient": {
         "file": "immersioni/tana_robin_posa_ambient.webp",
-        "scale": 0.47000000000000003
+        "scale": 0.46
        },
        "lantern": {
         "file": "immersioni/tana_robin_posa_lantern.webp",
-        "scale": 0.26
+        "scale": 0.25
        }
       },
       "rect": [
        1647,
-       434,
-       2425,
+       436,
+       2124,
        1005
       ]
      },
@@ -509,7 +509,7 @@
       "passes": {
        "ambient": {
         "file": "immersioni/tana_robin_respiro_ambient.webp",
-        "scale": 0.48
+        "scale": 0.46
        },
        "lantern": {
         "file": "immersioni/tana_robin_respiro_lantern.webp",
@@ -518,16 +518,16 @@
       },
       "rect": [
        1647,
-       434,
-       2425,
+       436,
+       2124,
        1005
       ],
       "breath": 3.6
      }
     ],
     "bubbles": {
-     "yaw": 3.7,
-     "pitch": 0.8
+     "yaw": 4.0,
+     "pitch": 0.3
     }
    },
    "links": [
@@ -550,8 +550,8 @@
    },
    "find": {
     "lore": "den_robin",
-    "yaw": 27.3,
-    "pitch": -22.7,
+    "yaw": -25.1,
+    "pitch": -22.4,
     "r": 5
    },
    "acquaCotta": true
