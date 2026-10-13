@@ -2429,7 +2429,7 @@
     "lantern": {
      "file": "robin_chiusi_lantern.webp",
      "res": 1.0,
-     "scale": 0.6900000000000001
+     "scale": 0.7000000000000001
     }
    },
    "rect": [
@@ -2438,6 +2438,25 @@
     4159,
     1459
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "robin_chiusi_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "robin_chiusi_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "robin_chiusi_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.6900000000000001
+     }
+    }
+   },
    "space": "boat",
    "yaw": -30.1046
   },
@@ -2468,7 +2487,7 @@
     "lantern": {
      "file": "robin_secchio_lantern.webp",
      "res": 1.0,
-     "scale": 0.97
+     "scale": 0.98
     }
    },
    "rect": [
@@ -2477,6 +2496,25 @@
     5218,
     1820
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "robin_secchio_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "robin_secchio_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "robin_secchio_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.97
+     }
+    }
+   },
    "space": "boat",
    "yaw": -30.1046
   },
@@ -2496,7 +2534,7 @@
     "lantern": {
      "file": "robin_strizza_lantern.webp",
      "res": 1.0,
-     "scale": 0.6900000000000001
+     "scale": 0.7000000000000001
     }
    },
    "rect": [
@@ -2505,6 +2543,25 @@
     4163,
     1459
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "robin_strizza_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "robin_strizza_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "robin_strizza_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.6900000000000001
+     }
+    }
+   },
    "space": "boat",
    "yaw": -30.1046
   },
