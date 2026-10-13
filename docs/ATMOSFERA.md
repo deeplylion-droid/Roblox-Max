@@ -170,6 +170,7 @@ e i jumpscare resi con l'atmosfera. Le immagini di prima restano la serie `senza
 | Molly | molly_destra, molly_sinistra e le quattro toppe degli occhi | sagome uguali (1-10 pixel di bordo); luna 0,36-0,4 |
 | Hatch | hatch_conta, hatch_bocca_mezza, hatch_bocca_chiusa | sagome uguali (3-6 pixel); cambia poco (0,95): lo illumina la sua lucina |
 | Robin | robin_secchio, robin_strizza, robin_chiusi | sagome uguali (1-15 pixel); luna 0,4-0,5 |
+| Archie | archie_soffia, archie_fiato, archie_trombetta_mezza, archie_trombetta_tutta | sagome uguali (0-2 pixel); luna 0,55-0,6 |
 
 ## Cosa cambiare nel motore (scritto prima del lavoro sul motore: vedi sopra)
 
