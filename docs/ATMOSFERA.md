@@ -180,6 +180,7 @@ e i jumpscare resi con l'atmosfera. Le immagini di prima restano la serie `senza
 | Pesci nel secchio | fish2, fish5, fish9 (`PROPS=fish jobs.py props`) | sagome uguali (0-4 pixel); luna 0,3, lampara 1,04-1,18 |
 | Jumpscare di Gulpy | js_gulpy_00..07 (1920×1080, 64 campioni) | stesse inquadrature e movimento; luce media 1,01-1,13 di prima; sfondo velato, alone della lampara leggero |
 | Jumpscare di Molly | js_molly_00..07 | stesse inquadrature; luce media 0,76-1,0 di prima (la luna più bassa sul fianco della barca) |
+| Jumpscare di Hatch | js_hatch_00..07 | stesse inquadrature; luce media 0,76-0,94 di prima |
 
 ## Cosa cambiare nel motore (scritto prima del lavoro sul motore: vedi sopra)
 
