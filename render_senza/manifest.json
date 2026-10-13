@@ -1,0 +1,4182 @@
+{
+ "atmosfera": {
+  "fog": {
+   "color": [
+    0.003,
+    0.004,
+    0.006
+   ],
+   "density": 2e-05
+  },
+  "glows": {
+   "gain": 0.6,
+   "radius": 2.0
+  }
+ },
+ "layers": {
+  "archie_fiato": {
+   "base": "archie_soffia",
+   "passes": {
+    "ambient": {
+     "file": "archie_fiato_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "archie_fiato_lamp.webp",
+     "res": 1.0,
+     "scale": 0.67
+    },
+    "lantern": {
+     "file": "archie_fiato_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    4037,
+    475,
+    4185,
+    602
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "archie_fiato_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "archie_fiato_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.79
+     },
+     "lantern": {
+      "file": "archie_fiato_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": 10.7975
+  },
+  "archie_soffia": {
+   "eyes": [
+    [
+     0.8923,
+     4.8442,
+     1.1116
+    ],
+    [
+     0.9387,
+     4.7779,
+     1.1116
+    ]
+   ],
+   "passes": {
+    "ambient": {
+     "file": "archie_soffia_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "archie_soffia_lamp.webp",
+     "res": 1.0,
+     "scale": 2.7
+    },
+    "lantern": {
+     "file": "archie_soffia_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "pelo": [
+    1134.7,
+    1134.7,
+    1134.7,
+    1134.7,
+    1134.7,
+    1134.7,
+    1134.7,
+    1134.7,
+    1134.7,
+    1134.7,
+    1134.7,
+    1134.7,
+    1134.7,
+    1134.7,
+    1134.7,
+    1134.7,
+    1134.7,
+    1134.7,
+    1134.7,
+    1137.4,
+    1138.5,
+    1139.1,
+    1139.4,
+    1139.4,
+    1139.3,
+    1138.9,
+    1138.0,
+    1138.0,
+    1138.0,
+    1138.0,
+    1138.0,
+    1138.0
+   ],
+   "rect": [
+    4037,
+    475,
+    4206,
+    1174
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "archie_soffia_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "archie_soffia_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 2.7
+     },
+     "lantern": {
+      "file": "archie_soffia_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": 10.7975
+  },
+  "archie_trombetta_mezza": {
+   "base": "archie_soffia",
+   "passes": {
+    "ambient": {
+     "file": "archie_trombetta_mezza_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "archie_trombetta_mezza_lamp.webp",
+     "res": 1.0,
+     "scale": 1.5
+    },
+    "lantern": {
+     "file": "archie_trombetta_mezza_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3963,
+    475,
+    4185,
+    631
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "archie_trombetta_mezza_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "archie_trombetta_mezza_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 1.8
+     },
+     "lantern": {
+      "file": "archie_trombetta_mezza_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": 10.7975
+  },
+  "archie_trombetta_tutta": {
+   "base": "archie_soffia",
+   "passes": {
+    "ambient": {
+     "file": "archie_trombetta_tutta_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "archie_trombetta_tutta_lamp.webp",
+     "res": 1.0,
+     "scale": 6.0
+    },
+    "lantern": {
+     "file": "archie_trombetta_tutta_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3860,
+    475,
+    4185,
+    677
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "archie_trombetta_tutta_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "archie_trombetta_tutta_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 6.0
+     },
+     "lantern": {
+      "file": "archie_trombetta_tutta_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": 10.7975
+  },
+  "battery": {
+   "gauge": [
+    [
+     0.734,
+     1.448,
+     -0.5738
+    ],
+    [
+     0.0357,
+     -0.0181,
+     0.0
+    ],
+    [
+     0.0085,
+     0.0167,
+     0.0353
+    ]
+   ],
+   "passes": {
+    "ambient": {
+     "file": "battery_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "battery_lamp.webp",
+     "res": 1.0,
+     "scale": 1.6
+    },
+    "lantern": {
+     "file": "battery_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3575,
+    946,
+    4310,
+    1473
+   ],
+   "space": "boat",
+   "yaw": 21.6531
+  },
+  "battery_lit": {
+   "passes": {
+    "ambient": {
+     "file": "battery_lit_ambient.webp",
+     "res": 1.0,
+     "scale": 2.6
+    },
+    "lamp": {
+     "file": "battery_lit_lamp.webp",
+     "res": 1.0,
+     "scale": 1.6
+    },
+    "lantern": {
+     "file": "battery_lit_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3575,
+    946,
+    4310,
+    1473
+   ],
+   "space": "boat",
+   "yaw": 21.6531
+  },
+  "boat": {
+   "passes": {
+    "ambient": {
+     "file": "boat_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "boat_lamp.webp",
+     "res": 1.0,
+     "scale": 1.2000000000000002
+    },
+    "lantern": {
+     "file": "boat_lantern.webp",
+     "res": 0.5,
+     "scale": 0.86
+    }
+   },
+   "rect": [
+    0,
+    0,
+    8192,
+    2139
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "boat_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "boat_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 1.2000000000000002
+     },
+     "lantern": {
+      "file": "boat_lantern_senza.webp",
+      "res": 0.5,
+      "scale": 0.78
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": 0.0
+  },
+  "fangy_ascolta": {
+   "eyes": [],
+   "luci": {
+    "fila": [
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "mandibola_dx",
+     "mandibola_dx",
+     "mandibola_dx",
+     "mandibola_dx",
+     "mandibola_dx",
+     "mandibola_dx",
+     "mandibola_dx",
+     "mandibola_sx",
+     "mandibola_sx",
+     "mandibola_sx",
+     "mandibola_sx",
+     "mandibola_sx",
+     "mandibola_sx",
+     "mandibola_sx",
+     "guancia_dx",
+     "guancia_sx"
+    ],
+    "p": [
+     [
+      2.1152,
+      -0.7924,
+      -0.3774
+     ],
+     [
+      2.0703,
+      -0.8997,
+      -0.3783
+     ],
+     [
+      2.1398,
+      -0.8038,
+      -0.4029
+     ],
+     [
+      2.0959,
+      -0.9075,
+      -0.404
+     ],
+     [
+      2.1166,
+      -0.9212,
+      -0.4429
+     ],
+     [
+      2.165,
+      -0.8101,
+      -0.4447
+     ],
+     [
+      2.1876,
+      -0.8133,
+      -0.4963
+     ],
+     [
+      2.1396,
+      -0.9368,
+      -0.4993
+     ],
+     [
+      2.2239,
+      -0.8267,
+      -0.5608
+     ],
+     [
+      2.1733,
+      -0.9477,
+      -0.5643
+     ],
+     [
+      2.2921,
+      -0.8574,
+      -0.6574
+     ],
+     [
+      2.2456,
+      -0.9769,
+      -0.6595
+     ],
+     [
+      2.3104,
+      -0.9926,
+      -0.7295
+     ],
+     [
+      2.3513,
+      -0.891,
+      -0.73
+     ],
+     [
+      2.3997,
+      -0.9125,
+      -0.8269
+     ],
+     [
+      2.3619,
+      -1.0104,
+      -0.8257
+     ],
+     [
+      2.442,
+      -0.9308,
+      -0.9307
+     ],
+     [
+      2.4026,
+      -1.0267,
+      -0.9304
+     ],
+     [
+      2.4785,
+      -0.9441,
+      -1.0462
+     ],
+     [
+      2.4399,
+      -1.0426,
+      -1.0456
+     ],
+     [
+      2.4847,
+      -1.0589,
+      -1.1621
+     ],
+     [
+      2.5205,
+      -0.9626,
+      -1.1635
+     ],
+     [
+      2.0748,
+      -0.9714,
+      -0.3472
+     ],
+     [
+      2.1656,
+      -0.742,
+      -0.3522
+     ],
+     [
+      2.1933,
+      -0.7482,
+      -0.3827
+     ],
+     [
+      2.1009,
+      -0.9832,
+      -0.3829
+     ],
+     [
+      2.124,
+      -0.9962,
+      -0.4292
+     ],
+     [
+      2.2192,
+      -0.757,
+      -0.4311
+     ],
+     [
+      2.2495,
+      -0.7608,
+      -0.4814
+     ],
+     [
+      2.1466,
+      -1.0156,
+      -0.4819
+     ],
+     [
+      2.1841,
+      -1.0283,
+      -0.5363
+     ],
+     [
+      2.2852,
+      -0.7757,
+      -0.538
+     ],
+     [
+      2.3455,
+      -0.8051,
+      -0.6317
+     ],
+     [
+      2.2473,
+      -1.0492,
+      -0.6321
+     ],
+     [
+      2.3131,
+      -1.0548,
+      -0.7066
+     ],
+     [
+      2.3985,
+      -0.845,
+      -0.7098
+     ],
+     [
+      2.3657,
+      -1.0725,
+      -0.8146
+     ],
+     [
+      2.4504,
+      -0.8686,
+      -0.8156
+     ],
+     [
+      1.6359,
+      -0.5371,
+      -0.5097
+     ],
+     [
+      1.6694,
+      -0.5515,
+      -0.5062
+     ],
+     [
+      1.7104,
+      -0.5625,
+      -0.5044
+     ],
+     [
+      1.7527,
+      -0.5725,
+      -0.5054
+     ],
+     [
+      1.7972,
+      -0.5742,
+      -0.4856
+     ],
+     [
+      1.8294,
+      -0.5819,
+      -0.4688
+     ],
+     [
+      1.8692,
+      -0.5921,
+      -0.4549
+     ],
+     [
+      1.5673,
+      -0.702,
+      -0.5283
+     ],
+     [
+      1.6008,
+      -0.7163,
+      -0.5248
+     ],
+     [
+      1.6374,
+      -0.7379,
+      -0.5243
+     ],
+     [
+      1.6745,
+      -0.7604,
+      -0.5266
+     ],
+     [
+      1.7056,
+      -0.7943,
+      -0.5105
+     ],
+     [
+      1.7324,
+      -0.8149,
+      -0.4952
+     ],
+     [
+      1.7667,
+      -0.8384,
+      -0.4828
+     ],
+     [
+      1.7622,
+      -0.5357,
+      -0.2993
+     ],
+     [
+      1.639,
+      -0.8318,
+      -0.3328
+     ]
+    ]
+   },
+   "passes": {
+    "ambient": {
+     "file": "fangy_ascolta_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "fangy_ascolta_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "fangy_ascolta_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "pelo": [
+    1642.4,
+    1642.4,
+    1642.4,
+    1642.4,
+    1642.4,
+    1642.4,
+    1646.8,
+    1647.3,
+    1645.6,
+    1637.1,
+    1389.9,
+    1404.5,
+    1412.5,
+    1417.3,
+    1420.0,
+    1420.8,
+    1420.8,
+    1419.7,
+    1657.6,
+    1676.9,
+    1688.6,
+    1696.1,
+    1701.0,
+    1703.5,
+    1704.0,
+    1703.9,
+    1702.2,
+    1698.4,
+    1692.1,
+    1682.5,
+    1667.5,
+    1631.9
+   ],
+   "rect": [
+    3697,
+    834,
+    4507,
+    1717
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "fangy_ascolta_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "fangy_ascolta_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "fangy_ascolta_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
+   "space": "world",
+   "yaw": 111.7937
+  },
+  "fangy_testa_poppa": {
+   "base": "fangy_ascolta",
+   "luci": {
+    "fila": [
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "mandibola_dx",
+     "mandibola_dx",
+     "mandibola_dx",
+     "mandibola_dx",
+     "mandibola_dx",
+     "mandibola_dx",
+     "mandibola_dx",
+     "mandibola_sx",
+     "mandibola_sx",
+     "mandibola_sx",
+     "mandibola_sx",
+     "mandibola_sx",
+     "mandibola_sx",
+     "mandibola_sx",
+     "guancia_dx",
+     "guancia_sx"
+    ],
+    "p": [
+     [
+      2.1152,
+      -0.7924,
+      -0.3774
+     ],
+     [
+      2.0703,
+      -0.8997,
+      -0.3783
+     ],
+     [
+      2.1398,
+      -0.8038,
+      -0.4029
+     ],
+     [
+      2.0959,
+      -0.9075,
+      -0.404
+     ],
+     [
+      2.1166,
+      -0.9212,
+      -0.4429
+     ],
+     [
+      2.165,
+      -0.8101,
+      -0.4447
+     ],
+     [
+      2.1876,
+      -0.8133,
+      -0.4963
+     ],
+     [
+      2.1396,
+      -0.9368,
+      -0.4993
+     ],
+     [
+      2.2239,
+      -0.8267,
+      -0.5608
+     ],
+     [
+      2.1733,
+      -0.9477,
+      -0.5643
+     ],
+     [
+      2.2921,
+      -0.8574,
+      -0.6574
+     ],
+     [
+      2.2456,
+      -0.9769,
+      -0.6595
+     ],
+     [
+      2.3104,
+      -0.9926,
+      -0.7295
+     ],
+     [
+      2.3513,
+      -0.891,
+      -0.73
+     ],
+     [
+      2.3997,
+      -0.9125,
+      -0.8269
+     ],
+     [
+      2.3619,
+      -1.0104,
+      -0.8257
+     ],
+     [
+      2.442,
+      -0.9308,
+      -0.9307
+     ],
+     [
+      2.4026,
+      -1.0267,
+      -0.9304
+     ],
+     [
+      2.4785,
+      -0.9441,
+      -1.0462
+     ],
+     [
+      2.4399,
+      -1.0426,
+      -1.0456
+     ],
+     [
+      2.4847,
+      -1.0589,
+      -1.1621
+     ],
+     [
+      2.5205,
+      -0.9626,
+      -1.1635
+     ],
+     [
+      2.0748,
+      -0.9714,
+      -0.3472
+     ],
+     [
+      2.1656,
+      -0.742,
+      -0.3522
+     ],
+     [
+      2.1933,
+      -0.7482,
+      -0.3827
+     ],
+     [
+      2.1009,
+      -0.9832,
+      -0.3829
+     ],
+     [
+      2.124,
+      -0.9962,
+      -0.4292
+     ],
+     [
+      2.2192,
+      -0.757,
+      -0.4311
+     ],
+     [
+      2.2495,
+      -0.7608,
+      -0.4814
+     ],
+     [
+      2.1466,
+      -1.0156,
+      -0.4819
+     ],
+     [
+      2.1841,
+      -1.0283,
+      -0.5363
+     ],
+     [
+      2.2852,
+      -0.7757,
+      -0.538
+     ],
+     [
+      2.3455,
+      -0.8051,
+      -0.6317
+     ],
+     [
+      2.2473,
+      -1.0492,
+      -0.6321
+     ],
+     [
+      2.3131,
+      -1.0548,
+      -0.7066
+     ],
+     [
+      2.3985,
+      -0.845,
+      -0.7098
+     ],
+     [
+      2.3657,
+      -1.0725,
+      -0.8146
+     ],
+     [
+      2.4504,
+      -0.8686,
+      -0.8156
+     ],
+     [
+      1.5524,
+      -0.7594,
+      -0.5097
+     ],
+     [
+      1.5881,
+      -0.752,
+      -0.5062
+     ],
+     [
+      1.6279,
+      -0.7375,
+      -0.5044
+     ],
+     [
+      1.6683,
+      -0.7214,
+      -0.5054
+     ],
+     [
+      1.7057,
+      -0.6973,
+      -0.4856
+     ],
+     [
+      1.7365,
+      -0.6851,
+      -0.4688
+     ],
+     [
+      1.775,
+      -0.6707,
+      -0.4549
+     ],
+     [
+      1.5907,
+      -0.9338,
+      -0.5283
+     ],
+     [
+      1.6264,
+      -0.9264,
+      -0.5248
+     ],
+     [
+      1.6687,
+      -0.923,
+      -0.5243
+     ],
+     [
+      1.7121,
+      -0.9203,
+      -0.5267
+     ],
+     [
+      1.757,
+      -0.9302,
+      -0.5105
+     ],
+     [
+      1.7907,
+      -0.9316,
+      -0.4952
+     ],
+     [
+      1.8323,
+      -0.9312,
+      -0.4828
+     ],
+     [
+      1.655,
+      -0.6858,
+      -0.2993
+     ],
+     [
+      1.7239,
+      -0.9991,
+      -0.3328
+     ]
+    ]
+   },
+   "passes": {
+    "ambient": {
+     "file": "fangy_testa_poppa_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "fangy_testa_poppa_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "fangy_testa_poppa_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3697,
+    834,
+    4507,
+    1717
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "fangy_testa_poppa_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "fangy_testa_poppa_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "fangy_testa_poppa_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
+   "space": "world",
+   "yaw": 111.7937
+  },
+  "fangy_testa_prua": {
+   "base": "fangy_ascolta",
+   "luci": {
+    "fila": [
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_dentro",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "ventre_fuori",
+     "mandibola_dx",
+     "mandibola_dx",
+     "mandibola_dx",
+     "mandibola_dx",
+     "mandibola_dx",
+     "mandibola_dx",
+     "mandibola_dx",
+     "mandibola_sx",
+     "mandibola_sx",
+     "mandibola_sx",
+     "mandibola_sx",
+     "mandibola_sx",
+     "mandibola_sx",
+     "mandibola_sx",
+     "guancia_dx",
+     "guancia_sx"
+    ],
+    "p": [
+     [
+      2.1152,
+      -0.7924,
+      -0.3774
+     ],
+     [
+      2.0703,
+      -0.8997,
+      -0.3783
+     ],
+     [
+      2.1398,
+      -0.8038,
+      -0.4029
+     ],
+     [
+      2.0959,
+      -0.9075,
+      -0.404
+     ],
+     [
+      2.1166,
+      -0.9212,
+      -0.4429
+     ],
+     [
+      2.165,
+      -0.8101,
+      -0.4447
+     ],
+     [
+      2.1876,
+      -0.8133,
+      -0.4963
+     ],
+     [
+      2.1396,
+      -0.9368,
+      -0.4993
+     ],
+     [
+      2.2239,
+      -0.8267,
+      -0.5608
+     ],
+     [
+      2.1733,
+      -0.9477,
+      -0.5643
+     ],
+     [
+      2.2921,
+      -0.8574,
+      -0.6574
+     ],
+     [
+      2.2456,
+      -0.9769,
+      -0.6595
+     ],
+     [
+      2.3104,
+      -0.9926,
+      -0.7295
+     ],
+     [
+      2.3513,
+      -0.891,
+      -0.73
+     ],
+     [
+      2.3997,
+      -0.9125,
+      -0.8269
+     ],
+     [
+      2.3619,
+      -1.0104,
+      -0.8257
+     ],
+     [
+      2.442,
+      -0.9308,
+      -0.9307
+     ],
+     [
+      2.4026,
+      -1.0267,
+      -0.9304
+     ],
+     [
+      2.4785,
+      -0.9441,
+      -1.0462
+     ],
+     [
+      2.4399,
+      -1.0426,
+      -1.0456
+     ],
+     [
+      2.4847,
+      -1.0589,
+      -1.1621
+     ],
+     [
+      2.5205,
+      -0.9626,
+      -1.1635
+     ],
+     [
+      2.0748,
+      -0.9714,
+      -0.3472
+     ],
+     [
+      2.1656,
+      -0.742,
+      -0.3522
+     ],
+     [
+      2.1933,
+      -0.7482,
+      -0.3827
+     ],
+     [
+      2.1009,
+      -0.9832,
+      -0.3829
+     ],
+     [
+      2.124,
+      -0.9962,
+      -0.4292
+     ],
+     [
+      2.2192,
+      -0.757,
+      -0.4311
+     ],
+     [
+      2.2495,
+      -0.7608,
+      -0.4814
+     ],
+     [
+      2.1466,
+      -1.0156,
+      -0.4819
+     ],
+     [
+      2.1841,
+      -1.0283,
+      -0.5363
+     ],
+     [
+      2.2852,
+      -0.7757,
+      -0.538
+     ],
+     [
+      2.3455,
+      -0.8051,
+      -0.6317
+     ],
+     [
+      2.2473,
+      -1.0492,
+      -0.6321
+     ],
+     [
+      2.3131,
+      -1.0548,
+      -0.7066
+     ],
+     [
+      2.3985,
+      -0.845,
+      -0.7098
+     ],
+     [
+      2.3657,
+      -1.0725,
+      -0.8146
+     ],
+     [
+      2.4504,
+      -0.8686,
+      -0.8156
+     ],
+     [
+      1.8319,
+      -0.4029,
+      -0.5097
+     ],
+     [
+      1.8511,
+      -0.4339,
+      -0.5062
+     ],
+     [
+      1.8783,
+      -0.4664,
+      -0.5044
+     ],
+     [
+      1.9073,
+      -0.4989,
+      -0.5054
+     ],
+     [
+      1.9427,
+      -0.5258,
+      -0.4856
+     ],
+     [
+      1.9647,
+      -0.5505,
+      -0.4688
+     ],
+     [
+      1.9914,
+      -0.5818,
+      -0.4549
+     ],
+     [
+      1.6811,
+      -0.4986,
+      -0.5283
+     ],
+     [
+      1.7003,
+      -0.5296,
+      -0.5248
+     ],
+     [
+      1.7179,
+      -0.5682,
+      -0.5243
+     ],
+     [
+      1.7353,
+      -0.608,
+      -0.5267
+     ],
+     [
+      1.7414,
+      -0.6536,
+      -0.5105
+     ],
+     [
+      1.7516,
+      -0.6858,
+      -0.4952
+     ],
+     [
+      1.7662,
+      -0.7248,
+      -0.4828
+     ],
+     [
+      1.9362,
+      -0.4742,
+      -0.2993
+     ],
+     [
+      1.6654,
+      -0.6461,
+      -0.3328
+     ]
+    ]
+   },
+   "passes": {
+    "ambient": {
+     "file": "fangy_testa_prua_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "fangy_testa_prua_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "fangy_testa_prua_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3697,
+    834,
+    4507,
+    1717
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "fangy_testa_prua_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "fangy_testa_prua_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "fangy_testa_prua_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
+   "space": "world",
+   "yaw": 111.7937
+  },
+  "fish2": {
+   "passes": {
+    "ambient": {
+     "file": "fish2_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "fish2_lamp.webp",
+     "res": 1.0,
+     "scale": 4.2
+    },
+    "lantern": {
+     "file": "fish2_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    4031,
+    1170,
+    4173,
+    1410
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "fish2_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "fish2_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 4.2
+     },
+     "lantern": {
+      "file": "fish2_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": 17.9357
+  },
+  "fish5": {
+   "passes": {
+    "ambient": {
+     "file": "fish5_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "fish5_lamp.webp",
+     "res": 1.0,
+     "scale": 0.85
+    },
+    "lantern": {
+     "file": "fish5_lantern.webp",
+     "res": 1.0,
+     "scale": 0.31
+    }
+   },
+   "rect": [
+    3998,
+    1156,
+    4204,
+    1425
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "fish5_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "fish5_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.63
+     },
+     "lantern": {
+      "file": "fish5_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.3
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": 18.1011
+  },
+  "fish9": {
+   "passes": {
+    "ambient": {
+     "file": "fish9_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "fish9_lamp.webp",
+     "res": 1.0,
+     "scale": 0.9400000000000001
+    },
+    "lantern": {
+     "file": "fish9_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3951,
+    1134,
+    4182,
+    1410
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "fish9_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "fish9_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.9
+     },
+     "lantern": {
+      "file": "fish9_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": 18.0637
+  },
+  "gulpy_mascella_aperta": {
+   "base": "gulpy_pretende",
+   "passes": {
+    "ambient": {
+     "file": "gulpy_mascella_aperta_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "gulpy_mascella_aperta_lamp.webp",
+     "res": 1.0,
+     "scale": 0.29
+    },
+    "lantern": {
+     "file": "gulpy_mascella_aperta_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3992,
+    300,
+    4194,
+    963
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "gulpy_mascella_aperta_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "gulpy_mascella_aperta_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.28
+     },
+     "lantern": {
+      "file": "gulpy_mascella_aperta_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": -25.5929
+  },
+  "gulpy_mascella_chiusa": {
+   "base": "gulpy_pretende",
+   "passes": {
+    "ambient": {
+     "file": "gulpy_mascella_chiusa_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "gulpy_mascella_chiusa_lamp.webp",
+     "res": 1.0,
+     "scale": 0.35000000000000003
+    },
+    "lantern": {
+     "file": "gulpy_mascella_chiusa_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3992,
+    300,
+    4195,
+    1034
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "gulpy_mascella_chiusa_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "gulpy_mascella_chiusa_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.34
+     },
+     "lantern": {
+      "file": "gulpy_mascella_chiusa_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": -25.5929
+  },
+  "gulpy_pretende": {
+   "eyes": [
+    [
+     -0.8421,
+     1.8877,
+     0.1435
+    ],
+    [
+     -0.9492,
+     1.8363,
+     0.1435
+    ]
+   ],
+   "passes": {
+    "ambient": {
+     "file": "gulpy_pretende_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "gulpy_pretende_lamp.webp",
+     "res": 1.0,
+     "scale": 0.39
+    },
+    "lantern": {
+     "file": "gulpy_pretende_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3655,
+    154,
+    4659,
+    1325
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "gulpy_pretende_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "gulpy_pretende_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.38
+     },
+     "lantern": {
+      "file": "gulpy_pretende_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": -25.5929
+  },
+  "gulpy_sale": {
+   "eyes": [
+    [
+     -1.8075,
+     5.9907,
+     0.1001
+    ],
+    [
+     -1.6934,
+     6.0239,
+     0.1001
+    ]
+   ],
+   "passes": {
+    "ambient": {
+     "file": "gulpy_sale_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "gulpy_sale_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "gulpy_sale_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "pelo": [
+    1027.0,
+    1027.0,
+    1027.0,
+    1027.0,
+    1027.0,
+    1027.0,
+    1027.0,
+    1027.0,
+    1027.0,
+    1027.0,
+    1027.0,
+    1027.0,
+    1028.1,
+    1028.8,
+    1029.3,
+    1029.4,
+    1029.4,
+    1029.3,
+    1029.0,
+    1028.5,
+    1027.4,
+    1027.4,
+    1027.4,
+    1027.4,
+    1027.4,
+    1027.4,
+    1027.4,
+    1027.4,
+    1027.4,
+    1027.4,
+    1027.4,
+    1027.4
+   ],
+   "rect": [
+    3978,
+    587,
+    4212,
+    1190
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "gulpy_sale_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "gulpy_sale_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "gulpy_sale_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
+   "space": "world",
+   "yaw": -16.2347
+  },
+  "hatch_bocca_chiusa": {
+   "base": "hatch_conta",
+   "passes": {
+    "ambient": {
+     "file": "hatch_bocca_chiusa_ambient.webp",
+     "res": 1.0,
+     "scale": 6.0
+    },
+    "lamp": {
+     "file": "hatch_bocca_chiusa_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "hatch_bocca_chiusa_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3952,
+    677,
+    4238,
+    936
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "hatch_bocca_chiusa_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 6.0
+     },
+     "lamp": {
+      "file": "hatch_bocca_chiusa_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "hatch_bocca_chiusa_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
+   "space": "world",
+   "yaw": 178.0604
+  },
+  "hatch_bocca_mezza": {
+   "base": "hatch_conta",
+   "passes": {
+    "ambient": {
+     "file": "hatch_bocca_mezza_ambient.webp",
+     "res": 1.0,
+     "scale": 6.0
+    },
+    "lamp": {
+     "file": "hatch_bocca_mezza_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "hatch_bocca_mezza_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3952,
+    677,
+    4238,
+    973
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "hatch_bocca_mezza_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 6.0
+     },
+     "lamp": {
+      "file": "hatch_bocca_mezza_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "hatch_bocca_mezza_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
+   "space": "world",
+   "yaw": 178.0604
+  },
+  "hatch_conta": {
+   "eyes": [
+    [
+     0.129,
+     -1.566,
+     0.0696
+    ],
+    [
+     -0.0209,
+     -1.5711,
+     0.0696
+    ]
+   ],
+   "passes": {
+    "ambient": {
+     "file": "hatch_conta_ambient.webp",
+     "res": 1.0,
+     "scale": 5.9
+    },
+    "lamp": {
+     "file": "hatch_conta_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "hatch_conta_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "pelo": [
+    1399.9,
+    1399.9,
+    1399.9,
+    1399.9,
+    1399.9,
+    1399.9,
+    1399.9,
+    1399.9,
+    1399.9,
+    1399.9,
+    1399.9,
+    1402.1,
+    1402.2,
+    1401.6,
+    1397.7,
+    1398.6,
+    1399.4,
+    1400.3,
+    1401.1,
+    1402.4,
+    1402.5,
+    1401.7,
+    1397.5,
+    1397.5,
+    1397.5,
+    1397.5,
+    1397.5,
+    1397.5,
+    1397.5,
+    1397.5,
+    1397.5,
+    1397.5
+   ],
+   "rect": [
+    3915,
+    569,
+    4271,
+    1730
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "hatch_conta_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 5.9
+     },
+     "lamp": {
+      "file": "hatch_conta_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "hatch_conta_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
+   "space": "world",
+   "yaw": 178.0604
+  },
+  "lampy_bocca_aperta": {
+   "base": "lampy_lenza",
+   "passes": {
+    "ambient": {
+     "file": "lampy_bocca_aperta_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "lampy_bocca_aperta_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "lampy_bocca_aperta_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3973,
+    695,
+    4215,
+    919
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "lampy_bocca_aperta_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "lampy_bocca_aperta_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "lampy_bocca_aperta_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": 44.2118
+  },
+  "lampy_bocca_chiusa": {
+   "base": "lampy_lenza",
+   "passes": {
+    "ambient": {
+     "file": "lampy_bocca_chiusa_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "lampy_bocca_chiusa_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "lampy_bocca_chiusa_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3973,
+    695,
+    4215,
+    892
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "lampy_bocca_chiusa_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "lampy_bocca_chiusa_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "lampy_bocca_chiusa_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": 44.2118
+  },
+  "lampy_lenza": {
+   "eyes": [
+    [
+     4.0724,
+     4.561,
+     0.1821
+    ],
+    [
+     4.2658,
+     4.3806,
+     0.1821
+    ]
+   ],
+   "passes": {
+    "ambient": {
+     "file": "lampy_lenza_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "lampy_lenza_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "lampy_lenza_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3973,
+    695,
+    4436,
+    1065
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "lampy_lenza_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "lampy_lenza_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "lampy_lenza_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": 44.2118
+  },
+  "madre_sale": {
+   "cima": [
+    null,
+    null,
+    null,
+    null,
+    924.0,
+    831.0,
+    777.0,
+    745.0,
+    726.0,
+    697.0,
+    672.0,
+    664.0,
+    443.0,
+    275.0,
+    254.0,
+    233.0,
+    165.0,
+    178.0,
+    294.0,
+    328.0,
+    191.0,
+    236.0,
+    349.0,
+    373.0,
+    409.0,
+    431.0,
+    454.0,
+    491.0,
+    550.0,
+    651.0,
+    null,
+    null
+   ],
+   "eyes": [
+    [
+     -9.4892,
+     7.0271,
+     0.274
+    ],
+    [
+     -5.5702,
+     3.9003,
+     -0.25
+    ]
+   ],
+   "passes": {
+    "ambient": {
+     "file": "madre_sale_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "madre_sale_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "madre_sale_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "pelo": [
+    950.6,
+    950.6,
+    950.6,
+    950.6,
+    950.6,
+    958.1,
+    978.0,
+    1005.6,
+    1018.6,
+    1029.5,
+    1045.5,
+    1068.0,
+    1087.8,
+    1105.5,
+    1119.1,
+    1164.5,
+    1170.0,
+    1173.1,
+    1175.0,
+    1175.8,
+    1175.8,
+    1173.5,
+    1165.7,
+    1152.8,
+    1132.6,
+    1119.2,
+    1105.6,
+    1089.4,
+    1069.9,
+    1047.3,
+    1020.2,
+    1020.2
+   ],
+   "rect": [
+    2552,
+    151,
+    5425,
+    1946
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "madre_sale_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "madre_sale_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "madre_sale_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
+   "space": "world",
+   "yaw": -63.9607
+  },
+  "molly_destra": {
+   "eyes": [
+    [
+     1.1286,
+     0.3658,
+     -0.2056
+    ],
+    [
+     1.1743,
+     0.1659,
+     -0.2617
+    ]
+   ],
+   "passes": {
+    "ambient": {
+     "file": "molly_destra_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "molly_destra_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "molly_destra_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3679,
+    792,
+    4479,
+    1708
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "molly_destra_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "molly_destra_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "molly_destra_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": 76.3251
+  },
+  "molly_destra_primo": {
+   "base": "molly_destra",
+   "passes": {
+    "ambient": {
+     "file": "molly_destra_primo_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "molly_destra_primo_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "molly_destra_primo_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3838,
+    814,
+    4367,
+    1391
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "molly_destra_primo_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "molly_destra_primo_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "molly_destra_primo_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": 76.3251
+  },
+  "molly_destra_secondo": {
+   "base": "molly_destra",
+   "passes": {
+    "ambient": {
+     "file": "molly_destra_secondo_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "molly_destra_secondo_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "molly_destra_secondo_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3834,
+    815,
+    4368,
+    1399
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "molly_destra_secondo_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "molly_destra_secondo_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "molly_destra_secondo_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": 76.3251
+  },
+  "molly_sinistra": {
+   "eyes": [
+    [
+     -1.2047,
+     0.5859,
+     -0.2066
+    ],
+    [
+     -1.1006,
+     0.7625,
+     -0.2628
+    ]
+   ],
+   "passes": {
+    "ambient": {
+     "file": "molly_sinistra_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "molly_sinistra_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "molly_sinistra_lantern.webp",
+     "res": 1.0,
+     "scale": 0.54
+    }
+   },
+   "rect": [
+    3760,
+    794,
+    4448,
+    1657
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "molly_sinistra_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "molly_sinistra_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "molly_sinistra_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.48
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": -59.0895
+  },
+  "molly_sinistra_primo": {
+   "base": "molly_sinistra",
+   "passes": {
+    "ambient": {
+     "file": "molly_sinistra_primo_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "molly_sinistra_primo_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "molly_sinistra_primo_lantern.webp",
+     "res": 1.0,
+     "scale": 0.38
+    }
+   },
+   "rect": [
+    3837,
+    814,
+    4312,
+    1338
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "molly_sinistra_primo_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "molly_sinistra_primo_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "molly_sinistra_primo_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.37
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": -59.0895
+  },
+  "molly_sinistra_secondo": {
+   "base": "molly_sinistra",
+   "passes": {
+    "ambient": {
+     "file": "molly_sinistra_secondo_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "molly_sinistra_secondo_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "molly_sinistra_secondo_lantern.webp",
+     "res": 1.0,
+     "scale": 0.4
+    }
+   },
+   "rect": [
+    3834,
+    815,
+    4313,
+    1346
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "molly_sinistra_secondo_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "molly_sinistra_secondo_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "molly_sinistra_secondo_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.39
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": -59.0895
+  },
+  "robin_chiusi": {
+   "base": "robin_secchio",
+   "passes": {
+    "ambient": {
+     "file": "robin_chiusi_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "robin_chiusi_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "robin_chiusi_lantern.webp",
+     "res": 1.0,
+     "scale": 0.7000000000000001
+    }
+   },
+   "rect": [
+    3672,
+    1060,
+    4159,
+    1459
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "robin_chiusi_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "robin_chiusi_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "robin_chiusi_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.6900000000000001
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": -30.1046
+  },
+  "robin_ritirata_1": {
+   "base": "robin_secchio",
+   "passes": {
+    "ambient": {
+     "file": "robin_ritirata_1_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "robin_ritirata_1_lamp.webp",
+     "res": 1.0,
+     "scale": 0.43
+    },
+    "lantern": {
+     "file": "robin_ritirata_1_lantern.webp",
+     "res": 1.0,
+     "scale": 1.1
+    }
+   },
+   "rect": [
+    3315,
+    770,
+    5236,
+    1821
+   ],
+   "space": "boat",
+   "yaw": -30.1046
+  },
+  "robin_ritirata_2": {
+   "base": "robin_secchio",
+   "passes": {
+    "ambient": {
+     "file": "robin_ritirata_2_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "robin_ritirata_2_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "robin_ritirata_2_lantern.webp",
+     "res": 1.0,
+     "scale": 1.1
+    }
+   },
+   "rect": [
+    3316,
+    748,
+    4713,
+    1822
+   ],
+   "space": "boat",
+   "yaw": -30.1046
+  },
+  "robin_ritirata_3": {
+   "base": "robin_secchio",
+   "passes": {
+    "ambient": {
+     "file": "robin_ritirata_3_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "robin_ritirata_3_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "robin_ritirata_3_lantern.webp",
+     "res": 1.0,
+     "scale": 1.1
+    }
+   },
+   "rect": [
+    3250,
+    661,
+    4161,
+    1821
+   ],
+   "space": "boat",
+   "yaw": -30.1046
+  },
+  "robin_ritirata_4": {
+   "base": "robin_secchio",
+   "passes": {
+    "ambient": {
+     "file": "robin_ritirata_4_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "robin_ritirata_4_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "robin_ritirata_4_lantern.webp",
+     "res": 1.0,
+     "scale": 0.76
+    }
+   },
+   "rect": [
+    3227,
+    746,
+    4164,
+    1693
+   ],
+   "space": "boat",
+   "yaw": -30.1046
+  },
+  "robin_ritirata_5": {
+   "base": "robin_secchio",
+   "passes": {
+    "ambient": {
+     "file": "robin_ritirata_5_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "robin_ritirata_5_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "robin_ritirata_5_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3139,
+    912,
+    3933,
+    1680
+   ],
+   "space": "boat",
+   "yaw": -30.1046
+  },
+  "robin_ritirata_6": {
+   "base": "robin_secchio",
+   "passes": {
+    "ambient": {
+     "file": "robin_ritirata_6_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "robin_ritirata_6_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "robin_ritirata_6_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3072,
+    1110,
+    3933,
+    1775
+   ],
+   "space": "boat",
+   "yaw": -30.1046
+  },
+  "robin_secchio": {
+   "eyes": [
+    [
+     -0.6376,
+     0.6991,
+     -0.2956
+    ],
+    [
+     -0.5241,
+     0.7877,
+     -0.2956
+    ]
+   ],
+   "passes": {
+    "ambient": {
+     "file": "robin_secchio_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "robin_secchio_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "robin_secchio_lantern.webp",
+     "res": 1.0,
+     "scale": 0.98
+    }
+   },
+   "rect": [
+    3315,
+    782,
+    5218,
+    1820
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "robin_secchio_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "robin_secchio_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "robin_secchio_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.97
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": -30.1046
+  },
+  "robin_strizza": {
+   "base": "robin_secchio",
+   "passes": {
+    "ambient": {
+     "file": "robin_strizza_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "robin_strizza_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "robin_strizza_lantern.webp",
+     "res": 1.0,
+     "scale": 0.7000000000000001
+    }
+   },
+   "rect": [
+    3672,
+    1048,
+    4163,
+    1459
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "robin_strizza_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "robin_strizza_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "robin_strizza_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.6900000000000001
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": -30.1046
+  },
+  "rod0": {
+   "passes": {
+    "ambient": {
+     "file": "rod0_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "rod0_lamp.webp",
+     "res": 1.0,
+     "scale": 0.29
+    },
+    "lantern": {
+     "file": "rod0_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3986,
+    630,
+    4379,
+    1634
+   ],
+   "space": "boat",
+   "tip": [
+    2.02,
+    3.5,
+    0.55
+   ],
+   "yaw": 34.2124
+  },
+  "rod1": {
+   "passes": {
+    "ambient": {
+     "file": "rod1_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "rod1_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "rod1_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3990,
+    698,
+    4375,
+    1634
+   ],
+   "space": "boat",
+   "tip": [
+    2.02,
+    3.45,
+    0.33
+   ],
+   "yaw": 34.3825
+  },
+  "rod2": {
+   "passes": {
+    "ambient": {
+     "file": "rod2_ambient.webp",
+     "res": 1.0,
+     "scale": 0.26
+    },
+    "lamp": {
+     "file": "rod2_lamp.webp",
+     "res": 1.0,
+     "scale": 0.28
+    },
+    "lantern": {
+     "file": "rod2_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3994,
+    837,
+    4371,
+    1634
+   ],
+   "space": "boat",
+   "tip": [
+    2.02,
+    3.4,
+    -0.25
+   ],
+   "yaw": 34.5552
+  },
+  "rod_base": {
+   "passes": {
+    "ambient": {
+     "file": "rod_base_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "rod_base_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "rod_base_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3995,
+    1119,
+    4186,
+    1634
+   ],
+   "space": "boat",
+   "yaw": 42.6946
+  },
+  "rod_c1": {
+   "passes": {
+    "ambient": {
+     "file": "rod_c1_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "rod_c1_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "rod_c1_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3993,
+    489,
+    4369,
+    1634
+   ],
+   "space": "boat",
+   "tip": [
+    1.9353,
+    3.2493,
+    0.9389
+   ],
+   "yaw": 34.645
+  },
+  "rod_c2": {
+   "passes": {
+    "ambient": {
+     "file": "rod_c2_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "rod_c2_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "rod_c2_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    4004,
+    336,
+    4354,
+    1634
+   ],
+   "space": "boat",
+   "tip": [
+    1.8207,
+    2.9142,
+    1.2962
+   ],
+   "yaw": 35.2846
+  },
+  "rod_f1": {
+   "passes": {
+    "ambient": {
+     "file": "rod_f1_ambient.webp",
+     "res": 1.0,
+     "scale": 0.31
+    },
+    "lamp": {
+     "file": "rod_f1_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "rod_f1_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3977,
+    726,
+    4388,
+    1634
+   ],
+   "space": "boat",
+   "tip": [
+    2.0707,
+    3.7055,
+    0.26
+   ],
+   "yaw": 33.8326
+  },
+  "rod_f2": {
+   "passes": {
+    "ambient": {
+     "file": "rod_f2_ambient.webp",
+     "res": 1.0,
+     "scale": 0.43
+    },
+    "lamp": {
+     "file": "rod_f2_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "rod_f2_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3969,
+    820,
+    4403,
+    1634
+   ],
+   "space": "boat",
+   "tip": [
+    2.112,
+    3.8893,
+    -0.0484
+   ],
+   "yaw": 33.4963
+  },
+  "rod_m": {
+   "passes": {
+    "ambient": {
+     "file": "rod_m_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "rod_m_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "rod_m_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3999,
+    484,
+    4365,
+    1634
+   ],
+   "space": "boat",
+   "tip": [
+    1.9309,
+    3.1824,
+    0.9374
+   ],
+   "yaw": 34.8144
+  },
+  "world": {
+   "data": "world_data.webp",
+   "passes": {
+    "ambient": {
+     "file": "world_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "world_lamp.webp",
+     "res": 1.0,
+     "scale": 0.05
+    },
+    "lantern": {
+     "file": "world_lantern.webp",
+     "res": 0.5,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    0,
+    0,
+    8192,
+    2139
+   ],
+   "senza": {
+    "data": "world_data_senza.webp",
+    "passes": {
+     "ambient": {
+      "file": "world_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.39
+     },
+     "lamp": {
+      "file": "world_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "world_lantern_senza.webp",
+      "res": 0.5,
+      "scale": 0.25
+     }
+    }
+   },
+   "space": "world",
+   "yaw": 0.0
+  }
+ },
+ "lights": {
+  "buoy": [
+   43.0963,
+   55.7108,
+   2.55
+  ],
+  "candle": [
+   -88.4361,
+   25.9086,
+   2.65
+  ],
+  "deepEnd": [
+   33.652,
+   -427.0389,
+   1.3308
+  ],
+  "farmLamp": [
+   -226.713,
+   -46.1557,
+   3.85
+  ],
+  "hotelSign": [
+   719.0405,
+   -513.3982,
+   48.2175
+  ],
+  "hotelWindow": [
+   725.9166,
+   -503.5616,
+   49.8175
+  ],
+  "lighthouse": [
+   1166.4431,
+   248.4851,
+   71.7678
+  ],
+  "marina": [
+   0.0,
+   -412.9457,
+   14.35
+  ],
+  "mastMid": [
+   1572.9298,
+   -276.8,
+   99.9198
+  ],
+  "mastTop": [
+   1572.9298,
+   -276.8,
+   121.2198
+  ],
+  "neon": [
+   104.98,
+   -454.1683,
+   26.3151
+  ],
+  "wheelBulb": [
+   -148.3705,
+   -352.9848,
+   33.4454
+  ],
+  "wheelHub": [
+   -143.6138,
+   -354.9066,
+   19.35
+  ]
+ },
+ "pano": {
+  "height": 2139,
+  "latMax": 36.0,
+  "latMin": -58.0,
+  "width": 8192
+ },
+ "points": {
+  "bucket": [
+   0.5,
+   1.53,
+   -0.83
+  ],
+  "eye": [
+   0.0,
+   -0.55,
+   1.25
+  ],
+  "lamp": [
+   0.0,
+   4.17,
+   0.55
+  ],
+  "lighthouseYaw": 78.0,
+  "moonElev": 19.0,
+  "moonYaw": 28.0,
+  "rodTip": [
+   2.02,
+   3.5,
+   0.61
+  ],
+  "sheer": [
+   -7.72,
+   -7.72,
+   -7.719,
+   -7.717,
+   -7.714,
+   -7.711,
+   -7.708,
+   -7.704,
+   -7.699,
+   -7.697,
+   -7.76,
+   -7.785,
+   -7.847,
+   -7.922,
+   -7.997,
+   -8.073,
+   -8.161,
+   -8.25,
+   -8.34,
+   -8.43,
+   -8.534,
+   -8.638,
+   -8.743,
+   -8.861,
+   -8.968,
+   -9.088,
+   -9.209,
+   -9.331,
+   -9.468,
+   -9.592,
+   -9.731,
+   -9.857,
+   -9.998,
+   -10.14,
+   -10.268,
+   -10.413,
+   -10.558,
+   -10.705,
+   -10.852,
+   -11.001,
+   -11.152,
+   -11.303,
+   -11.471,
+   -11.625,
+   -11.78,
+   -11.936,
+   -12.094,
+   -12.253,
+   -12.397,
+   -12.558,
+   -12.721,
+   -12.884,
+   -13.049,
+   -13.199,
+   -13.366,
+   -13.535,
+   -13.687,
+   -13.858,
+   -14.013,
+   -14.169,
+   -14.343,
+   -14.501,
+   -14.66,
+   -14.82,
+   -14.98,
+   -15.142,
+   -15.304,
+   -15.468,
+   -15.632,
+   -15.778,
+   -15.944,
+   -16.092,
+   -16.259,
+   -16.408,
+   -16.558,
+   -16.727,
+   -16.878,
+   -17.03,
+   -17.181,
+   -17.334,
+   -17.486,
+   -17.639,
+   -17.774,
+   -17.927,
+   -18.081,
+   -18.216,
+   -18.37,
+   -18.505,
+   -18.641,
+   -18.795,
+   -18.93,
+   -19.066,
+   -19.201,
+   -19.336,
+   -19.471,
+   -19.606,
+   -19.741,
+   -19.875,
+   -20.01,
+   -20.144,
+   -20.258,
+   -20.391,
+   -20.524,
+   -20.638,
+   -20.77,
+   -20.882,
+   -20.994,
+   -21.125,
+   -21.236,
+   -21.346,
+   -21.474,
+   -21.583,
+   -21.692,
+   -21.8,
+   -21.907,
+   -22.013,
+   -22.119,
+   -22.223,
+   -22.327,
+   -22.43,
+   -22.532,
+   -22.633,
+   -22.716,
+   -22.815,
+   -22.913,
+   -23.01,
+   -23.09,
+   -23.184,
+   -23.262,
+   -23.354,
+   -23.445,
+   -23.52,
+   -23.608,
+   -23.681,
+   -23.752,
+   -23.837,
+   -23.906,
+   -23.987,
+   -24.054,
+   -24.12,
+   -24.197,
+   -24.26,
+   -24.321,
+   -24.382,
+   -24.453,
+   -24.51,
+   -24.567,
+   -24.622,
+   -24.686,
+   -24.738,
+   -24.789,
+   -24.838,
+   -24.886,
+   -24.932,
+   -24.977,
+   -25.021,
+   -25.063,
+   -25.111,
+   -25.15,
+   -25.187,
+   -25.222,
+   -25.256,
+   -25.289,
+   -25.32,
+   -25.349,
+   -25.377,
+   -25.403,
+   -25.427,
+   -25.45,
+   -25.471,
+   -25.491,
+   -25.509,
+   -25.525,
+   -25.54,
+   -25.553,
+   -25.564,
+   -25.574,
+   -25.582,
+   -25.588,
+   -25.593,
+   -25.596,
+   -25.597,
+   -25.595,
+   -25.591,
+   -25.586,
+   -25.579,
+   -25.571,
+   -25.561,
+   -25.549,
+   -25.536,
+   -25.518,
+   -25.501,
+   -25.483,
+   -25.463,
+   -25.442,
+   -25.419,
+   -25.394,
+   -25.363,
+   -25.336,
+   -25.306,
+   -25.276,
+   -25.237,
+   -25.203,
+   -25.168,
+   -25.124,
+   -25.086,
+   -25.047,
+   -24.998,
+   -24.955,
+   -24.903,
+   -24.858,
+   -24.802,
+   -24.754,
+   -24.695,
+   -24.645,
+   -24.583,
+   -24.53,
+   -24.465,
+   -24.399,
+   -24.331,
+   -24.273,
+   -24.203,
+   -24.131,
+   -24.058,
+   -23.983,
+   -23.907,
+   -23.83,
+   -23.751,
+   -23.672,
+   -23.591,
+   -23.509,
+   -23.412,
+   -23.328,
+   -23.243,
+   -23.142,
+   -23.055,
+   -22.952,
+   -22.863,
+   -22.758,
+   -22.653,
+   -22.562,
+   -22.454,
+   -22.346,
+   -22.238,
+   -22.128,
+   -22.018,
+   -21.907,
+   -21.796,
+   -21.668,
+   -21.556,
+   -21.443,
+   -21.314,
+   -21.2,
+   -21.069,
+   -20.939,
+   -20.824,
+   -20.692,
+   -20.561,
+   -20.429,
+   -20.297,
+   -20.148,
+   -20.016,
+   -19.883,
+   -19.734,
+   -19.602,
+   -19.453,
+   -19.304,
+   -19.156,
+   -19.007,
+   -18.859,
+   -18.711,
+   -18.563,
+   -18.399,
+   -18.252,
+   -18.089,
+   -17.927,
+   -17.765,
+   -17.604,
+   -17.443,
+   -17.283,
+   -17.108,
+   -16.949,
+   -16.775,
+   -16.602,
+   -16.431,
+   -16.259,
+   -16.074,
+   -15.905,
+   -15.722,
+   -15.554,
+   -15.373,
+   -15.193,
+   -15.0,
+   -14.823,
+   -14.632,
+   -14.457,
+   -14.269,
+   -14.068,
+   -13.883,
+   -13.7,
+   -13.504,
+   -13.309,
+   -13.116,
+   -12.925,
+   -12.722,
+   -12.535,
+   -12.335,
+   -12.138,
+   -11.942,
+   -11.736,
+   -11.544,
+   -11.341,
+   -11.14,
+   -10.941,
+   -10.745,
+   -10.538,
+   -10.345,
+   -10.142,
+   -9.941,
+   -9.73,
+   -9.533,
+   -9.338,
+   -9.134,
+   -8.932,
+   -8.732,
+   -8.534,
+   -8.338,
+   -8.144,
+   -7.941,
+   -7.75,
+   -7.562,
+   -7.365,
+   -7.181,
+   -6.987,
+   -6.796,
+   -6.617,
+   -6.439,
+   -6.253,
+   -6.079,
+   -5.906,
+   -5.734,
+   -5.573,
+   -5.414,
+   -5.256,
+   -5.099,
+   -4.953,
+   -4.807,
+   -4.672,
+   -4.537,
+   -4.412,
+   -4.288,
+   -4.183,
+   -4.078,
+   -3.982,
+   -3.895,
+   -3.877,
+   -3.877,
+   -3.877,
+   -3.877,
+   -3.877,
+   -3.877,
+   -3.877,
+   -3.877,
+   -3.877,
+   -3.877,
+   -3.877,
+   -3.895,
+   -3.982,
+   -4.078,
+   -4.183,
+   -4.288,
+   -4.412,
+   -4.537,
+   -4.672,
+   -4.807,
+   -4.953,
+   -5.099,
+   -5.256,
+   -5.414,
+   -5.573,
+   -5.734,
+   -5.906,
+   -6.079,
+   -6.253,
+   -6.439,
+   -6.617,
+   -6.796,
+   -6.987,
+   -7.181,
+   -7.365,
+   -7.562,
+   -7.75,
+   -7.941,
+   -8.144,
+   -8.338,
+   -8.534,
+   -8.732,
+   -8.932,
+   -9.134,
+   -9.338,
+   -9.533,
+   -9.73,
+   -9.941,
+   -10.142,
+   -10.345,
+   -10.538,
+   -10.745,
+   -10.941,
+   -11.14,
+   -11.341,
+   -11.544,
+   -11.736,
+   -11.942,
+   -12.138,
+   -12.335,
+   -12.535,
+   -12.722,
+   -12.925,
+   -13.116,
+   -13.309,
+   -13.504,
+   -13.7,
+   -13.883,
+   -14.068,
+   -14.269,
+   -14.457,
+   -14.632,
+   -14.823,
+   -15.0,
+   -15.193,
+   -15.373,
+   -15.554,
+   -15.722,
+   -15.905,
+   -16.074,
+   -16.259,
+   -16.431,
+   -16.602,
+   -16.775,
+   -16.949,
+   -17.108,
+   -17.283,
+   -17.443,
+   -17.604,
+   -17.765,
+   -17.927,
+   -18.089,
+   -18.252,
+   -18.399,
+   -18.563,
+   -18.711,
+   -18.859,
+   -19.007,
+   -19.156,
+   -19.304,
+   -19.453,
+   -19.602,
+   -19.734,
+   -19.883,
+   -20.016,
+   -20.148,
+   -20.297,
+   -20.429,
+   -20.561,
+   -20.692,
+   -20.824,
+   -20.939,
+   -21.069,
+   -21.2,
+   -21.314,
+   -21.443,
+   -21.556,
+   -21.668,
+   -21.796,
+   -21.907,
+   -22.018,
+   -22.128,
+   -22.238,
+   -22.346,
+   -22.454,
+   -22.562,
+   -22.653,
+   -22.758,
+   -22.863,
+   -22.952,
+   -23.055,
+   -23.142,
+   -23.243,
+   -23.328,
+   -23.412,
+   -23.509,
+   -23.591,
+   -23.672,
+   -23.751,
+   -23.83,
+   -23.907,
+   -23.983,
+   -24.058,
+   -24.131,
+   -24.203,
+   -24.273,
+   -24.331,
+   -24.399,
+   -24.465,
+   -24.53,
+   -24.583,
+   -24.645,
+   -24.695,
+   -24.754,
+   -24.802,
+   -24.858,
+   -24.903,
+   -24.955,
+   -24.998,
+   -25.047,
+   -25.086,
+   -25.124,
+   -25.168,
+   -25.203,
+   -25.237,
+   -25.276,
+   -25.306,
+   -25.336,
+   -25.363,
+   -25.394,
+   -25.419,
+   -25.442,
+   -25.463,
+   -25.483,
+   -25.501,
+   -25.518,
+   -25.536,
+   -25.549,
+   -25.561,
+   -25.571,
+   -25.579,
+   -25.586,
+   -25.591,
+   -25.595,
+   -25.597,
+   -25.596,
+   -25.593,
+   -25.588,
+   -25.582,
+   -25.574,
+   -25.564,
+   -25.553,
+   -25.54,
+   -25.525,
+   -25.509,
+   -25.491,
+   -25.471,
+   -25.45,
+   -25.427,
+   -25.403,
+   -25.377,
+   -25.349,
+   -25.32,
+   -25.289,
+   -25.256,
+   -25.222,
+   -25.187,
+   -25.15,
+   -25.111,
+   -25.063,
+   -25.021,
+   -24.977,
+   -24.932,
+   -24.886,
+   -24.838,
+   -24.789,
+   -24.738,
+   -24.686,
+   -24.622,
+   -24.567,
+   -24.51,
+   -24.453,
+   -24.382,
+   -24.321,
+   -24.26,
+   -24.197,
+   -24.12,
+   -24.054,
+   -23.987,
+   -23.906,
+   -23.837,
+   -23.752,
+   -23.681,
+   -23.608,
+   -23.52,
+   -23.445,
+   -23.354,
+   -23.262,
+   -23.184,
+   -23.09,
+   -23.01,
+   -22.913,
+   -22.815,
+   -22.716,
+   -22.633,
+   -22.532,
+   -22.43,
+   -22.327,
+   -22.223,
+   -22.119,
+   -22.013,
+   -21.907,
+   -21.8,
+   -21.692,
+   -21.583,
+   -21.474,
+   -21.346,
+   -21.236,
+   -21.125,
+   -20.994,
+   -20.882,
+   -20.77,
+   -20.638,
+   -20.524,
+   -20.391,
+   -20.258,
+   -20.144,
+   -20.01,
+   -19.875,
+   -19.741,
+   -19.606,
+   -19.471,
+   -19.336,
+   -19.201,
+   -19.066,
+   -18.93,
+   -18.795,
+   -18.641,
+   -18.505,
+   -18.37,
+   -18.216,
+   -18.081,
+   -17.927,
+   -17.774,
+   -17.639,
+   -17.486,
+   -17.334,
+   -17.181,
+   -17.03,
+   -16.878,
+   -16.727,
+   -16.558,
+   -16.408,
+   -16.259,
+   -16.092,
+   -15.944,
+   -15.778,
+   -15.632,
+   -15.468,
+   -15.304,
+   -15.142,
+   -14.98,
+   -14.82,
+   -14.66,
+   -14.501,
+   -14.343,
+   -14.169,
+   -14.013,
+   -13.858,
+   -13.687,
+   -13.535,
+   -13.366,
+   -13.199,
+   -13.049,
+   -12.884,
+   -12.721,
+   -12.558,
+   -12.397,
+   -12.253,
+   -12.094,
+   -11.936,
+   -11.78,
+   -11.625,
+   -11.471,
+   -11.303,
+   -11.152,
+   -11.001,
+   -10.852,
+   -10.705,
+   -10.558,
+   -10.413,
+   -10.268,
+   -10.14,
+   -9.998,
+   -9.857,
+   -9.731,
+   -9.592,
+   -9.468,
+   -9.331,
+   -9.209,
+   -9.088,
+   -8.968,
+   -8.861,
+   -8.743,
+   -8.638,
+   -8.534,
+   -8.43,
+   -8.34,
+   -8.25,
+   -8.161,
+   -8.073,
+   -7.997,
+   -7.922,
+   -7.847,
+   -7.785,
+   -7.76,
+   -7.697,
+   -7.699,
+   -7.704,
+   -7.708,
+   -7.711,
+   -7.714,
+   -7.717,
+   -7.719,
+   -7.72
+  ],
+  "sonarRound": false,
+  "sonarScreen": [
+   [
+    0.375,
+    -1.4303,
+    -0.4386
+   ],
+   [
+    0.225,
+    -1.4303,
+    -0.4386
+   ],
+   [
+    0.225,
+    -1.3891,
+    -0.5406
+   ],
+   [
+    0.375,
+    -1.3891,
+    -0.5406
+   ]
+  ],
+  "tarp": [
+   -0.55,
+   1.53,
+   -0.83
+  ]
+ }
+}
