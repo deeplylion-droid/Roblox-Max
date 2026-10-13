@@ -2147,9 +2147,8 @@ export class Night {
       out.push({ key: MOLLY_EYES[side][0], ...molly, opacity: v.mBlink1 });
       out.push({ key: MOLLY_EYES[side][1], ...molly, opacity: v.mBlink2 });
     }
-    // Robin è steso sul bordo: testa, braccio e zampe stanno sopra la barca. Il corpo sopra il mare sale e scende
-    // di lato, dal mare; quello che sta sopra la barca compare e svanisce in fretta sul posto (scivolando passerebbe
-    // attraverso il legno). Nella luce piena trema e si ritrae un poco, la faccia si accende di luce calda (la
+    // Robin è steso sul bordo: testa, braccio e zampe stanno sopra la barca. Scacciato si ritira oltre il bordo coi
+    // fotogrammi della fuga, poi il corpo scende di lato dietro lo scafo; quando arriva è il contrario. Nella luce piena trema e si ritrae un poco, la faccia si accende di luce calda (la
     // lanterna, dalla parte del pescatore) e strizza gli occhi
     const f = v.robinFear;
     const t = this.d.stage.time;
