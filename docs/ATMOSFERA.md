@@ -193,6 +193,7 @@ e i jumpscare resi con l'atmosfera. Le immagini di prima restano la serie `senza
 | Jumpscare di Fangy | js_fangy_00..07 (1920×1080, 64 campioni) | stesse inquadrature e movimento; luce media 0,76-0,79 di prima (la luna più bassa); sfondo velato, alone della lampara leggero, lucine e zanne leggibili |
 | Jumpscare del Foxy | js_foxy_00..07 | stesse inquadrature e movimento; luce media 0,86-0,95 di prima; sfondo velato e più azzurro; niente alone bianco (la serie di prima ce l'aveva in alto a sinistra) |
 | Jumpscare della Madre | js_madre_00..07 | stesse inquadrature e stessa inclinazione della barca; luce media 0,79-0,95 di prima; monti, paese e lume lontano velati; il mare vicino è nebbia liscia (la grana a chiazze del denoiser tolta dallo sfondo con `liscia_sfondo_jumpscare.py`, solo sui passi lamp e lantern fuori dalla barca); niente alone |
+| Jumpscare della quota | js_quota_00..07 (1920×1080, 96 campioni; 0-3 dalla sessione della quota, 4-7 da quattro sessioni in parallelo con `QUOTA_FOTOGRAMMI`, scale da `post.pick_scale`) | stesse inquadrature e movimento; luce media 1,17-1,35 di prima, dal 3 al 4 senza salti (1,22 → 1,24); velo leggero e uniforme sull'acqua, la schiuma un po' più spenta; nessun alone (quota.py non cambia: LAMPARA_MONDO spegnerebbe la luce sott'acqua sull'occhio) |
 
 ## Cosa cambiare nel motore (scritto prima del lavoro sul motore: vedi sopra)
 
