@@ -689,7 +689,10 @@ export class Screens {
     /** scendere con le bombole prima della notte dopo (l'immersione è facoltativa) */
     onDive?: (() => void) | null;
     /** il disegno a pastelli trovato all'alba (disegni.ts) */
-    drawing?: string | null }): void {
+    drawing?: string | null;
+    /** vinta ma senza «Notte superata» nel titolo, solo l'ora: dopo il finale «Nessuno», dove sei diventato uno di loro
+     *  (scelta dell'utente del 13 ottobre) */
+    onlyHour?: boolean }): void {
     const S = this.S;
     const stats = h(
       'div',
@@ -706,7 +709,9 @@ export class Screens {
     if (o.won && o.onExtra) menu.append(button(S.extraNight, o.onExtra, 'start'));
     if (o.demoEnd && !o.onExtra && o.onWishlist) menu.append(button(S.wishlist, o.onWishlist, 'start'));
     menu.append(button(S.menu, o.onMenu, 'back'));
-    const parts: Node[] = [h('h2', {}, o.won ? `${S.sixAm} · ${S.survived}` : S.deathTitle), h('p', {}, o.text), stats];
+    const title = o.won ? (o.onlyHour ? S.sixAm : `${S.sixAm} · ${S.survived}`) : S.deathTitle;
+    // senza testo (dopo il finale B) niente riga vuota sotto il titolo
+    const parts: Node[] = [h('h2', {}, title), ...(o.text ? [h('p', {}, o.text)] : []), stats];
     if (o.demoEnd) parts.push(h('p', { class: 'muted' }, o.onExtra ? S.extraOpened : S.demoEnd));
     parts.push(menu);
     this.show(this.withDrawing(`screen ${o.won ? 'dawn' : 'death'} ${o.afterEnding ? 'after-ending' : 'fade-in'}`, parts, o.won ? o.drawing : null));

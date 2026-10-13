@@ -33,7 +33,7 @@ lines.push('# SPLASHLAND IS CLOSED! — Il Catalogo dei pesci');
 lines.push('');
 lines.push('> ⚠️ **PROPOSTA DA APPROVARE.** Nomi, descrizioni, rarità e condizioni sono una bozza scritta di notte: si cambia tutto quello che non convince. Il file si rigenera da `src/game/catalog.ts` con `npm run catalog`.');
 lines.push('');
-lines.push('Cento specie, tutte ispirate a pesci veri del Mediterraneo e degli abissi, venti per famiglia. Ogni voce ha il nome italiano e quello inglese (un gioco di parole diverso per ogni lingua), la specie vera, la rarità, quando abbocca, come combatte al recupero, il peso e una riga inquietante. Le descrizioni inglesi sono una bozza della notte del 12 ottobre, da approvare insieme a quelle italiane.');
+lines.push('Cento specie, tutte ispirate a pesci veri del Mediterraneo e degli abissi, venti per famiglia. Ogni voce ha il nome italiano e quello inglese (un gioco di parole diverso per ogni lingua), la specie vera, la rarità, quando abbocca, come combatte al recupero, il peso e una riga inquietante. Le descrizioni inglesi, scritte la notte del 12 ottobre, sono approvate dall\'utente il 13 ottobre.');
 lines.push('');
 const counts = { common: 0, uncommon: 0, rare: 0, legendary: 0 } as Record<Rarity, number>;
 for (const s of FISH) counts[s.rarity]++;

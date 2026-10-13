@@ -269,7 +269,8 @@ sopra). Poi, una tana alla volta:
 **Lampy resta con la sua inquadratura** (da −45° a +35°, sguardo a −5°): dorme attaccata al soffitto sopra la culla,
 a 3,5 m (la posa approvata), e con l'inquadratura delle altre (fino a +18° in alto) il soffitto e lei sarebbero fuori
 campo. Per portarla come le altre bisognerebbe abbassarla di un metro abbondante, attaccata a qualcos'altro (la
-corda della giostrina, una trave): è una scelta da approvare.
+corda della giostrina, una trave). **Decisione dell'utente del 13 ottobre: resta così**, appesa al soffitto con la sua
+inquadratura.
 
 ## Il pesce e i finali
 

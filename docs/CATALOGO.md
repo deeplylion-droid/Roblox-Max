@@ -2,7 +2,7 @@
 
 > ⚠️ **PROPOSTA DA APPROVARE.** Nomi, descrizioni, rarità e condizioni sono una bozza scritta di notte: si cambia tutto quello che non convince. Il file si rigenera da `src/game/catalog.ts` con `npm run catalog`.
 
-Cento specie, tutte ispirate a pesci veri del Mediterraneo e degli abissi, venti per famiglia. Ogni voce ha il nome italiano e quello inglese (un gioco di parole diverso per ogni lingua), la specie vera, la rarità, quando abbocca, come combatte al recupero, il peso e una riga inquietante. Le descrizioni inglesi sono una bozza della notte del 12 ottobre, da approvare insieme a quelle italiane.
+Cento specie, tutte ispirate a pesci veri del Mediterraneo e degli abissi, venti per famiglia. Ogni voce ha il nome italiano e quello inglese (un gioco di parole diverso per ogni lingua), la specie vera, la rarità, quando abbocca, come combatte al recupero, il peso e una riga inquietante. Le descrizioni inglesi, scritte la notte del 12 ottobre, sono approvate dall'utente il 13 ottobre.
 
 Rarità: 28 comuni, 28 non comuni, 34 rari, 10 leggendari. Nella Notte 1 possono abboccare 64 specie; le altre arrivano nelle notti successive.
 

@@ -758,6 +758,8 @@ col disegno a pastelli (sotto; i tre finali approvati il 12 ottobre).
   **almeno tre volte** e **non hai mai lasciato un pesce**; il finale A in tutti gli altri casi (anche mai sceso).
   Rigiocando una notte la sua alba si riscrive; «Nuova partita» le azzera; un'immersione che non parte (dati mancanti)
   conta come un'alba senza discesa. In sviluppo `?finale=tuoi|nessuno|A` lo forza (prove e registrazioni).
+- **I risultati dopo «Nessuno»** hanno per titolo **solo l'ora, «6:00»**, senza «Notte superata» (sei diventato uno di
+  loro), con sotto la sua frase (scelta dell'utente del 13 ottobre; `onlyHour` in `Screens.results`).
 - **Le cinematiche** (`src/app/cinematic.ts`, `FINALE_TUOI` e `FINALE_NESSUNO`, provate in `tests/cinematic.test.ts`),
   sui tempi dei loro suoni (`docs/AUDIO.md`):
   - **«I tuoi»** (21 s): la Madre sale a sinistra e chiama (0-3 s); i figli affiorano attorno alla barca e non la
@@ -793,7 +795,8 @@ col disegno a pastelli (sotto; i tre finali approvati il 12 ottobre).
     secchio che si svuota e ai figli che tornano giù (0-12 s); niente radio: la vista scende sul banco di prua mentre
     sorge il sole e lì (14,6 s) si dissolve nel disegno, poi va piano verso i quattro bambini e infine il nero.
     **Niente frase** (c'era «Il quarto eri tu. L'unico che è tornato a casa.», tolta per scelta dell'utente il 12
-    ottobre): solo il disegno che si avvicina. Poi i risultati («Quota raggiunta»), senza titoli di coda. Il segnaposto `Screens.extraEnding` non c'è più. In sviluppo `?finale=B` lo
+    ottobre): solo il disegno che si avvicina. Poi i risultati, senza titoli di coda: «6:00 · Notte superata» e i numeri,
+    **senza «Quota raggiunta»** (scelta dell'utente del 13 ottobre). Il segnaposto `Screens.extraEnding` non c'è più. In sviluppo `?finale=B` lo
     forza alla notte extra. La clip: `docs/concept/clip/finale_ricordo.mp4` (solo il canvas: le scritte non ci sono).
 
 ### Le ultime inquadrature dei due finali segreti

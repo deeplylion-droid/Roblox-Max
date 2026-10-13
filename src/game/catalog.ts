@@ -3,8 +3,8 @@
  * trasformate in cinque famiglie (vedi docs/GDD.md, «Il Catalogo dei pesci»).
  *
  * ⚠️ PROPOSTA DA APPROVARE (notte del 9 ottobre): nomi, descrizioni, rarità e condizioni sono una bozza.
- * docs/CATALOGO.md si rigenera da qui: `npm run catalog`. Le descrizioni inglesi sono una bozza della notte
- * del 12 ottobre, da approvare insieme a quelle italiane (se manca quella inglese il gioco mostra quella italiana).
+ * docs/CATALOGO.md si rigenera da qui: `npm run catalog`. Le descrizioni inglesi (scritte la notte del 12 ottobre)
+ * sono approvate dall'utente il 13 ottobre (se manca quella inglese il gioco mostra quella italiana).
  */
 
 export type FishFamily = 'skeletal' | 'zombie' | 'glitch' | 'corrupt' | 'bleeding';

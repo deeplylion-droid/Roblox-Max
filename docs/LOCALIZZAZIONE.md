@@ -92,7 +92,8 @@ nei disegni già renderizzati l'«IO» di Fangy e le iniziali italiane dei mesi 
 
 Le lingue a cui il gioco potrebbe arrivare (scelta dell'utente del 12 ottobre sera): **spagnolo, francese, tedesco,
 portoghese, cinese, giapponese, coreano**. La notte del 12-13 ottobre il gioco è stato preparato per tutte; mancano solo i
-testi tradotti, che si fanno con l'ok dell'utente (e un madrelingua che li controlli).
+testi tradotti, che si fanno con l'ok dell'utente (e un madrelingua che li controlli). **Decisione del 13 ottobre:
+più avanti**, quando i testi italiani e inglesi sono approvati, così non si traduce due volte.
 
 **Già pronto**
 - **Interfaccia**: il pulsante della lingua nelle opzioni passa da una lingua all'altra di quelle che hanno i testi

@@ -473,7 +473,11 @@ export class App {
                 : r.ending === 'nessuno'
                   ? S.finaleNessuno
                   : S.finaleA
-              : S.quotaMet
+              : // dopo il finale B (notte extra) niente «Quota raggiunta»: la sua frase è stata tolta e la quota non
+                // conta più (scelta dell'utente del 13 ottobre)
+                r.ending === 'B'
+                ? ''
+                : S.quotaMet
             : r.cause === 'lullaby'
               ? S.deaths.lullaby
               : r.cause === 'moved'
@@ -492,6 +496,7 @@ export class App {
         // finita l'ultima notte (la sesta), si apre la notte extra
         onExtra: r.kind === 'won' && !extra && this.nightNo >= lastNight() && NIGHT_LIMIT === Infinity ? () => this.extraNight() : null,
         afterEnding: r.kind === 'won' && !!r.ending,
+        onlyHour: r.kind === 'won' && r.ending === 'nessuno',
         onWishlist: STEAM_URL ? () => window.open(STEAM_URL, '_blank') : null,
         onRetry: () => this.intro(),
         onMenu: () => this.title(),

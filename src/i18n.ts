@@ -9,7 +9,7 @@ const IT = {
   title: 'SPLASHLAND IS CLOSED!',
   newGame: 'Nuova partita',
   continue: 'Continua',
-  // DA APPROVARE (13 ottobre notte): la conferma di «Nuova partita» con una partita in corso
+  // la conferma di «Nuova partita» con una partita in corso (approvata dall'utente il 13 ottobre, anche l'inglese)
   newGameConfirm: {
     title: 'Nuova partita?',
     text: 'La partita in corso finisce qui: si riparte dalla prima notte, senza le albe e i pesci lasciati nelle tane. Le notti sbloccate, il Diario e il Catalogo restano.',
