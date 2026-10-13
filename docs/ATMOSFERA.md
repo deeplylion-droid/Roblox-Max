@@ -174,6 +174,7 @@ e i jumpscare resi con l'atmosfera. Le immagini di prima restano la serie `senza
 | Lampy | lampy_lenza, lampy_bocca_chiusa, lampy_bocca_aperta | sagome uguali (2-4 pixel); luna 0,5-0,55 |
 | Fangy | fangy_ascolta, fangy_testa_prua, fangy_testa_poppa | sagome uguali (3 pixel); luna 0,25-0,4, lanterna 1,2-1,35; a luce spenta lo mostrano le lucine del motore (posizioni invariate) |
 | La Madre | madre_sale | sagoma uguale (4 pixel); luna 0,4 |
+| Pesci nel secchio | fish2, fish5, fish9 (`PROPS=fish jobs.py props`) | sagome uguali (0-4 pixel); luna 0,3, lampara 1,04-1,18 |
 
 ## Cosa cambiare nel motore (scritto prima del lavoro sul motore: vedi sopra)
 

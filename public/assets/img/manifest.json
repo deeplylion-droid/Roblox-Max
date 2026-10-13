@@ -1553,6 +1553,25 @@
     4173,
     1410
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "fish2_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "fish2_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 4.2
+     },
+     "lantern": {
+      "file": "fish2_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
    "space": "boat",
    "yaw": 17.9357
   },
@@ -1566,12 +1585,12 @@
     "lamp": {
      "file": "fish5_lamp.webp",
      "res": 1.0,
-     "scale": 0.63
+     "scale": 0.85
     },
     "lantern": {
      "file": "fish5_lantern.webp",
      "res": 1.0,
-     "scale": 0.3
+     "scale": 0.31
     }
    },
    "rect": [
@@ -1580,6 +1599,25 @@
     4204,
     1425
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "fish5_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "fish5_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.63
+     },
+     "lantern": {
+      "file": "fish5_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.3
+     }
+    }
+   },
    "space": "boat",
    "yaw": 18.1011
   },
@@ -1593,7 +1631,7 @@
     "lamp": {
      "file": "fish9_lamp.webp",
      "res": 1.0,
-     "scale": 0.9
+     "scale": 0.9400000000000001
     },
     "lantern": {
      "file": "fish9_lantern.webp",
@@ -1607,6 +1645,25 @@
     4182,
     1410
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "fish9_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "fish9_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.9
+     },
+     "lantern": {
+      "file": "fish9_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
    "space": "boat",
    "yaw": 18.0637
   },
