@@ -134,8 +134,11 @@ export class Screens {
 
   title(o: { canContinue: boolean; onNew: () => void; onContinue: () => void; onExtraNight: (() => void) | null; onJournal: () => void; onOptions: () => void; onQuit: (() => void) | null }): void {
     const S = this.S;
-    const menu = h('div', { class: 'menu' }, button(S.newGame, o.onNew, 'start'));
-    if (o.canContinue) menu.append(button(S.continue, o.onContinue));
+    // con una partita in corso «Continua» viene prima: lì parte il controller (due A dopo l'avvertenza non devono
+    // cominciare una partita nuova)
+    const menu = h('div', { class: 'menu' });
+    if (o.canContinue) menu.append(button(S.continue, o.onContinue, 'start'));
+    menu.append(button(S.newGame, o.onNew, o.canContinue ? 'click' : 'start'));
     if (o.onExtraNight) menu.append(button(S.extraNight, o.onExtraNight));
     menu.append(button(S.extras, o.onJournal), button(S.options, o.onOptions));
     if (o.onQuit) menu.append(button(S.quit, o.onQuit));
@@ -190,6 +193,21 @@ export class Screens {
         h('h2', {}, night === EXTRA_NIGHT ? S.extraNight : `${S.night} ${night}`),
         h('div', { class: 'intro-time' }, S.intro.time),
         h('div', { class: 'muted' }, `${S.intro.quota}: ${quota} ${S.intro.fishUnit}`),
+      ),
+    );
+  }
+
+  /** «Nuova partita» con una partita in corso: si chiede prima (il primo pulsante, e B, tornano indietro). */
+  newGameConfirm(o: { onYes: () => void; onNo: () => void }): void {
+    const S = this.S;
+    const c = S.newGameConfirm;
+    this.show(
+      h(
+        'div',
+        { class: 'screen title fade-in' },
+        h('h2', {}, c.title),
+        h('p', {}, c.text),
+        h('div', { class: 'menu' }, backKey(button(S.back, o.onNo, 'back')), button(c.yes, o.onYes, 'start')),
       ),
     );
   }

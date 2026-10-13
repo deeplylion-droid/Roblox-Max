@@ -570,7 +570,11 @@ export class Night {
     this.on(this.hud.turnEl, 'mouseleave', () => {
       this.turnArmed = true;
     });
-    this.on(this.sonarEl, 'mousedown', () => this.toggleSonar(false));
+    // un clic sul sonar lo chiude; se intanto ha abboccato, ferra anche (il suggerimento dice «Clic o Spazio»)
+    this.on(this.sonarEl, 'mousedown', () => {
+      this.toggleSonar(false);
+      if (this.sim.fishing.phase === 'bite') this.sim.pressRod();
+    });
   }
 
   private keyDown(e: KeyboardEvent): void {
@@ -802,6 +806,9 @@ export class Night {
       return;
     }
     this.sonarOpen = open;
+    // la simulazione lo sa subito: se no il colpo sulla canna nello stesso tasto (Spazio col sonar aperto) la trova
+    // ancora occupata col sonar, e il pesce non si ferra
+    this.sim.setView(this.d.stage.view.yaw, open || this.bino > 0.5, open);
     this.sonarEl.classList.toggle('show', open);
     this.d.audio.play(open ? 'radio_on' : 'radio_off', { gain: 0.25 });
   }

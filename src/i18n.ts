@@ -9,6 +9,12 @@ const IT = {
   title: 'SPLASHLAND IS CLOSED!',
   newGame: 'Nuova partita',
   continue: 'Continua',
+  // DA APPROVARE (13 ottobre notte): la conferma di «Nuova partita» con una partita in corso
+  newGameConfirm: {
+    title: 'Nuova partita?',
+    text: 'La partita in corso finisce qui: si riparte dalla prima notte, senza le albe e i pesci lasciati nelle tane. Le notti sbloccate, il Diario e il Catalogo restano.',
+    yes: 'Ricomincia da capo',
+  },
   extras: 'Extra',
   options: 'Opzioni',
   quit: 'Esci',
@@ -315,6 +321,11 @@ const EN: typeof IT = {
   title: 'SPLASHLAND IS CLOSED!',
   newGame: 'New game',
   continue: 'Continue',
+  newGameConfirm: {
+    title: 'New game?',
+    text: 'The game in progress ends here: you start again from the first night, without your dawns and the fish left in the dens. Unlocked nights, the Journal and the Catalogue stay.',
+    yes: 'Start over',
+  },
   extras: 'Extras',
   options: 'Options',
   quit: 'Quit',

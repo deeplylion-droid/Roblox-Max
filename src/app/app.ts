@@ -185,13 +185,18 @@ export class App {
       canContinue: reached >= 2,
       onNew: () => {
         if (forced === EXTRA_NIGHT) return this.extraNight();
-        // nuova partita: niente pesci, mostri sfamati e tane della partita di prima
-        newGame(this.save);
-        writeSave(this.save);
-        const n = forced >= 1 && forced <= lastNight() ? forced : 1;
-        // dalla prima notte, prima l'annuncio con cui il pescatore ha trovato il lavoro
-        if (n === 1) this.annuncio(() => this.intro(1));
-        else this.intro(n);
+        const start = () => {
+          // nuova partita: niente pesci, mostri sfamati e tane della partita di prima
+          newGame(this.save);
+          writeSave(this.save);
+          const n = forced >= 1 && forced <= lastNight() ? forced : 1;
+          // dalla prima notte, prima l'annuncio con cui il pescatore ha trovato il lavoro
+          if (n === 1) this.annuncio(() => this.intro(1));
+          else this.intro(n);
+        };
+        // con una partita in corso si chiede prima: un clic (o due A col controller) la cancellavano
+        if (reached >= 2 && !forced) this.screens.newGameConfirm({ onYes: start, onNo: () => this.title() });
+        else start();
       },
       // se il gioco era stato chiuso sullo schermo dell'alba, si riprende da lì (si può ancora scendere)
       onContinue: () => (canDive(reached - 1) && pendingDawn(this.save, reached) ? this.dawnAgain(reached) : this.intro(reached)),
@@ -205,6 +210,8 @@ export class App {
   /** La notte extra: si scelgono i livelli dei sette mostri, poi si salpa (restano salvati per la prossima volta). */
   private extraNight(): void {
     this.mode = 'title';
+    // anche arrivando dai risultati della sesta notte (dal titolo suona già)
+    this.titleMusic(true);
     this.screens.extraNight(this.save.extra, {
       onChange: (l) => {
         this.save.extra = l;

@@ -17,6 +17,15 @@ import { LANGS, detectLang } from './i18n.ts';
 const canvas = document.getElementById('scene') as HTMLCanvasElement;
 const ui = document.getElementById('ui') as HTMLDivElement;
 
+// la grafica persa (un reset del driver, il cambio di scheda video, il risveglio dal sonno): la notte si ferma come
+// quando la finestra perde il fuoco, e quando la grafica torna il gioco riparte da capo (il salvataggio c'è: «Continua»
+// riprende). Senza, la scena restava nera per sempre mentre la notte andava avanti.
+canvas.addEventListener('webglcontextlost', (e) => {
+  e.preventDefault();
+  dispatchEvent(new Event('blur'));
+});
+canvas.addEventListener('webglcontextrestored', () => location.reload());
+
 /** Strati della notte, nell'ordine in cui vanno caricati (le pose delle creature possono mancare). */
 const GAME_LAYERS = ['world', 'boat', 'rod0', 'rod1', 'rod2', 'fish2', 'fish5', 'fish9', 'gulpy_sale', 'hatch_conta', 'gulpy_pretende', 'molly_destra', 'molly_sinistra', 'battery', 'battery_lit', 'robin_secchio', 'robin_strizza', 'robin_chiusi', 'rod_c1', 'rod_c2', 'rod_m', 'rod_f1', 'rod_f2', 'rod_base',
   'gulpy_mascella_aperta', 'gulpy_mascella_chiusa', 'molly_destra_primo', 'molly_destra_secondo', 'molly_sinistra_primo',

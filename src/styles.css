@@ -362,9 +362,9 @@ html, body {
 .dive-up { position: absolute; right: 22px; bottom: 26px; pointer-events: auto; background: none; border: 1px solid rgba(160,230,220,.45); color: #bfe9e2; font: inherit; font-size: calc(14px * var(--ts)); letter-spacing: .25em; text-transform: uppercase; padding: 8px 16px; cursor: pointer; }
 .dive-up:hover { border-color: #bfe9e2; color: #fff; }
 .dive-confirm { position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%); pointer-events: auto; padding: 18px 28px; background: rgba(0,10,12,.82); border: 1px solid rgba(160,230,220,.35); text-align: center; }
-.dive-confirm p { margin: 0 0 12px; font-size: 20px; }
+.dive-confirm p { margin: 0 0 12px; font-size: calc(20px * var(--ts)); }
 .dive-confirm .row { display: flex; gap: 18px; justify-content: center; }
-.dive-confirm button { background: none; border: none; color: var(--ink); font-family: 'Limelight', serif; font-size: 22px; cursor: pointer; opacity: .8; }
+.dive-confirm button { background: none; border: none; color: var(--ink); font-family: 'Limelight', serif; font-size: calc(22px * var(--ts)); cursor: pointer; opacity: .8; }
 .dive-confirm button:hover { color: #bfe9e2; opacity: 1; }
 .dive-buttons { position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); display: flex; gap: 14px; }
 .dive-back { pointer-events: auto; background: none; border: 1px solid rgba(160,230,220,.45); color: #bfe9e2; font: inherit; font-size: calc(14px * var(--ts)); letter-spacing: .25em; text-transform: uppercase; padding: 8px 16px; cursor: pointer; }
