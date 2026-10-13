@@ -648,8 +648,10 @@ SPECIE['scorfano_pece'] = Specie(
 # «Le scritte si leggono: sono date. L'ultima è di stanotte»: sulla testa le date scritte a mano, a onde come
 # i ghirigori (un'immagine fatta con PIL e dipinta sul fianco della testa): le tre notti della Night Splash,
 # le altre dopo, e l'ultima, ancora fresca, rosso scuro e senza anno (stanotte: il gioco non ha un anno preciso).
+# Le date hanno il giorno oltre il 12 (13·11·2004, non 3·11·2004), così si leggono uguali in ogni lingua
+# (decisione dell'utente del 13 ottobre, docs/LOCALIZZAZIONE.md).
 _DATE_SCRIVANO = (('14·8·1997', 0.05, 0.46, 8), ('15·8·1997', 0.54, 0.665, -2), ('16·8·1997', 0.53, 0.54, -1),
-                  ('3·11·2004', 0.53, 0.415, 1), ('21·6·2013', 0.5, 0.29, -2), ('10·10', 0.42, 0.165, 3))
+                  ('13·11·2004', 0.53, 0.415, 1), ('21·6·2013', 0.5, 0.29, -2), ('10·10', 0.42, 0.165, 3))
 _TESTA_SCRIVANO = (0.015, 0.26, -0.075, 0.09)       # il riquadro della testa dove si scrive: x0, x1, z0, z1
 
 

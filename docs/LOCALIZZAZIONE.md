@@ -71,7 +71,7 @@ sessione delle grotte (`tools/render/tane.py`, `tools/render/disegni_tane.py`).
 | Robin | il manifesto «…TTI SMARRITI» | LOST & FOUND |
 | Robin | il fumetto del disegno da trovare, «VOGLIO TUTTO» | «!!!» |
 | Hatch | il foglio della conta (la cosa da trovare) «DIECI!» | 10! (sotto, piccolo e illeggibile, «CHI C'È C'È») |
-| Lampy | «BENVENUTA! / LUGLIO 2003» | WELCOME! / JULY 2003; il cartoncino della culla «3,1 KG – 7 / 2003» |
+| Lampy | «BENVENUTA! / LUGLIO 2003» | WELCOME! / JULY 2003; il cartoncino della culla «3100 g – 7 / 2003» |
 | Molly | — | la foto sulla sabbia, «6 / 1997» |
 
 Tutte rifatte la notte del 12-13 ottobre e guardate come il giocatore (scelte da approvare: le scritte inglesi o
@@ -80,13 +80,15 @@ lingua. Restano, ma non si leggono nel gioco: il manifesto di Archie dice ancora
 (nel sorgente è già «PARTY / MAY 1999»); la tana di Fangy non è stata rifatta (nel sorgente «EYES CLOSED!» e «AUGUST»);
 nei disegni già renderizzati l'«IO» di Fangy e le iniziali italiane dei mesi di Archie, piccoli.
 
-### Da decidere più avanti
+### Numeri e date neutri (decisione dell'utente del 13 ottobre)
 
-- **Le date giorno·mese·anno**: sul pesce `sciarrano_scrivano` c'è «3·11·2004», che un americano legge 11 marzo. Per
-  le scritte neutre meglio date che non si confondono (giorno oltre il 12) o l'anno da solo.
-- **I numeri coi decimali**: nella tana di Molly «2,5 m» e sul cartoncino della culla di Lampy «3,1 KG» hanno la
-  virgola italiana (in inglese 2.5 m, 3.1 kg). Si leggono, ma un inglese ci inciampa: o numeri senza decimali, o va bene
-  così. Piccolo.
+- **Niente decimali nelle scritte dentro le immagini**: si leggono diversi in italiano (2,5) e in inglese (2.5). Nella
+  tana di Molly il cartello è diventato «3 M – DEEP END» (era «2,5 m»), sul cartoncino della culla di Lampy «3100 g» (era
+  «3,1 KG»). Per i grammi la «g» minuscola, che è anche il simbolo giusto: in Limelight, alla grandezza del cartoncino nel
+  render, la «G» maiuscola si leggeva «C» («3100 C» sembrava una temperatura).
+- **Le date col giorno oltre il 12**, così giorno·mese·anno non si confonde con mese·giorno·anno: sul pesce
+  `sciarrano_scrivano` «13·11·2004» (era «3·11·2004», che un americano legge 11 marzo). Le altre date erano già sicure
+  (14-16·8·1997, 21·6·2013, 10·10).
 
 ## Per una lingua nuova
 

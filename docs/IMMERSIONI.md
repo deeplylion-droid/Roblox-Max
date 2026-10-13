@@ -209,7 +209,7 @@ delle cose da trovare fatti con la stessa mano del disegno di «Il ricordo» e d
 **Fatto per i finali (12 ottobre).** Arredi veri: gli armadi con le ante sui cardini, i riquadri, i pomelli e il
 legno gonfio e imbarcato; le sedie e la capanna di asciugamani di Hatch; il letto di Fangy con la testiera a
 colonnine, il materasso, il lenzuolo e il cuscino; lo sgabello; il trampolino vero di Molly (la tavola blu che si
-piega, il fulcro, la scaletta coi corrimano). Le pareti di ognuna: le piastrelle della piscina e il cartello «2,5 m –
+piega, il fulcro, la scaletta coi corrimano). Le pareti di ognuna: le piastrelle della piscina e il cartello «3 M –
 DEEP END» di Molly, i manifesti dello Snack Shack («ESTATE 1997») di Gulpy, i numeri e le tacche della conta col gesso
 di Hatch, il cartello «OGGETTI SMARRITI» e il cabinato dei biglietti rovesciato di Robin, le lucine della festa e il
 manifesto «MAGGIO 1999» di Archie, la carta da parati a fiori strappata e «BENVENUTA! – LUGLIO 2003» di Lampy, il
@@ -258,7 +258,7 @@ sopra). Poi, una tana alla volta:
   (`strisce_material`: la soglia era fissa a 0,5 e il passo più corto): ora sì anche negli asciugamani di Hatch, e nella
   tenda di Gulpy e nella tovaglia di Archie al prossimo render.
 - **Lampy**: il cartoncino del braccialetto rosa acceso (bianco spariva sotto la torcia), legato al corrimano davanti
-  della culla, verso chi entra: «3,1 KG – 7 / 2003»; le parole («non lasciarla mai andare») stanno nel Diario.
+  della culla, verso chi entra: «3100 g – 7 / 2003» (numeri neutri, 13 ottobre); le parole («non lasciarla mai andare») stanno nel Diario.
 - **Robin**: il braccio lungo raccolto nel sonno (il gomito alto ripiegato, il pugno sotto il mento); il cabinato dei
   biglietti caduto sul fianco ma con la faccia verso chi entra: il cartellone «TICKETS» acceso, lo schermo verde, la
   plancia con la leva e i pulsanti, lo sportello delle monete, la striscia di biglietti che esce e si arrotola sulla

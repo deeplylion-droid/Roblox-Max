@@ -324,7 +324,7 @@ def disegno(nome):
         dr.rounded_rectangle((14, 14, W - 14, H - 14), 36, outline=(150, 50, 90), width=10)
         f1 = ImageFont.truetype(os.path.join(fonts, 'Limelight-Regular.ttf'), 92)
         f2 = ImageFont.truetype(os.path.join(fonts, 'Limelight-Regular.ttf'), 64)
-        for testo, f, y, col in (('3,1 KG', f1, 50, (70, 20, 45)), ('7 / 2003', f2, 190, (70, 20, 45))):
+        for testo, f, y, col in (('3100 g', f1, 50, (70, 20, 45)), ('7 / 2003', f2, 190, (70, 20, 45))):
             dr.text(((W - dr.textlength(testo, font=f)) / 2, y), testo, fill=col, font=f)
         pts = [(90 + k * 8, 335 + 7 * math.sin(k * 0.9) + rr.normal(0, 2)) for k in range(42)]
         dr.line(pts, fill=(40, 40, 110), width=4, joint='curve')
@@ -699,7 +699,7 @@ def tana_molly():
     for k, (yaw, z, sz) in enumerate(((-70, 1.3, (2.2, 1.8)), (-35, 1.6, (2.6, 2.0)), (5, 1.5, (2.4, 2.2)), (40, 1.4, (2.0, 1.7)),
                                        (75, 1.2, (1.8, 1.6)), (-100, 0.9, (1.6, 1.2)), (100, 0.9, (1.6, 1.2)))):
         su_parete(pannello('Piastrelle', sz, tile, seed=k, onde=0.03), yaw, z, stacco=0.08, inclina=rr.normal(0, 0.05))
-    manifesto_su_parete('profondita', [('2,5 m', 150, (20, 30, 40), 'Monoton-Regular'), ('DEEP END', 70, (120, 20, 20), 'Limelight-Regular')],
+    manifesto_su_parete('profondita', [('3 M', 150, (20, 30, 40), 'Monoton-Regular'), ('DEEP END', 70, (120, 20, 20), 'Limelight-Regular')],
                         ((205, 210, 205), (20, 60, 120)), -12, 2.55, size=(0.7, 0.5))
     # gli specchi ossidati, con la cornice
     specchio = grotte.semplice('TMSpecchio', (0.30, 0.34, 0.33), rough=0.12, metal=1.0)
