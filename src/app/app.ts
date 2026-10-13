@@ -49,8 +49,11 @@ const isElectron = navigator.userAgent.includes('Electron');
  *  mette quando la pagina esiste. In Electron i link si aprono nel browser (electron/main.cjs). */
 const STEAM_URL: string | null = null;
 
-/** Fino a che notte arriva questa build: VITE_ULTIMA_NOTTE=1 per la demo della sola prima notte. */
+/** Fino a che notte arriva questa build: VITE_ULTIMA_NOTTE=2 per la demo delle prime due notti. */
 const NIGHT_LIMIT = Number(import.meta.env.VITE_ULTIMA_NOTTE) || Infinity;
+/** La notte extra c'è solo nel gioco completo: la demo finisce con la sua ultima notte (nemmeno le scorciatoie la
+ *  aprono, che ha dentro tutti i mostri). */
+const EXTRA_IN_BUILD = NIGHT_LIMIT === Infinity;
 
 /** ?finale=tuoi|nessuno|A nell'indirizzo: forza il finale della sesta notte; ?finale=B quello della notte extra (prove e
  *  registrazioni; mai nelle build). */
@@ -174,10 +177,10 @@ export class App {
     const forced = Number(new URLSearchParams(location.search).get('notte'));
     // «Continua» riprende la partita in corso, non l'ultima notte mai sbloccata (dopo una «Nuova partita» sono diverse)
     const reached = Math.min(this.save.current, lastNight());
-    // la notte extra si sblocca finendo l'ultima notte giocabile (sarà la sesta, la Madre)
-    const extraOpen = this.save.night > lastNight() || forced === EXTRA_NIGHT;
-    // le scorciatoie delle build di prova (prove.ts). Sul titolo, Alt + numero: comincia da quella notte (la demo arriva
-    // solo alla prima; Alt+7 la notte extra). Durante la notte, Alt+V: vinta adesso, con un pesce in più da lasciare
+    // la notte extra si sblocca finendo l'ultima notte, la sesta (la Madre); nella demo non c'è
+    const extraOpen = EXTRA_IN_BUILD && (this.save.night > lastNight() || forced === EXTRA_NIGHT);
+    // le scorciatoie delle build di prova (prove.ts). Sul titolo, Alt + numero: comincia da quella notte (nella demo solo
+    // le sue; Alt+7 la notte extra, non nella demo). Durante la notte, Alt+V: vinta adesso, con un pesce in più da lasciare
     // nelle tane; Alt+Maiusc + numero: il jumpscare
     // di quel mostro, con la sua morte, come nel gioco. Nelle build per il pubblico __SCORCIATOIE__ è «false» già nel
     // codice e questo blocco non c'è.
@@ -186,7 +189,7 @@ export class App {
         if (!e.altKey) return;
         if (this.mode === 'title' && !e.shiftKey) {
           const n = notteDelTasto(e.code);
-          if (!((n >= 1 && n <= lastNight()) || n === EXTRA_NIGHT)) return;
+          if (!((n >= 1 && n <= lastNight()) || (n === EXTRA_NIGHT && EXTRA_IN_BUILD))) return;
           e.preventDefault();
           // Alt+7: la schermata dei livelli della notte extra
           if (n === EXTRA_NIGHT) this.extraNight();
@@ -212,7 +215,7 @@ export class App {
     this.screens.title({
       canContinue: reached >= 2,
       onNew: () => {
-        if (forced === EXTRA_NIGHT) return this.extraNight();
+        if (forced === EXTRA_NIGHT && EXTRA_IN_BUILD) return this.extraNight();
         const start = () => {
           // nuova partita: niente pesci, mostri sfamati e tane della partita di prima
           newGame(this.save);
@@ -526,7 +529,7 @@ export class App {
         // il disegno a pastelli sul banco, all'alba delle notti 1-5
         drawing: r.kind === 'won' && !extra ? disegnoAlba(this.nightNo) : null,
         // finita l'ultima notte (la sesta), si apre la notte extra
-        onExtra: r.kind === 'won' && !extra && this.nightNo >= lastNight() && NIGHT_LIMIT === Infinity ? () => this.extraNight() : null,
+        onExtra: r.kind === 'won' && !extra && this.nightNo >= lastNight() && EXTRA_IN_BUILD ? () => this.extraNight() : null,
         afterEnding: r.kind === 'won' && !!r.ending,
         onlyHour: r.kind === 'won' && r.ending === 'nessuno',
         onWishlist: STEAM_URL ? () => window.open(STEAM_URL, '_blank') : null,

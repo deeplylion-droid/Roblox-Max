@@ -179,8 +179,11 @@ Volume generale/musica/effetti, lingua (italiano, inglese), luminosità, schermo
 
 TypeScript + WebGL2 (renderer proprio), interfaccia in HTML/CSS, Web Audio. Desktop con Electron (Windows, Linux/Steam Deck, macOS), Steamworks in un secondo momento (achievement, salvataggi cloud).
 
-**La demo per Steam** (Next Fest di febbraio 2027): **1 o 2 notti** (nota dell'utente del 12 ottobre; prima era solo la
-prima notte). Il piano dei passi è nella pagina «Splashland su Steam». Tutti gli asset sono generati da script nel repository (`tools/`).
+**La demo per Steam** (Next Fest di febbraio 2027): **le prime due notti** (scelta dell'utente del 13 ottobre; il 12 erano
+«1 o 2 notti», prima solo la prima), con l'immersione all'alba dopo la prima. Finita la seconda, «Fine della demo» e,
+quando la pagina Steam ci sarà (`STEAM_URL` in `src/app/app.ts`), il pulsante della lista dei desideri; la notte extra
+nella demo non c'è (nemmeno con le scorciatoie). Si costruisce dal workflow `build` con `ultima_notte` = 2 e le
+scorciatoie spente. Il piano dei passi è nella pagina «Splashland su Steam». Tutti gli asset sono generati da script nel repository (`tools/`).
 
 ### Controller e Steam Deck
 
