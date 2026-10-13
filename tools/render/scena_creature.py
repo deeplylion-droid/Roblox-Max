@@ -287,7 +287,7 @@ def robin_secchio(palpebre=0.0, aggrotta=0.0):
 ROBIN_RITIRATA = [
     dict(fuori=0.04, su=0.02, braccio=0.30, zampe=0.0, presa=0.0, baffi=('secchio', 0.85, 1.0), pesce=0.5),
     dict(fuori=0.16, su=0.05, braccio=0.65, zampe=0.0, presa=0.0, baffi=('dentro', 0.35, 0.9), pesce=None),
-    dict(fuori=0.34, su=0.07, braccio=1.0, zampe=0.10, presa=0.0, baffi=('dentro', 0.15, 0.8), pesce=None),
+    dict(fuori=0.34, su=0.13, braccio=1.0, zampe=0.10, presa=0.0, baffi=('dentro', 0.15, 0.8), pesce=None),
     dict(fuori=0.56, su=0.02, braccio=1.0, zampe=0.35, presa=0.35, baffi=('dentro', -0.2, 0.7), pesce=None),
     dict(fuori=0.72, su=-0.22, braccio=1.0, zampe=0.70, presa=0.75, baffi=('lungo', -0.5, 0.6), pesce=None),
     dict(fuori=0.80, su=-0.55, braccio=1.0, zampe=1.0, presa=1.0, baffi=('lungo', -0.6, 0.6), pesce=None),
@@ -342,7 +342,7 @@ def robin_ritirata(k, palpebre=0.75, aggrotta=1.0):
         strada = [p0, p1] if fuori else _scavalca(p0, p1)
         feet.append(loc(_lungo_la(strada, f['zampe'])))
     g0, g1 = W(M, kw['grip']), W(Mk, kw['grip'])
-    grip = loc(_lungo_la(_scavalca(g0, g1, alto=0.07), f['presa']))
+    grip = loc(_lungo_la(_scavalca(g0, g1, alto=0.20), f['presa']))
     reach = loc(fist)
     # il capo libero dei biglietti: nel secchio finché la mano ci sta sopra, poi pende sotto il polso
     capo = None
