@@ -1023,6 +1023,24 @@ TESTI_V = {
                      'nastro': 'cjk/DoHyeon-volantino'}),
 }
 
+# le lingue tradotte insieme al gioco (13 ottobre): i loro testi stanno in src/lingue/<codice>_immagini.json (chiave
+# "volantino") e prendono il posto delle prove qui sopra; restano la scelta dei font e il verso del nastro
+_LINGUE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'src', 'lingue')
+if os.path.isdir(_LINGUE):
+    import json as _json
+    for _f in sorted(os.listdir(_LINGUE)):
+        if not _f.endswith('_immagini.json'):
+            continue
+        with open(os.path.join(_LINGUE, _f), encoding='utf-8') as _fh:
+            _v = _json.load(_fh).get('volantino')
+        if not _v:
+            continue
+        _c = _f.split('_')[0]
+        _vecchio = {k: v for k, v in TESTI_V.get(_c, {}).items() if k in ('font', 'verticale')}
+        TESTI_V[_c] = dict(titolo=_v['titolo'], fumetto=tuple(_v['fumetto']), nastro=_v['nastro'],
+                           righe=[tuple(r) for r in _v['righe']], invito=_v['invito'], linguetta=tuple(_v['linguetta']),
+                           **_vecchio)
+
 
 # i font del volantino; una lingua può sostituirli con la chiave 'font' (p. es. per il cirillico, che questi non hanno).
 # Copertura: Luckiest Guy e Baloo 2 hanno il latino esteso (accenti, ß, ñ, polacco, ceco, turco), niente cirillico né

@@ -1,7 +1,7 @@
 /** Schermate in DOM sopra la scena: avvertenza, titolo, intro, pausa, opzioni, diario, alba, game over. */
 import { FISH, FISH_BY_ID, type FishFamily, type FishSpecies } from '../game/catalog.ts';
 import { EXTRA_IDS, EXTRA_MAX, EXTRA_NIGHT, EXTRA_PRESETS, FOXY_NAME, LORE, clampLevel, type ExtraLevels } from '../game/config.ts';
-import { LANGS, LANG_NAMES, LORE_TEXT, STRINGS, decimal, type Lang } from '../i18n.ts';
+import { LANGS, LANG_NAMES, LORE_TEXT, STRINGS, decimal, testiPesce, type Lang } from '../i18n.ts';
 import { disegnoSrc } from './disegni.ts';
 import { badge, dualText, type PadButton } from './pad.ts';
 import type { CatalogEntry, Options } from './save.ts';
@@ -27,9 +27,17 @@ function drawingFigure(id: string, caption: string, lang: Lang, cls = 'disegno')
 }
 
 /** Suoni dell'interfaccia: li imposta l'App quando l'audio è pronto. */
-let uiSound: (id: string) => void = () => {};
-export function setUiSound(fn: (id: string) => void): void {
+let uiSound: (id: string, gain?: number) => void = () => {};
+export function setUiSound(fn: (id: string, gain?: number) => void): void {
   uiSound = fn;
+}
+
+/** Il ritratto del menu principale (src/app/ritratti.ts): le immagini, e se ogni tanto scatta col segnale disturbato
+ *  (no con «Riduci lampi e scosse»). */
+export interface RitrattoMenu {
+  calmo: string;
+  scatti: [string, string];
+  scatta: boolean;
 }
 
 function button(label: string, onClick: () => void, kind: 'click' | 'back' | 'start' = 'click'): HTMLButtonElement {
@@ -83,6 +91,8 @@ function pageKey<T extends HTMLElement>(b: T, key: Extract<PadButton, 'LB' | 'RB
 
 export class Screens {
   private current: HTMLElement | null = null;
+  /** il ritratto del menu principale: dietro al titolo, a «Nuova partita?» e agli Extra (null: la barca) */
+  ritratto: RitrattoMenu | null = null;
   /** da chiamare quando la schermata se ne va (gli ascoltatori messi fuori da lei, come i tasti dell'annuncio) */
   private offScreen: (() => void) | null = null;
 
@@ -93,6 +103,41 @@ export class Screens {
 
   get S() {
     return STRINGS[this.lang];
+  }
+
+  /** La schermata di adesso copre tutta la scena (il ritratto del menu): l'App non la disegna. */
+  get covers(): boolean {
+    return !!this.current?.classList.contains('con-ritratto');
+  }
+
+  /** Il ritratto dietro una schermata del menu principale (con `scatta`, i suoi scatti), o niente. */
+  private conRitratto(cls: string, parts: Node[], scatta = false): HTMLElement {
+    const r = this.ritratto;
+    if (!r) return h('div', { class: cls }, ...parts);
+    const img = (c: string, src: string) => h('img', { class: c, src, alt: '', draggable: 'false' });
+    const box = h('div', { class: 'ritratto' }, img('calmo', r.calmo), img('scatto', r.scatti[0]), img('scatto', r.scatti[1]));
+    const el = h('div', { class: `${cls} con-ritratto` }, box, ...parts);
+    if (scatta && r.scatta) {
+      // ogni 6-13 s uno scatto: due fotogrammi col segnale disturbato (80 + 70 ms) e un soffio di statica
+      const [a, b] = Array.from(box.querySelectorAll<HTMLElement>('.scatto'));
+      const next = () => window.setTimeout(scatto, 6000 + Math.random() * 7000);
+      const scatto = () => {
+        if (!el.isConnected) return;
+        a!.classList.add('on');
+        uiSound('static_burst', 0.22);
+        window.setTimeout(() => {
+          a!.classList.remove('on');
+          b!.classList.add('on');
+          window.setTimeout(() => {
+            b!.classList.remove('on');
+            next();
+          }, 70);
+        }, 80);
+      };
+      // (quando la schermata se ne va, il prossimo scatto la trova staccata e si ferma)
+      next();
+    }
+    return el;
   }
 
   clear(): void {
@@ -142,7 +187,7 @@ export class Screens {
     if (o.onExtraNight) menu.append(button(S.extraNight, o.onExtraNight));
     menu.append(button(S.extras, o.onJournal), button(S.options, o.onOptions));
     if (o.onQuit) menu.append(button(S.quit, o.onQuit));
-    this.show(h('div', { class: 'screen title fade-in' }, h('h1', {}, S.title), menu, h('div', { class: 'build' }, __BUILD__)));
+    this.show(this.conRitratto('screen title fade-in', [h('h1', {}, S.title), menu, h('div', { class: 'build' }, __BUILD__)], true));
   }
 
   /**
@@ -202,13 +247,11 @@ export class Screens {
     const S = this.S;
     const c = S.newGameConfirm;
     this.show(
-      h(
-        'div',
-        { class: 'screen title fade-in' },
+      this.conRitratto('screen title fade-in', [
         h('h2', {}, c.title),
         h('p', {}, c.text),
         h('div', { class: 'menu' }, backKey(button(S.back, o.onNo, 'back')), button(c.yes, o.onYes, 'start')),
-      ),
+      ]),
     );
   }
 
@@ -414,7 +457,7 @@ export class Screens {
   extras(o: { onJournal: () => void; onCatalog: () => void; onBack: () => void }): void {
     const S = this.S;
     this.show(
-      h('div', { class: 'screen title fade-in' }, h('h2', {}, S.extras), h('div', { class: 'menu' }, button(S.journalTitle, o.onJournal), button(S.catalogTitle, o.onCatalog), backKey(button(S.back, o.onBack, 'back')))),
+      this.conRitratto('screen title fade-in', [h('h2', {}, S.extras), h('div', { class: 'menu' }, button(S.journalTitle, o.onJournal), button(S.catalogTitle, o.onCatalog), backKey(button(S.back, o.onBack, 'back')))]),
     );
   }
 
@@ -461,7 +504,8 @@ export class Screens {
       for (const ch of id) x = (x * 31 + ch.charCodeAt(0)) % 997;
       return ((x / 996) * 2 - 1) * max;
     };
-    const pageNo = (n: number) => h('div', { class: 'page-no' }, `${S.pageAbbr} ${n}`);
+    // (in cinese il numero da solo: pageAbbr vuoto)
+    const pageNo = (n: number) => h('div', { class: 'page-no' }, S.pageAbbr ? `${S.pageAbbr} ${n}` : String(n));
     const snap = (f: FishSpecies, big = false) => {
       const k = known(f);
       const img = o.images[f.id];
@@ -475,7 +519,7 @@ export class Screens {
         ph.append(sh);
       }
       el.append(ph);
-      if (!big) el.append(h('figcaption', {}, k ? f.name[L] : S.unknownFish));
+      if (!big) el.append(h('figcaption', {}, k ? testiPesce(f, L).name : S.unknownFish));
       return el;
     };
     const kgText = (x: number) => decimal(x < 1 ? x.toFixed(2) : x.toFixed(1), L);
@@ -557,12 +601,12 @@ export class Screens {
       const c = o.caught[f.id];
       return [
         snap(f, true),
-        h('h3', { class: 'fish-name' }, f.name[L]),
-        h('div', { class: 'real' }, `${S.inspiredBy}: ${f.real[L]} · `, h('i', {}, f.real.sci)),
+        h('h3', { class: 'fish-name' }, testiPesce(f, L).name),
+        h('div', { class: 'real' }, `${S.inspiredBy}: ${testiPesce(f, L).real} · `, h('i', {}, f.real.sci)),
         h('div', { class: 'stamps' },
           h('span', { class: `stamp fam-${f.family}` }, S.families[f.family]),
           h('span', { class: `stamp rar-${f.rarity}` }, S.rarities[f.rarity])),
-        h('p', { class: 'desc' }, f.desc[L] ?? f.desc.it),
+        h('p', { class: 'desc' }, testiPesce(f, L).desc),
         h('dl', { class: 'facts' },
           h('dt', {}, S.bookWeight), h('dd', {}, `${kgText(f.kg[0])}–${kgText(f.kg[1])} ${S.kg}`),
           h('dt', {}, S.bookPull), h('dd', {}, S.pull[f.pull]),

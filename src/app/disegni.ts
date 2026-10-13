@@ -18,11 +18,12 @@ export const DISEGNI_ALBA: Record<number, string> = {
 
 /** I disegni con scritte da tradurre e le lingue che hanno la loro versione (tools/render/pastelli.py --lingua); gli
  *  altri hanno solo nomi e numeri (Marco Polo: «MARCO!», «POLO!») e valgono in tutte le lingue. */
+const TUTTE = ['en', 'es', 'fr', 'de', 'pt', 'zh', 'ja', 'ko'] as const;
 const TRADOTTI: Record<string, readonly string[]> = {
-  piscina: ['en'],
-  tesoro: ['en'],
-  compleanno: ['en'],
-  sottacqua: ['en'],
+  piscina: TUTTE,
+  tesoro: TUTTE,
+  compleanno: TUTTE,
+  sottacqua: TUTTE,
 };
 
 export const disegnoSrc = (id: string, lang = 'it'): string => localizedImage(`assets/img/disegni/pastelli_${id}.webp`, lang, TRADOTTI[id] ?? []);

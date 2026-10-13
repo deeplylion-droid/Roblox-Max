@@ -115,6 +115,33 @@ html, body {
 .title { background: radial-gradient(ellipse at center, rgba(5,8,13,.15), rgba(5,8,13,.75)); justify-content: space-between; padding: 9vh 0 9vh; }
 .title h1 { font-size: clamp(36px, 7vw, 92px); margin-bottom: 4vh; }
 .title .build { position: absolute; left: 14px; bottom: 10px; font-size: 11px; letter-spacing: .04em; opacity: .4; pointer-events: none; }
+/* ── il menu principale col ritratto (scelta dell'utente del 13 ottobre, come il titolo di FNAF; il risultato è da
+   approvare): a destra un mostro da vicino, che respira; a sinistra, sul buio, il titolo e le voci. Anche a
+   «Nuova partita?» e negli Extra (src/app/ritratti.ts) ── */
+.title.con-ritratto { background: #000; align-items: flex-start; text-align: left; padding-left: 7vw; padding-right: 7vw; }
+.title .ritratto { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.title .ritratto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 70% 50%; }
+.title .ritratto .calmo { animation: respiro 4.8s ease-in-out infinite alternate; transform-origin: 66% 56%; }
+.title .ritratto .scatto { visibility: hidden; }
+.title .ritratto .scatto.on { visibility: visible; }
+/* il buio a sinistra, dove sta il menu, e le righe di un vecchio monitor */
+.title .ritratto::after { content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgba(0,0,0,.92) 0%, rgba(0,0,0,.72) 24%, rgba(0,0,0,0) 50%),
+    repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px); }
+.title.con-ritratto > h1, .title.con-ritratto > h2, .title.con-ritratto > p, .title.con-ritratto > .menu { position: relative; }
+.title.con-ritratto h1 { font-size: clamp(36px, 5.6vw, 96px); line-height: 1.04; max-width: 7.4em; }
+.title.con-ritratto > p { padding: 0; max-width: min(calc(560px * var(--ts)), 44vw); }
+.title.con-ritratto .menu { align-items: flex-start; }
+.title.con-ritratto .menu button { padding-left: 0; }
+/* finestre basse (fino a 960×540) coi testi grandi: margini e testo più stretti, se no le voci di «Nuova partita?»
+   uscivano sotto (tedesco, giapponese) */
+@media (max-height: 700px) {
+  .title.con-ritratto { padding-block: 5vh; }
+  .title.con-ritratto > p { font-size: calc(16px * var(--ts)); max-width: min(calc(560px * var(--ts)), 52vw); }
+  .title.con-ritratto .menu { margin-top: 12px; }
+}
+@keyframes respiro { from { transform: scale(1); } to { transform: scale(1.012) translateY(-0.25%); } }
+@media (prefers-reduced-motion: reduce) { .title .ritratto .calmo { animation: none; } }
 .intro { background: rgba(5,8,13,.92); }
 /* l'annuncio dopo «Nuova partita»: il volantino a tutto schermo, che si avvicina piano */
 .screen.annuncio { background: #000; cursor: pointer; overflow: hidden; }

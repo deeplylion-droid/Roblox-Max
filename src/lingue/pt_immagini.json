@@ -1,0 +1,57 @@
+{
+  "pastelli": {
+    "TROVAMI!": "ME ACHA!",
+    "GUARDAMI!": "OLHA PRA MIM!",
+    "HO FAME!": "TÔ COM FOME!",
+    "AGOSTO 97": "AGOSTO 97",
+    "IL MIO TESORO": "MEU TESOURO",
+    "TANTI AUGURI": "PARABÉNS!",
+    "AIUTO!": "SOCORRO!",
+    "AH AH AH": "HA HA HA"
+  },
+  "volantino": {
+    "titolo": "QUEREMOS VOCÊ!",
+    "fumetto": ["Nossos", "pequenos estão", "com fome!"],
+    "nastro": "TURNO DA NOITE · PESCA NO BARCO",
+    "righe": [
+      ["Barco, luz e isca inclusos", "Da meia-noite às 6h"],
+      ["Dinheiro vivo ao amanhecer", "Sem experiência!"]
+    ],
+    "invito": "Esperamos você no píer velho, ao pôr do sol!",
+    "linguetta": ["PÍER VELHO", "AO PÔR DO SOL"]
+  },
+  "glossario": {
+    "la Madre": "a Mãe",
+    "il Diario": "o Diário",
+    "il Catalogo": "o Catálogo",
+    "la quota": "a cota",
+    "il telone": "a lona",
+    "la luce / la lampara": "a luz",
+    "il secchio": "o balde",
+    "la canna": "a vara",
+    "la lenza": "a linha",
+    "il mulinello": "o molinete",
+    "ferrare (non ferrare)": "fisgar (não fisgue)",
+    "abboccare / Abbocca (Catalogo)": "morder / Morde",
+    "il sonar / l'ecoscandaglio": "o sonar",
+    "il binocolo": "o binóculo",
+    "le tane": "as tocas",
+    "Scendi con le bombole": "Mergulhar com os cilindros",
+    "le bombole": "os cilindros",
+    "la prua / la poppa / lo scafo": "a proa / a popa / o casco",
+    "il campanellino (della canna)": "o sininho",
+    "il carillon": "a caixinha de música",
+    "i braccioli": "as boias de braço",
+    "a pastelli (a cera)": "com giz de cera",
+    "la sala giochi / i biglietti": "o fliperama / os tíquetes",
+    "Gazzetta del Golfo": "Gazeta do Golfo",
+    "i suoi piccoli (Mama Marina)": "os seus pequenos",
+    "Chi c'è c'è, chi non c'è non c'è!": "Lá vou eu!",
+    "Buona pesca.": "Boa pescaria.",
+    "Pronto? (radio)": "Alô?",
+    "Game over": "Game over",
+    "Scheletrici, Zombi, Glitchati, Corrotti, Sanguinanti": "Esqueléticos, Zumbis, Glitchados, Corrompidos, Sangrentos",
+    "il molo vecchio (volantino)": "o píer velho"
+  },
+  "note": "Brazilian Portuguese, the player addressed with «você»: hints and menus use the você imperative (clique, esconda-se); a few short lines use «te» as the object pronoun, as Brazilians speak (Ele te achou; Lampy te puxou), and the radio voice uses spoken forms («pra», «ouvir ele»). To check with a native speaker: (1) «a Mãe» for la Madre. (2) Hatch's «Chi c'è c'è, chi non c'è non c'è» became «Lá vou eu!», the traditional Brazilian hide-and-seek call, in the count, the death line and the Journal (den_hatch); alternative: «Quem não se escondeu, já era!». (3) The family «Glitchados» (gamer slang; alternative «Bugados»). (4) Real fish names: species that live in Brazil use the Brazilian name (Tainha, Anchova = Pomatomus, Olho-de-boi, Garoupa-verdadeira, Dourado, Peixe-porco, Coió, Cavalinha, Bicuda, Pargo, Cação-anjo, Tubarão-azul, Tubarão-raposa, Atum-azul, Raia-viola); Mediterranean-only species use the Portuguese names of Portugal, most of them checked against the EU commercial fish-names database (the standard market names Bica, Goraz, Dobrada, Salema, Savelha, Ferreira and Castanheta were not re-checked) (Biqueirão, Espadilha, Sarda, Trombeiro, Dobrada, Ratão-águia, Pata-roxa, Roncadeira-preta, Cação-liso, Uge, Calafate, Pregado, Tubarão-albafar, Salmonete-da-vasa/-legítimo, Bica, Goraz, Alcarraz, Palombeta, Tremelga-marmoreada, Sardinela-lombuda, Savelha, Caboz-negro, Marachomba-babosa, Rascasso, Serrano-riscado, Cabra-cabaço, Abrótea-da-costa, Ferreira, Cabeçudo, Leitão, Peixe-relógio, Raia-tairoga, Peixe-cravo, Peixe-aranha-maior, Sargo-alcorraz, Raia-lenga, Sarrajão, Capatão-legítimo, Espadim-do-mediterrâneo). Genus or family names where there is no specific one: Pampo (Trachinotus ovatus), Peixe-trombeta (Fistularia), Peixe-cachimbo (Syngnathus), Granadeiro (Coelorinchus), Peixe-lanterna, Peixe-voador. Deliberately avoided: «xaputa» for Brama brama (sounds like a swear word in Brazil; «Brama» used), and «judia» for Coris julis (mainland Portugal name, reads as an ethnic term; the Azores/Madeira name «Peixe-rei» used, so Atherina boyeri is «Peixe-rei-do-mediterrâneo»). Least certain: Bodião-da-areia (Xyrichtys novacula, only in GBIF), Peixe-bruxa (Myxine), Meixão (glass eel, a Portugal word glossed «enguia jovem»), Brama, Trombeiro used for both Spicara species (the official name covers the genus). (5) Fish descriptions adapted where the Italian joke on the fish's name doesn't exist in Portuguese: occhiata (now «um olhar vazio»), nasello (now «apegada a ele», like the English), ombrina («batucam»), re nero (the crown of the «pesce re» became «no alto da cabeça», as the Portuguese name is peixe-cravo). (6) Flyer: «Dinheiro vivo ao amanhecer» (cash at dawn; «vivo», alive, is a deliberate double meaning); «QUEREMOS VOCÊ!» (alternative «PRECISAMOS DE VOCÊ!»); «píer velho» for molo vecchio (alternative «cais velho»). (7) Crayons: «OLHA PRA MIM!» is longer than GUARDAMI! and will be drawn a little smaller (shorter alternative «ME OLHA!»); «AGOSTO 97» is the same word in Portuguese; «HA HA HA» like the English (a Brazilian giggle could also be «HI HI HI»); the treasure drawing's «MEU TESOURO» agrees with tesouro, so Robin's gender does not matter. (8) Radio: the night-1 Gulpy line is 14 syllables against 12 in Italian; the voice speeds up about 1.2× but fits its slot; every other line is at most 1.07× natural speed. (9) Twenty catalogue names run 17-21 characters (the Italian ones run up to 26); most are no longer than the Italian name they replace, but a few are a little longer: Cavalinha Rebobinada and Castanheta Granulada (20), Roncadeira Coveira, Trombeiro Chuvisco and Granadeiro Sombrio (18), Moreia Emparedada, Pregado Enterrado, Rascasso de Piche, Rascasso Esfolado and Anchova Sangrenta (17)."
+}

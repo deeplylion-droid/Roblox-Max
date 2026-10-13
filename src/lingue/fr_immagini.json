@@ -1,0 +1,69 @@
+{
+  "pastelli": {
+    "TROVAMI!": "TROUVE-MOI!",
+    "GUARDAMI!": "REGARDE-MOI!",
+    "HO FAME!": "J'AI FAIM!",
+    "AGOSTO 97": "AOÛT 97",
+    "IL MIO TESORO": "MON TRÉSOR",
+    "TANTI AUGURI": "JOYEUX ANNIVERSAIRE",
+    "AIUTO!": "AU SECOURS!",
+    "AH AH AH": "HA HA HA"
+  },
+  "volantino": {
+    "titolo": "ON TE CHERCHE\u00a0!",
+    "fumetto": [
+      "Nos",
+      "petits ont",
+      "faim\u00a0!"
+    ],
+    "nastro": "POSTE DE NUIT · PÊCHE EN BARQUE",
+    "righe": [
+      [
+        "Barque, lampe et appâts fournis",
+        "De minuit à 6\u00a0h"
+      ],
+      [
+        "Paie en liquide à l’aube",
+        "Débutants bienvenus\u00a0!"
+      ]
+    ],
+    "invito": "On t’attend à la vieille jetée, au crépuscule\u00a0!",
+    "linguetta": [
+      "VIEILLE JETÉE",
+      "AU CRÉPUSCULE"
+    ]
+  },
+  "glossario": {
+    "la Madre": "la Mère",
+    "il Diario": "le Journal",
+    "il Catalogo": "le Catalogue",
+    "la quota": "le quota (Quota atteint / Quota non atteint)",
+    "il telone": "la bâche",
+    "la luce / la lampara": "la lampe (HUD: Lampe; lampe à fond, éteins la lampe)",
+    "il secchio": "le seau",
+    "la canna": "la canne",
+    "il sonar / l’ecoscandaglio": "le sonar",
+    "le tane": "les tanières",
+    "Scendi con le bombole": "Plonger avec les bouteilles (le bombole: les bouteilles)",
+    "la barca": "la barque",
+    "il binocolo": "les jumelles",
+    "la lenza": "la ligne",
+    "il mulinello / recuperare": "le moulinet / mouliner",
+    "ferrare / abboccare": "ferrer / mordre (« Ça mord ! »)",
+    "il campanellino della canna": "la clochette",
+    "la batteria, l’ago": "la batterie, l’aiguille",
+    "prua, poppa, fianco, scafo, banco": "proue, poupe, flanc, coque, banc",
+    "la cima dell’ancora": "la corde de l’ancre",
+    "i suoi piccoli": "ses petits",
+    "Extra / Notte extra": "Bonus / Nuit bonus",
+    "Notte superata": "Tu as survécu",
+    "Ritaglio di giornale / Gazzetta del Golfo": "Coupure de presse / Gazette du Golfe",
+    "i pastelli (a cera)": "les crayons de cire",
+    "la sala giochi: biglietti, premi": "la salle d’arcade : tickets, lots",
+    "Chi c’è c’è, chi non c’è non c’è!": "Prêt, pas prêt, j’arrive !",
+    "Buona pesca.": "Bonne pêche.",
+    "Ce l’hai fatta. Per quest’anno.": "Tu t’en es sorti. Pour cette année.",
+    "famiglie: scheletrici, zombi, glitchati, corrotti, sanguinanti": "squelettiques, zombies, glitchés, corrompus, sanglants"
+  },
+  "note": "French (France), «tu», French typography with a non-breaking space before : ; ! ? and inside « » (as \\u00a0 in fr.ts). To double-check: (1) «la lampe» for la luce everywhere (HUD «Lampe», «lampe à fond», «éteins la lampe», «Archie vient pour la lampe»); «lumière» would be more natural in a few radio lines but less consistent. (2) «Journal» for il Diario, so the clippings are «Coupure de presse» (not «coupure de journal»); «Carnet» was the alternative. (3) «Nuit bonus» / «Bonus» for the extra night and the Extra menu («nuit extra» reads as «great night» in French). (4) Hatch's count ends with «Prêt, pas prêt, j’arrive !», the usual French hide-and-seek call; the counting sheet in Hatch's den is described as «PRÊT PAS PRÊT». (5) The fish puns and some real names (FAO/DORIS names: Anoli de mer, Joël, Allache, Palomine, Mostelle de roche, Marbré (morme), Poisson-guitare commun; genus-level where unsure: Poisson-lanterne, Poisson-scie, Lagocéphale, Grenadier). (6) Volantino: speech bubble split «Nos / petits ont / faim !» like the Italian «I nostri / piccoli hanno / fame!»; «Débutants bienvenus !» for «Nessuna esperienza!»; «au crépuscule» used in both the invitation and the tear-off tabs (au coucher du soleil is too long for a tab). (7) Pastelli: written without the space before ! (a 6-9-year-old's hand, and it keeps the text short); JOYEUX ANNIVERSAIRE (19 letters, shrinks to fit; BON ANNIVERSAIRE would be shorter); MON TRÉSOR is Robin's (no gender mark needed). (8) den_lampy follows the Italian Journal text («3,1 KG – juillet 2003») although docs/LOCALIZZAZIONE.md says the drawn card now reads «3100 g – 7 / 2003». (9) Keys stay as in the source (W A S D, Q/E, Esc): the game reads e.key, so on French AZERTY keyboards W/A and Q/E are not where a French player expects them (ZQSD is the French convention)."
+}

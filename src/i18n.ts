@@ -1,6 +1,25 @@
-/** Testi del gioco in italiano e inglese. */
+/** Testi del gioco: l'italiano (l'originale) e l'inglese stanno qui; le altre lingue, tradotte il 13 ottobre, ognuna in
+ *  src/lingue/<codice>.ts (docs/LOCALIZZAZIONE.md). */
+import type { FishSpecies } from './game/catalog.ts';
+import DE from './lingue/de.ts';
+import ES from './lingue/es.ts';
+import FR from './lingue/fr.ts';
+import JA from './lingue/ja.ts';
+import KO from './lingue/ko.ts';
+import PT from './lingue/pt.ts';
+import type { Traduzione } from './lingue/tipo.ts';
+import ZH from './lingue/zh.ts';
 
-export type Lang = 'it' | 'en';
+export type Lang = 'it' | 'en' | 'es' | 'fr' | 'de' | 'pt' | 'zh' | 'ja' | 'ko';
+type Nuova = Exclude<Lang, 'it' | 'en'>;
+
+/** Le lingue tradotte dall'italiano, nell'ordine in cui le propone il pulsante delle opzioni (dopo italiano e inglese). */
+const NUOVE: Record<Nuova, Traduzione> = { es: ES, fr: FR, de: DE, pt: PT, zh: ZH, ja: JA, ko: KO };
+
+/** Una tabella per le lingue nuove, presa dalle loro traduzioni (le tabelle qui sotto hanno italiano e inglese). */
+function nuove<T>(f: (t: Traduzione) => T): Record<Nuova, T> {
+  return Object.fromEntries(Object.entries(NUOVE).map(([k, t]) => [k, f(t)])) as Record<Nuova, T>;
+}
 
 /** «a» o «ad» davanti a un nome: la d eufonica davanti alla stessa vocale (accanto ad Archie). */
 const ad = (who: string): string => (/^a/i.test(who) ? 'ad' : 'a');
@@ -658,7 +677,7 @@ export const LORE_TEXT: Record<Lang, Record<string, { title: string; body: strin
     },
     den_lampy: {
       title: 'Braccialetto dell’ospedale',
-      body: 'Rosa, da neonata: «KG 3,1 – luglio 2003». Sul cartoncino, a penna, qualcuno ha aggiunto: «non lasciarla mai andare».',
+      body: 'Rosa, da neonata: «3100 g – 7 / 2003». Sul cartoncino, a penna, qualcuno ha aggiunto: «non lasciarla mai andare».',
     },
     den_fangy: {
       title: 'Io',
@@ -725,13 +744,14 @@ export const LORE_TEXT: Record<Lang, Record<string, { title: string; body: strin
     },
     den_lampy: {
       title: 'Hospital bracelet',
-      body: 'Pink, a newborn’s: "3.1 KG – July 2003". On the card, in pen, someone added: "never let her go".',
+      body: 'Pink, a newborn’s: "3100 g – 7 / 2003". On the card, in pen, someone added: "never let her go".',
     },
     den_fangy: {
       title: 'Me',
       body: 'A boy in the middle of the page, and underneath "ME". The swimming goggles have been gone over in black so many times the wax shines. August 2008.',
     },
   },
+  ...nuove((t) => t.lore),
 };
 
 export interface RadioLine {
@@ -761,6 +781,7 @@ export const RADIO_NIGHT1: Record<Lang, RadioLine[]> = {
     { at: 17.8, text: 'Good fishing.' },
     { at: 19.2, text: '' },
   ],
+  ...nuove((t) => t.radio[1]),
 };
 
 /** La chiamata della seconda notte (la batteria e Robin), accorciata e più criptica: approvata il 10 ottobre. Le due
@@ -789,6 +810,7 @@ export const RADIO_NIGHT2: Record<Lang, RadioLine[]> = {
     { at: 18.8, text: 'Good fishing.' },
     { at: 20.2, text: '' },
   ],
+  ...nuove((t) => t.radio[2]),
 };
 
 /** La chiamata della terza notte (Archie), corta e criptica come la seconda: approvata l'11 ottobre. */
@@ -809,6 +831,7 @@ export const RADIO_NIGHT3: Record<Lang, RadioLine[]> = {
     { at: 11.2, text: 'Good fishing.' },
     { at: 12.6, text: '' },
   ],
+  ...nuove((t) => t.radio[3]),
 };
 
 /** La chiamata della quarta notte (Lampy), corta come le altre: approvata l'11 ottobre. */
@@ -829,6 +852,7 @@ export const RADIO_NIGHT4: Record<Lang, RadioLine[]> = {
     { at: 10.4, text: 'Good fishing.' },
     { at: 11.8, text: '' },
   ],
+  ...nuove((t) => t.radio[4]),
 };
 
 /** La chiamata della quinta notte (Fangy), corta come le altre (approvata l'11 ottobre). */
@@ -849,6 +873,7 @@ export const RADIO_NIGHT5: Record<Lang, RadioLine[]> = {
     { at: 9.6, text: 'Good fishing.' },
     { at: 11.0, text: '' },
   ],
+  ...nuove((t) => t.radio[5]),
 };
 
 /** La chiamata della notte extra (approvata il 13 ottobre): non spiega niente, le regole le sai già. */
@@ -865,6 +890,7 @@ export const RADIO_NIGHT7: Record<Lang, RadioLine[]> = {
     { at: 5.6, text: 'Good fishing.' },
     { at: 7.0, text: '' },
   ],
+  ...nuove((t) => t.radio[7]),
 };
 
 /**
@@ -888,6 +914,7 @@ export const RADIO_NIGHT6: Record<Lang, RadioLine[]> = {
     { at: 10.2, text: 'Good fishing.' },
     { at: 11.6, text: '' },
   ],
+  ...nuove((t) => t.radio[6]),
 };
 
 /** La radio all'alba del finale A (approvato l'11 ottobre), dopo che la Madre se n'è andata col secchio. */
@@ -902,6 +929,7 @@ export const RADIO_FINALE: Record<Lang, RadioLine[]> = {
     { at: 1.6, text: 'For this year.' },
     { at: 3.4, text: '' },
   ],
+  ...nuove((t) => t.radioFinale),
 };
 
 /** La chiamata alla radio di ogni notte. */
@@ -910,7 +938,7 @@ export const RADIO: Record<number, Record<Lang, RadioLine[]>> = { 1: RADIO_NIGHT
 /** La forma dei testi dell'interfaccia (quella italiana): ogni lingua la deve riempire tutta. */
 export type Testi = typeof IT;
 
-export const STRINGS: Record<Lang, typeof IT> = { it: IT, en: EN };
+export const STRINGS: Record<Lang, typeof IT> = { it: IT, en: EN, ...nuove((t) => t.strings) };
 
 /** Le lingue del gioco, nell'ordine in cui le propone il pulsante delle opzioni. Una lingua nuova: il suo codice in
  *  `Lang`, i suoi testi in STRINGS, LORE_TEXT e RADIO (TypeScript dice cosa manca), il suo nome qui sotto
@@ -956,4 +984,12 @@ export function localizedImage(path: string, lang: string, langs: readonly strin
   if (lang === 'it') return path;
   const pick = langs.includes(lang) ? lang : langs.includes('en') ? 'en' : null;
   return pick ? path.replace(/\.(\w+)$/, `_${pick}.$1`) : path;
+}
+
+/** Il nome, la specie vera e la descrizione di un pesce del Catalogo nella lingua: le lingue nuove hanno i loro (in
+ *  src/lingue/<codice>.ts); dove manca qualcosa, l'inglese, poi l'italiano. */
+export function testiPesce(sp: FishSpecies, lang: Lang): { name: string; real: string; desc: string } {
+  const t = lang === 'it' || lang === 'en' ? undefined : NUOVE[lang].catalogo[sp.id];
+  const base = lang === 'it' ? 'it' : 'en';
+  return { name: t?.name ?? sp.name[base], real: t?.real ?? sp.real[base], desc: t?.desc ?? sp.desc[base] ?? sp.desc.it };
 }

@@ -10,7 +10,7 @@
 const CJK_RANGE = 'U+1100-11FF, U+2E80-2FDF, U+3000-303F, U+3040-30FF, U+3130-318F, U+31F0-31FF, U+3400-4DBF, U+4E00-9FFF, U+AC00-D7AF, U+FF00-FFEF';
 
 /** lingua → file del suo sottoinsieme (in public/fonts): si aggiunge quando la lingua ha i suoi testi */
-export const CJK_FONTS: Record<string, string> = {};
+export const CJK_FONTS: Record<string, string> = { zh: 'fonts/cjk-zh.woff2', ja: 'fonts/cjk-ja.woff2', ko: 'fonts/cjk-ko.woff2' };
 
 let active: FontFace[] = [];
 

@@ -74,6 +74,8 @@ export interface Syl {
 /** I caratteri del cinese, del giapponese (kana compresi) e del coreano: non hanno vocali latine né spazi fra le
  *  parole, quindi ognuno è una sillaba (lingue a cui il gioco potrebbe arrivare: scelta dell'utente del 12 ottobre). */
 const CJK = /[\u3040-\u30ff\u31f0-\u31ff\u3400-\u4dbf\u4e00-\u9fff\u1100-\u11ff\u3130-\u318f\uac00-\ud7af]/;
+/** il confine fra una parola latina (o un numero) e una scritta quadrata attaccata */
+const SCRITTURA = new RegExp(`(?<=[a-z0-9])(?=${CJK.source})|(?<=${CJK.source})(?=[a-z0-9])`);
 /** le vocali delle sillabe giapponesi, riga per riga del sillabario (hiragana e katakana) */
 const KANA: Record<string, string> = {
   a: 'あかさたなはまやらわがざだばぱぁゃゎアカサタナハマヤラワガザダバパァャヮ',
@@ -108,8 +110,19 @@ export function syllables(text: string): Syl[] {
     .toLowerCase()
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '');
-  const words = t.split(/\s+/).filter(Boolean);
+  const words = t
+    .split(/\s+/)
+    .filter(Boolean)
+    // un nome latino attaccato a una particella coreana o giapponese («gulpy는»): due parole, se no il nome tace
+    .flatMap((w) => w.split(SCRITTURA));
   for (const w of words) {
+    // la punteggiatura staccata (il francese la stacca con lo spazio: «Prêt ?») non è una sillaba: allunga la pausa
+    // della sillaba prima
+    if (!/[\p{L}\p{N}]/u.test(w)) {
+      const last = out[out.length - 1];
+      if (last) last.pause = Math.max(last.pause, /[.!?…。！？]/.test(w) ? 0.34 : /[,;:、，；：]/.test(w) ? 0.17 : 0.035);
+      continue;
+    }
     if (CJK.test(w)) {
       // una sillaba per carattere; la punteggiatura larga fa le pause
       for (const ch of w.normalize('NFC')) {

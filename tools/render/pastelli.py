@@ -80,6 +80,15 @@ SCRITTE = {
         'AH AH AH': 'HA HA HA',
     },
 }
+# le altre lingue: le scritte stanno coi loro testi, in src/lingue/<codice>_immagini.json (chiave "pastelli"), fatte
+# insieme alle traduzioni del gioco (13 ottobre)
+_LINGUE = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'src', 'lingue')
+if os.path.isdir(_LINGUE):
+    import json as _json
+    for _f in sorted(os.listdir(_LINGUE)):
+        if _f.endswith('_immagini.json'):
+            with open(os.path.join(_LINGUE, _f), encoding='utf-8') as _fh:
+                SCRITTE.setdefault(_f.split('_')[0], _json.load(_fh).get('pastelli', {}))
 LINGUA = 'it'
 # vero mentre una scritta si disegna a secco (vedi _come_in_italiano); le scritte tradotte nel disegno in corso
 _SECCO = False

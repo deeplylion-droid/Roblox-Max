@@ -8,12 +8,21 @@ const tabella = (v) => v && typeof v === 'object' && !Array.isArray(v) && Object
 const out = [];
 const raccogli = (v) => {
   if (typeof v === 'string') out.push(v);
+  // le frasi con un nome dentro (offer(who) …): il testo sta nel sorgente della funzione
+  else if (typeof v === 'function') out.push(v.toString());
   else if (Array.isArray(v)) v.forEach(raccogli);
   else if (v && typeof v === 'object') Object.values(v).forEach(raccogli);
 };
 for (const v of Object.values(m)) {
   if (tabella(v)) raccogli(v[lang]);
   else if (v && typeof v === 'object' && !Array.isArray(v)) for (const w of Object.values(v)) if (tabella(w)) raccogli(w[lang]);
+}
+// le lingue nuove hanno tutti i loro testi (anche il Catalogo) in src/lingue/<lingua>.ts
+try {
+  const t = (await import(`../../src/lingue/${lang}.ts`)).default;
+  raccogli(t);
+} catch {
+  // italiano e inglese: stanno solo in src/i18n.ts e nel Catalogo
 }
 if (!out.length) {
   console.error(`nessun testo per la lingua ${lang}`);

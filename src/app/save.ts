@@ -1,6 +1,6 @@
 /** Salvataggio locale: progressi, diario, catalogo, immersioni e opzioni. */
 import { ARRIVAL, EXTRA_IDS, clampLevel, extraLevels, type ExtraLevels, type MonsterId } from '../game/config.ts';
-import type { Lang } from '../i18n.ts';
+import { LANGS, type Lang } from '../i18n.ts';
 
 export interface Options {
   master: number;
@@ -56,6 +56,10 @@ export interface SaveData {
   /** alba per alba (la chiave è la notte appena vinta, 1..5): se sei sceso e se hai lasciato il pesce a qualcuno.
    *  Decide il finale della sesta notte (chooseEnding). Rigiocando una notte, la sua alba si riscrive */
   dawns: Record<string, DawnRecord>;
+  /** i mostri incontrati: quelli delle notti cominciate (il menu principale mostra il ritratto di uno di loro) */
+  seen: MonsterId[];
+  /** il ritratto del menu all'ultimo avvio (il prossimo è un altro, se ce n'è più d'uno) */
+  ritratto: MonsterId | null;
 }
 
 export interface DawnRecord {
@@ -81,7 +85,7 @@ export function defaultOptions(): Options {
 }
 
 function fresh(): SaveData {
-  return { version: 1, rev: OPTIONS_REV, lang: null, night: 1, current: 1, extra: extraLevels(5), lore: [], catalog: {}, options: defaultOptions(), dawn: null, fed: null, dens: [], dawns: {} };
+  return { version: 1, rev: OPTIONS_REV, lang: null, night: 1, current: 1, extra: extraLevels(5), lore: [], catalog: {}, options: defaultOptions(), dawn: null, fed: null, dens: [], dawns: {}, seen: [], ritratto: null };
 }
 
 export function loadSave(): SaveData {
@@ -96,7 +100,7 @@ export function loadSave(): SaveData {
     return {
       version: 1,
       rev: OPTIONS_REV,
-      lang: d.lang === 'it' || d.lang === 'en' ? d.lang : null,
+      lang: LANGS.includes(d.lang as Lang) ? (d.lang as Lang) : null,
       night: typeof d.night === 'number' ? d.night : 1,
       // i salvataggi di prima non l'hanno: la partita in corso arrivava all'ultima notte sbloccata
       current: typeof d.current === 'number' ? d.current : typeof d.night === 'number' ? d.night : 1,
@@ -108,10 +112,23 @@ export function loadSave(): SaveData {
       fed: d.fed && typeof d.fed.night === 'number' && isMonster(d.fed.who) ? { night: d.fed.night, who: d.fed.who } : null,
       dens: Array.isArray(d.dens) ? d.dens.filter(isMonster) : [],
       dawns: cleanDawns(d.dawns),
+      // i salvataggi di prima non li hanno: i mostri delle notti già vinte
+      seen: Array.isArray(d.seen) ? d.seen.filter(isMonster) : seenBefore(typeof d.night === 'number' ? d.night : 1),
+      ritratto: isMonster(d.ritratto) ? d.ritratto : null,
     };
   } catch {
     return fresh();
   }
+}
+
+/** I mostri delle notti prima della notte `night` (per i salvataggi che non tenevano i mostri incontrati). */
+function seenBefore(night: number): MonsterId[] {
+  return (Object.keys(ARRIVAL) as (keyof typeof ARRIVAL)[]).filter((m) => ARRIVAL[m] < night);
+}
+
+/** Una notte comincia: i suoi mostri sono incontrati. */
+export function meet(d: SaveData, who: readonly MonsterId[]): void {
+  for (const m of who) if (!d.seen.includes(m)) d.seen.push(m);
 }
 
 // ───────── le immersioni all'alba nel salvataggio (funzioni pure: l'App le chiama, i test le provano) ─────────

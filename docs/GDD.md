@@ -129,6 +129,16 @@ Un piccolo ecoscandaglio portatile appoggiato sul ponte di poppa: lo schermo ver
 
 Avvertenza (jumpscare, luci, cuffie consigliate; la ninna nanna al carillon parte già qui, appena si apre il gioco) → Titolo (render animato, la ninna nanna continua) → Nuova partita / Continua / Extra (Il Diario: frammenti di lore trovati) / Opzioni / Esci → Intro notte ("Notte 1 · 00:00 · Quota 8") → Gioco → Alba / Game over.
 
+**Il menu principale col ritratto** (scelta dell'utente del 13 ottobre, fra due proposte con le anteprime: la A «Il
+ritratto», come il titolo di FNAF; il risultato è da approvare). A destra, da vicino, uno dei bambini-mostro alla luce
+della barca, nella sua posa di gioco; a sinistra, sul buio, il titolo su due righe in alto e le voci in basso. Il
+ritratto respira piano e ogni 6-13 secondi ha uno scatto: due fotogrammi col segnale disturbato (il quadro sobbalza, i
+colori si separano, la faccia viene avanti) e un soffio di statica; con «Riduci lampi e scosse» niente scatti. Si
+vedono solo i mostri già incontrati (quelli delle notti cominciate, `seen` nel salvataggio); al primo avvio Molly
+(scelta dell'utente); a ogni avvio uno diverso dall'ultima volta. Lo stesso ritratto sta dietro a «Nuova partita?» e
+agli Extra. I ritratti li fa `tools/render/ritratti.py` (render da 1920×1080 dal modello del gioco, con una luce calda
+da sotto e un controluce freddo), il gioco li mostra in `src/app/ritratti.ts`.
+
 ## 11. Opzioni e accessibilità
 
 Volume generale/musica/effetti, lingua (italiano, inglese), luminosità, schermo intero, sottotitoli (la radio), **didascalie** degli eventi e dei suoni («Molly si affaccia», «toc toc sullo scafo»: spente di default, dalla seconda prova dell'utente; i suggerimenti dei comandi restano sempre), qualità grafica, sensibilità della rotazione, **riduci flash e scosse**.

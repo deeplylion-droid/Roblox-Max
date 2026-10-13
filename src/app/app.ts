@@ -15,7 +15,8 @@ import { swapFogAssets } from './overlays.ts';
 import { badge, pad } from './pad.ts';
 import { PadNav } from './padnav.ts';
 import { JUMPSCARE_TASTI, notteDelTasto } from './prove.ts';
-import { afterDive, chooseEnding, fedFor, newGame, pendingDawn, skipDawn, wonNight, writeSave, type Ending, type Options, type SaveData } from './save.ts';
+import { mostriDellaNotte, ritrattoSrc, scegliRitratto } from './ritratti.ts';
+import { afterDive, chooseEnding, fedFor, meet, newGame, pendingDawn, skipDawn, wonNight, writeSave, type Ending, type Options, type SaveData } from './save.ts';
 import { Screens, setUiSound } from './screens.ts';
 import type { Sfx } from './sfx.ts';
 import type { Stage } from './stage.ts';
@@ -29,7 +30,7 @@ type Mode = 'warning' | 'title' | 'annuncio' | 'intro' | 'night' | 'paused' | 's
 const ANNUNCIO = {
   src: 'assets/img/annuncio/volantino.webp',
   /** le lingue che hanno la loro versione (vedi localizedImage) */
-  langs: ['en'],
+  langs: ['en', 'es', 'fr', 'de', 'pt', 'zh', 'ja', 'ko'],
   /** dove va la zoomata, in frazioni dell'immagine: il centro del volantino, un po' verso il fumetto (a fine zoomata
    *  si leggono ancora le condizioni in fondo; escono solo le linguette) */
   fx: 0.52,
@@ -105,6 +106,14 @@ export class App {
     document.documentElement.lang = lang;
     useLangFonts(lang);
     this.screens = new Screens(ui, lang);
+    // il ritratto del menu principale per questo avvio (uno dei mostri incontrati, diverso dall'ultima volta; al primo
+    // avvio Molly), caricato subito perché sia pronto quando arriva il titolo
+    const who = scegliRitratto(save.seen, save.ritratto);
+    save.ritratto = who;
+    writeSave(save);
+    const r = ritrattoSrc(who);
+    for (const src of [r.calmo, ...r.scatti]) new Image().src = src;
+    this.screens.ritratto = { ...r, scatta: !save.options.reduceFlash };
     this.legendEl = document.createElement('div');
     this.legendEl.className = 'pad-legend';
     ui.appendChild(this.legendEl);
@@ -138,7 +147,7 @@ export class App {
     this.screens.warning(() => {
       void this.audio.start().then(() => {
         this.applyOptions();
-        setUiSound((id) => this.audio.play(id));
+        setUiSound((id, gain) => this.audio.play(id, gain === undefined ? {} : { gain }));
         if (this.mode === 'title') this.titleMusic(true);
       });
       this.title();
@@ -334,8 +343,9 @@ export class App {
     this.audio.applyVolumes();
     this.stage.brightness = o.brightness;
     this.stage.renderer.renderScale = o.quality;
-    // «Riduci lampi e scosse» spegne anche le vibrazioni del controller
+    // «Riduci lampi e scosse» spegne anche le vibrazioni del controller e gli scatti del ritratto nel menu
     pad.rumbleOn = !o.reduceFlash;
+    if (this.screens?.ritratto) this.screens.ritratto.scatta = !o.reduceFlash;
     document.documentElement.style.setProperty('--ts', String(o.textSize || 1));
   }
 
@@ -368,6 +378,9 @@ export class App {
 
   private startNight(): void {
     this.screens.clear();
+    // i mostri di questa notte sono incontrati: da adesso possono comparire nel ritratto del menu
+    meet(this.save, mostriDellaNotte(this.config(this.nightNo)));
+    writeSave(this.save);
     this.night?.destroy();
     this.night = new Night({
       stage: this.stage,
@@ -691,6 +704,7 @@ export class App {
     st.view.swell = 1;
     st.view.targetYaw += dt * 2.5;
     st.update(dt);
-    st.frame({ layers: ['world', 'boat', 'rod0'] });
+    // col ritratto del menu la scena non si vede: non si disegna
+    if (!this.screens.covers) st.frame({ layers: ['world', 'boat', 'rod0'] });
   }
 }

@@ -4,7 +4,7 @@ import type { MonsterId } from '../src/game/config.ts';
 import { extraLevels } from '../src/game/config.ts';
 
 function save(): SaveData {
-  return { version: 1, lang: 'it', night: 1, current: 1, extra: extraLevels(5), lore: [], catalog: {}, options: defaultOptions(), dawn: null, fed: null, dens: [], dawns: {} };
+  return { version: 1, lang: 'it', night: 1, current: 1, extra: extraLevels(5), lore: [], catalog: {}, options: defaultOptions(), dawn: null, fed: null, dens: [], dawns: {}, seen: [], ritratto: null };
 }
 
 describe('Salvataggio: le immersioni all’alba', () => {

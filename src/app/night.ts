@@ -13,7 +13,7 @@ import type { GameEvent } from '../game/events.ts';
 import { LAMPY_FIRST_BEAT } from '../game/monsters.ts';
 import { NightSim, type MotherCause } from '../game/sim.ts';
 import { FISH_BY_ID } from '../game/catalog.ts';
-import { LORE_TEXT, RADIO, RADIO_FINALE, STRINGS, decimal, type Lang, type RadioLine } from '../i18n.ts';
+import { LORE_TEXT, RADIO, RADIO_FINALE, STRINGS, decimal, testiPesce, type Lang, type RadioLine } from '../i18n.ts';
 import { Hud } from './hud.ts';
 import { dualText, pad } from './pad.ts';
 import type { Options } from './save.ts';
@@ -1026,10 +1026,10 @@ export class Night {
             const known = this.d.knownSpecies?.has(sp.id) ?? true;
             this.hud.catchCard({
               img: this.d.assets.fish[sp.id] ?? null,
-              name: sp.name[L],
+              name: testiPesce(sp, L).name,
               meta: `${S.families[sp.family]} · ${S.rarities[sp.rarity]}`,
               kg: `${decimal(e.kg < 1 ? e.kg.toFixed(2) : e.kg.toFixed(1), L)} ${S.kg}`,
-              desc: sp.desc[L] ?? sp.desc.it,
+              desc: testiPesce(sp, L).desc,
               family: sp.family,
               isNew: known ? null : S.newSpecies,
             });

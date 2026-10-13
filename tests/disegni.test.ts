@@ -1,6 +1,7 @@
+import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { DISEGNI_ALBA, disegnoAlba, disegnoSrc, disegniTrovati } from '../src/app/disegni.ts';
-import { decimal, localizedImage } from '../src/i18n.ts';
+import { LANGS, decimal, localizedImage } from '../src/i18n.ts';
 
 describe('I disegni a pastelli dell’alba', () => {
   it('uno per notte, dalla prima alla quinta; la sesta e la notte extra non ne lasciano', () => {
@@ -26,6 +27,17 @@ describe('I disegni a pastelli dell’alba', () => {
     expect(disegnoSrc('compleanno', 'en')).toBe('assets/img/disegni/pastelli_compleanno_en.webp');
     expect(disegnoSrc('marcopolo', 'en')).toBe('assets/img/disegni/pastelli_marcopolo.webp');
     expect(disegnoSrc('piscina', 'it')).toBe('assets/img/disegni/pastelli_piscina.webp');
+  });
+
+  it('ogni lingua del gioco ha i suoi quattro disegni con le scritte, e il suo volantino (i file ci sono)', () => {
+    for (const lang of LANGS.filter((l) => l !== 'it')) {
+      for (const id of ['piscina', 'tesoro', 'compleanno', 'sottacqua']) {
+        const src = disegnoSrc(id, lang);
+        expect(src, `${id} ${lang}`).toBe(`assets/img/disegni/pastelli_${id}_${lang}.webp`);
+        expect(existsSync(`public/${src}`), src).toBe(true);
+      }
+      expect(existsSync(`public/assets/img/annuncio/volantino_${lang}.webp`), `volantino ${lang}`).toBe(true);
+    }
   });
 });
 

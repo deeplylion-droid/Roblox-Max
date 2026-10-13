@@ -1,0 +1,59 @@
+{
+  "pastelli": {
+    "TROVAMI!": "FIND MICH!",
+    "GUARDAMI!": "GUCK MAL!",
+    "HO FAME!": "ICH HAB HUNGER!",
+    "AGOSTO 97": "AUGUST 97",
+    "IL MIO TESORO": "MEIN SCHATZ",
+    "TANTI AUGURI": "ALLES GUTE!",
+    "AIUTO!": "HILFE!",
+    "AH AH AH": "HA HA HA"
+  },
+  "volantino": {
+    "titolo": "WIR SUCHEN DICH!",
+    "fumetto": ["Unsere", "Kleinen haben", "Hunger!"],
+    "nastro": "NACHTSCHICHT · ANGELN VOM BOOT",
+    "righe": [
+      ["Boot, Licht und Köder gestellt", "Von 0 bis 6 Uhr"],
+      ["Barzahlung im Morgengrauen", "Keine Erfahrung nötig!"]
+    ],
+    "invito": "Wir erwarten dich am alten Steg, bei Sonnenuntergang!",
+    "linguetta": ["ALTER STEG", "BEI DÄMMERUNG"]
+  },
+  "glossario": {
+    "la Madre": "die Mutter (the boy's own mother in the 15·08·1997 clipping is «seine Mutter», to keep the two apart)",
+    "il Diario": "das Tagebuch",
+    "il Catalogo": "der Katalog",
+    "la quota": "die Quote (Quote erfüllt / Quote verfehlt / Über der Quote)",
+    "il telone": "die Plane",
+    "la luce / la lampara": "das Licht (volles Licht, Licht aus)",
+    "il secchio": "der Eimer",
+    "la canna": "die Angel",
+    "il sonar / l'ecoscandaglio": "das Sonar",
+    "le tane": "die Höhlen (Sg. die Höhle)",
+    "la grotta": "die Grotte",
+    "Scendi con le bombole": "Mit Flaschen tauchen (le bombole = die Flaschen)",
+    "il binocolo": "das Fernglas",
+    "la lenza / il filo": "die Schnur",
+    "il mulinello / recuperare": "kurbeln / einholen",
+    "lanciare (la lenza)": "auswerfen",
+    "abboccare / Ha abboccato!": "beißen / Biss!",
+    "ferrare": "anschlagen",
+    "l'esca": "der Köder",
+    "la prua / la poppa": "der Bug / das Heck",
+    "il fianco / il bordo / lo scafo": "die Bordwand / der Bootsrand / der Rumpf",
+    "il banco (della barca)": "die Bank",
+    "Radio · canale 16": "Funk · Kanal 16",
+    "Buona pesca.": "Petri Heil.",
+    "Notte / Notte extra": "Nacht / Extranacht",
+    "l'alba": "das Morgengrauen",
+    "il carillon / la ninna nanna": "die Spieluhr / das Schlaflied",
+    "i suoi piccoli": "ihre Kleinen",
+    "a pastelli": "mit Wachsmalstiften",
+    "Gazzetta del Golfo": "Gazzetta del Golfo (kept in Italian)",
+    "Chi c'è c'è, chi non c'è non c'è": "Eckstein, alles muss versteckt sein",
+    "le famiglie (plurale / timbro)": "Skelettierte / Skelettiert, Zombies / Zombie, Verglitchte / Verglitcht, Verderbte / Verderbt, Blutende / Blutend",
+    "le rarità": "gewöhnlich, ungewöhnlich, selten, legendär"
+  },
+  "note": "To check with a native speaker: (1) «Buona pesca.» is «Petri Heil.» everywhere, the traditional greeting of German anglers; plainer alternative: «Guten Fang.» (2) Hatch's formula is the German hide-and-seek rhyme «Eckstein, alles muss versteckt sein!» (count, death line, the sheet in his den); alternative closer to the English: «Ob versteckt oder nicht, ich komme!» (3) «die Mutter»: German capitalises every noun, so «Mutter» does not stand out the way «la Madre» does; I kept the article everywhere. (4) «Gazzetta del Golfo» stays Italian (EN translates it; German «Golf» would suggest the sport). (5) HUD hints use the infinitive (\"Fisch werfen\", \"verstecken\"), as German games usually do; the radio, deaths and Journal address the player with «du». (6) den_lampy: the source text (IT and EN) says «KG 3,1 – luglio 2003», but per docs/LOCALIZZAZIONE.md the den image now shows «3100 g – 7 / 2003»; I translated the source text («3,1 KG – Juli 2003»). (7) Crayon texts: «FIND MICH!» instead of the draft «FINDE MICH!» (what a child says, and shorter); «ICH HAB HUNGER!» is almost twice as long as «HO FAME!» and will be drawn smaller (shorter fallback: «HUNGER!»). (8) Flyer: the «invito» line has 52 characters (IT 43), so it will be set a little smaller; the tear-off tabs keep the draft's «BEI DÄMMERUNG» because «BEI SONNENUNTERGANG» came out too small; «0 bis 6 Uhr» became «Von 0 bis 6 Uhr» (the right column does not get wider) and «Bar bezahlt im Morgengrauen» became «Barzahlung im Morgengrauen». (9) Catalogue: three names are longer than 16 characters (Unscharfer Drücker, Überspielte Sardine, Klaffender Bonito), two words each. Where I know no German name for the exact species I used the genus or family name: Laternenfisch (Myctophum punctatum), Fliegender Fisch (Cheilopogon heterurus), Gabeldorsch (Phycis phycis), Sägebauch (Hoplostethus mediterraneus), Grenadierfisch (Coelorinchus caelorhincus). Less sure: Mittelmeermakrele (Scomber colias), Schermesser (Xyrichtys novacula), Weißrochen (Rostroraja alba), Silberstreifen-Kugelfisch (Lagocephalus sceleratus), Bläuel (Trachinotus ovatus), Gestreifter Schleimfisch (Parablennius gattorugine), Kleinzahn-Sägerochen (Pristis pectinata). The pronouns in the descriptions follow the grammatical gender of the German name (die Makabrele → sie, der Skeletthecht → er, das Echsengerippe → es)."
+}
