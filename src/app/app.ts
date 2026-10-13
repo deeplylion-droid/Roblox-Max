@@ -35,8 +35,9 @@ const ANNUNCIO = {
    *  si leggono ancora le condizioni in fondo; escono solo le linguette) */
   fx: 0.52,
   fy: 0.46,
-  /** quanto dura, e l'ultimo pezzo, in cui si spegne nel buio */
-  seconds: 3.8,
+  /** quanto dura (5 s in più di prima, richiesta dell'utente del 13 ottobre: un clic, un tasto o il controller lo
+   *  saltano), e l'ultimo pezzo, in cui si spegne nel buio */
+  seconds: 8.8,
   fadeOut: 0.45,
 };
 

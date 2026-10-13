@@ -243,6 +243,19 @@ function ease(x: number): number {
   return 1 - (1 - t) * (1 - t);
 }
 
+/** Il binocolo: quanto ci mette ad alzarsi e ad abbassarsi (s). Prima si avvicinava piano, e lo zoom fatto sui gradi
+ *  lasciava quasi tutto l'ingrandimento alla fine: sembrava non finire mai di salire (prova dell'utente del 13
+ *  ottobre). */
+const BINO_SU = 0.3;
+const BINO_GIU = 0.22;
+
+/** Il campo fra due zoom, con l'ingrandimento che cresce uniforme (in scala logaritmica) invece dei gradi. */
+function zoomFov(a: number, b: number, e: number): number {
+  const ta = Math.tan((a * D2R) / 2);
+  const tb = Math.tan((b * D2R) / 2);
+  return (2 * Math.atan(ta * Math.pow(tb / ta, e))) / D2R;
+}
+
 function smooth01(x: number): number {
   const t = Math.max(0, Math.min(1, x));
   return t * t * (3 - 2 * t);
@@ -898,11 +911,11 @@ export class Night {
       }
     }
     if (!this.canBino()) this.binoUp = false;
-    this.bino = approach(this.bino, this.binoUp ? 1 : 0, 7, dt);
+    this.bino = toward(this.bino, this.binoUp ? 1 : 0, BINO_SU, BINO_GIU, dt);
     if (this.bino < 0.001) this.bino = 0;
     if (!this.js) {
       const e = smooth01(this.bino);
-      view.hfov = 90 + (this.binoFov - 90) * e;
+      view.hfov = zoomFov(90, this.binoFov, e);
       view.pitch = -12 + (this.binoPitch + 12) * e;
       // le mani che reggono il binocolo: un tremolio lento e il respiro
       const t = this.d.stage.time;
@@ -2908,7 +2921,9 @@ export class Night {
     this.hud.root.style.opacity = String(1 - 0.8 * be);
     st.frame({
       layers,
-      bino: this.bino > 0 ? { amount: be, places } : null,
+      // i luoghi ad alta risoluzione compaiono solo nell'ultimo tratto della salita, quando riempiono quasi tutto il
+      // binocolo: prima si vedeva il loro riquadro, con un'altra nebbia, dentro il mondo (prova dell'utente del 13 ottobre)
+      bino: this.bino > 0 ? { amount: be, places, placesAmount: smooth01((this.bino - 0.6) / 0.4) } : null,
       overlay: this.overlay(),
       line: tk?.line ?? null,
       strokes: tk?.strokes,

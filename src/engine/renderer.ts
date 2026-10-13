@@ -126,8 +126,9 @@ export interface FrameParams {
   glitch?: number;
   /** segnale perso, 0..1: la neve del televisore al posto dell'immagine (dopo il jumpscare) */
   snow?: number;
-  /** binocolo alzato: quanto (0..1) e i luoghi ad alta risoluzione da disegnare sopra al mondo */
-  bino?: { amount: number; places: BinoPlace[] } | null;
+  /** binocolo alzato: quanto (0..1) e i luoghi ad alta risoluzione da disegnare sopra al mondo; `placesAmount` (se
+   *  c'è) è quanto si vedono i luoghi, che compaiono solo alla fine della salita */
+  bino?: { amount: number; places: BinoPlace[]; placesAmount?: number } | null;
   beamAngle: number;
   /** bagliori lontani (spazio mondo), coperti dalla barca */
   glows: LightGlow[];
@@ -373,7 +374,7 @@ export class Renderer {
         .tex('uMask0', 5, m0?.amb ?? null)
         .tex('uMask1', 6, m1?.amb ?? null);
       this.tri.draw();
-      if (key === 'world' && f.bino && f.bino.amount > 0.001 && f.bino.places.length) {
+      if (key === 'world' && f.bino && (f.bino.placesAmount ?? f.bino.amount) > 0.001 && f.bino.places.length) {
         this.drawPersp(view, f);
         this.pLayer.use();
       }
@@ -467,7 +468,7 @@ export class Renderer {
     pp.m3('uRot', new Float32Array(view.worldRot))
       .f2('uTan', view.tanX, view.tanY)
       .f1('uW', f.ambient)
-      .f1('uAmount', b.amount)
+      .f1('uAmount', b.placesAmount ?? b.amount)
       .f3('uFogColor', 0.006, 0.010, 0.017)
       .f1('uFogDensity', 1 / 3200);
     for (const pl of b.places) {

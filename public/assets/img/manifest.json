@@ -3405,9 +3405,9 @@
      "scale": 0.25
     },
     "lamp": {
-     "file": "world_lamp.webp",
+     "file": "world_lamp_senza.webp",
      "res": 1.0,
-     "scale": 0.05
+     "scale": 0.15
     },
     "lantern": {
      "file": "world_lantern.webp",

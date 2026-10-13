@@ -16,7 +16,8 @@
 ## Le due proposte di partenza
 
 Come in FNAF: dopo «Nuova partita», per 3-4 secondi, l'annuncio con cui il pescatore ha trovato il lavoro, con una lenta
-zoomata; poi la notte 1. Due anteprime a 1920×1080, come apparirebbero nel gioco:
+zoomata; poi la notte 1. (Dal 13 ottobre, richiesta dell'utente, resta 5 secondi in più, 8,8 in tutto, o finché non si
+clicca o si preme un tasto.) Due anteprime a 1920×1080, come apparirebbero nel gioco:
 
 - **A · il ritaglio di giornale**: `annuncio_giornale.jpg`
 - **B · il volantino del parco**: `annuncio_volantino.jpg`

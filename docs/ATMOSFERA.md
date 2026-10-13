@@ -133,6 +133,25 @@ Controllato nel gioco: sei direzioni con la luce alta e spenta, tutti i posti de
 vicino e via, l'opzione accesa e spenta a notte in corso. La grana che si vede sulla foschia chiara è quella della pellicola
 di sempre (`uGrain`), non del render.
 
+**Prova dell'utente del 13 ottobre sera** («la nebbia sulla parte frontale della barca, vicino alla lampara, è ancora
+fastidiosa»; «col binocolo la nave affondata non vedi nemmeno i segni sullo scafo»; «quando usi il binocolo ci mette
+troppo tempo a tirarlo su e capita di vedere lo stacco tra la tanta nebbia di senza il binocolo e il rettangolo con meno
+nebbia»). Con la nebbia accesa:
+
+- **Niente più alone della lampara nella nebbia**: veniva tutto dal passo `lamp` del mondo (provato nel gioco: tolto
+  quello sparisce, i bagliori e la barca non c'entrano), che anche a un quinto lasciava davanti alla prua un velo caldo e
+  granuloso con un bordo tondo. Ora la serie con la nebbia usa il passo `lamp` della serie senza (`world_lamp_senza.webp`,
+  scala 0,15 nel manifest): la luce della lampara sull'acqua vicina resta, la nebbia che illumina no. Il file
+  `world_lamp.webp` è stato tolto. Se si reinstalla il mondo, va rifatto.
+- **Il relitto nel binocolo** (`tools/render/relitto_nebbia.py`): è il posto più basso, sull'acqua, e la foschia bassa
+  lo copriva quasi tutto. Il relitto, le tacche, la lanterna col riflesso e Soggy si prendono per il 60% dalla stessa
+  vista senza nebbia (un po' più scura, 0,8); cielo, monti, acqua e nebbia attorno restano quelli del render, così i
+  bordi del riquadro combaciano ancora col mondo. Vale per la vista vuota e per le due di Soggy; lo script parte sempre
+  dalle viste con la nebbia piena (quelle del commit `adb26db`, o una cartella con `--da`).
+- **Il binocolo** (`src/app/night.ts`): si alza in 0,3 s e si abbassa in 0,22, a velocità costante; lo zoom cresce
+  uniforme (in scala logaritmica: sui gradi quasi tutto l'ingrandimento arrivava alla fine); i luoghi ad alta
+  risoluzione compaiono solo dal 60% della salita in su (`placesAmount`), quando riempiono il cerchio.
+
 ## Mostri e jumpscare con la nebbia (12-13 ottobre, ramo `claude/mostri-nebbia`, approvati il 13 ottobre)
 
 Decisione dell'utente del 12 ottobre sera («Mostri nella nebbia»): chi gioca con la nebbia accesa vede anche i mostri
