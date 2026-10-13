@@ -315,11 +315,11 @@
    "frames": [
     {
      "file": "js_gulpy_00.webp",
-     "scale": 2.4000000000000004
+     "scale": 2.5
     },
     {
      "file": "js_gulpy_01.webp",
-     "scale": 2.4000000000000004
+     "scale": 2.5
     },
     {
      "file": "js_gulpy_02.webp",
@@ -335,17 +335,53 @@
     },
     {
      "file": "js_gulpy_05.webp",
-     "scale": 2.4000000000000004
+     "scale": 2.5
     },
     {
      "file": "js_gulpy_06.webp",
-     "scale": 2.4000000000000004
+     "scale": 2.5
     },
     {
      "file": "js_gulpy_07.webp",
-     "scale": 2.4000000000000004
+     "scale": 2.5
     }
-   ]
+   ],
+   "senza": {
+    "frames": [
+     {
+      "file": "js_gulpy_00_senza.webp",
+      "scale": 2.4000000000000004
+     },
+     {
+      "file": "js_gulpy_01_senza.webp",
+      "scale": 2.4000000000000004
+     },
+     {
+      "file": "js_gulpy_02_senza.webp",
+      "scale": 2.6
+     },
+     {
+      "file": "js_gulpy_03_senza.webp",
+      "scale": 1.5
+     },
+     {
+      "file": "js_gulpy_04_senza.webp",
+      "scale": 2.4000000000000004
+     },
+     {
+      "file": "js_gulpy_05_senza.webp",
+      "scale": 2.4000000000000004
+     },
+     {
+      "file": "js_gulpy_06_senza.webp",
+      "scale": 2.4000000000000004
+     },
+     {
+      "file": "js_gulpy_07_senza.webp",
+      "scale": 2.4000000000000004
+     }
+    ]
+   }
   },
   "hatch": {
    "aspect": 1.7778,

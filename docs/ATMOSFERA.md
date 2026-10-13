@@ -54,9 +54,9 @@ Rifarle: `tools/render/atmosfera.py render dopo|prima ...` e poi `atmosfera.py c
 | Panorama del mondo in bozza (2048×535, 24 campioni, con la nebbia) | 4 min |
 | **Panorama del mondo finale (8192×2139, 128 campioni)** | **~5-6 h** |
 | Strato della barca (la nebbia fra l'occhio e la barca, vedi sotto) | ~2-3 h |
-| Mostri: ~15 strati fra pose e toppe, riquadri piccoli | ~3-4 h (13 ottobre: 1-7 min a strato, Gulpy 14 min in tutto) |
+| Mostri: ~15 strati fra pose e toppe, riquadri piccoli | ~3-4 h (13 ottobre: 30 strati e i pesci in 4 h 40) |
 | Binocolo (9 luoghi) | ~1-2 h |
-| Jumpscare (4) | ~1-2 h |
+| Jumpscare (4) | ~1-2 h (13 ottobre: 80 min l'uno con la nebbia a 64 campioni, sfondo 15 min, fotogrammi 5-13 min) |
 
 Il mondo e la barca stanno in una notte. Il resto in un'altra.
 
@@ -155,7 +155,10 @@ e i jumpscare resi con l'atmosfera. Le immagini di prima restano la serie `senza
   arrivano i file nuovi coi nomi di sempre. Prima di toccare qualcosa controlla tutto: si ferma se un riquadro o uno
   yaw sono cambiati (una toppa spostata di un pixel non combacia più), se cambia il numero dei fotogrammi o se il
   manifest dei render è più vecchio dei file (le scale). `--prova` dice cosa farebbe.
-- **Controllo**: `tools/render/confronta_serie.py <cartella> <chiavi>` (riquadro, alfa al pixel, rapporto della luce e
+- **Controllo**: `tools/render/confronta_jumpscare.py <cartella> <chi> <tavola.jpg>` (i fotogrammi delle due serie);
+  `scripts/nebbia_jumpscare.mjs` (il jumpscare nel gioco a notte in corso, con la nebbia spenta e accesa);
+  `scripts/decodifica.mjs` (Chromium decodifica tutte le immagini; dopo un'installazione va riavviato `npx vite`, che
+  può rispondere con la pagina HTML per un file tolto e rimesso); `tools/render/confronta_serie.py <cartella> <chiavi>` (riquadro, alfa al pixel, rapporto della luce e
   una tavola con la lampara spenta, bassa e alta sul mondo di ciascuna serie); `scripts/nebbia_mostri.mjs` (il visore,
   che ora accetta `?senza`, e il cambio di serie a notte in corso).
 - **Nel motore**: `fogLayerKeys` e `layerSeries` (`assets.ts`) e `swapFog` (`app.ts`) scambiano ogni strato caricato
@@ -175,6 +178,7 @@ e i jumpscare resi con l'atmosfera. Le immagini di prima restano la serie `senza
 | Fangy | fangy_ascolta, fangy_testa_prua, fangy_testa_poppa | sagome uguali (3 pixel); luna 0,25-0,4, lanterna 1,2-1,35; a luce spenta lo mostrano le lucine del motore (posizioni invariate) |
 | La Madre | madre_sale | sagoma uguale (4 pixel); luna 0,4 |
 | Pesci nel secchio | fish2, fish5, fish9 (`PROPS=fish jobs.py props`) | sagome uguali (0-4 pixel); luna 0,3, lampara 1,04-1,18 |
+| Jumpscare di Gulpy | js_gulpy_00..07 (1920×1080, 64 campioni) | stesse inquadrature e movimento; luce media 1,01-1,13 di prima; sfondo velato, alone della lampara leggero |
 
 ## Cosa cambiare nel motore (scritto prima del lavoro sul motore: vedi sopra)
 
