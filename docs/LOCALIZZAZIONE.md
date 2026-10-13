@@ -79,7 +79,9 @@ ogni lingua.
 
 - **Le date giorno·mese·anno**: sul pesce `sciarrano_scrivano` c'è «3·11·2004», che un americano legge 11 marzo. Per
   le scritte neutre meglio date che non si confondono (giorno oltre il 12) o l'anno da solo.
-- **I numeri coi decimali**: nella tana di Molly «2,5 m» ha la virgola italiana (in inglese 2.5 m). È piccolo.
+- **I numeri coi decimali**: nella tana di Molly «2,5 m» e sul cartoncino della culla di Lampy «3,1 KG» hanno la
+  virgola italiana (in inglese 2.5 m, 3.1 kg). Si leggono, ma un inglese ci inciampa: o numeri senza decimali, o va bene
+  così. Piccolo.
 
 ## Per una lingua nuova
 
