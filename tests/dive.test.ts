@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { DiveRun, type DiveData } from '../src/app/dive_run.ts';
 
@@ -87,6 +87,21 @@ describe('Immersioni: le camerette', () => {
     expect(sb.links.some((l) => l.ascend)).toBe(true);
     // i passaggi stanno dentro l'inquadratura
     for (const l of sb.links) expect(Math.abs(l.yaw - sb.frame!.yaw)).toBeLessThanOrEqual(sb.frame!.yawRange + 45);
+  });
+
+  it('in ogni tana c’è il pesce da lasciare accanto al letto: uno strato con i due passi, dentro la cameretta', () => {
+    for (const p of Object.values(DATA.places)) {
+      if (!p.den) continue;
+      const f = p.sleeper?.fish;
+      expect(f, p.den).toBeDefined();
+      expect(f!.passes.ambient?.file, p.den).toMatch(/^immersioni\/tana_\w+_pesce_ambient\.webp$/);
+      expect(f!.passes.lantern?.file, p.den).toMatch(/^immersioni\/tana_\w+_pesce_lantern\.webp$/);
+      for (const g of ['ambient', 'lantern'] as const) {
+        expect(existsSync(new URL(`../public/assets/img/${f!.passes[g]!.file}`, import.meta.url)), `${p.den} ${g}`).toBe(true);
+      }
+      const [x0, y0, x1, y1] = f!.rect;
+      expect(x0 >= 0 && y0 >= 0 && x1 <= p.size[0] && y1 <= p.size[1] && x1 > x0 && y1 > y0, p.den).toBe(true);
+    }
   });
 });
 

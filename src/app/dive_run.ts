@@ -78,8 +78,9 @@ export interface DivePlace {
   /** la cosa da trovare (un disegno, una foto, un oggetto del bambino): una voce del Diario (LORE, con den). Si clicca
    *  e va nel Diario; una volta trovata non si offre più */
   find?: { lore: string; yaw: number; pitch: number; r: number };
-  /** il mostro che dorme: dove si clicca per lasciargli il pesce, i suoi strati, da dove salgono le bolle */
-  sleeper?: { yaw: number; pitch: number; r: number; layers?: DiveSprite[]; bubbles?: { yaw: number; pitch: number } };
+  /** il mostro che dorme: dove si clicca per lasciargli il pesce, i suoi strati, da dove salgono le bolle, e il pesce
+   *  lasciato accanto al letto (uno strato con la sua ombra, che compare dopo «Lascia il pesce») */
+  sleeper?: { yaw: number; pitch: number; r: number; layers?: DiveSprite[]; bubbles?: { yaw: number; pitch: number }; fish?: DiveSprite };
   links: DiveLink[];
 }
 

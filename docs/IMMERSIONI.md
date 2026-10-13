@@ -272,6 +272,29 @@ campo. Per portarla come le altre bisognerebbe abbassarla di un metro abbondante
 corda della giostrina, una trave). **Decisione dell'utente del 13 ottobre: resta così**, appesa al soffitto con la sua
 inquadratura.
 
+### Il pesce lasciato nella tana (13 ottobre, **da approvare**)
+
+Dopo «Lascia il pesce» il pesce compare sulla sabbia davanti al letto (in poco più di un secondo) e resta lì se torni
+nella tana durante la stessa immersione. È uno strato sopra il mostro che dorme, `sleeper.fish` del posto in
+`immersioni.json` (`tana_<mostro>_pesce_ambient.webp` e `_lantern.webp`), fatto col job `tane_pesce`
+(`tools/render/jobs.py`, `tana_pesce`; `TANE=molly,lampy` per rifarne solo alcune):
+
+- **Il pesce** è il pagello del Catalogo (`pesci.costruisci('pagello_pixelato')`: in 3D è un pagello come gli altri, il
+  glitch a quadretti è solo nell'immagine del Catalogo), lungo mezzo metro con la coda (più piccolo, a quattro metri
+  dall'occhio, quasi non si vedeva), coricato sul fianco con il muso verso il letto, il dorso rosa verso chi entra
+  (dall'altra parte si vedeva il ventre bianco) e il fianco di sopra girato di 12° verso di lui, come sulla sabbia non
+  piana.
+- **Il posto si sceglie da solo**: sabbia libera e piana davanti al letto, verso l'ingresso e un po' di lato (niente
+  sassi, coriandoli o arredi sotto: la sabbia si tasta ogni 4-5 cm, se no un sassolino bucava il pesce), visibile
+  dall'occhio con la sabbia davanti (se no sembra in bilico sul sasso che lo copre), dentro l'inquadratura, fuori dal
+  mostro e lontano dalla cosa da trovare.
+- **Tre render del riquadro** con la camera della cameretta: il pesce da solo (stanza e mostro fanno da maschera:
+  il colore e la copertura), poi la stanza intera con il pesce e senza. Dal confronto viene **l'ombra** che il pesce fa
+  sulla sabbia: nello strato è nera con l'alfa dell'ombra e scurisce la cameretta sotto. La luce viene dall'ingresso,
+  alle spalle del sub, e l'ombra vera resta quasi tutta nascosta dietro il pesce: c'è anche un'ombra morbida di
+  contatto sotto il pesce, così sta appoggiato e non incollato sopra l'immagine. L'acqua si cuoce come per il mostro
+  (la luce sfocata della stanza viene da un render piccolo della cameretta intera).
+
 ## Il pesce e i finali
 
 Il pesce lasciato nelle tane decide anche **il finale della sesta notte** (approvato l'11 ottobre, vedi
@@ -328,8 +351,8 @@ salvataggio deve quindi ricordare, alba per alba, se sei sceso e se hai lasciato
 - **Le tane** (deciso l'11 ottobre): ogni cameretta è un'**inquadratura fissa**, come una telecamera di FNAF: lo
   sguardo si gira di 30° a destra e a sinistra (e di pochi gradi in su e in giù) e basta; in basso c'è il tasto
   **«Torna alla grotta»**. Il mostro dorme sul letto e respira (la toppa del respiro si dissolve sopra la posa) e fa salire le
-  bolle. Cliccandolo, se hai un pesce, compare la conferma **«Lasci il pesce accanto a Gulpy?»**; sì, e quel
-  mostro **la notte dopo non viene**. La tana del **mostro nuovo** della notte dopo è **vuota** («La tana è vuota.
+  bolle. Cliccandolo, se hai un pesce, compare la conferma **«Lasci il pesce accanto a Gulpy?»**; sì, il pesce compare
+  sulla sabbia davanti al letto (vedi «Il pesce lasciato nella tana») e quel mostro **la notte dopo non viene**. La tana del **mostro nuovo** della notte dopo è **vuota** («La tana è vuota.
   Chi ci dorme è già in giro.»).
 - **L'aria** (decisa l'11 ottobre sera; `immersioni.json` → `air`): basta per **due tane**; il tempo dentro le tane è
   libero e nuotare non costa. **Non c'è un indicatore**: l'unico segnale è il respiro nell'erogatore, che entrando
@@ -447,6 +470,6 @@ sono i segnaposto). Dopo la decisione delle inquadrature fisse: `immersioni_prov
 
 - I render veri (le grotte le sta facendo un altro lavoro; le camerette e le pose addormentate sono da approvare),
   e le bombole sulla barca all'alba (oggi solo il tasto).
-- Il pesce posato accanto al letto (una toppa nella tana), le scoperte delle tane nel diario.
+- Le scoperte delle tane nel diario.
 - Il ribilanciamento delle notti col mostro sfamato; il prototipo con la tana di Gulpy per rivedere l'acqua e i
   cerchietti.

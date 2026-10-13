@@ -1270,6 +1270,235 @@ def tana_finale(q, chi):
 BREATH = {'gulpy': 5.0, 'molly': 3.8, 'hatch': 4.2, 'robin': 3.6, 'archie': 4.6, 'lampy': 3.4, 'fangy': 6.5}
 
 
+# ───────────────────────── il pesce lasciato accanto al letto ─────────────────────────
+
+PESCE_SPECIE = 'pagello_pixelato'   # in 3D è un pagello come gli altri: il glitch del Catalogo è solo nell'immagine
+PESCE_LUNGO = 0.40                  # metri dal muso all'attacco della coda (con la coda, mezzo metro: si vede dall'ingresso)
+
+
+def job_tane_pesce(q):
+    """Il pesce che il sub lascia accanto al letto del mostro (docs/IMMERSIONI.md, «Il pesce lasciato nella tana»):
+    per ogni tana uno strato ritagliato sopra il mostro che dorme, il pesce coricato sulla sabbia davanti al letto
+    con la sua ombra, che il motore fa comparire dopo «Lascia il pesce». Il posto si sceglie da solo (sabbia libera e
+    piana, visibile dall'ingresso, fuori dal mostro e dalla cosa da trovare). Va nella voce sleeper.fish del posto
+    in immersioni.json. TANE=molly,lampy per farne solo alcune; GROTTE_CAMPIONI per i campioni (64)."""
+    import fcntl
+    import tempfile
+    import tane
+    path_dati = os.path.join(OUT_IMG, 'immersioni.json')
+    for chi in [c for c in os.environ.get('TANE', ','.join(tane.ORDINE)).split(',') if c]:
+        voce = tana_pesce(q, chi)
+        with open(os.path.join(tempfile.gettempdir(), 'splashland_immersioni.json.lock'), 'w') as lk:
+            fcntl.flock(lk, fcntl.LOCK_EX)
+            with open(path_dati) as f:
+                dati = json.load(f)
+            dati['places'][f'tana_{chi}']['sleeper']['fish'] = voce
+            with open(path_dati, 'w') as f:
+                f.write(json.dumps(dati, indent=1, ensure_ascii=False) + '\n')
+        log(f'tana {chi}: pesce in immersioni.json', json.dumps(voce['rect']))
+
+
+def tana_pesce(q, chi):
+    """Lo strato del pesce di una tana (vedi job_tane_pesce). Tre render del riquadro attorno al pesce, con la stessa
+    camera della cameretta (tana_finale): il pesce da solo (stanza e mostro fanno da maschera: il colore e la
+    copertura), poi la stanza intera con il pesce e senza. Dal confronto viene l'ombra che il pesce fa sulla sabbia:
+    nello strato è nera, con l'alfa dell'ombra, e scurisce la cameretta sotto. L'acqua si cuoce come per il mostro,
+    con la luce sfocata della stanza presa da un render piccolo della cameretta intera."""
+    import grotte
+    import pesci
+    import tane
+    from mathutils import Matrix
+    from scipy.ndimage import binary_dilation, gaussian_filter
+    reset_scene()
+    info = tane.build_tana(chi, res=0.05)
+    occhio = np.array(tane.OCCHIO_T)
+    LON = 80.0
+    LAT_MIN, LAT_MAX, PITCH = tane.INQUADRATURA.get(chi, (-55.0, 25.0, tane.PITCH_T))
+    cam = panorama_camera(location=tuple(occhio), name='TanaCam')
+    cam.data.longitude_min = math.radians(-LON)
+    cam.data.longitude_max = math.radians(LON)
+    cam.data.latitude_min = math.radians(LAT_MIN)
+    cam.data.latitude_max = math.radians(LAT_MAX)
+    grotte.torcia_panorama(occhio=tuple(occhio))
+    px = q.pano_width / 360.0
+    W = int(round(2 * LON * px / 2)) * 2
+    H = int(round((LAT_MAX - LAT_MIN) * px / 2)) * 2
+    samples = int(os.environ.get('GROTTE_CAMPIONI', min(q.samples, 64)))
+    cartella = os.path.join(OUT_IMG, 'immersioni')
+    cache = os.path.join(CACHE, q.name)
+
+    # ── la luce sfocata della cameretta vuota (come grotte.acqua sul panorama intero, da un render piccolo)
+    blur_px = 360.0 * px / 24
+    s = max(1, int(blur_px / 8))
+    t = time.time()
+    exr = os.path.join(cache, f'tana_{chi}_pesce_stanza.exr')
+    render(exr, 32, (-(-W // s), -(-H // s)), data_passes=('Mist',))
+    piccola = post.read_exr(exr)['ambient'][..., :3]
+    piccola = np.minimum(piccola, np.percentile(piccola, 99.5))
+    sfocata = np.stack([gaussian_filter(piccola[..., k], blur_px / s, mode='nearest') for k in range(3)], -1)
+    sfocata = np.repeat(np.repeat(sfocata, s, 0), s, 1)[:H, :W]
+    log(f'tana {chi}: luce sfocata della stanza', round(time.time() - t), 's')
+
+    def dirz(v):
+        e = np.array(v) - occhio
+        return math.degrees(math.atan2(e[0], e[1])), math.degrees(math.atan2(e[2], math.hypot(e[0], e[1])))
+
+    def pixel(v):
+        yaw, pitch = dirz(v)
+        return (yaw + LON) / (2 * LON) * W, (LAT_MAX - pitch) / (LAT_MAX - LAT_MIN) * H
+
+    stanza_obs = [o for o in bpy.data.objects if o.type in ('MESH', 'FONT', 'CURVE')]
+    t = time.time()
+    mostro = [o for o in tane.mostro(chi, info, fiato=0.0) if o.type in ('MESH', 'FONT', 'CURVE')]
+    log(f'tana {chi}: il mostro', round(time.time() - t), 's')
+    # dove si vede il mostro (in pixel del panorama, un po' allargato): il pesce resta fuori
+    sagoma = np.zeros((H, W), bool)
+    for v in dense_points(mostro, n=6000):
+        x, y = pixel(v)
+        if 0 <= x < W and 0 <= y < H:
+            sagoma[int(y), int(x)] = True
+    sagoma = binary_dilation(sagoma, iterations=int(px * 1.2) + 4)
+
+    # ── il posto: sabbia libera e piana davanti al letto, verso l'ingresso e un po' di lato
+    dg = bpy.context.evaluated_depsgraph_get()
+    sc = bpy.context.scene
+    letto = np.array(info['letto'], float)
+    u = occhio[:2] - letto[:2]
+    u /= np.linalg.norm(u)
+    v_ = np.array((u[1], -u[0]))
+    trova = np.array(dirz(info['trovato']))
+    L = PESCE_LUNGO * 1.3
+
+    def suolo(x, y):
+        """L'altezza della sabbia in (x, y), o None se sopra c'è altro (un sasso, un arredo, il mostro)."""
+        ok, loc, nor, _, ob, _ = sc.ray_cast(dg, Vector((x, y, 2.2)), Vector((0, 0, -1)), distance=4.0)
+        if not ok or ob.name != 'TanaRoccia' or nor.z < 0.8:
+            return None
+        return loc.z
+
+    def visibile(p):
+        d = Vector(tuple(p)) - Vector(tuple(occhio))
+        ok, loc, _, _, _, _ = sc.ray_cast(dg, Vector(tuple(occhio)), d.normalized(), distance=d.length)
+        return not ok or (loc - Vector(tuple(occhio))).length > d.length - 0.12
+
+    candidati = []
+    for dist in np.arange(0.7, 2.61, 0.1):
+        for lato in np.arange(-1.2, 1.21, 0.1):
+            c = letto[:2] + u * dist + v_ * lato
+            # fitto, ogni 4-5 cm: un sassolino fra un raggio e l'altro bucava il pesce (Fangy, prima prova)
+            zs = []
+            for a in np.linspace(-0.55, 0.55, 13):
+                for b in np.linspace(-0.12, 0.12, 5):
+                    z = suolo(*(c + v_ * a * L + u * b))
+                    if z is None:
+                        break
+                    zs.append(z)
+                else:
+                    continue
+                break
+            if len(zs) < 65 or max(zs) - min(zs) > 0.05:
+                continue
+            z0 = float(np.median(zs))
+            punti = [np.array((*(c + v_ * a * L * 0.45), z0 + 0.05)) for a in (-1, -0.5, 0, 0.5, 1)]
+            if not all(visibile(p) for p in punti):
+                continue
+            # e si vede la sabbia davanti (verso il sub): il pesce non deve sembrare in bilico su un sasso
+            davanti = [c + u * b + v_ * a * L * 0.4 for b in (0.3, 0.55) for a in (-1, 0, 1)]
+            zd = [suolo(*d) for d in davanti]
+            if any(z is None for z in zd) or not all(visibile((*d, z + 0.02)) for d, z in zip(davanti, zd)):
+                continue
+            yaw, pitch = dirz((c[0], c[1], z0))
+            if not (-24.0 <= yaw <= 24.0 and -32.0 <= pitch <= -11.0):
+                continue
+            if math.hypot(yaw - trova[0], pitch - trova[1]) < 9.0:
+                continue
+            uv = np.array([pixel(p) for p in punti + [np.array((*(c + v_ * a * L * 0.5), z0 + 0.12)) for a in (-1, 1)]])
+            x0, y0 = np.clip(uv.min(0).astype(int) - 8, 0, None)
+            x1, y1 = uv.max(0).astype(int) + 8
+            if sagoma[y0:y1, x0:x1].any():
+                continue
+            candidati.append((abs(dist - 1.0) + 0.6 * abs(abs(lato) - 0.5), float(dist), float(lato), c, z0))
+    if not candidati:
+        raise RuntimeError(f'tana {chi}: nessun posto libero per il pesce davanti al letto')
+    candidati.sort(key=lambda k: k[0])
+    _, dist, lato, c, z0 = candidati[0]
+    log(f'tana {chi}: pesce a', round(dist, 2), 'm dal letto,', round(lato, 2), 'di lato; posti buoni:', len(candidati))
+
+    # ── il pesce: coricato sul fianco, il muso verso il letto, il fianco di sopra appena girato verso il sub
+    prima = set(bpy.data.objects.keys())
+    pc = pesci.costruisci(PESCE_SPECIE)
+    corpo = pc.obs[0]
+    pesce = [o for o in bpy.data.objects if o.name not in prima]
+    testa = 1.0 if lato >= 0 else -1.0
+    asse = v_ * testa                                       # dal muso alla coda
+    # coricato sul fianco con il dorso (rosa, con l'occhio sopra) verso il sub: a destra del letto il fianco sinistro
+    # (−y locale) in alto, a sinistra il destro (se no si vedeva il ventre bianco); il fianco di sopra si gira verso il
+    # sub di 12°, come sulla sabbia non piana
+    M = (Matrix.Translation((c[0] - asse[0] * PESCE_LUNGO * 0.5, c[1] - asse[1] * PESCE_LUNGO * 0.5, z0))
+         @ Matrix.Rotation(math.atan2(asse[1], asse[0]), 4, 'Z') @ Matrix.Rotation(math.radians(-102.0 * testa), 4, 'X')
+         @ Matrix.Scale(PESCE_LUNGO, 4))
+    bpy.context.view_layer.update()
+    for o in pesce:
+        o.matrix_world = M @ o.matrix_world
+    bpy.context.view_layer.update()
+    # appoggiato: il punto più basso del corpo un filo dentro la sabbia (le pinne di sotto ci affondano)
+    giu = np.array(dense_points([corpo], n=4000))[:, 2].min() - (z0 - 0.008)
+    for o in pesce:
+        o.location.z -= giu
+    bpy.context.view_layer.update()
+    pts = np.array(dense_points([o for o in pesce if o.type == 'MESH'], n=4000))
+    uv = np.array([pixel(p) for p in pts])
+    rect = [max(0, int(uv[:, 0].min()) - 40), max(0, int(uv[:, 1].min()) - 56),
+            min(W, int(math.ceil(uv[:, 0].max())) + 40), min(H, int(math.ceil(uv[:, 1].max())) + 36)]
+    h_, w_ = rect[3] - rect[1], rect[2] - rect[0]
+    sf = sfocata[rect[1]:rect[3], rect[0]:rect[2]]
+
+    def passi(nome, **kw):
+        exr_ = os.path.join(cache, f'tana_{chi}_pesce_{nome}.exr')
+        t_ = time.time()
+        render(exr_, samples, (W, H), region=tuple(rect), data_passes=('Alpha', 'Mist'), **kw)
+        log(f'tana {chi}: pesce, render {nome}', round(time.time() - t_), 's', rect)
+        p_ = post.read_exr(exr_)
+        return {k: v[:h_, :w_] for k, v in p_.items()}
+
+    # il pesce da solo: la stanza e il mostro fanno da maschera (e gli fanno la luce)
+    for o in stanza_obs + mostro:
+        o.is_holdout = True
+    solo = passi('solo', transparent=True)
+    for o in stanza_obs + mostro:
+        o.is_holdout = False
+    alpha = np.clip(solo['alpha'], 0, 1)
+    cotto = grotte.acqua(solo, blur_px=1, sfocata=sf, alpha=alpha)
+    # la stanza con il pesce e senza: con = pesce + senza·(1 − alfa)·(1 − ombra)
+    con = grotte.acqua(passi('con'), blur_px=1, sfocata=sf)
+    for o in pesce:
+        o.hide_render = True
+    senza = grotte.acqua(passi('senza'), blur_px=1, sfocata=sf)
+    lum = lambda p_: (p_['ambient'][..., :3] + 0.6 * p_['lantern'][..., :3]) @ np.array((0.2126, 0.7152, 0.0722))
+    fuori = 1.0 - alpha
+    k = (lum(con) - lum(cotto)) / np.maximum(lum(senza) * fuori, 1e-5)
+    ombra = np.where(fuori > 0.15, 1.0 - np.clip(k, 0.0, 1.0), 0.0)
+    ombra = np.clip(gaussian_filter(ombra, 1.2) - 0.015, 0.0, 0.85)      # niente puntini dal rumore
+    # il contatto con la sabbia: un'ombra morbida sotto il pesce, appena spostata indietro. La luce viene
+    # dall'ingresso, alle spalle del sub, e l'ombra vera resta quasi tutta nascosta dietro il pesce: senza questa il
+    # pesce sembra posato sopra l'immagine
+    sotto = np.roll(binary_dilation(alpha > 0.3, iterations=2).astype(np.float32), -3, axis=0)
+    ombra = np.maximum(ombra, gaussian_filter(sotto, 4.0) * 0.5)
+    # l'ombra solo vicino al pesce, sfumata prima dei bordi del riquadro
+    vicino = gaussian_filter(binary_dilation(alpha > 0.02, iterations=26).astype(np.float32), 6.0)
+    ombra = ombra * np.clip(vicino * 1.5, 0, 1)
+    alpha_tot = alpha + fuori * ombra
+    passes = {}
+    for g in ('ambient', 'lantern'):
+        lin = cotto[g][..., :3]
+        scale = post.pick_scale(lin / np.maximum(alpha[..., None], 1e-4), alpha)
+        post.save_webp(post.encode_light_pass(lin, scale, alpha_tot), os.path.join(cartella, f'tana_{chi}_pesce_{g}.webp'))
+        passes[g] = {'file': f'immersioni/tana_{chi}_pesce_{g}.webp', 'scale': scale}
+    yaw, pitch = dirz((c[0], c[1], z0))
+    log(f'tana {chi}: pesce a yaw', round(yaw, 1), 'pitch', round(pitch, 1), 'ombra fino a', round(float(ombra.max()), 2))
+    return {'passes': passes, 'rect': rect}
+
+
 def job_grotte(q):
     """Il panorama a 360° della grotta grande per il motore delle immersioni (docs/IMMERSIONI.md, «Come si aggiungono i
     posti veri»): sfera intera (latitudine da −90° a 90°, larghezza = quella della qualità, altezza la metà), passi
@@ -1346,7 +1575,7 @@ def job_grotte(q):
         post.save_png(v, os.path.join(CACHE, q.name, f'grotta_vista_{nome}.png'))
 
 
-JOBS = {'grotte': job_grotte, 'tane': job_tane, 'tane_anteprime': job_tane_anteprime, 'sotto': job_sotto, 'sotto_anteprima': job_sotto_anteprima, 'grotte_ricomponi': job_grotte_ricomponi, 'grotte_anteprime': job_grotte_anteprime, 'grotte_tane': job_grotte_tane,
+JOBS = {'grotte': job_grotte, 'tane': job_tane, 'tane_pesce': job_tane_pesce, 'tane_anteprime': job_tane_anteprime, 'sotto': job_sotto, 'sotto_anteprima': job_sotto_anteprima, 'grotte_ricomponi': job_grotte_ricomponi, 'grotte_anteprime': job_grotte_anteprime, 'grotte_tane': job_grotte_tane,
         'world': job_world, 'boat': job_boat, 'props': job_props, 'creature': job_creature, 'reencode': job_reencode, 'tarp': job_tarp, 'jumpscare': job_jumpscare, 'binocolo': job_binocolo, 'bordo': job_bordo, 'pelo': job_pelo}
 
 

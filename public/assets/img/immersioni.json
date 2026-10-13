@@ -240,6 +240,24 @@
     "bubbles": {
      "yaw": -14.9,
      "pitch": -4.9
+    },
+    "fish": {
+     "passes": {
+      "ambient": {
+       "file": "immersioni/tana_gulpy_pesce_ambient.webp",
+       "scale": 0.36
+      },
+      "lantern": {
+       "file": "immersioni/tana_gulpy_pesce_lantern.webp",
+       "scale": 0.27
+      }
+     },
+     "rect": [
+      1486,
+      1014,
+      1750,
+      1144
+     ]
     }
    },
    "links": [
@@ -336,6 +354,24 @@
     "bubbles": {
      "yaw": -7.4,
      "pitch": -0.9
+    },
+    "fish": {
+     "passes": {
+      "ambient": {
+       "file": "immersioni/tana_molly_pesce_ambient.webp",
+       "scale": 0.46
+      },
+      "lantern": {
+       "file": "immersioni/tana_molly_pesce_lantern.webp",
+       "scale": 0.32
+      }
+     },
+     "rect": [
+      1324,
+      1014,
+      1585,
+      1144
+     ]
     }
    },
    "links": [
@@ -432,6 +468,24 @@
     "bubbles": {
      "yaw": 0.0,
      "pitch": -3.6
+    },
+    "fish": {
+     "passes": {
+      "ambient": {
+       "file": "immersioni/tana_hatch_pesce_ambient.webp",
+       "scale": 0.29
+      },
+      "lantern": {
+       "file": "immersioni/tana_hatch_pesce_lantern.webp",
+       "scale": 0.25
+      }
+     },
+     "rect": [
+      1383,
+      883,
+      1593,
+      1000
+     ]
     }
    },
    "links": [
@@ -528,6 +582,24 @@
     "bubbles": {
      "yaw": 4.0,
      "pitch": 0.3
+    },
+    "fish": {
+     "passes": {
+      "ambient": {
+       "file": "immersioni/tana_robin_pesce_ambient.webp",
+       "scale": 0.5700000000000001
+      },
+      "lantern": {
+       "file": "immersioni/tana_robin_pesce_lantern.webp",
+       "scale": 0.4
+      }
+     },
+     "rect": [
+      1449,
+      1064,
+      1735,
+      1202
+     ]
     }
    },
    "links": [
@@ -624,6 +696,24 @@
     "bubbles": {
      "yaw": -0.5,
      "pitch": -4.5
+    },
+    "fish": {
+     "passes": {
+      "ambient": {
+       "file": "immersioni/tana_archie_pesce_ambient.webp",
+       "scale": 0.3
+      },
+      "lantern": {
+       "file": "immersioni/tana_archie_pesce_lantern.webp",
+       "scale": 0.25
+      }
+     },
+     "rect": [
+      1261,
+      985,
+      1508,
+      1117
+     ]
     }
    },
    "links": [
@@ -720,6 +810,24 @@
     "bubbles": {
      "yaw": -8.9,
      "pitch": 15.5
+    },
+    "fish": {
+     "passes": {
+      "ambient": {
+       "file": "immersioni/tana_lampy_pesce_ambient.webp",
+       "scale": 0.59
+      },
+      "lantern": {
+       "file": "immersioni/tana_lampy_pesce_lantern.webp",
+       "scale": 0.56
+      }
+     },
+     "rect": [
+      1856,
+      1248,
+      2125,
+      1378
+     ]
     }
    },
    "links": [
@@ -816,6 +924,24 @@
     "bubbles": {
      "yaw": 4.4,
      "pitch": -8.7
+    },
+    "fish": {
+     "passes": {
+      "ambient": {
+       "file": "immersioni/tana_fangy_pesce_ambient.webp",
+       "scale": 0.65
+      },
+      "lantern": {
+       "file": "immersioni/tana_fangy_pesce_lantern.webp",
+       "scale": 1.0
+      }
+     },
+     "rect": [
+      1883,
+      1171,
+      2219,
+      1324
+     ]
     }
    },
    "links": [

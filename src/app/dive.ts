@@ -102,10 +102,12 @@ async function texture(gl: GL, file: string, wrap: number): Promise<WebGLTexture
   return t;
 }
 
-/** Uno strato del posto da disegnare, con il periodo del respiro se è una toppa che si dissolve sopra la posa. */
+/** Uno strato del posto da disegnare, con il periodo del respiro se è una toppa che si dissolve sopra la posa, o il
+ *  pesce lasciato accanto al letto (si vede solo quando questo mostro è quello sfamato). */
 interface Draw {
   d: LayerDraw;
   breath?: number;
+  fish?: boolean;
 }
 
 /** Come Promise.all per le texture di uno strato, ma se una non si carica cancella quelle già create (e rifiuta). */
@@ -146,6 +148,8 @@ export class Dive {
   private draws: Draw[] = [];
   /** gli stessi strati come li vuole il renderer (non si rifà la lista a ogni fotogramma) */
   private layerList: LayerDraw[] = [];
+  /** quanto si vede il pesce lasciato accanto al letto, 0..1: compare piano dopo «Lascia il pesce» */
+  private fishShown = 0;
   private spots: Spot[] = [];
   private hover: Spot | null = null;
   private goingTo: string | null = null;
@@ -271,7 +275,11 @@ export class Dive {
         const key = `${panoKey}:${i}`;
         loads.push(layer(key, s.passes, undefined, rectOf(...s.rect), false).then((l) => ({ l, draw: { d: { key }, breath: s.breath } })));
       });
+      // il pesce accanto al letto, sopra il mostro: nascosto finché non lo lasci (o già lì se torni dopo averlo lasciato)
+      const f = p.sleeper?.fish;
+      if (f) loads.push(layer(`${panoKey}:pesce`, f.passes, undefined, rectOf(...f.rect), false).then((l) => ({ l, draw: { d: { key: l.key, opacity: 0 }, fish: true } })));
     }
+    this.fishShown = p.den && this.run.fed === p.den ? 1 : 0;
     const res = await Promise.allSettled(loads);
     const done = res.flatMap((x) => (x.status === 'fulfilled' ? [x.value] : []));
     const failed = res.find((x): x is PromiseRejectedResult => x.status === 'rejected');
@@ -454,7 +462,7 @@ export class Dive {
       e.stopPropagation();
       this.closeConfirm();
       if (this.run.feed() === 'ok') {
-        // TODO render: il pesce posato accanto al letto (una toppa nella tana, quando ci sono le camerette vere)
+        // il pesce posato accanto al letto (lo strato sleeper.fish) compare piano: update() alza fishShown
         const sl = this.run.current.sleeper;
         this.play(SND.offer, { gain: 0.9, ...(sl ? { pos: dirPos(sl.yaw + (this.run.current.yaw ?? 0), 2, sl.pitch) } : {}) });
         this.caption(S.offered(MONSTER_NAME[who]), 5);
@@ -541,6 +549,9 @@ export class Dive {
   update(dt: number): void {
     if (this.destroyed) return;
     this.time += dt;
+    // il pesce lasciato al mostro di questa tana compare in poco più di un secondo
+    const den = this.run.current.den;
+    if (den && this.run.fed === den) this.fishShown = Math.min(1, this.fishShown + dt / 1.2);
     const st = this.d.stage;
     const v = st.view;
     // il controller: A sul passaggio nel mirino, B il tasto «torna indietro», Y risali (la conferma del pesce la
@@ -714,8 +725,11 @@ export class Dive {
     const st = this.d.stage;
     const w = this.d.data.water;
     const p = this.run.current;
-    // le toppe del respiro si dissolvono sopra la posa
-    for (const dr of this.draws) if (dr.breath) dr.d.opacity = 0.5 - 0.5 * Math.cos((this.time / dr.breath) * Math.PI * 2);
+    // le toppe del respiro si dissolvono sopra la posa; il pesce si vede quanto fishShown
+    for (const dr of this.draws) {
+      if (dr.breath) dr.d.opacity = 0.5 - 0.5 * Math.cos((this.time / dr.breath) * Math.PI * 2);
+      else if (dr.fish) dr.d.opacity = this.fishShown;
+    }
     const tdir = dirOf(this.torchYaw + 0.4 * Math.sin(this.time * 2.3), this.torchPitch + 0.3 * Math.sin(this.time * 1.7));
     const yaw0 = p.yaw ?? 0;
     const bubbles = p.den && this.run.denState(p.den) === 'asleep' && p.sleeper?.bubbles ? [{ dir: dirOf(p.sleeper.bubbles.yaw + yaw0, p.sleeper.bubbles.pitch), k: 1 }] : [];
