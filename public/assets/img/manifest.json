@@ -1746,6 +1746,25 @@
     4238,
     936
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "hatch_bocca_chiusa_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 6.0
+     },
+     "lamp": {
+      "file": "hatch_bocca_chiusa_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "hatch_bocca_chiusa_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
    "space": "world",
    "yaw": 178.0604
   },
@@ -1774,6 +1793,25 @@
     4238,
     973
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "hatch_bocca_mezza_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 6.0
+     },
+     "lamp": {
+      "file": "hatch_bocca_mezza_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "hatch_bocca_mezza_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
    "space": "world",
    "yaw": 178.0604
   },
@@ -1847,6 +1885,25 @@
     4271,
     1730
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "hatch_conta_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 5.9
+     },
+     "lamp": {
+      "file": "hatch_conta_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "hatch_conta_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
    "space": "world",
    "yaw": 178.0604
   },
