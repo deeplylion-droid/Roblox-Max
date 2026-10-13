@@ -173,6 +173,7 @@ e i jumpscare resi con l'atmosfera. Le immagini di prima restano la serie `senza
 | Molly | molly_destra, molly_sinistra e le quattro toppe degli occhi | sagome uguali (1-10 pixel di bordo); luna 0,36-0,4 |
 | Hatch | hatch_conta, hatch_bocca_mezza, hatch_bocca_chiusa | sagome uguali (3-6 pixel); cambia poco (0,95): lo illumina la sua lucina |
 | Robin | robin_secchio, robin_strizza, robin_chiusi | sagome uguali (1-15 pixel); luna 0,4-0,5 |
+| Robin, la ritirata (13 ottobre) | robin_ritirata_1..6, nuovi: tutte e due le serie rese insieme (la `_senza` da un'altra sessione, `claude/robin-ritirata-senza`) e installate con mostri_due_serie.py | sagome uguali (IoU 0,9997-0,9999, 11-22 pixel); luna 0,31-0,38; stesso yaw di robin_secchio |
 | Archie | archie_soffia, archie_fiato, archie_trombetta_mezza, archie_trombetta_tutta | sagome uguali (0-2 pixel); luna 0,55-0,6 |
 | Lampy | lampy_lenza, lampy_bocca_chiusa, lampy_bocca_aperta | sagome uguali (2-4 pixel); luna 0,5-0,55 |
 | Fangy | fangy_ascolta, fangy_testa_prua, fangy_testa_poppa | sagome uguali (3 pixel); luna 0,25-0,4, lanterna 1,2-1,35; a luce spenta lo mostrano le lucine del motore (posizioni invariate) |

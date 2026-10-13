@@ -306,6 +306,19 @@ accorciati e resi più criptici come chiesto, sono **approvati** (`src/i18n.ts`)
 - **Nel gioco** (approvato): sale dal mare sul bordo e, scacciato, scivola giù e in fuori. Mentre lo scacci
   trema e si ritrae, la faccia si accende di luce calda e **strizza gli occhi** (la lampara gli sta dietro, da
   sola gli illuminerebbe solo la schiena).
+- **La ritirata oltre il bordo** (scelta dell'utente del 13 ottobre; anteprima approvata dalla sessione principale,
+  render finali da approvare): prima quello che stava sopra la barca svaniva in tre o quattro fotogrammi, perché Robin
+  ha mezzo corpo dentro la barca e le mani che mollano la presa di Gulpy e Molly con lui lo spezzavano in pezzi. Ora la
+  fuga è resa: sei fotogrammi interi, `robin_ritirata_1..6` (`scena_creature.robin_ritirata`, `ROBIN_RITIRATA`),
+  nella stessa inquadratura di `robin_secchio` (stesso yaw, voce `base`), con gli occhi strizzati. Il braccio esce dal
+  secchio e il pesce ricade dentro (1), la mano torna verso il petto (2-3), il corpo scivola fuori sopra il capodibanda
+  e la testa va giù dietro il bordo (3-5), per ultime le zampe e la mano che si tiene al bordo (4-6); la pozza di melma
+  resta sul legno. Nell'ultimo fotogramma niente sta più davanti alla barca e da lì riprende la discesa di sempre dietro
+  lo scafo. Nel motore (`src/app/ritirata.ts`, test in `tests/ritirata.test.ts`): la fuga dura 0,42 s a tagli netti
+  (~16 fotogrammi al secondo, rapida ma continua), poi la discesa di 0,7 s, dentro gli 1,6 s della fuga del gioco;
+  quando torna sale nell'ultimo fotogramma e la fuga va all'indietro in 0,6 s fino al braccio nel secchio. Senza i
+  fotogrammi nel manifest fa come prima. Controllo: nessuna compenetrazione nuova col legno rispetto alla posa (BVH fra
+  Robin e la barca, fotogramma per fotogramma); anteprima `docs/concept/robin_ritirata_anteprima.jpg`.
 
 ### Notte 3 · Archie — *SPEGNERE LA LUCE*
 

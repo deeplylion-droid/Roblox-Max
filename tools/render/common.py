@@ -348,11 +348,14 @@ def render(exr_path: str, samples: int, resolution, region=None, groups=LIGHTGRO
         W, H = resolution
         sc.render.use_border = True
         sc.render.use_crop_to_border = True
-        sc.render.border_min_x = x0 / W
-        sc.render.border_max_x = x1 / W
+        # un quarto di pixel in più: Blender riporta il bordo in pixel e un errore di virgola mobile gli faceva perdere
+        # una riga (robin_ritirata_4, 13 ottobre: 1005 righe per un riquadro di 1006), così combacia sia troncando sia
+        # arrotondando
+        sc.render.border_min_x = (x0 + 0.25) / W
+        sc.render.border_max_x = (x1 + 0.25) / W
         # Blender misura il bordo dal basso
-        sc.render.border_min_y = 1 - y1 / H
-        sc.render.border_max_y = 1 - y0 / H
+        sc.render.border_min_y = (H - y1 + 0.25) / H
+        sc.render.border_max_y = (H - y0 + 0.25) / H
     else:
         sc.render.use_border = False
     os.makedirs(os.path.dirname(exr_path), exist_ok=True)
