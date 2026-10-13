@@ -148,7 +148,12 @@ e i jumpscare resi con l'atmosfera. Le immagini di prima restano la serie `senza
   fotogrammi e post-produzione del motore. La nebbia è nello sfondo e non nei fotogrammi della creatura (come già
   faceva jumpscare.py). Nuovo: nello sfondo, fuori dalla barca, la lampara vale un quinto (`LAMPARA_MONDO`), come il
   passo `lamp` del mondo nel gioco, se no tornava l'alone bianco. La copertura della barca viene da un render rapido
-  senza nebbia (4 campioni).
+  senza nebbia (4 campioni). Poi lo sfondo si ripulisce (`_liscia_sfondo`, 13 ottobre, segnalazione sul jumpscare di
+  Gulpy: il mare vicino sembrava una superficie granulosa arancio-grigia): fuori dalla barca i passi `lamp` e
+  `lantern` prendono la media dell'intorno (mezzo grado, solo sui pixel fuori dalla barca), tranne i riflessi veri,
+  come liscia_nebbia.py col mondo; sulla barca una mediana 5×5. Si rifà senza rendere con `JS_RIPRENDI=1` (riusa
+  sfondo, copertura e fotogrammi della cache). Resta una grana fine sullo scafo (la nebbia davanti alla barca), da
+  sistemare. I fotogrammi nuovi sono 1920×1080; quelli della serie senza di Gulpy, Molly e Hatch erano 960×540.
 - **Installazione**: `tools/render/mostri_due_serie.py <cartella dei render> <repository> --mostri gulpy,molly
   --strati fish2,… --jumpscare gulpy,…`. Come atmosfera_due_serie.py: la prima volta i file di adesso diventano
   `<nome>_senza.webp` (strati: `layers.<chiave>.senza.passes`; jumpscare: `jumpscares.<chi>.senza.frames`), poi
