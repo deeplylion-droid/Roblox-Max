@@ -201,37 +201,73 @@
    "frames": [
     {
      "file": "js_archie_00.webp",
-     "scale": 2.2
+     "scale": 0.25
     },
     {
      "file": "js_archie_01.webp",
-     "scale": 2.2
+     "scale": 0.25
     },
     {
      "file": "js_archie_02.webp",
-     "scale": 2.2
+     "scale": 0.25
     },
     {
      "file": "js_archie_03.webp",
-     "scale": 2.2
+     "scale": 0.25
     },
     {
      "file": "js_archie_04.webp",
-     "scale": 2.2
+     "scale": 0.25
     },
     {
      "file": "js_archie_05.webp",
-     "scale": 2.2
+     "scale": 0.25
     },
     {
      "file": "js_archie_06.webp",
-     "scale": 1.7000000000000002
+     "scale": 0.74
     },
     {
      "file": "js_archie_07.webp",
-     "scale": 1.7000000000000002
+     "scale": 0.79
     }
-   ]
+   ],
+   "senza": {
+    "frames": [
+     {
+      "file": "js_archie_00_senza.webp",
+      "scale": 2.2
+     },
+     {
+      "file": "js_archie_01_senza.webp",
+      "scale": 2.2
+     },
+     {
+      "file": "js_archie_02_senza.webp",
+      "scale": 2.2
+     },
+     {
+      "file": "js_archie_03_senza.webp",
+      "scale": 2.2
+     },
+     {
+      "file": "js_archie_04_senza.webp",
+      "scale": 2.2
+     },
+     {
+      "file": "js_archie_05_senza.webp",
+      "scale": 2.2
+     },
+     {
+      "file": "js_archie_06_senza.webp",
+      "scale": 1.7000000000000002
+     },
+     {
+      "file": "js_archie_07_senza.webp",
+      "scale": 1.7000000000000002
+     }
+    ]
+   }
   },
   "fangy": {
    "aspect": 1.7778,
