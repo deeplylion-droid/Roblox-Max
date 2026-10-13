@@ -3396,6 +3396,28 @@
    ],
    "yaw": 34.8144
   },
+  "sagoma_nebbia": {
+   "passes": {
+    "ambient": {
+     "file": "sagoma_nebbia_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "sagoma_nebbia_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    4061,
+    806,
+    4140,
+    968
+   ],
+   "space": "world",
+   "yaw": -39.9828
+  },
   "world": {
    "data": "world_data.webp",
    "passes": {

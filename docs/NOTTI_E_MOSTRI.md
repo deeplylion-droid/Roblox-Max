@@ -68,8 +68,16 @@ simulazione, le regole e il bilanciamento non cambiano.
   **un tonfo in acqua dietro di te** (sottotitolo «un tonfo in acqua, dietro di te» / «a splash in the water, behind
   you»). Il cuore sussulta e torna giù piano. Il primo fra la prima ora e le due passate, il secondo almeno 1,2 ore
   dopo.
-- Le anteprime (la scena col suono e Gulpy vivo) le ho mandate in chat il 12 ottobre. **Da fare**: la sagoma nella
-  nebbia (serve un render, dopo l'atmosfera).
+- Le anteprime (la scena col suono e Gulpy vivo) le ho mandate in chat il 12 ottobre.
+- **La sagoma nella nebbia** (13 ottobre, fra le rifiniture scelte dall'utente; **da approvare**): con la nebbia
+  accesa, un falso allarme su tre circa è un bambino fermo in piedi sull'acqua, a 12 metri, girato verso la barca. È
+  uno dei tre scomparsi della foto del 1997 di «Il ricordo» (il C: il caschetto, la maglia a righe, la mano alzata che
+  saluta), reso senza la nebbia davanti (`sagoma_nebbia` in `tools/render/scena_creature.py`, coi bambini di
+  `bambini.py`) e velato dal motore (`SAGOMA.velo` in `night.ts`: si vede al 70%). Compare piano, senza un suono, al
+  bordo dello schermo (30-38° dal centro della vista, da un lato a caso, mai dietro la canna o il palo della lampara:
+  lo strato scorre sul panorama); quando lo guardi in faccia
+  il cuore sussulta e un attimo dopo sparisce. Se non lo guardi se ne va da solo dopo 9 secondi; se ti nascondi, alzi
+  il binocolo o apri il sonar, o se arriva un pericolo vero, sparisce subito. Con la nebbia spenta non c'è.
 
 ### I disegni a pastelli (12 ottobre, ramo `claude/ricordo-disegno`)
 

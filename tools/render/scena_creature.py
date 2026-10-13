@@ -21,6 +21,8 @@ mare nasconde la parte sott'acqua.
                      (notte 4; approvata l'11 ottobre)
     fangy_ascolta    Fangy nell'acqua accanto alla barca, a destra dietro il pescatore: curvo, la testa spinta avanti
                      verso il rumore, le nocche in acqua (notte 5; approvata l'11 ottobre)
+    sagoma_nebbia    il falso allarme della sagoma nella nebbia: un bambino della foto del 1997 in piedi sull'acqua,
+                     lontano, girato verso la barca (13 ottobre, da approvare)
 
 Le «toppe» sono pose uguali a quella principale con la sola parte che cambia visibile (il resto della creatura
 fa da maschera, come la barca): il gioco le dissolve sopra lo strato principale. Le opzioni (quarto elemento
@@ -181,6 +183,8 @@ POSES = {
     # notte 6: la Madre sale accanto alla barca a sinistra, fuori la fronte e l'occhio (approvata l'11 ottobre sera: via
     # libera dell'utente alla sessione principale per scegliere stanotte)
     'madre_sale': (lambda: madre_sale(), 'world', True),
+    # il falso allarme della sagoma nella nebbia (13 ottobre, da approvare): niente occhi nel manifest (non brillano)
+    'sagoma_nebbia': (lambda: sagoma_nebbia(), 'world', True, {'occhi': False}),
 }
 
 
@@ -532,3 +536,24 @@ def madre_sale(bocca=0.0):
     M, kw = madre_posa()
     LAST_M['madre_sale'] = M
     return place(ma.build(**kw, bocca=bocca), M)
+
+
+# ───────────────────────── i falsi allarmi ─────────────────────────
+
+# La sagoma nella nebbia (l'idea dei falsi allarmi approvata il 12 ottobre: «sagome nella nebbia che spariscono»; la
+# sagoma è da approvare): uno dei tre bambini scomparsi della foto del 1997 (finali.py, il C: il caschetto, la maglia
+# a righe, la mano alzata che saluta), in piedi sull'acqua, girato verso la barca. Si rende solo lui, senza la nebbia
+# davanti: il gioco lo fa scorrere attorno alla barca (lo strato si sposta sul panorama) e lo vela con la nebbia.
+SAGOMA_DIST = 12.0     # metri, in orizzontale, dall'occhio del pescatore
+SAGOMA_YAW = -40.0     # gradi: dove si rende (il gioco lo mette dove serve)
+
+
+def sagoma_nebbia():
+    import bambini as bb
+    import finali
+    bambino = next(b for chi, _x, _yaw, b in finali._bambini_1997() if chi == 'C')
+    t = math.radians(SAGOMA_YAW)
+    o = (EYE[0] + SAGOMA_DIST * math.sin(t), EYE[1] + SAGOMA_DIST * math.cos(t), 0.0)
+    # a 12 m un pixel del panorama è quasi un centimetro: basta un campo meno fitto di quello della foto
+    obs, _ = bb.build('Sagoma', bambino, M_of(o, yaw=facing_yaw(o)), col='creature', res=0.008)
+    return obs

@@ -193,7 +193,14 @@ const POSE = {
   fangy: 'fangy_ascolta',
   fangyBow: 'fangy_testa_prua',
   fangyStern: 'fangy_testa_poppa',
+  /** il falso allarme della sagoma nella nebbia: un bambino della foto del 1997, fermo lontano sull'acqua */
+  sagoma: 'sagoma_nebbia',
 } as const;
+
+/** La sagoma nella nebbia (un falso allarme, 13 ottobre, da approvare): quanto la vela la nebbia (lo strato è reso senza
+ *  la nebbia davanti), quanto lontano dal centro della vista compare (gradi, da un lato a caso: al bordo dello schermo),
+ *  quanto ci mette ad entrare, quanto resta se non la guardi (s) e quanto ti deve stare davanti per sparire (gradi). */
+const SAGOMA = { velo: 0.7, lato: [30, 38], entra: 1.6, resta: 9, guardata: 12 } as const;
 
 /** le toppe degli occhi di Molly sui due lati: il primo occhio (quello che ti fissa) e il secondo */
 const MOLLY_EYES = {
@@ -416,6 +423,9 @@ export class Night {
   private paura: Paura;
   /** i falsi allarmi: il prossimo (tempo della notte), quanti ne restano, il sussulto del cuore; da quanto è calmo */
   private falso = { next: 0, left: 0, boost: 0 };
+  /** la sagoma nella nebbia, mentre c'è: dove (yaw), da quanto, quanto si vede (0..1), se se ne sta andando, quando
+   *  l'hai vista (tempo della sagoma; null: non ancora) */
+  private sagoma: { yaw: number; t: number; k: number; out: boolean; seen: number | null } | null = null;
   private calm = 0;
   /** il secchio svuotato dalla cinematica (i pesci non si disegnano) e il buio della cinematica (0..1) */
   private cineEmptyBucket = false;
@@ -1903,6 +1913,7 @@ export class Night {
     const danger = this.dangerNow();
     this.calm = danger > 0.05 ? 0 : this.calm + dt;
     this.updateFalseAlarms(dt, quiet);
+    this.updateSagoma(dt, quiet || danger > 0.05);
     // trattieni il fiato quando devi stare immobile: la Madre che passa sotto, Hatch che cerca
     const hold = sim.mother?.state === 'passing' || sim.hatch.state === 'searching';
     this.paura.update(dt, Math.min(1, Math.max(danger, this.falso.boost)), { hold, hidden: sim.hide !== 'out', quiet });
@@ -1965,7 +1976,9 @@ export class Night {
   /**
    * I falsi allarmi (più paura, idea approvata il 12 ottobre, i dettagli il 13 ottobre): rari e innocui, solo quando
    * è tutto calmo da almeno 20 s. I colpi sullo scafo di Molly, da un lato, senza nessuno; o un tonfo in acqua
-   * dietro di te. Il cuore sussulta (il pericolo sale per un momento e torna giù piano).
+   * dietro di te. Il cuore sussulta (il pericolo sale per un momento e torna giù piano). Con la nebbia accesa, a volte
+   * (13 ottobre, da approvare) la sagoma nella nebbia: un bambino fermo sull'acqua al bordo della vista, senza un
+   * suono; il cuore sussulta quando lo guardi, e lui sparisce (updateSagoma).
    */
   private updateFalseAlarms(dt: number, quiet: boolean): void {
     const f = this.falso;
@@ -1976,6 +1989,18 @@ export class Night {
       return;
     }
     const cap = (t: string) => this.d.options.captions && this.hud.caption(t);
+    if (this.d.options.fog && this.d.stage.man.layers[POSE.sagoma] && Math.random() < 0.35) {
+      const side = Math.random() < 0.5 ? -1 : 1;
+      const [a, b] = SAGOMA.lato;
+      const view = this.d.stage.view.yaw;
+      let yaw = view + side * (a + (b - a) * Math.random());
+      // non dietro la canna né dietro il palo della lampara, a prua: dall'altro lato
+      if (Math.abs(angleDiff(yaw, YAW.rod)) < 12 || Math.abs(angleDiff(yaw, YAW.bow)) < 8) yaw = view - side * (a + (b - a) * Math.random());
+      this.sagoma = { yaw, t: 0, k: 0, out: false, seen: null };
+      f.left--;
+      f.next = this.sim.time + HOUR_SECONDS * (1.2 + 1.3 * Math.random());
+      return;
+    }
     if (Math.random() < 0.6) {
       const right = Math.random() < 0.5;
       this.d.sfx.knock(dirPos(right ? YAW.mollyRight : YAW.mollyLeft, 1.4, -30));
@@ -1988,6 +2013,31 @@ export class Night {
     f.boost = 0.45;
     f.left--;
     f.next = this.sim.time + HOUR_SECONDS * (1.2 + 1.3 * Math.random());
+  }
+
+  /**
+   * La sagoma nella nebbia: entra piano dove l'ha messa il falso allarme; quando la guardi in faccia il cuore sussulta
+   * e un attimo dopo sparisce. Se non la guardi se ne va da sola; se ti nascondi, alzi il binocolo o apri il sonar, o se
+   * arriva un pericolo vero, sparisce subito.
+   */
+  private updateSagoma(dt: number, via: boolean): void {
+    const s = this.sagoma;
+    if (!s) return;
+    s.t += dt;
+    if (!s.out) {
+      s.k = Math.min(1, s.k + dt / SAGOMA.entra);
+      const d = Math.abs(angleDiff(this.d.stage.view.yaw, s.yaw));
+      if (s.seen === null && s.k > 0.25 && d < SAGOMA.guardata) {
+        s.seen = s.t;
+        this.falso.boost = 0.45;
+      }
+      const away = via || this.sim.hide !== 'out' || this.sonarOpen || this.bino > 0.3;
+      if (away || (s.seen !== null && s.t - s.seen > 0.3) || s.t > SAGOMA.resta) s.out = true;
+      if (away) s.k = Math.min(s.k, 0.3);
+    } else {
+      s.k -= dt / (s.seen !== null ? 0.45 : 1.5);
+      if (s.k <= 0) this.sagoma = null;
+    }
   }
 
   /** Le creature vive: quanto è fuori ognuna, se la stai guardando, lo scatto e le gocce (vivi.ts). */
@@ -2019,6 +2069,12 @@ export class Night {
     const sim = this.sim;
     const layers: (string | LayerDraw)[] = ['world'];
     const has = (k: string) => !!man.layers[k];
+    // la sagoma nella nebbia (un falso allarme): lo strato scorre sul panorama fino a dove l'ha messa il falso allarme
+    const sg = this.sagoma;
+    if (sg && sg.k > 0.002 && has(POSE.sagoma)) {
+      const dy = angleDiff(sg.yaw, man.layers[POSE.sagoma]!.yaw);
+      layers.push({ key: POSE.sagoma, opacity: ease(sg.k) * SAGOMA.velo, shift: [(dy / 360) * man.pano.width, 0] });
+    }
     // creature nel mondo: emergono dal pelo dell'acqua (lo strato scende e si taglia al galleggiamento)
     const rise = (key: string, opacity: number, r: number, masks?: { key: string; k: number }[]): LayerDraw | null => {
       const info = this.baseOf(key);
