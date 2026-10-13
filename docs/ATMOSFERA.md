@@ -168,6 +168,7 @@ e i jumpscare resi con l'atmosfera. Le immagini di prima restano la serie `senza
 | --- | --- | --- |
 | Gulpy | gulpy_sale, gulpy_pretende, gulpy_mascella_chiusa, gulpy_mascella_aperta | sagome uguali (2-9 pixel di bordo); luna 0,35-0,4 |
 | Molly | molly_destra, molly_sinistra e le quattro toppe degli occhi | sagome uguali (1-10 pixel di bordo); luna 0,36-0,4 |
+| Hatch | hatch_conta, hatch_bocca_mezza, hatch_bocca_chiusa | sagome uguali (3-6 pixel); cambia poco (0,95): lo illumina la sua lucina |
 
 ## Cosa cambiare nel motore (scritto prima del lavoro sul motore: vedi sopra)
 
