@@ -2726,6 +2726,288 @@
    "space": "boat",
    "yaw": -30.1046
   },
+  "robin_ritirata_1": {
+   "base": "robin_secchio",
+   "passes": {
+    "ambient": {
+     "file": "robin_ritirata_1_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "robin_ritirata_1_lamp.webp",
+     "res": 1.0,
+     "scale": 0.45
+    },
+    "lantern": {
+     "file": "robin_ritirata_1_lantern.webp",
+     "res": 1.0,
+     "scale": 1.1
+    }
+   },
+   "rect": [
+    3315,
+    770,
+    5236,
+    1821
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "robin_ritirata_1_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "robin_ritirata_1_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.43
+     },
+     "lantern": {
+      "file": "robin_ritirata_1_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 1.1
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": -30.1046
+  },
+  "robin_ritirata_2": {
+   "base": "robin_secchio",
+   "passes": {
+    "ambient": {
+     "file": "robin_ritirata_2_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "robin_ritirata_2_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "robin_ritirata_2_lantern.webp",
+     "res": 1.0,
+     "scale": 1.1
+    }
+   },
+   "rect": [
+    3316,
+    748,
+    4713,
+    1822
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "robin_ritirata_2_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "robin_ritirata_2_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "robin_ritirata_2_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 1.1
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": -30.1046
+  },
+  "robin_ritirata_3": {
+   "base": "robin_secchio",
+   "passes": {
+    "ambient": {
+     "file": "robin_ritirata_3_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "robin_ritirata_3_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "robin_ritirata_3_lantern.webp",
+     "res": 1.0,
+     "scale": 1.1
+    }
+   },
+   "rect": [
+    3250,
+    661,
+    4161,
+    1821
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "robin_ritirata_3_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "robin_ritirata_3_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "robin_ritirata_3_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 1.1
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": -30.1046
+  },
+  "robin_ritirata_4": {
+   "base": "robin_secchio",
+   "passes": {
+    "ambient": {
+     "file": "robin_ritirata_4_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "robin_ritirata_4_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "robin_ritirata_4_lantern.webp",
+     "res": 1.0,
+     "scale": 0.76
+    }
+   },
+   "rect": [
+    3227,
+    746,
+    4164,
+    1693
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "robin_ritirata_4_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "robin_ritirata_4_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "robin_ritirata_4_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.76
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": -30.1046
+  },
+  "robin_ritirata_5": {
+   "base": "robin_secchio",
+   "passes": {
+    "ambient": {
+     "file": "robin_ritirata_5_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "robin_ritirata_5_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "robin_ritirata_5_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3139,
+    912,
+    3933,
+    1680
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "robin_ritirata_5_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "robin_ritirata_5_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "robin_ritirata_5_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": -30.1046
+  },
+  "robin_ritirata_6": {
+   "base": "robin_secchio",
+   "passes": {
+    "ambient": {
+     "file": "robin_ritirata_6_ambient.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lamp": {
+     "file": "robin_ritirata_6_lamp.webp",
+     "res": 1.0,
+     "scale": 0.25
+    },
+    "lantern": {
+     "file": "robin_ritirata_6_lantern.webp",
+     "res": 1.0,
+     "scale": 0.25
+    }
+   },
+   "rect": [
+    3072,
+    1110,
+    3933,
+    1775
+   ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "robin_ritirata_6_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "robin_ritirata_6_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "robin_ritirata_6_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
+   "space": "boat",
+   "yaw": -30.1046
+  },
   "robin_secchio": {
    "eyes": [
     [
