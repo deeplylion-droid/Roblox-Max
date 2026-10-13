@@ -168,7 +168,8 @@ export class App {
     // la notte extra si sblocca finendo l'ultima notte giocabile (sarà la sesta, la Madre)
     const extraOpen = this.save.night > lastNight() || forced === EXTRA_NIGHT;
     // le scorciatoie delle build di prova (prove.ts). Sul titolo, Alt + numero: comincia da quella notte (la demo arriva
-    // solo alla prima; Alt+7 la notte extra). Durante la notte, Alt+V: vinta adesso; Alt+Maiusc + numero: il jumpscare
+    // solo alla prima; Alt+7 la notte extra). Durante la notte, Alt+V: vinta adesso, con un pesce in più da lasciare
+    // nelle tane; Alt+Maiusc + numero: il jumpscare
     // di quel mostro, con la sua morte, come nel gioco. Nelle build per il pubblico __SCORCIATOIE__ è «false» già nel
     // codice e questo blocco non c'è.
     if (__SCORCIATOIE__ && !this.nightKeys) {

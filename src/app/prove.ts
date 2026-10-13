@@ -1,7 +1,8 @@
 /**
  * Le scorciatoie da tastiera per provare il gioco (richiesta dell'utente del 13 ottobre):
  * - sul titolo, Alt + numero: comincia da quella notte (Alt+7: la schermata della notte extra);
- * - durante la notte, Alt+V: la notte vinta adesso, come alle sei con la quota piena (alla sesta parte il finale);
+ * - durante la notte, Alt+V: la notte vinta adesso, come alle sei con la quota piena, e almeno un pesce in più da
+ *   lasciare nelle tane all'alba (alla sesta parte il finale);
  * - durante la notte, Alt+Maiusc + numero: il jumpscare (e la morte) di 1 Gulpy, 2 Molly, 3 Hatch, 4 Robin, 5 Archie,
  *   6 Lampy, 7 Fangy, 8 il Foxy, 9 la Madre, 0 la quota mancata.
  *

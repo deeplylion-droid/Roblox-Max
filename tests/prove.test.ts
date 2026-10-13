@@ -5,13 +5,14 @@ import { JUMPSCARE_TASTI, notteDelTasto } from '../src/app/prove.ts';
 
 // le scorciatoie delle build di prova (src/app/prove.ts): la notte vinta adesso e la morte con un jumpscare a scelta
 describe('scorciatoie di prova', () => {
-  it('Alt+V: la notte vinta adesso, con la quota piena e le sei', () => {
+  it('Alt+V: la notte vinta adesso, con la quota piena, un pesce in più per le tane e le sei', () => {
     const sim = new NightSim(NIGHTS[2]!, 7);
     sim.update(1);
     sim.drainEvents();
     sim.provaVinci();
     expect(sim.outcome).toEqual({ kind: 'won' });
-    expect(sim.fish).toBeGreaterThanOrEqual(NIGHTS[2]!.quota);
+    // almeno un pesce oltre la quota: all'alba si può scendere nelle tane e lasciarlo a qualcuno
+    expect(sim.fish).toBeGreaterThanOrEqual(NIGHTS[2]!.quota + 1);
     expect(sim.hour).toBe(6);
     expect(sim.drainEvents()).toContainEqual({ t: 'won' });
     // a notte finita non fa più niente

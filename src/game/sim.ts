@@ -546,10 +546,11 @@ export class NightSim {
 
   // ───────── prove (le scorciatoie delle build di prova, src/app/prove.ts; mai in quelle per il pubblico) ─────────
 
-  /** La notte vinta adesso, come alle sei con la quota piena (vuoto nelle build per il pubblico). */
+  /** La notte vinta adesso, come alle sei con la quota piena, e almeno un pesce in più: quello da lasciare nelle tane
+   *  all'alba (richiesta dell'utente del 13 ottobre). Vuoto nelle build per il pubblico. */
   provaVinci(): void {
     if (!__SCORCIATOIE__ || !this.playing) return;
-    this.fish = Math.max(this.fish, this.cfg.quota);
+    this.fish = Math.max(this.fish, this.cfg.quota + 1);
     this.time = this.nightLength;
     this.hour = NIGHT_HOURS;
     this.endOfNight();

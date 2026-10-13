@@ -203,7 +203,7 @@ simulazione, quindi seguono la strada vera del gioco: alba, finali, salvataggio,
 |---|---|---|
 | Titolo | **Alt + 1…6** | comincia da quella notte (la demo arriva solo alla prima) |
 | Titolo | **Alt + 7** | la schermata dei livelli della notte extra |
-| Notte | **Alt + V** | la notte vinta adesso, come alle sei con la quota piena (alla sesta parte il finale) |
+| Notte | **Alt + V** | la notte vinta adesso, come alle sei con la quota piena, e almeno un pesce in più, da lasciare nelle tane all'alba (alla sesta parte il finale) |
 | Notte | **Alt + Maiusc + 1…0** | il jumpscare e la morte: 1 Gulpy, 2 Molly, 3 Hatch, 4 Robin, 5 Archie, 6 Lampy, 7 Fangy, 8 il Foxy, 9 la Madre (ti prende da sotto), 0 la quota mancata |
 
 I numeri sono quelli della fila sopra le lettere: contano i tasti (il codice `Digit1`…), non il carattere, quindi
