@@ -533,7 +533,43 @@
      "file": "js_molly_07.webp",
      "scale": 0.25
     }
-   ]
+   ],
+   "senza": {
+    "frames": [
+     {
+      "file": "js_molly_00_senza.webp",
+      "scale": 0.25
+     },
+     {
+      "file": "js_molly_01_senza.webp",
+      "scale": 0.25
+     },
+     {
+      "file": "js_molly_02_senza.webp",
+      "scale": 0.25
+     },
+     {
+      "file": "js_molly_03_senza.webp",
+      "scale": 0.25
+     },
+     {
+      "file": "js_molly_04_senza.webp",
+      "scale": 0.25
+     },
+     {
+      "file": "js_molly_05_senza.webp",
+      "scale": 0.25
+     },
+     {
+      "file": "js_molly_06_senza.webp",
+      "scale": 0.25
+     },
+     {
+      "file": "js_molly_07_senza.webp",
+      "scale": 0.25
+     }
+    ]
+   }
   },
   "quota": {
    "aspect": 1.7778,
