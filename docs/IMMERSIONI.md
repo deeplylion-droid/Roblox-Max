@@ -491,8 +491,10 @@ sono i segnaposto). Dopo la decisione delle inquadrature fisse: `immersioni_prov
 
 ### Cosa manca
 
-- I render veri (le grotte le sta facendo un altro lavoro; le camerette e le pose addormentate sono da approvare),
-  e le bombole sulla barca all'alba (oggi solo il tasto).
-- Le scoperte delle tane nel diario.
-- Il prototipo con la tana di Gulpy per rivedere l'acqua e i cerchietti. (Il mostro sfamato ora conta nella regia
-  senza arrivare: vedi «La simulazione».)
+(Aggiornato il 13 ottobre: i render delle grotte e delle tane sono quelli finali, le cose trovate nelle tane vanno
+nel Diario, il mostro sfamato conta nella regia senza arrivare.)
+
+- Le approvazioni delle camerette, delle pose addormentate e del pesce lasciato nella tana: sono nella pagina
+  «Approvazioni di Splashland» (13 ottobre).
+- Le bombole sulla barca all'alba: oggi c'è il tasto «Scendi con le bombole» con la loro icona, non l'oggetto sulla
+  barca.
