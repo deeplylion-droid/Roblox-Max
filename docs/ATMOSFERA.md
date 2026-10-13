@@ -121,7 +121,8 @@ Il mondo e la barca stanno in una notte. Il resto in un'altra.
 lampara crea un alone bianco davanti alla barca che è brutto»): era la luce della barca diffusa nella nebbia del
 mondo, un velo chiaro su metà della scena. Il passo `lamp` del mondo con la nebbia vale un quinto (la sua scala nel
 manifest, 0,25 → 0,05): resta un velo leggero attorno alla lampada, si rivedono la luna sull'acqua e il paese. La serie
-senza nebbia non cambia. Se si reinstalla il mondo, va rifatto. Da allora la nebbia è anche **spenta di partenza**.
+senza nebbia non cambia. Se si reinstalla il mondo, va rifatto. Da allora la nebbia è anche **spenta di partenza**
+(fino al 13 ottobre sera: vedi sotto).
 
 **Ripulitura dopo il render** (`tools/render/liscia_nebbia.py`, 12 ottobre sera, segnalazione dell'utente: «sul lato
 sinistro della barca la nebbia sembra pixellare la luce»): la diffusione nella nebbia della lanterna (e in parte della
@@ -151,6 +152,9 @@ nebbia»). Con la nebbia accesa:
 - **Il binocolo** (`src/app/night.ts`): si alza in 0,3 s e si abbassa in 0,22, a velocità costante; lo zoom cresce
   uniforme (in scala logaritmica: sui gradi quasi tutto l'ingrandimento arrivava alla fine); i luoghi ad alta
   risoluzione compaiono solo dal 60% della salita in su (`placesAmount`), quando riempiono il cerchio.
+
+Visto il risultato, l'utente («così la nebbia mi piace molto di più»): **la nebbia è di nuovo accesa di partenza**, e i
+salvataggi di prima la ritrovano accesa una volta (`OPTIONS_REV` 2 in `src/app/save.ts`); poi resta come la si lascia.
 
 ## Mostri e jumpscare con la nebbia (12-13 ottobre, ramo `claude/mostri-nebbia`, approvati il 13 ottobre)
 

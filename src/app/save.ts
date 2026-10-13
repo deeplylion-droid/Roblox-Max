@@ -78,10 +78,10 @@ export const NESSUNO_DIVES = 3;
 const isMonster = (x: unknown): x is MonsterId => typeof x === 'string' && Object.hasOwn(ARRIVAL, x);
 
 const KEY = 'splashland.save.v1';
-const OPTIONS_REV = 1;
+const OPTIONS_REV = 2;
 
 export function defaultOptions(): Options {
-  return { master: 0.9, music: 0.7, sfx: 0.9, brightness: 1, subtitles: true, captions: false, reduceFlash: false, sensitivity: 1, quality: 1, textSize: 1, fog: false, tutorial: false };
+  return { master: 0.9, music: 0.7, sfx: 0.9, brightness: 1, subtitles: true, captions: false, reduceFlash: false, sensitivity: 1, quality: 1, textSize: 1, fog: true, tutorial: false };
 }
 
 function fresh(): SaveData {
@@ -95,8 +95,10 @@ export function loadSave(): SaveData {
     const d = JSON.parse(raw) as Partial<SaveData>;
     const f = fresh();
     const options = { ...f.options, ...(d.options ?? {}) };
-    // la nebbia era accesa di partenza: chi non l'ha mai toccata se la ritrova spenta, come i giocatori nuovi
-    if ((d.rev ?? 0) < 1) options.fog = false;
+    // la nebbia: accesa di partenza, poi spenta dal 12 ottobre sera, di nuovo accesa dal 13 ottobre sera, rifatta senza
+    // l'alone della lampara (scelta dell'utente). I salvataggi di prima la ritrovano accesa, una volta; poi resta come
+    // la si lascia
+    if ((d.rev ?? 0) < 2) options.fog = true;
     return {
       version: 1,
       rev: OPTIONS_REV,

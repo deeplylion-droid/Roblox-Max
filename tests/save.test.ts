@@ -102,19 +102,21 @@ describe('«Continua»', () => {
 });
 
 describe('L’opzione «Nebbia»', () => {
-  it('di partenza è spenta, come «Tutorial sempre attivo»', () => {
-    expect(defaultOptions().fog).toBe(false);
+  it('di partenza è accesa (dal 13 ottobre sera); «Tutorial sempre attivo» no', () => {
+    expect(defaultOptions().fog).toBe(true);
     expect(defaultOptions().tutorial).toBe(false);
   });
 
-  it('i salvataggi di quando era accesa di partenza la ritrovano spenta; dopo, resta come la si lascia', () => {
+  it('i salvataggi di quando era spenta di partenza la ritrovano accesa, una volta; dopo, resta come la si lascia', () => {
     const store = new Map<string, string>();
     vi.stubGlobal('localStorage', { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => void store.set(k, v) });
     try {
-      store.set('splashland.save.v1', JSON.stringify({ ...save(), options: { ...defaultOptions(), fog: true } }));
+      for (const rev of [undefined, 1]) {
+        store.set('splashland.save.v1', JSON.stringify({ ...save(), rev, options: { ...defaultOptions(), fog: false } }));
+        expect(loadSave().options.fog, `rev ${rev}`).toBe(true);
+      }
+      store.set('splashland.save.v1', JSON.stringify({ ...save(), rev: 2, options: { ...defaultOptions(), fog: false } }));
       expect(loadSave().options.fog).toBe(false);
-      store.set('splashland.save.v1', JSON.stringify({ ...save(), rev: 1, options: { ...defaultOptions(), fog: true } }));
-      expect(loadSave().options.fog).toBe(true);
       expect(loadSave().options.tutorial).toBe(false);
     } finally {
       vi.unstubAllGlobals();
