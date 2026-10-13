@@ -25,7 +25,7 @@
     "lamp": {
      "file": "archie_fiato_lamp.webp",
      "res": 1.0,
-     "scale": 0.79
+     "scale": 0.67
     },
     "lantern": {
      "file": "archie_fiato_lantern.webp",
@@ -39,6 +39,25 @@
     4185,
     602
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "archie_fiato_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "archie_fiato_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.79
+     },
+     "lantern": {
+      "file": "archie_fiato_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
    "space": "boat",
    "yaw": 10.7975
   },
@@ -112,6 +131,25 @@
     4206,
     1174
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "archie_soffia_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "archie_soffia_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 2.7
+     },
+     "lantern": {
+      "file": "archie_soffia_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
    "space": "boat",
    "yaw": 10.7975
   },
@@ -126,7 +164,7 @@
     "lamp": {
      "file": "archie_trombetta_mezza_lamp.webp",
      "res": 1.0,
-     "scale": 1.8
+     "scale": 1.5
     },
     "lantern": {
      "file": "archie_trombetta_mezza_lantern.webp",
@@ -140,6 +178,25 @@
     4185,
     631
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "archie_trombetta_mezza_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "archie_trombetta_mezza_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 1.8
+     },
+     "lantern": {
+      "file": "archie_trombetta_mezza_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
    "space": "boat",
    "yaw": 10.7975
   },
@@ -168,6 +225,25 @@
     4185,
     677
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "archie_trombetta_tutta_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "archie_trombetta_tutta_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 6.0
+     },
+     "lantern": {
+      "file": "archie_trombetta_tutta_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
    "space": "boat",
    "yaw": 10.7975
   },
