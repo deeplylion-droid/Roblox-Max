@@ -2,8 +2,8 @@ import { existsSync } from 'node:fs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { RITRATTI, mostriDellaNotte, ritrattoSrc, scegliRitratto } from '../src/app/ritratti.ts';
 import { loadSave, meet } from '../src/app/save.ts';
-import { LOGO } from '../src/app/screens.ts';
-import { EXTRA_NIGHT, NIGHTS, extraLevels, extraNight } from '../src/game/config.ts';
+import { LOGO, SCHEDE } from '../src/app/screens.ts';
+import { EXTRA_IDS, EXTRA_NIGHT, NIGHTS, extraLevels, extraNight } from '../src/game/config.ts';
 
 describe('Il ritratto del menu principale', () => {
   it('al primo avvio, senza nessun mostro incontrato, Molly', () => {
@@ -31,6 +31,11 @@ describe('Il ritratto del menu principale', () => {
 
   it('il logo sopra il ritratto: l’insegna al neon e il fotogramma della S che si riaccende (tools/render/logo.py)', () => {
     for (const f of [LOGO.insegna, LOGO.tremolio]) expect(existsSync(`public/${f}`), f).toBe(true);
+  });
+
+  it('le schede della notte extra: la faccia di tutti e nove, la Madre e Soggy compresi (tools/render/schede.py)', () => {
+    expect(EXTRA_IDS).toHaveLength(9);
+    for (const who of EXTRA_IDS) expect(existsSync(`public/${SCHEDE(who)}`), who).toBe(true);
   });
 
   it('i file: il ritratto fermo e i due fotogrammi dello scatto', () => {

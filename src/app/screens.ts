@@ -1,6 +1,6 @@
 /** Schermate in DOM sopra la scena: avvertenza, titolo, intro, pausa, opzioni, diario, alba, game over. */
 import { FISH, FISH_BY_ID, type FishFamily, type FishSpecies } from '../game/catalog.ts';
-import { EXTRA_IDS, EXTRA_MAX, EXTRA_NIGHT, EXTRA_PRESETS, FOXY_NAME, LORE, clampLevel, type ExtraLevels } from '../game/config.ts';
+import { EXTRA_IDS, EXTRA_MAX, EXTRA_NIGHT, EXTRA_PRESETS, FOXY_NAME, LORE, clampLevel, type ExtraId, type ExtraLevels } from '../game/config.ts';
 import { LANGS, LANG_NAMES, LORE_TEXT, STRINGS, decimal, testiPesce, type Lang } from '../i18n.ts';
 import { disegnoSrc } from './disegni.ts';
 import { badge, dualText, type PadButton } from './pad.ts';
@@ -13,6 +13,9 @@ const FISH_SHAPE =
 /** Il logo del menu principale (tools/render/logo.py): l'insegna al neon, e lo stesso quadro con la S spenta che si
  *  riaccende un attimo. */
 export const LOGO = { insegna: 'assets/img/logo/logo.webp', tremolio: 'assets/img/logo/logo_tremolio.webp' };
+
+/** La faccia di ognuno sulla sua scheda della notte extra (tools/render/schede.py). */
+export const SCHEDE = (who: ExtraId): string => `assets/img/schede/${who}.webp`;
 
 export function h<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string, string> = {}, ...kids: (Node | string)[]): HTMLElementTagNameMap[K] {
   const e = document.createElement(tag);
@@ -356,7 +359,9 @@ export class Screens {
 
   /**
    * La notte extra (notte 7): per ognuno dei sette mostri, la Madre e Soggy il livello da 0 (non viene) a 20 (feroce), con − e +,
-   * e qualche preimpostazione. onChange a ogni modifica (l'App la salva), onStart per salpare.
+   * e qualche preimpostazione. onChange a ogni modifica (l'App la salva), onStart per salpare. Ogni scheda ha in cima la
+   * faccia di chi è (13 ottobre, come nella Custom Night di FNAF; da approvare): grigia se non viene, col rosso intorno
+   * quando è feroce.
    */
   extraNight(levels: ExtraLevels, o: { onChange: (l: ExtraLevels) => void; onStart: (l: ExtraLevels) => void; onBack: () => void }): void {
     const S = this.S;
@@ -382,6 +387,7 @@ export class Screens {
       const card = h(
         'div',
         { class: 'extra-card', 'data-who': who },
+        h('img', { class: 'foto', src: SCHEDE(who), alt: '', draggable: 'false' }),
         h('div', { class: 'who' }, who === 'mother' ? S.extraMother : who === 'foxy' ? FOXY_NAME : who[0]!.toUpperCase() + who.slice(1)),
         h('div', { class: 'rule' }, S.extraRules[who]),
         h('div', { class: 'ctl' }, minus, num, plus),

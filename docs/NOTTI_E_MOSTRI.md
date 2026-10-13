@@ -707,8 +707,14 @@ Lampy, il terzo rumore di Fangy): cambiano solo **quando arriva, quanto spesso t
   *feroce* (15-20). Più è alto, più la scheda si tinge di rosso e il numero passa dall'ambra al rosso sangue; a 0 la
   scheda si spegne e il nome è barrato. Sotto, le preimpostazioni **Tutti a 0, Tutti a 5, Tutti a 10, Tutti a 20,
   I primi tre** (Gulpy, Molly e Hatch a 15, gli altri e la Madre a 0; le altre valgono anche per la Madre). Poi **Salpa** e Indietro. I livelli scelti restano nel
-  salvataggio per la volta dopo (all'inizio tutti a 5). Per ora ci sono i nomi: i **ritratti** dei mostri (per esempio le
-  foto sbiadite dell'edicola) sono da fare.
+  salvataggio per la volta dopo (all'inizio tutti a 5).
+- **Le facce sulle schede** (13 ottobre, fra le rifiniture scelte dall'utente; **da approvare**): in cima a ogni scheda
+  la faccia di chi è, come nella Custom Night di FNAF. Niente render nuovi (`tools/render/schede.py`): i sette mostri
+  sono ritagliati dai ritratti del menu; la Madre è il suo strato della notte 6 (la testa che sale accanto alla barca,
+  con l'occhio enorme), coi passi di luce del gioco ricomposti; Soggy è un fotogramma del suo jumpscare (la faccia
+  dentro il costume di Mama Marina), scurito come i ritratti. Tutte col buio ai bordi. Più il livello è alto, più c'è
+  rosso attorno alla faccia; a 0 è grigia. Nelle finestre basse con le schede su due file (fino a 1260×660) la faccia
+  sta sfumata dietro il nome, così la schermata non scorre.
 - **La notte**: l'intro dice «Notte 7» con la quota; vincerla non sblocca niente e non cambia «Continua»; alla fine
   «Riprova» la rigioca con gli stessi livelli. Per le prove: `?notte=7` (Nuova partita apre la schermata dei livelli,
   e il pulsante compare anche se non è sbloccata) e **Alt+7** sul titolo.

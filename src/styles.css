@@ -189,6 +189,10 @@ html, body {
   background: linear-gradient(180deg, rgba(233,226,208,.05), rgba(122,14,20,calc(var(--fury) * .45))), rgba(5,8,13,.72); border-radius: 3px; transition: background .2s, opacity .2s, border-color .2s; }
 /* un nome lungo («The Mother») va a capo; il resto della scheda resta in fila con quello delle altre */
 .extra-card .who { font-family: 'Limelight', serif; font-size: 21px; letter-spacing: .04em; text-align: center; line-height: 1.05; }
+/* la faccia di ognuno (tools/render/schede.py): col rosso intorno quando è feroce, grigia quando non viene */
+.extra-card .foto { width: 112px; height: 112px; border-radius: 2px; margin-bottom: 4px;
+  box-shadow: 0 0 calc(var(--fury) * 16px) rgba(160,20,28,calc(var(--fury) * .9)); transition: box-shadow .2s, filter .2s; }
+.extra-card.off .foto { filter: grayscale(1) brightness(.6); box-shadow: none; }
 .extra-card .rule { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); min-height: 2.6em; display: flex; align-items: center; margin-top: auto; }
 .extra-card .ctl { display: flex; align-items: center; gap: 2px; }
 .extra-card .lv { font-family: 'Limelight', serif; font-weight: normal; font-size: 36px; min-width: 1.6em; color: color-mix(in srgb, var(--blood) calc(var(--fury) * 100%), var(--amber)); }
@@ -201,12 +205,20 @@ html, body {
 .extra-screen .extra-presets button { font-size: 17px; padding: 4px 10px; border: 1px solid rgba(233,226,208,.14); }
 .extra-screen .menu { flex-direction: row; gap: 28px; margin-top: 20px; }
 @media (max-width: 1260px) { .extra-grid { max-width: 660px; } }
+/* due file di schede in una finestra bassa: la faccia non ruba altezza, sta sfumata dietro il nome */
+@media (max-width: 1260px) and (max-height: 660px) {
+  .extra-card { position: relative; overflow: hidden; }
+  .extra-card > * { position: relative; }
+  .extra-screen .extra-card .foto { position: absolute; inset: 0 0 auto; width: 100%; height: auto; margin: 0; opacity: .38; box-shadow: none;
+    -webkit-mask-image: linear-gradient(#000 35%, transparent 80%); mask-image: linear-gradient(#000 35%, transparent 80%); }
+}
 /* finestre basse (fino a 960×540): schede e titolo più compatti, e se proprio non ci sta la schermata scorre */
 @media (max-height: 700px) {
   .extra-screen { justify-content: safe center; overflow-y: auto; padding-block: 2vh; }
   .extra-screen h2 { font-size: 34px; margin-bottom: 4px; }
   .extra-screen > p { margin-bottom: 10px; }
   .extra-card { padding: 8px 6px 8px; gap: 2px; }
+  .extra-card .foto { width: 72px; height: 72px; margin-bottom: 2px; }
   .extra-card .lv { font-size: 28px; }
   .extra-presets { margin-top: 10px; }
   .extra-screen .menu { margin-top: 10px; }
