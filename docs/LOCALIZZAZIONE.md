@@ -66,14 +66,19 @@ sessione delle grotte (`tools/render/tane.py`, `tools/render/disegni_tane.py`).
 | Tana | Si leggeva | Diventa |
 |---|---|---|
 | Archie | lo striscione «TANTI AU…» | HAPPY BIRTHDAY |
-| Gulpy | il manifesto «GELATI / ESTATE 1997» | ICE CREAM / SUMMER 1997 |
+| Gulpy | il manifesto «GELATI / ESTATE 1997» | ICE CREAM / SUMMER 1997 (e a sinistra FRIES / MAXI) |
+| Gulpy | il menu sul bancone (la cosa da trovare): PATATINE, GELATO, PANINO, «TUTTO!» | MENU, HOT DOG, poi solo i disegnini coi prezzi, e «!!!» |
 | Robin | il manifesto «…TTI SMARRITI» | LOST & FOUND |
-| Hatch | il foglio della conta (la cosa da trovare) «DIECI!» | 10! (il Diario cita la stessa scritta, in ogni lingua) |
+| Robin | il fumetto del disegno da trovare, «VOGLIO TUTTO» | «!!!» |
+| Hatch | il foglio della conta (la cosa da trovare) «DIECI!» | 10! (sotto, piccolo e illeggibile, «CHI C'È C'È») |
+| Lampy | «BENVENUTA! / LUGLIO 2003» | WELCOME! / JULY 2003; il cartoncino della culla «3,1 KG – 7 / 2003» |
+| Molly | — | la foto sulla sabbia, «6 / 1997» |
 
-Nel gioco non si leggono, ma nel sorgente diventano neutre per i render futuri: il menu di Gulpy (PATATINE, GELATO,
-PANINO, TUTTO!), «si gioca a occhi chiusi» di Fangy, «FESTA / MAGGIO 1999» di Archie, «BENVENUTA! / LUGLIO 2003» di
-Lampy, «CHI C'È C'È» di Hatch. Le cose da trovare hanno il loro testo nel Diario (`LORE_TEXT` in `src/i18n.ts`), in
-ogni lingua.
+Tutte rifatte la notte del 12-13 ottobre e guardate come il giocatore (scelte da approvare: le scritte inglesi o
+neutre e i «!!!»). Il Diario (`LORE_TEXT` in `src/i18n.ts`) descrive ogni cosa da trovare com'è disegnata, in ogni
+lingua. Restano, ma non si leggono nel gioco: il manifesto di Archie dice ancora «FESTA / MAGGIO 1999» nelle immagini
+(nel sorgente è già «PARTY / MAY 1999»); la tana di Fangy non è stata rifatta (nel sorgente «EYES CLOSED!» e «AUGUST»);
+nei disegni già renderizzati l'«IO» di Fangy e le iniziali italiane dei mesi di Archie, piccoli.
 
 ### Da decidere più avanti
 
