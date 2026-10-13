@@ -299,7 +299,7 @@
       "passes": {
        "ambient": {
         "file": "immersioni/tana_molly_posa_ambient.webp",
-        "scale": 0.25
+        "scale": 0.41000000000000003
        },
        "lantern": {
         "file": "immersioni/tana_molly_posa_lantern.webp",
@@ -317,7 +317,7 @@
       "passes": {
        "ambient": {
         "file": "immersioni/tana_molly_respiro_ambient.webp",
-        "scale": 0.25
+        "scale": 0.41000000000000003
        },
        "lantern": {
         "file": "immersioni/tana_molly_respiro_lantern.webp",
@@ -358,8 +358,8 @@
    },
    "find": {
     "lore": "den_molly",
-    "yaw": 32.5,
-    "pitch": 2.0,
+    "yaw": 20.7,
+    "pitch": -24.3,
     "r": 5
    },
    "acquaCotta": true
