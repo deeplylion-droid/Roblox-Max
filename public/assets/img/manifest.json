@@ -2296,6 +2296,25 @@
     5425,
     1946
    ],
+   "senza": {
+    "passes": {
+     "ambient": {
+      "file": "madre_sale_ambient_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lamp": {
+      "file": "madre_sale_lamp_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     },
+     "lantern": {
+      "file": "madre_sale_lantern_senza.webp",
+      "res": 1.0,
+      "scale": 0.25
+     }
+    }
+   },
    "space": "world",
    "yaw": -63.9607
   },
