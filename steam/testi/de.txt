@@ -1,0 +1,40 @@
+SPLASHLAND IS CLOSED! · i testi della pagina Steam · Deutsch
+Su Steamworks: Store page admin, lingua «German».
+DA APPROVARE: traduzione automatica, da far rileggere a un madrelingua prima di incollarla.
+
+===== Descrizione breve (Short description, 259 caratteri su 300) =====
+
+1997 verschwanden in Mama Marina's Splashland drei Kinder. Jetzt angelst du in der dunklen Bucht hinter dem verlassenen Wasserpark und musst bis sechs Uhr morgens den Eimer für die Mutter füllen, während ihre Kinder an Bord klettern. Jedes will etwas anderes.
+
+===== Descrizione lunga (About this game) =====
+
+[h2]Die Nachtschicht beginnt um Mitternacht.[/h2]
+Du sitzt in einem kleinen Holzboot mitten in der Bucht, mit einer Lampe, einer Angel und einem leeren Eimer. Hinter dir winden sich die Rutschen von Mama Marina's Splashland im Nebel. Seit dem Sommer 1997 ist dort niemand mehr geschwommen.
+
+Erfülle die Quote vor sechs Uhr morgens. Die Mutter hat Hunger, und wenn die Fischer sie nicht füttern, holt sie sich noch ein Kind.
+
+Ihre Kinder steigen aus dem Wasser, um dich zu suchen. Sie tragen noch, was sie im Park anhatten: einen Enten-Schwimmring, Schwimmflügel, ein Leuchtspielzeug aus dem Souvenirladen. Jedes hat eine Angewohnheit aus der Zeit behalten, als es klein war, und jetzt ist diese Angewohnheit eine Regel:
+
+[list]
+[*]füttere Gulpy, sonst frisst er dich;
+[*]lass Molly nicht aus den Augen, sonst zieht sie das Boot in die Tiefe;
+[*]versteck dich unter der Plane, während Hatch zählt;
+[*]und weitere, Nacht für Nacht.
+[/list]
+
+Jede Sekunde, in der du dich verteidigst, ist eine Sekunde, in der du nicht angelst.
+
+[h2]Features[/h2]
+[list]
+[*]Sechs Nächte, dann eine Extranacht, in der du jedes Monster von 0 bis 20 einstellst.
+[*]Acht Monster, jedes mit seiner eigenen Regel. Und die Mutter.
+[*]100 untote Fische zum Angeln und Sammeln im Katalog: Skelettierte, Zombies, Verglitchte, Verderbte, Blutende.
+[*]Im Morgengrauen legst du die Tauchflaschen an und tauchst hinab in die Höhlen der Monster. Was du dort zurücklässt, entscheidet, wie es endet.
+[*]Ein Fernglas, um den verlassenen Park abzusuchen: Manche Geheimnisse sieht man nur vom Boot aus.
+[*]Eine hellere Lampe lockt mehr Fische an. Und nicht nur Fische.
+[*]Räumlicher Klang: am besten mit Kopfhörern spielen.
+[*]Volle Controller-Unterstützung, auch auf dem Steam Deck.
+[*]Oberfläche und Untertitel in 9 Sprachen.
+[/list]
+
+[i]Enthält Jumpscares und blinkende Lichter. Eine Option reduziert Blitze und Bildschirmwackeln.[/i]

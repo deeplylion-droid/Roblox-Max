@@ -1,0 +1,40 @@
+SPLASHLAND IS CLOSED! · i testi della pagina Steam · Français
+Su Steamworks: Store page admin, lingua «French».
+DA APPROVARE: traduzione automatica, da far rileggere a un madrelingua prima di incollarla.
+
+===== Descrizione breve (Short description, 281 caratteri su 300) =====
+
+En 1997, trois enfants ont disparu à Mama Marina's Splashland. Aujourd’hui, tu pêches dans la baie obscure derrière le parc aquatique abandonné, et tu dois remplir le seau pour la Mère avant six heures pendant que ses enfants montent à bord. Chacun veut quelque chose de différent.
+
+===== Descrizione lunga (About this game) =====
+
+[h2]Le service de nuit commence à minuit.[/h2]
+Te voilà dans une petite barque en bois au milieu de la baie, avec une lampe, une canne et un seau vide. Derrière toi, les toboggans de Mama Marina's Splashland se tordent dans le brouillard. Personne ne s’y est baigné depuis l’été 1997.
+
+Remplis le quota avant six heures. La Mère a faim, et quand les pêcheurs ne la nourrissent pas, elle prend un autre enfant.
+
+Ses enfants remontent de l’eau pour venir te chercher. Ils portent encore ce qu’ils avaient au parc : une bouée canard, des brassards, un jouet lumineux de la boutique de souvenirs. Chacun a gardé une habitude de quand il était petit, et cette habitude est devenue une règle :
+
+[list]
+[*]nourris Gulpy, ou c’est toi qu’il mange ;
+[*]ne quitte pas Molly des yeux, ou elle entraîne la barque par le fond ;
+[*]cache-toi sous la bâche pendant que Hatch compte ;
+[*]et d’autres encore, nuit après nuit.
+[/list]
+
+Chaque seconde passée à te défendre est une seconde où tu ne pêches pas.
+
+[h2]Caractéristiques[/h2]
+[list]
+[*]Six nuits, puis une Nuit bonus où tu règles chaque monstre de 0 à 20.
+[*]Huit monstres, chacun avec sa règle. Et la Mère.
+[*]100 poissons morts-vivants à pêcher et à collectionner dans le Catalogue : squelettiques, zombies, glitchés, corrompus, sanglants.
+[*]À l’aube, enfile les bouteilles et descends dans les tanières des monstres. Ce que tu y laisses décide de la fin.
+[*]Des jumelles pour fouiller le parc abandonné : certains secrets ne se voient que depuis la barque.
+[*]Une lampe plus forte attire plus de poissons. Et pas seulement des poissons.
+[*]Son spatialisé : joue avec un casque.
+[*]Entièrement jouable à la manette, Steam Deck compris.
+[*]Interface et sous-titres en 9 langues.
+[/list]
+
+[i]Contient des jumpscares et des lumières clignotantes. Une option réduit les flashs et les secousses de l’écran.[/i]

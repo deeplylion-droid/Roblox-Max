@@ -1,0 +1,40 @@
+SPLASHLAND IS CLOSED! · i testi della pagina Steam · Português (Brasil)
+Su Steamworks: Store page admin, lingua «Portuguese - Brazil».
+DA APPROVARE: traduzione automatica, da far rileggere a un madrelingua prima di incollarla.
+
+===== Descrizione breve (Short description, 264 caratteri su 300) =====
+
+Em 1997, três crianças desapareceram no Mama Marina's Splashland. Agora você pesca na baía escura atrás do parque aquático abandonado e precisa encher o balde para a Mãe até as seis da manhã, enquanto os filhos dela sobem a bordo. Cada um quer uma coisa diferente.
+
+===== Descrizione lunga (About this game) =====
+
+[h2]O turno da noite começa à meia-noite.[/h2]
+Você está num pequeno barco de madeira no meio da baía, com um lampião, uma vara e um balde vazio. Atrás de você, os tobogãs do Mama Marina's Splashland se retorcem na neblina. Ninguém entra na água ali desde o verão de 1997.
+
+Cumpra a cota antes das seis. A Mãe está com fome e, quando os pescadores não a alimentam, leva outra criança.
+
+Os filhos dela sobem da água para procurar você. Ainda usam o que tinham no parque: uma boia de patinho, boias de braço, um brinquedo luminoso da loja de lembranças. Cada um guardou um hábito de quando era pequeno, e agora esse hábito é uma regra:
+
+[list]
+[*]alimente Gulpy, ou ele come você;
+[*]não tire os olhos de Molly, ou ela arrasta o barco para o fundo;
+[*]esconda-se sob a lona enquanto Hatch conta;
+[*]e outras mais, noite após noite.
+[/list]
+
+Cada segundo que você passa se defendendo é um segundo sem pescar.
+
+[h2]Recursos[/h2]
+[list]
+[*]Seis noites e depois uma Noite extra em que você ajusta cada monstro de 0 a 20.
+[*]Oito monstros, cada um com sua regra. E a Mãe.
+[*]100 peixes mortos-vivos para pescar e colecionar no Catálogo: esqueléticos, zumbis, glitchados, corrompidos, sangrentos.
+[*]Ao amanhecer, coloque os cilindros e desça até as tocas dos monstros. O que você deixar lá decide como tudo termina.
+[*]O binóculo para vasculhar o parque abandonado: alguns segredos só se veem do barco.
+[*]Um lampião mais forte atrai mais peixes. E não só peixes.
+[*]Som espacial: jogue com fones de ouvido.
+[*]Suporte completo a controle, inclusive no Steam Deck.
+[*]Interface e legendas em 9 idiomas.
+[/list]
+
+[i]Contém jumpscares e luzes piscantes. Uma opção reduz clarões e tremores da tela.[/i]

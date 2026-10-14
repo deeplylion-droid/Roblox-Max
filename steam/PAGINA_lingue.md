@@ -67,8 +67,8 @@ Massimo 300 caratteri.
 
 ## Descrizione lunga («About this game»)
 
-Come in `PAGINA.md`: qui il testo, la versione col formato di Steam (`[h2]`, `[list][*]…[/list]`) si fa quando si
-carica.
+Come in `PAGINA.md`: qui il testo; la versione col formato di Steam (`[h2]`, `[list][*]…[/list]`), da incollare, è
+in `testi/` (`tools/steam_testi.py` la rifà da qui).
 
 ### Español
 

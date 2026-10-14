@@ -1,0 +1,40 @@
+SPLASHLAND IS CLOSED! · i testi della pagina Steam · Español
+Su Steamworks: Store page admin, lingua «Spanish - Spain».
+DA APPROVARE: traduzione automatica, da far rileggere a un madrelingua prima di incollarla.
+
+===== Descrizione breve (Short description, 267 caratteri su 300) =====
+
+En 1997, tres niños desaparecieron en Mama Marina's Splashland. Ahora pescas en la bahía oscura que hay detrás del parque acuático abandonado, y antes de las seis tienes que llenar el cubo para la Madre mientras sus hijos suben a bordo. Cada uno quiere algo distinto.
+
+===== Descrizione lunga (About this game) =====
+
+[h2]El turno de noche empieza a medianoche.[/h2]
+Estás en una barquita de madera en medio de la bahía, con una lámpara, una caña y un cubo vacío. A tu espalda, los toboganes de Mama Marina's Splashland se retuercen en la niebla. Nadie se baña allí desde el verano de 1997.
+
+Completa la cuota antes de las seis. La Madre tiene hambre, y cuando los pescadores no la alimentan, se lleva a otro niño.
+
+Sus hijos suben del agua a buscarte. Todavía llevan lo que tenían en el parque: un flotador de patito, unos manguitos, un juguete luminoso de la tienda de recuerdos. Cada uno ha conservado una costumbre de cuando era pequeño, y ahora esa costumbre es una regla:
+
+[list]
+[*]dale de comer a Gulpy, o te come a ti;
+[*]no le quites los ojos de encima a Molly, o arrastra la barca al fondo;
+[*]escóndete bajo la lona mientras Hatch cuenta;
+[*]y otras más, noche tras noche.
+[/list]
+
+Cada segundo que pasas defendiéndote es un segundo que no pescas.
+
+[h2]Características[/h2]
+[list]
+[*]Seis noches y después una Noche extra en la que eliges el nivel de cada monstruo, de 0 a 20.
+[*]Ocho monstruos, cada uno con su regla. Y la Madre.
+[*]100 peces no muertos que pescar y coleccionar en el Catálogo: esqueléticos, zombis, distorsionados, corrompidos, sangrantes.
+[*]Al amanecer, ponte las botellas y baja a las guaridas de los monstruos. Lo que dejes allí decide cómo termina todo.
+[*]Los prismáticos para registrar el parque abandonado: algunos secretos solo se ven desde la barca.
+[*]Una lámpara más potente atrae más peces. Y no solo peces.
+[*]Sonido espacial: juega con auriculares.
+[*]Compatible por completo con mando, también en Steam Deck.
+[*]Interfaz y subtítulos en 9 idiomas.
+[/list]
+
+[i]Contiene jumpscares y luces intermitentes. Una opción reduce los destellos y las sacudidas de la pantalla.[/i]

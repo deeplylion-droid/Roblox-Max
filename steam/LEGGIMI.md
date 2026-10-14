@@ -3,7 +3,7 @@
 Le immagini e il trailer della pagina del negozio e della libreria di Steam. Stanno qui, fuori dal gioco (`public/`),
 perché non vanno nella build: si caricano a mano su Steamworks, nella pagina del gioco (**Store page admin → Graphical
 assets** per le capsule e gli screenshot, **Trailers** per il trailer, **Library assets** per la libreria). Il piano di
-tutti i passi è nella pagina «Splashland su Steam».
+tutti i passi è nella pagina «Splashland su Steam»; cosa va dove su Steamworks, voce per voce, è in `STEAMWORKS.md`.
 
 **Approvate dall'utente il 13 ottobre.** La scelta fra tre proposte per la capsula è stata la A: Molly che si affaccia dal bordo della
 barca, col logo al neon. Le altre due erano Gulpy che sale alla prua (B) e Hatch con l'esca (C). Per il Catalogo

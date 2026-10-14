@@ -29,7 +29,7 @@ Si vede accanto alla capsula, in alto a destra; massimo 300 caratteri.
 ## Descrizione lunga («About this game»)
 
 Su Steam si scrive col suo formato: `[h2]` per i titoli, `[list][*]…[/list]` per gli elenchi. Qui sotto c'è il testo;
-la versione col formato di Steam si fa quando si carica.
+la versione col formato di Steam, da incollare, è in `testi/` (`tools/steam_testi.py` la rifà da qui).
 
 ### English
 
