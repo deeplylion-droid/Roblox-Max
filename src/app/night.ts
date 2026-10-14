@@ -197,7 +197,7 @@ const POSE = {
   sagoma: 'sagoma_nebbia',
 } as const;
 
-/** La sagoma nella nebbia (un falso allarme, 13 ottobre, da approvare): quanto la vela la nebbia (lo strato è reso senza
+/** La sagoma nella nebbia (un falso allarme, 13 ottobre, approvata il 14): quanto la vela la nebbia (lo strato è reso senza
  *  la nebbia davanti), quanto lontano dal centro della vista compare (gradi, da un lato a caso: al bordo dello schermo),
  *  quanto ci mette ad entrare, quanto resta se non la guardi (s) e quanto ti deve stare davanti per sparire (gradi). */
 const SAGOMA = { velo: 0.7, lato: [30, 38], entra: 1.6, resta: 9, guardata: 12 } as const;
@@ -1977,7 +1977,7 @@ export class Night {
    * I falsi allarmi (più paura, idea approvata il 12 ottobre, i dettagli il 13 ottobre): rari e innocui, solo quando
    * è tutto calmo da almeno 20 s. I colpi sullo scafo di Molly, da un lato, senza nessuno; o un tonfo in acqua
    * dietro di te. Il cuore sussulta (il pericolo sale per un momento e torna giù piano). Con la nebbia accesa, a volte
-   * (13 ottobre, da approvare) la sagoma nella nebbia: un bambino fermo sull'acqua al bordo della vista, senza un
+   * (13 ottobre, approvata il 14) la sagoma nella nebbia: un bambino fermo sull'acqua al bordo della vista, senza un
    * suono; il cuore sussulta quando lo guardi, e lui sparisce (updateSagoma).
    */
   private updateFalseAlarms(dt: number, quiet: boolean): void {

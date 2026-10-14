@@ -360,7 +360,7 @@ export class Screens {
   /**
    * La notte extra (notte 7): per ognuno dei sette mostri, la Madre e Soggy il livello da 0 (non viene) a 20 (feroce), con − e +,
    * e qualche preimpostazione. onChange a ogni modifica (l'App la salva), onStart per salpare. Ogni scheda ha in cima la
-   * faccia di chi è (13 ottobre, come nella Custom Night di FNAF; da approvare): grigia se non viene, col rosso intorno
+   * faccia di chi è (13 ottobre, come nella Custom Night di FNAF; approvate il 14): grigia se non viene, col rosso intorno
    * quando è feroce.
    */
   extraNight(levels: ExtraLevels, o: { onChange: (l: ExtraLevels) => void; onStart: (l: ExtraLevels) => void; onBack: () => void }): void {

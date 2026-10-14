@@ -22,7 +22,7 @@ mare nasconde la parte sott'acqua.
     fangy_ascolta    Fangy nell'acqua accanto alla barca, a destra dietro il pescatore: curvo, la testa spinta avanti
                      verso il rumore, le nocche in acqua (notte 5; approvata l'11 ottobre)
     sagoma_nebbia    il falso allarme della sagoma nella nebbia: un bambino della foto del 1997 in piedi sull'acqua,
-                     lontano, girato verso la barca (13 ottobre, da approvare)
+                     lontano, girato verso la barca (13 ottobre, approvata il 14)
 
 Le «toppe» sono pose uguali a quella principale con la sola parte che cambia visibile (il resto della creatura
 fa da maschera, come la barca): il gioco le dissolve sopra lo strato principale. Le opzioni (quarto elemento
@@ -183,7 +183,7 @@ POSES = {
     # notte 6: la Madre sale accanto alla barca a sinistra, fuori la fronte e l'occhio (approvata l'11 ottobre sera: via
     # libera dell'utente alla sessione principale per scegliere stanotte)
     'madre_sale': (lambda: madre_sale(), 'world', True),
-    # il falso allarme della sagoma nella nebbia (13 ottobre, da approvare): niente occhi nel manifest (non brillano)
+    # il falso allarme della sagoma nella nebbia (13 ottobre, approvata il 14): niente occhi nel manifest (non brillano)
     'sagoma_nebbia': (lambda: sagoma_nebbia(), 'world', True, {'occhi': False}),
 }
 
@@ -541,7 +541,7 @@ def madre_sale(bocca=0.0):
 # ───────────────────────── i falsi allarmi ─────────────────────────
 
 # La sagoma nella nebbia (l'idea dei falsi allarmi approvata il 12 ottobre: «sagome nella nebbia che spariscono»; la
-# sagoma è da approvare): uno dei tre bambini scomparsi della foto del 1997 (finali.py, il C: il caschetto, la maglia
+# sagoma approvata il 14 ottobre): uno dei tre bambini scomparsi della foto del 1997 (finali.py, il C: il caschetto, la maglia
 # a righe, la mano alzata che saluta), in piedi sull'acqua, girato verso la barca. Si rende solo lui, senza la nebbia
 # davanti: il gioco lo fa scorrere attorno alla barca (lo strato si sposta sul panorama) e lo vela con la nebbia.
 SAGOMA_DIST = 12.0     # metri, in orizzontale, dall'occhio del pescatore

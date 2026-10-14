@@ -1,9 +1,9 @@
 # I testi della pagina Steam
 
-**Da approvare** (proposta del 13 ottobre). Sono i testi da incollare su Steamworks (**Store page admin**): la
-descrizione breve e quella lunga in italiano e in inglese, le lingue, i requisiti di sistema e una bozza del
-questionario sui contenuti. Le immagini sono in `LEGGIMI.md`. La storia viene da `docs/LORE.md` e il gioco da
-`docs/GDD.md`. Non c'è niente oltre quello che si scopre nelle prime notti: niente finali, niente Madre vista da
+**Approvati dall'utente il 14 ottobre** (proposta del 13 ottobre). Sono i testi da incollare su Steamworks (**Store
+page admin**): la descrizione breve e quella lunga in italiano e in inglese, le lingue, i requisiti di sistema e una
+bozza del questionario sui contenuti. Le immagini sono in `LEGGIMI.md`. La storia viene da `docs/LORE.md` e il gioco
+da `docs/GDD.md`. Non c'è niente oltre quello che si scopre nelle prime notti: niente finali, niente Madre vista da
 vicino.
 
 Su Steam l'inglese è la lingua di base. Le altre lingue della pagina si aggiungono quando i loro testi sono pronti; per

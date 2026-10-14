@@ -69,7 +69,7 @@ simulazione, le regole e il bilanciamento non cambiano.
   you»). Il cuore sussulta e torna giù piano. Il primo fra la prima ora e le due passate, il secondo almeno 1,2 ore
   dopo.
 - Le anteprime (la scena col suono e Gulpy vivo) le ho mandate in chat il 12 ottobre.
-- **La sagoma nella nebbia** (13 ottobre, fra le rifiniture scelte dall'utente; **da approvare**): con la nebbia
+- **La sagoma nella nebbia** (13 ottobre, fra le rifiniture scelte dall'utente; **approvata il 14 ottobre**): con la nebbia
   accesa, un falso allarme su tre circa è un bambino fermo in piedi sull'acqua, a 12 metri, girato verso la barca. È
   uno dei tre scomparsi della foto del 1997 di «Il ricordo» (il C: il caschetto, la maglia a righe, la mano alzata che
   saluta), reso senza la nebbia davanti (`sagoma_nebbia` in `tools/render/scena_creature.py`, coi bambini di
@@ -716,7 +716,7 @@ Lampy, il terzo rumore di Fangy): cambiano solo **quando arriva, quanto spesso t
   scheda si spegne e il nome è barrato. Sotto, le preimpostazioni **Tutti a 0, Tutti a 5, Tutti a 10, Tutti a 20,
   I primi tre** (Gulpy, Molly e Hatch a 15, gli altri e la Madre a 0; le altre valgono anche per la Madre). Poi **Salpa** e Indietro. I livelli scelti restano nel
   salvataggio per la volta dopo (all'inizio tutti a 5).
-- **Le facce sulle schede** (13 ottobre, fra le rifiniture scelte dall'utente; **da approvare**): in cima a ogni scheda
+- **Le facce sulle schede** (13 ottobre, fra le rifiniture scelte dall'utente; **approvate il 14 ottobre**): in cima a ogni scheda
   la faccia di chi è, come nella Custom Night di FNAF. Niente render nuovi (`tools/render/schede.py`): i sette mostri
   sono ritagliati dai ritratti del menu; la Madre è il suo strato della notte 6 (la testa che sale accanto alla barca,
   con l'occhio enorme), coi passi di luce del gioco ricomposti; Soggy è un fotogramma del suo jumpscare (la faccia

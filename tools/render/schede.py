@@ -1,5 +1,5 @@
 """
-Le foto delle schede della notte extra (13 ottobre, fra le rifiniture scelte dall'utente; da approvare): sopra il nome
+Le foto delle schede della notte extra (13 ottobre, fra le rifiniture scelte dall'utente; approvate il 14): sopra il nome
 di ognuno dei nove, la sua faccia, come nella Custom Night di FNAF. Niente render nuovi: i sette mostri vengono dai
 ritratti del menu (public/assets/img/ritratti, tools/render/ritratti.py), la Madre dal suo strato della notte 6 (la
 testa che sale accanto alla barca, con l'occhio: i passi di luce del gioco ricomposti), Soggy da un fotogramma del suo

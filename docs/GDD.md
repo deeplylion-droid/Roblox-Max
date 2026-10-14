@@ -38,7 +38,7 @@ Horror in prima persona a inquadratura fissa (alla *Five Nights at Freddy's*): s
 | Binocolo (easter egg) | tieni premuto il tasto destro | `B`; rotella: zoom |
 
 `W` `A` `S` `D` e `Q` `E` contano per dove stanno: su una tastiera francese (AZERTY) sono `Z` `Q` `S` `D` e `A` `E`, e i
-suggerimenti dicono le lettere della tastiera di chi gioca (13 ottobre, `src/app/tastiera.ts`).
+suggerimenti dicono le lettere della tastiera di chi gioca (13 ottobre, approvato il 14; `src/app/tastiera.ts`).
 
 Col controller (e sullo Steam Deck) si gioca tutto: la tabella è in «Controller e Steam Deck» (§14).
 
@@ -189,8 +189,9 @@ nella demo non c'è (nemmeno con le scorciatoie). Si costruisce dal workflow `bu
 scorciatoie spente. Il piano dei passi è nella pagina «Splashland su Steam». Tutti gli asset sono generati da script nel repository (`tools/`).
 
 **La pagina Steam** (13 ottobre): le immagini (capsule, libreria, 8 screenshot), scelte e approvate dall'utente (Molly
-che si affaccia dal bordo, col logo al neon), e i testi da approvare (descrizioni in italiano e inglese, lingue,
-requisiti, questionario sui contenuti) sono in `steam/`, fuori dal gioco: vedi `steam/LEGGIMI.md` e `steam/PAGINA.md`.
+che si affaccia dal bordo, col logo al neon), e i testi (descrizioni in italiano e inglese, lingue, requisiti,
+questionario sui contenuti, tag; approvati il 14 ottobre) sono in `steam/`, fuori dal gioco: vedi `steam/LEGGIMI.md` e
+`steam/PAGINA.md`. Manca il trailer.
 
 ### Controller e Steam Deck
 
