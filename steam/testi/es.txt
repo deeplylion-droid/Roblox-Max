@@ -1,6 +1,6 @@
 SPLASHLAND IS CLOSED! · i testi della pagina Steam · Español
 Su Steamworks: Store page admin, lingua «Spanish - Spain».
-DA APPROVARE: traduzione automatica, da far rileggere a un madrelingua prima di incollarla.
+Traduzione automatica, sulla pagina così com'è (scelta dell'utente del 14 ottobre): un errore si corregge in steam/PAGINA_lingue.md e si rifà questo file.
 
 ===== Descrizione breve (Short description, 267 caratteri su 300) =====
 

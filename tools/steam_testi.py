@@ -15,7 +15,7 @@ RADICE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STEAM = os.path.join(RADICE, 'steam')
 USCITA = os.path.join(STEAM, 'testi')
 
-# il nome della lingua nei .md → (codice del gioco, la lingua come la chiama Steamworks, da approvare)
+# il nome della lingua nei .md → (codice del gioco, la lingua come la chiama Steamworks, traduzione automatica)
 LINGUE = {
     'English': ('en', 'English', False),
     'Italiano': ('it', 'Italian', False),
@@ -108,14 +108,15 @@ def main():
         breve.update(brevi(sezione(md, 'Descrizione breve')))
         lunga.update(lunghe(sezione(md, 'Descrizione lunga')))
     os.makedirs(USCITA, exist_ok=True)
-    for nome, (codice, steam, da_approvare) in LINGUE.items():
+    for nome, (codice, steam, automatica) in LINGUE.items():
         b = breve[nome]
         if len(b) > 300:
             raise SystemExit(f'{nome}: la descrizione breve ha {len(b)} caratteri (massimo 300)')
         testa = [f'SPLASHLAND IS CLOSED! · i testi della pagina Steam · {nome}',
                  f'Su Steamworks: Store page admin, lingua «{steam}».']
-        if da_approvare:
-            testa.append('DA APPROVARE: traduzione automatica, da far rileggere a un madrelingua prima di incollarla.')
+        if automatica:
+            testa.append('Traduzione automatica, sulla pagina così com\'è (scelta dell\'utente del 14 ottobre): un errore '
+                         'si corregge in steam/PAGINA_lingue.md e si rifà questo file.')
         corpo = '\n'.join(testa) + (
             f'\n\n===== Descrizione breve (Short description, {len(b)} caratteri su 300) =====\n\n{b}\n'
             f'\n===== Descrizione lunga (About this game) =====\n\n{bbcode(lunga[nome])}\n')

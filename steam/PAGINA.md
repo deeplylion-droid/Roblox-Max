@@ -7,8 +7,8 @@ da `docs/GDD.md`. Non c'è niente oltre quello che si scopre nelle prime notti: 
 vicino.
 
 Su Steam l'inglese è la lingua di base. Le altre lingue della pagina si aggiungono quando i loro testi sono pronti:
-le descrizioni nelle sette lingue nuove del gioco sono in `PAGINA_lingue.md` (14 ottobre, **da approvare**, da far
-rileggere a un madrelingua).
+le descrizioni nelle sette lingue nuove del gioco sono in `PAGINA_lingue.md` e vanno sulla pagina subito, così come
+sono (scelta dell'utente del 14 ottobre).
 
 ## Descrizione breve
 
@@ -116,7 +116,8 @@ Su Steam, per ogni lingua: interfaccia, audio completo, sottotitoli.
 | Korean | sì | — | sì |
 
 «Audio completo» no in nessuna lingua: i mostri non parlano e la radio ha i sottotitoli. Le sette lingue nuove sono
-traduzioni automatiche e prima di metterle sulla pagina le deve rileggere un madrelingua (`docs/LOCALIZZAZIONE.md`).
+traduzioni automatiche: sulla pagina vanno subito, così come sono (scelta dell'utente del 14 ottobre); una rilettura
+di un madrelingua resta utile, per il gioco e per la pagina (`docs/LOCALIZZAZIONE.md`).
 Per lo spagnolo la traduzione non è di un paese preciso: «Spain» è il più vicino.
 
 ## Requisiti di sistema

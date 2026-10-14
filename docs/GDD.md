@@ -191,12 +191,13 @@ scorciatoie spente. Il piano dei passi è nella pagina «Splashland su Steam». 
 **La pagina Steam** (13 ottobre): le immagini (capsule, libreria, 8 screenshot), scelte e approvate dall'utente (Molly
 che si affaccia dal bordo, col logo al neon), e i testi (descrizioni in italiano e inglese, lingue, requisiti,
 questionario sui contenuti, tag; approvati il 14 ottobre) sono in `steam/`, fuori dal gioco: vedi `steam/LEGGIMI.md` e
-`steam/PAGINA.md`. Le descrizioni nelle altre sette lingue (14 ottobre, **da approvare**, da far rileggere a un
-madrelingua) sono in `steam/PAGINA_lingue.md`. Il trailer (**approvato dall'utente il 14 ottobre**, con la Madre
-rifatta senza vederla): la proposta A «Le regole» scelta fra tre storyboard, 70 secondi in inglese, preso dal motore
-del gioco: ogni mostro con la sua regola a tutto schermo, la Madre che passa sotto la barca, un jumpscare, l'insegna al
-neon e «Wishlist now»; in due versioni, senza e con la riga della demo gratuita. Sta in `steam/trailer/`; come si rifà
-è in `steam/LEGGIMI.md`.
+`steam/PAGINA.md`. Le descrizioni nelle altre sette lingue sono in `steam/PAGINA_lingue.md`: traduzioni automatiche, che
+vanno sulla pagina subito, così come sono (scelta dell'utente del 14 ottobre). L'account Steamworks è aperto dal 14
+ottobre: sulla pagina lo sviluppatore è «Ettore Canu» e la data di uscita «Coming soon»; cosa va dove è in
+`steam/STEAMWORKS.md`. Il trailer (**approvato dall'utente il 14 ottobre**, con la Madre rifatta senza vederla): la
+proposta A «Le regole» scelta fra tre storyboard, 70 secondi in inglese, preso dal motore del gioco: ogni mostro con la
+sua regola a tutto schermo, la Madre che passa sotto la barca, un jumpscare, l'insegna al neon e «Wishlist now»; in due
+versioni, senza e con la riga della demo gratuita. Sta in `steam/trailer/`; come si rifà è in `steam/LEGGIMI.md`.
 
 ### Controller e Steam Deck
 

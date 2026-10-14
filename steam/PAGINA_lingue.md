@@ -1,17 +1,17 @@
 # I testi della pagina Steam nelle altre lingue
 
-**Da approvare** (14 ottobre). Sono la descrizione breve e quella lunga di `PAGINA.md` (approvate in italiano e in
+**Vanno sulla pagina subito, così come sono** (scelta dell'utente del 14 ottobre). Sono la descrizione breve e quella lunga di `PAGINA.md` (approvate in italiano e in
 inglese il 14 ottobre) in spagnolo, francese, tedesco, portoghese del Brasile, cinese semplificato, giapponese e
 coreano: le sette lingue nuove del gioco. Su Steamworks si incollano in **Store page admin**, scegliendo la lingua in
 alto nella pagina; le lingue del gioco (interfaccia e sottotitoli) sono la tabella di `PAGINA.md`.
 
-Sono **traduzioni automatiche**, come le sette lingue del gioco: prima di metterle sulla pagina le deve rileggere un
-madrelingua (`docs/LOCALIZZAZIONE.md`). Usano le parole del gioco, quelle del glossario (la Madre, il Catalogo, la
+Sono **traduzioni automatiche**, come le sette lingue del gioco: una rilettura di un madrelingua resta utile, e un
+errore trovato si corregge qui (`docs/LOCALIZZAZIONE.md`). Usano le parole del gioco, quelle del glossario (la Madre, il Catalogo, la
 quota, il telone, il secchio, le tane) e quelle dell'interfaccia (la Notte extra, il binocolo, le bombole, le famiglie
 dei pesci, l'opzione «Riduci lampi e scosse»). Il titolo del gioco e i nomi propri (Mama Marina's Splashland, i mostri)
 restano come sono.
 
-Le scelte da far guardare al madrelingua:
+Le scelte da far guardare a un madrelingua, quando ce n'è uno:
 
 - **«E più di loro»** (la lampara più forte porta più pesci, e più mostri): detto alla lettera, in queste lingue si
   perde o suona strano. In tutte è diventato **«E non solo pesci»** («Y no solo peces», «Et pas seulement des

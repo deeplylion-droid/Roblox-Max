@@ -1,7 +1,8 @@
 # Su Steamworks: l'account e la pagina, passo per passo
 
 Il 14 ottobre l'utente ha scelto di anticipare l'account Steamworks: il materiale della pagina è già pronto, e prima
-esce la pagina «Prossimamente», più a lungo raccoglie liste dei desideri prima del Next Fest di febbraio. Qui ci sono
+esce la pagina «Prossimamente», più a lungo raccoglie liste dei desideri prima del Next Fest di febbraio. Lo stesso
+giorno l'utente ha aperto l'account e pagato la quota; Valve sta verificando i dati. Qui ci sono
 i passi e, per ogni voce della pagina, il file da usare. Steamworks è in inglese: i nomi delle voci sono i suoi. Le
 date sono nella pagina «Splashland su Steam».
 
@@ -29,8 +30,8 @@ commercialista.
 | Su Steamworks | Cosa ci va | Da dove |
 |---|---|---|
 | Nome del gioco | SPLASHLAND IS CLOSED! | il titolo del gioco |
-| Sviluppatore ed editore | **da decidere** (il nome come lo vuoi vedere sulla pagina) | |
-| Data di uscita | **da decidere**: «Coming soon» non impegna a una data | |
+| Sviluppatore ed editore | Ettore Canu | scelta dell'utente del 14 ottobre |
+| Data di uscita | «Coming soon»: non impegna a una data | scelta dell'utente del 14 ottobre |
 | Descrizione breve e lunga, per lingua | il file della lingua, già col formato di Steam | `testi/en.txt`, `testi/it.txt`… |
 | Capsule | le quattro immagini | `capsule/` (tabella in `LEGGIMI.md`) |
 | Screenshot | gli 8, nell'ordine dei numeri dei file | `screenshot/` |
@@ -41,9 +42,10 @@ commercialista.
 | Questionario sui contenuti | le risposte proposte | `PAGINA.md` |
 | Tag | i 20, in ordine | `PAGINA.md` |
 
-Per ora sulla pagina vanno **inglese e italiano**. Le altre sette lingue (`testi/es.txt`…`testi/ko.txt`) si
-aggiungono quando un madrelingua le ha rilette: in testa al file c'è scritto «DA APPROVARE». I file si rifanno dai
-`.md` con `tools/.venv/bin/python tools/steam_testi.py`.
+Sulla pagina vanno subito **tutte e nove le lingue** (scelta dell'utente del 14 ottobre, «Subito, così come sono»):
+le sette nuove (`testi/es.txt`…`testi/ko.txt`) sono traduzioni automatiche, messe così come sono. Se un madrelingua
+trova un errore, si corregge in `PAGINA_lingue.md` e si rifanno i file con
+`tools/.venv/bin/python tools/steam_testi.py`.
 
 Poi la pagina va **in revisione** (Valve la guarda in qualche giorno lavorativo) e, quando è approvata, si pubblica
 come **«Prossimamente»** (Coming Soon). Da lì la gente può aggiungere il gioco alla lista dei desideri, e ci si può
