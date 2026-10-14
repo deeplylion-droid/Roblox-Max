@@ -56,6 +56,18 @@ il logo.
   riaccende una volta (`OPTIONS_REV` 2): da lì le sue etichette erano al contrario. Con un salvataggio nuovo, 9 su 9.
 - Il controllo dei loop audio dopo la notte 6 guarda mentre scorrono i titoli di coda: la musica che trova è la loro.
 
+## Dopo il collaudo: D21, trovato facendo il trailer (14 ottobre)
+
+**D21 · La paperella di Gulpy tagliata a ogni morso.** Mentre Gulpy pretende o mastica, sopra la sua testa compariva un
+rettangolo di buio: le toppe della mascella (`gulpy_mascella_aperta`, `gulpy_mascella_chiusa`) sono renderizzate con
+la sola testa, ma il loro riquadro prende in alto anche un pezzo della paperella; il motore, dove la toppa è vuota,
+toglie la posa sotto (`maskOf` in `shaders.ts`), e dentro il riquadro la paperella spariva. Con la nebbia e senza.
+Il bot non vede, per questo il collaudo non l'aveva trovato. **Corretto**: `tools/render/toppe_gulpy.py` mette la
+posa sotto le due toppe nella fascia in alto del riquadro (sopra la mascella), passo per passo e in tutte e due le
+serie; verificato nel motore. Le toppe degli altri mostri non hanno questo problema: le differenze che restano fra
+posa e toppa sono quelle volute (il mento di Hatch, la trombetta di Archie che si srotola, la testa di Fangy che si
+gira).
+
 ## Limiti
 
 - Il bot legge lo stato della simulazione: non vede e non sente. Le notti vinte dicono che regole e gioco reggono,

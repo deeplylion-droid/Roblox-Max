@@ -1,9 +1,9 @@
 # Le immagini per Steam
 
-Le immagini della pagina del negozio e della libreria di Steam. Stanno qui, fuori dal gioco (`public/`), perché non
-vanno nella build: si caricano a mano su Steamworks, nella pagina del gioco (**Store page admin → Graphical assets**
-per le capsule e gli screenshot, **Library assets** per la libreria). Il piano di tutti i passi è nella pagina
-«Splashland su Steam».
+Le immagini e il trailer della pagina del negozio e della libreria di Steam. Stanno qui, fuori dal gioco (`public/`),
+perché non vanno nella build: si caricano a mano su Steamworks, nella pagina del gioco (**Store page admin → Graphical
+assets** per le capsule e gli screenshot, **Trailers** per il trailer, **Library assets** per la libreria). Il piano di
+tutti i passi è nella pagina «Splashland su Steam».
 
 **Approvate dall'utente il 13 ottobre.** La scelta fra tre proposte per la capsula è stata la A: Molly che si affaccia dal bordo della
 barca, col logo al neon. Le altre due erano Gulpy che sale alla prua (B) e Hatch con l'esca (C). Per il Catalogo
@@ -48,6 +48,30 @@ quelli che Steam mostra di più:
 
 Le scene della notte e dell'immersione sono la tela del motore, senza HUD. I mostri sono messi in posa a mano.
 
+## Il trailer (`trailer/`)
+
+`trailer_le_regole.mp4`: 70 secondi, 1920×1080 a 30 fotogrammi al secondo, H.264 e AAC (41 MB), in inglese. **Da approvare**:
+è la proposta A «Le regole», scelta dall'utente il 14 ottobre fra tre storyboard. Si carica su Steamworks in **Store
+page admin → Trailers**: il primo della lista è quello che Steam fa partire in cima alla pagina.
+
+1. 0:00-0:12 · Nero, il mare. La luce si accende sulla barca nella nebbia; la radio della prima notte coi sottotitoli:
+   «Hello? First night. By six, eight fish in the bucket: they're for the Mother. If they don't come, she takes
+   another child.»
+2. 0:12-0:19 · Si pesca: il lancio, l'abboccata, il recupero; la pagina di un pesce del Catalogo.
+3. 0:19-0:48 · Gli otto, uno alla volta, ognuno con la sua regola a tutto schermo nel momento in cui il pescatore la
+   rispetta: Gulpy «Feed him», Molly «Watch her», Hatch «Hide» (scende il telone), Robin «Light in his face» (la luce
+   al massimo, scappa), Archie «Light off» (la luce si spegne), Lampy «Don't strike», Fangy «Stay quiet», Soggy nel
+   binocolo «Don't lose sight of him». Le parole sono quelle delle schede della notte extra.
+4. 0:48-0:57 · La Madre: il mare si ferma, la luce trema, la sua testa sale accanto alla barca. «Don't move». La musica
+   si taglia, resta il cuore.
+5. 0:57-1:01 · Il jumpscare di Molly, il segnale perso, il silenzio.
+6. 1:01-1:10 · L'insegna al neon che si accende a scatti, «Wishlist now», «Free demo: the first two nights».
+
+Le scritte si leggono anche senza audio: su Steam il trailer parte muto. Le scene sono il motore del gioco, fotogramma
+per fotogramma, con la nebbia accesa; i mostri si muovono con le loro animazioni vere (gli stati della simulazione, i
+gesti del pescatore coi tasti). Il suono è fatto coi suoni del gioco, con la voce della radio e la conta di Hatch come le
+fa il gioco.
+
 ## Come si rifanno
 
 - **Capsule e logo della libreria**: `tools/.venv/bin/python tools/render/steam.py componi`. Parte dalle immagini
@@ -60,5 +84,15 @@ Le scene della notte e dell'immersione sono la tela del motore, senza HUD. I mos
   25 minuti. Vengono le stesse scene, con piccole differenze da quelli approvati (la grana, le luci e l'acqua che si
   muovono).
 
+- **Il trailer**, in tre passi, col gioco aperto con `npm run dev`:
+  1. `node scripts/trailer.mjs <scene>`: le scene dal motore, una cartella di fotogrammi per scena (circa un'ora;
+     `TRAILER_ANTEPRIMA=6` ne fa una prova veloce, un fotogramma ogni sei);
+  2. `node scripts/voci.mjs <voci>`: la voce della radio e la conta di Hatch;
+  3. `tools/.venv/bin/python tools/trailer/montaggio.py <scene> <voci>/voci.json steam/trailer/trailer_le_regole.mp4`:
+     il montaggio, le scritte e il suono (pochi minuti). Con `--senza-demo` niente riga della demo in fondo, se quando
+     esce il trailer la demo non è ancora su Steam; con `--crf 18` una copia più pesante e più fedele (circa 70 MB:
+     Steam la ricomprime comunque); con `--fermi <cartella>` un fotogramma ogni mezzo secondo invece del video, per
+     guardare il montaggio.
+
 Se cambia il logo, si rifà `componi`. Se cambiano Molly o la scena, si rifanno `render` e poi `componi`. Se cambia
-l'aspetto del gioco (nebbia, luci, mostri), si rifanno gli screenshot.
+l'aspetto del gioco (nebbia, luci, mostri), si rifanno gli screenshot e il trailer.
