@@ -6,8 +6,9 @@ bozza del questionario sui contenuti. Le immagini sono in `LEGGIMI.md`. La stori
 da `docs/GDD.md`. Non c'è niente oltre quello che si scopre nelle prime notti: niente finali, niente Madre vista da
 vicino.
 
-Su Steam l'inglese è la lingua di base. Le altre lingue della pagina si aggiungono quando i loro testi sono pronti; per
-ora solo italiano e inglese.
+Su Steam l'inglese è la lingua di base. Le altre lingue della pagina si aggiungono quando i loro testi sono pronti:
+le descrizioni nelle sette lingue nuove del gioco sono in `PAGINA_lingue.md` (14 ottobre, **da approvare**, da far
+rileggere a un madrelingua).
 
 ## Descrizione breve
 

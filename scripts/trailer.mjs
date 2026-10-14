@@ -16,12 +16,13 @@ const base = (process.env.TRAILER_URL ?? 'http://127.0.0.1:5173/').replace(/\/?$
 
 /**
  * Le scene. notte: quale notte si gioca; secondi: quanto dura; prima: secondi giocati prima di cominciare a registrare
- * (non escono); camera: [secondo, yaw, pitch, campo] con un passaggio morbido fra l'uno e l'altro (yaw, pitch o campo
- * null: li decide il gioco); prepara(n, a, g): una volta, a notte appena cominciata (i mostri che non servono sono già
- * fermi); regia(t, n, a, g): prima di ogni fotogramma (t in secondi dall'inizio della registrazione, negativo prima);
- * dopo(t, n): dopo la grafica di ogni fotogramma, per toccare lo stato visivo (n.v) dove la simulazione non arriva.
- * Le funzioni girano nella pagina: niente variabili di qui dentro. Nella pagina ci sono: tasto(k, giù) per i tasti,
- * passa(x) vero nel fotogramma in cui t supera x, liscio(a, b, x) per le salite morbide.
+ * (non escono); pagina: [da, a] i secondi in cui si registra la pagina intera, con l'interfaccia del gioco sopra la tela
+ * (il sonar a tutto schermo); camera: [secondo, yaw, pitch, campo] con un passaggio morbido fra l'uno e l'altro (yaw,
+ * pitch o campo null: li decide il gioco); prepara(n, a, g): una volta, a notte appena cominciata (i mostri che non
+ * servono sono già fermi); regia(t, n, a, g): prima di ogni fotogramma (t in secondi dall'inizio della registrazione,
+ * negativo prima); dopo(t, n): dopo la grafica di ogni fotogramma, per toccare lo stato visivo (n.v) dove la
+ * simulazione non arriva. Le funzioni girano nella pagina: niente variabili di qui dentro. Nella pagina ci sono:
+ * tasto(k, giù) per i tasti, passa(x) vero nel fotogramma in cui t supera x, liscio(a, b, x) per le salite morbide.
  */
 const SCENE = {
   // la barca nella nebbia a luce spenta; poi la luce si accende, sfarfallando (la radio la mette il montaggio)
@@ -217,24 +218,50 @@ const SCENE = {
       if (passa(0.36)) n.binoPitch = 0.15;
     },
   },
-  // notte 6: il mare si ferma, la luce trema, la testa della Madre sale accanto alla barca col suo occhio
+  // notte 6: la Madre non si vede (scelta dell'utente del 14 ottobre). Col sonar aperto la sua eco enorme arriva e le
+  // passa sotto la barca; poi la prua: il mare fermo, la luce che trema, la barca che si solleva e s'inclina sul suo
+  // dorso. Il sonar a tutto schermo è interfaccia del gioco (HTML), non la tela: quei fotogrammi sono la pagina intera
   madre: {
     notte: 6,
     secondi: 9.6,
-    camera: [[0, -36, -4, 86], [2.4, -42, -3, 80], [7.2, -53, 0, 48], [9.6, -54, 0.5, 44]],
+    pagina: [0, 4.0],
+    camera: [[0, -10, -6, 80], [4.0, -10, -6, 80], [9.6, -13, -4, 68]],
     prepara: (n) => {
-      const mo = n.sim.mother;
-      if (mo) mo.update = () => {};
+      n.sim.mother.update = () => {};
+      // l'interfaccia della notte via; del sonar resta lo schermo (senza la scritta per chiuderlo)
+      n.hud.root.style.visibility = 'hidden';
+      const chiudi = n.sonarEl.querySelector('.sonar-close');
+      if (chiudi) chiudi.style.visibility = 'hidden';
     },
     regia: (t, n, a, g) => {
+      const mo = n.sim.mother;
       const st = g.stage;
-      if (passa(1.1)) st.lampDip = 0.75;
-      if (passa(3.0)) st.lampDip = 0.75;
-      if (passa(5.6)) st.lampDip = 0.5;
+      // l'ombra si mette appena davanti al fascio, che passandoci sopra la accende
+      const davanti = () => (mo.angle = (n.sonar.sweep + 40) % 360);
+      if (passa(0)) {
+        mo.state = 'approaching';
+        mo.stateTime = 0;
+        mo.dist = 0.5;
+        davanti();
+        n.toggleSonar(true);
+      }
+      if (passa(1.0)) {
+        mo.dist = 0.22;
+        davanti();
+      }
+      if (passa(1.8)) mo.state = 'passing';
+      // la passata: a metà (sotto la barca) al taglio sulla prua, poi oltre, piano
+      if (mo.state === 'passing') {
+        const p = t < 4.0 ? (0.5 * (t - 1.8)) / 2.2 : 0.5 + (0.5 * (t - 4.0)) / 5.6;
+        mo.stateTime = Math.max(0, p) * mo.passTime;
+      }
+      if (passa(4.0)) n.toggleSonar(false);
+      if (passa(4.5)) st.lampDip = 0.75;
+      if (passa(5.8)) st.lampDip = 0.6;
     },
     dopo: (t, n) => {
-      n.v.mCalm = liscio(0, 3.2, t);
-      n.v.mdRise = liscio(2.2, 7.4, t);
+      n.v.mCalm = Math.max(liscio(0, 3.0, t), t >= 4 ? 1 : 0);
+      n.v.mLift = t < 4 ? 0 : 0.6 + 0.9 * liscio(4.0, 7.0, t);
     },
   },
   // il jumpscare di Molly, poi il segnale perso (la neve)
@@ -360,6 +387,9 @@ async function registra(page, nome, s) {
   const tot = Math.round(s.secondi * FPS);
   let k = 0;
   for (let i = -prima; i < tot; i += PASSO) {
+    const t = i / FPS;
+    // la pagina intera (l'interfaccia del gioco sopra la tela) o la sola tela
+    const tutta = !!s.pagina && t >= s.pagina[0] && t < s.pagina[1];
     const url = await page.evaluate(
       ({ t, dt, salva }) => {
         const g = window.__game;
@@ -370,9 +400,12 @@ async function registra(page, nome, s) {
         g.step(dt);
         return salva ? document.querySelector('canvas').toDataURL('image/jpeg', 0.95) : null;
       },
-      { t: i / FPS, dt: PASSO / FPS, salva: i >= 0 },
+      { t, dt: PASSO / FPS, salva: i >= 0 && !tutta },
     );
-    if (url) fs.writeFileSync(`${dir}/f${String(k++).padStart(4, '0')}.jpg`, Buffer.from(url.split(',')[1], 'base64'));
+    const nome = `${dir}/f${String(k).padStart(4, '0')}.jpg`;
+    if (url) fs.writeFileSync(nome, Buffer.from(url.split(',')[1], 'base64'));
+    else if (i >= 0) await page.screenshot({ path: nome, type: 'jpeg', quality: 95, timeout: 600000 });
+    if (i >= 0) k++;
   }
   console.log(`${nome}: ${k} fotogrammi`);
 }

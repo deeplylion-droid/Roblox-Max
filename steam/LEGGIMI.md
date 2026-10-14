@@ -50,9 +50,17 @@ Le scene della notte e dell'immersione sono la tela del motore, senza HUD. I mos
 
 ## Il trailer (`trailer/`)
 
-`trailer_le_regole.mp4`: 70 secondi, 1920×1080 a 30 fotogrammi al secondo, H.264 e AAC (41 MB), in inglese. **Da approvare**:
-è la proposta A «Le regole», scelta dall'utente il 14 ottobre fra tre storyboard. Si carica su Steamworks in **Store
-page admin → Trailers**: il primo della lista è quello che Steam fa partire in cima alla pagina.
+**Approvato dall'utente il 14 ottobre**, con una modifica: la Madre non si vede («Sì, ma senza l'occhio della
+Madre»). È la proposta A «Le regole», scelta il 14 ottobre fra tre storyboard: 70 secondi, 1920×1080 a 30 fotogrammi
+al secondo, H.264 e AAC, in inglese. Le versioni sono due, uguali fino all'ultima scritta:
+
+- `trailer_le_regole.mp4` (40 MB): finisce con «Wishlist now». È quella della pagina «Prossimamente», finché
+  la demo non è su Steam;
+- `trailer_le_regole_con_demo.mp4` (40 MB): sotto «Wishlist now» c'è anche «Free demo: the first two nights»,
+  per quando la demo è su Steam. Allora si carica questa e si toglie l'altra.
+
+Si caricano su Steamworks in **Store page admin → Trailers**: il primo della lista è quello che Steam fa partire in
+cima alla pagina.
 
 1. 0:00-0:12 · Nero, il mare. La luce si accende sulla barca nella nebbia; la radio della prima notte coi sottotitoli:
    «Hello? First night. By six, eight fish in the bucket: they're for the Mother. If they don't come, she takes
@@ -62,10 +70,12 @@ page admin → Trailers**: il primo della lista è quello che Steam fa partire i
    rispetta: Gulpy «Feed him», Molly «Watch her», Hatch «Hide» (scende il telone), Robin «Light in his face» (la luce
    al massimo, scappa), Archie «Light off» (la luce si spegne), Lampy «Don't strike», Fangy «Stay quiet», Soggy nel
    binocolo «Don't lose sight of him». Le parole sono quelle delle schede della notte extra.
-4. 0:48-0:57 · La Madre: il mare si ferma, la luce trema, la sua testa sale accanto alla barca. «Don't move». La musica
-   si taglia, resta il cuore.
+4. 0:48-0:57 · La Madre, senza vederla: il sonar a tutto schermo, la sua eco enorme che arriva e passa sotto la
+   barca; poi la prua, il mare che si ferma, la luce che trema e la barca che si alza e si inclina sulla sua schiena.
+   «Don't move». La musica si taglia, resta il cuore.
 5. 0:57-1:01 · Il jumpscare di Molly, il segnale perso, il silenzio.
-6. 1:01-1:10 · L'insegna al neon che si accende a scatti, «Wishlist now», «Free demo: the first two nights».
+6. 1:01-1:10 · L'insegna al neon che si accende a scatti, «Wishlist now» (nella seconda versione anche «Free demo:
+   the first two nights»).
 
 Le scritte si leggono anche senza audio: su Steam il trailer parte muto. Le scene sono il motore del gioco, fotogramma
 per fotogramma, con la nebbia accesa; i mostri si muovono con le loro animazioni vere (gli stati della simulazione, i
@@ -89,10 +99,10 @@ fa il gioco.
      `TRAILER_ANTEPRIMA=6` ne fa una prova veloce, un fotogramma ogni sei);
   2. `node scripts/voci.mjs <voci>`: la voce della radio e la conta di Hatch;
   3. `tools/.venv/bin/python tools/trailer/montaggio.py <scene> <voci>/voci.json steam/trailer/trailer_le_regole.mp4`:
-     il montaggio, le scritte e il suono (pochi minuti). Con `--senza-demo` niente riga della demo in fondo, se quando
-     esce il trailer la demo non è ancora su Steam; con `--crf 18` una copia più pesante e più fedele (circa 70 MB:
-     Steam la ricomprime comunque); con `--fermi <cartella>` un fotogramma ogni mezzo secondo invece del video, per
-     guardare il montaggio.
+     il montaggio, le scritte e il suono (pochi minuti). Con `--demo` la versione con la riga della demo gratuita in
+     fondo (`trailer_le_regole_con_demo.mp4`); con `--crf 18` una copia più pesante e più fedele (circa 70 MB: Steam
+     la ricomprime comunque); con `--fermi <cartella>` un fotogramma ogni mezzo secondo invece del video, per guardare
+     il montaggio.
 
 Se cambia il logo, si rifà `componi`. Se cambiano Molly o la scena, si rifanno `render` e poi `componi`. Se cambia
 l'aspetto del gioco (nebbia, luci, mostri), si rifanno gli screenshot e il trailer.

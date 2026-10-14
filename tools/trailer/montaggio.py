@@ -9,11 +9,12 @@ MP4 1920×1080 a 30 fotogrammi al secondo, H.264 e AAC, come lo chiede Steam.
 La grana della pellicola del gioco costa moltissimo al compressore (a qualità piena 70 secondi pesavano 226 MB): prima
 di comprimere la si attenua appena (hqdn3d leggero; Steam comunque ricomprime i trailer). Così il file sta sotto i 50 MB.
 
-Uso: tools/.venv/bin/python tools/trailer/montaggio.py <scene> <voci.json> <uscita.mp4> [--senza-demo] [--crf N]
+Uso: tools/.venv/bin/python tools/trailer/montaggio.py <scene> <voci.json> <uscita.mp4> [--demo] [--crf N]
      [--fermi <cartella>]
   <scene>       la cartella di scripts/trailer.mjs
   <voci.json>   quello di scripts/voci.mjs
-  --senza-demo  senza la riga della demo gratuita in fondo (se la demo non è ancora su Steam)
+  --demo        con la riga della demo gratuita in fondo («Free demo: the first two nights»): la versione per quando la
+                demo è su Steam (scelta dell'utente del 14 ottobre: due versioni, prima quella senza)
   --crf N       la qualità dell'H.264 (21 di base, sotto i 50 MB; più basso, più pesante)
   --fermi       invece del video, un fotogramma ogni mezzo secondo come JPEG nella cartella (per guardare il montaggio)
 """
@@ -211,6 +212,13 @@ def voce(c):
     return x
 
 
+def rallenta(x, rate):
+    """Il suono suonato a rate volte la velocità (0,5: lungo il doppio e un'ottava sotto), come fa il gioco."""
+    n = int(len(x) / rate)
+    t = np.arange(n) * rate
+    return np.stack([np.interp(t, np.arange(len(x)), x[:, c]) for c in range(2)], 1).astype(np.float32)
+
+
 def colpo():
     """Il colpo che accompagna ogni regola: un tonfo basso che scende, con un poco di rumore all'attacco."""
     n = int(2.4 * SR)
@@ -342,9 +350,17 @@ def colonna(voci, neve):
     m.metti(suono('fangy_snap'), F + 2.3, -2)
     # Soggy nel binocolo
     m.metti(suono('foxy_near'), So + 0.4, -5)
-    # la Madre: il suono dell'avvicinamento, la luce che trema, la sua ninna nanna; al taglio resta solo il cuore
-    m.metti(suono('madre_approach'), Md, -2, dur=TAGLIO - Md, esce=0.06)
-    for k in (1.1, 3.0, 5.6):
+    # la Madre, senza vederla: il sonar che si apre, i suoi bip sull'eco che arriva (come nel gioco, rallentati a metà),
+    # il suono della passata sotto la barca; la luce che trema, la sua ninna nanna; al taglio resta solo il cuore
+    m.metti(suono('radio_on'), Md, -9)
+    for k in (0.05, 3.05):
+        m.metti(suono('sonar_ping'), Md + k, -8)
+    for k, db in ((0.33, -6), (1.33, -2)):
+        m.metti(rallenta(suono('sonar_warn'), 0.5), Md + k, db)
+    m.metti(suono('madre_approach'), Md, -6, dur=2.6, esce=0.8)
+    m.metti(suono('madre_pass_1'), Md + 1.8, -1, da=1.0, dur=TAGLIO - Md - 1.8, esce=0.06)
+    m.metti(suono('radio_off'), Md + 4.0, -11)
+    for k in (4.5, 5.8):
         m.metti(suono('lamp_flicker'), Md + k, -10)
     m.metti(suono('madre_lullaby'), Md + 3.0, -8, dur=TAGLIO - Md - 3.0, entra=2.0, esce=0.06)
     m.metti(suono('madre_breath'), TAGLIO, -14, dur=J - TAGLIO, entra=0.3, esce=0.1)
@@ -575,7 +591,7 @@ class Montaggio:
 
 def main():
     args = sys.argv[1:]
-    demo = '--senza-demo' not in args
+    demo = '--demo' in args
     fermi = args[args.index('--fermi') + 1] if '--fermi' in args else None
     crf = args[args.index('--crf') + 1] if '--crf' in args else '21'
     pos = [a for i, a in enumerate(args) if not a.startswith('--') and (i == 0 or args[i - 1] not in ('--fermi', '--crf'))]
