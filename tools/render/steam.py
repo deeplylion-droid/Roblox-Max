@@ -10,12 +10,15 @@ Due passi:
                             larga della libreria (3840×1240, obiettivo 16 mm, lei a destra) in steam/libreria/
   componi                   le capsule e il logo della libreria, da steam/sorgenti/ e dal logo del gioco
                             (public/assets/img/logo/logo.webp, tools/render/logo.py)
+  itch                      la copertina della pagina itch.io (630×500, itch/LEGGIMI.md): il render verticale, il logo
+                            in alto nel buio e la faccia di Molly sotto
 
 Il logo si posa in luce, con la fusione «schermo», come la luce di un'insegna vera; dove sta il logo l'immagine si
 scurisce un po' (il buio del lago, come nel menu).
 
 Uso: tools/.venv/bin/python tools/render/steam.py render <blend>
      tools/.venv/bin/python tools/render/steam.py componi
+     tools/.venv/bin/python tools/render/steam.py itch
 """
 import os
 import subprocess
@@ -25,6 +28,7 @@ QUI = os.path.dirname(os.path.abspath(__file__))
 RADICE = os.path.dirname(os.path.dirname(QUI))
 STEAM = os.path.join(RADICE, 'steam')
 SORGENTI = os.path.join(STEAM, 'sorgenti')
+ITCH = os.path.join(RADICE, 'itch')
 LOGO = os.path.join(RADICE, 'public', 'assets', 'img', 'logo', 'logo.webp')
 
 # i render di Molly: uscita, misura, campioni, obiettivo (mm), dove sta la faccia (dx: frazione della larghezza a destra
@@ -52,7 +56,7 @@ def render(blend):
         print('render', out, flush=True)
 
 
-def componi():
+def componi(solo_itch=False):
     import numpy as np
     from PIL import Image
 
@@ -93,14 +97,18 @@ def componi():
         a[y0:y0 + L.shape[0], x0:x0 + L.shape[1]] = 1 - (1 - reg) * (1 - L)
         return a
 
-    def salva(a, *percorso):
-        p = os.path.join(STEAM, *percorso)
+    def salva(a, *percorso, dove=STEAM):
+        p = os.path.join(dove, *percorso)
         os.makedirs(os.path.dirname(p), exist_ok=True)
         Image.fromarray((np.clip(a, 0, 1) * 255 + 0.5).astype(np.uint8)).save(p, optimize=True)
         print('immagine', os.path.relpath(p, RADICE), flush=True)
 
     ritratto = apri('molly_ritratto.png')
     verticale = apri('molly_verticale.png')
+    # la copertina di itch.io (630×500, quasi quadrata): il logo in alto nel buio, sotto la faccia di Molly intera
+    salva(logo(buio_alto(copri(verticale, 630, 500, 0.5, 0.5), 0.45, 0.85), 0.19, 0.0, 0.62), 'copertina_630x500.png', dove=ITCH)
+    if solo_itch:
+        return
     # la capsula principale e l'intestazione (anche nella libreria): lei a destra, il logo a sinistra
     salva(logo(buio_sinistra(copri(ritratto, 1232, 706, 0.55, 0.5), 0.55, 0.8), 0.015, 0.03, 0.58), 'capsule', 'principale_1232x706.png')
     testata = logo(buio_sinistra(copri(ritratto, 920, 430, 0.55, 0.40), 0.55, 0.8), 0.012, 0.03, 0.56)
@@ -128,5 +136,7 @@ if __name__ == '__main__':
         render(a[0])
     elif cmd == 'componi':
         componi()
+    elif cmd == 'itch':
+        componi(solo_itch=True)
     else:
         sys.exit(__doc__)

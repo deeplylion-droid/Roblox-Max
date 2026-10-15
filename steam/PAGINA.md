@@ -146,6 +146,9 @@ Steam lo chiede prima di pubblicare la pagina (**Content Survey**). Le mie rispo
   Il sangue c'è solo sui pesci «sanguinanti» del Catalogo, stilizzati.
 - **Contenuti per adulti in generale**: sì. Testo proposto: «Horror with jump scares and disturbing themes: children
   who went missing at a water park have become the monsters that hunt the player. No gore.»
+- **Contenuti fatti con l'AI** (AI Generated Content Disclosure, aggiunto il 15 ottobre, **da approvare**): sì, fatti
+  durante lo sviluppo (codice, testi, descrizioni, traduzioni; scene e suoni con programmi scritti con l'assistente);
+  niente è creato dall'AI mentre si gioca. Il testo proposto è in `itch/LEGGIMI.md`, «L'AI»: lo stesso per itch.io.
 
 Più avanti, all'uscita, Steam chiede anche la classificazione IARC (un altro questionario), che dà i bollini PEGI/ESRB.
 

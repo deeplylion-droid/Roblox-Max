@@ -182,11 +182,15 @@ Volume generale/musica/effetti, lingua (italiano, inglese), luminosità, schermo
 
 TypeScript + WebGL2 (renderer proprio), interfaccia in HTML/CSS, Web Audio. Desktop con Electron (Windows, Linux/Steam Deck, macOS), Steamworks in un secondo momento (achievement, salvataggi cloud).
 
-**La demo per Steam** (Next Fest di febbraio 2027): **le prime due notti** (scelta dell'utente del 13 ottobre; il 12 erano
-«1 o 2 notti», prima solo la prima), con l'immersione all'alba dopo la prima. Finita la seconda, «Fine della demo» e,
-quando la pagina Steam ci sarà (`STEAM_URL` in `src/app/app.ts`), il pulsante della lista dei desideri; la notte extra
-nella demo non c'è (nemmeno con le scorciatoie). Si costruisce dal workflow `build` con `ultima_notte` = 2 e le
-scorciatoie spente. Il piano dei passi è nella pagina «Splashland su Steam». Tutti gli asset sono generati da script nel repository (`tools/`).
+**La demo per Steam** (Next Fest di febbraio 2027): **le prime due notti** (scelta dell'utente del 13 ottobre; il 12
+erano «1 o 2 notti», prima solo la prima), con l'immersione all'alba dopo la prima. Finita la seconda, «Fine della demo»
+e, quando la pagina Steam ci sarà (`STEAM_URL` in `src/app/app.ts`), il pulsante della lista dei desideri; la notte
+extra nella demo non c'è (nemmeno con le scorciatoie). Si costruisce dal workflow `build` con `ultima_notte` = 2 e le
+scorciatoie spente. Dal 14 ottobre la demo è **leggera**: a build finita escono i file delle notti dopo la seconda (i
+mostri che arrivano dopo, la Madre della sesta notte, i finali, le schede della notte extra; `scripts/demo.ts`), così
+chi smonta il programma non trova il gioco intero; restano il jumpscare della quota mancata e la musica della Madre, che
+servono già nelle prime notti. **La stessa demo va su itch.io per Halloween** (scelta dell'utente del 14 ottobre), anche
+da giocare nel browser: `itch/LEGGIMI.md`. Il piano dei passi è nella pagina «Splashland su Steam». Tutti gli asset sono generati da script nel repository (`tools/`).
 
 **La pagina Steam** (13 ottobre): le immagini (capsule, libreria, 8 screenshot), scelte e approvate dall'utente (Molly
 che si affaccia dal bordo, col logo al neon), e i testi (descrizioni in italiano e inglese, lingue, requisiti,

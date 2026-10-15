@@ -7,7 +7,7 @@ import { fogLayerKeys, loadLayer } from '../engine/assets.ts';
 import { DISEGNI_ALBA, disegnoAlba, disegniTrovati } from './disegni.ts';
 import { useLangFonts } from './fonts_lingua.ts';
 import type { AudioEngine, Voice } from '../engine/audio.ts';
-import { EXTRA_NIGHT, NIGHTS, extraEndingEarned, extraNight, type MonsterId, type NightConfig } from '../game/config.ts';
+import { ARRIVAL, EXTRA_NIGHT, NIGHTS, extraEndingEarned, extraNight, type MonsterId, type NightConfig } from '../game/config.ts';
 import { STRINGS, localizedImage, type Lang } from '../i18n.ts';
 import { Dive, loadDiveData, type DiveResult } from './dive.ts';
 import { Night, type NightAssets, type NightEnd } from './night.ts';
@@ -111,8 +111,12 @@ export class App {
     useLangFonts(lang);
     this.screens = new Screens(ui, lang);
     // il ritratto del menu principale per questo avvio (uno dei mostri incontrati, diverso dall'ultima volta; al primo
-    // avvio Molly), caricato subito perché sia pronto quando arriva il titolo
-    const who = scegliRitratto(save.seen, save.ritratto);
+    // avvio Molly), caricato subito perché sia pronto quando arriva il titolo. Solo i mostri delle notti di questa
+    // build: la demo non ha i ritratti degli altri (scripts/demo.ts), anche se il salvataggio è del gioco intero
+    const who = scegliRitratto(
+      save.seen.filter((m) => m === 'foxy' || ARRIVAL[m] <= lastNight()),
+      save.ritratto,
+    );
     save.ritratto = who;
     writeSave(save);
     const r = ritrattoSrc(who);
@@ -266,7 +270,12 @@ export class App {
   private extras(): void {
     this.screens.extras({
       onJournal: () =>
-        this.screens.journal(this.save.lore, () => this.extras(), { all: Object.values(DISEGNI_ALBA), found: disegniTrovati(this.save.night) }),
+        // i disegni trovati fino all'ultima notte di questa build: la demo non ha gli altri (scripts/demo.ts), anche se il
+        // salvataggio è del gioco intero
+        this.screens.journal(this.save.lore, () => this.extras(), {
+          all: Object.values(DISEGNI_ALBA),
+          found: disegniTrovati(Math.min(this.save.night, lastNight() + 1)),
+        }),
       onCatalog: () =>
         this.screens.catalog({
           caught: this.save.catalog,

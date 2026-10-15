@@ -1,5 +1,7 @@
 import { execSync } from 'node:child_process';
-import { defineConfig } from 'vite';
+import path from 'node:path';
+import { defineConfig, loadEnv, type Plugin } from 'vite';
+import { alleggerisci } from './scripts/demo.ts';
 
 /** La sigla della build, piccola sul titolo (per sapere quale build si sta provando): il commit e l'ora italiana. */
 function buildId(): string {
@@ -15,9 +17,28 @@ function buildId(): string {
   return `build ${sha.slice(0, 7)} · ${when}`;
 }
 
+/** La demo leggera: con VITE_ULTIMA_NOTTE (la demo: 2), a build finita i file delle notti dopo escono da dist/
+ *  (scripts/demo.ts). */
+function demoLeggera(ultima: number): Plugin {
+  let dist = 'dist';
+  return {
+    name: 'demo-leggera',
+    apply: 'build',
+    configResolved(c) {
+      dist = path.resolve(c.root, c.build.outDir);
+    },
+    closeBundle() {
+      if (!ultima) return;
+      const r = alleggerisci(dist, ultima);
+      console.log(`demo fino alla notte ${ultima}: tolti ${r.file} file delle notti dopo (${(r.byte / 1e6).toFixed(1)} MB)`);
+    },
+  };
+}
+
 // base relativa: la stessa build funziona nel browser, in Electron (file://) e come demo statica.
-export default defineConfig(({ command }) => ({
+export default defineConfig(({ command, mode }) => ({
   base: './',
+  plugins: [demoLeggera(Number(loadEnv(mode, process.cwd(), 'VITE_').VITE_ULTIMA_NOTTE) || 0)],
   define: {
     __BUILD__: JSON.stringify(buildId()),
     // le scorciatoie di prova (src/app/prove.ts): sempre in sviluppo e nei test, nelle build solo con
